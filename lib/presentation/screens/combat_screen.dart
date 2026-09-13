@@ -76,6 +76,8 @@ class _CombatScreenState extends State<CombatScreen>
 
   bool _isGameOverModalVisible = false;
   bool _isVictoryModalVisible = false;
+  bool _isAutoSolving = false;
+  double _solverCooldown = 0.0;
 
   @override
   void initState() {
@@ -158,9 +160,62 @@ class _CombatScreenState extends State<CombatScreen>
       _showVictory();
     }
 
+    // Automatic AI Tactical Solver Step
+    if (_isAutoSolving && !_isGameOverModalVisible && !_isVictoryModalVisible) {
+      _solverCooldown -= clampedDt;
+      if (_solverCooldown <= 0.0 && _dreadnought.isIdle) {
+        _executeSolverStep();
+        _solverCooldown = 1.0;
+      }
+    }
+
     if (mounted) {
       setState(() {});
     }
+  }
+
+  void _executeSolverStep() {
+    if (_dreadnought.reserveCores == 0 || _dreadnought.isCascading) return;
+    if (_showTutorial) {
+      _showTutorial = false;
+    }
+
+    final activeEnemies = _enemies.where((e) => e.worldPosY > 0.15).toList();
+    if (activeEnemies.isEmpty) return;
+
+    final activeCorridors = activeEnemies
+        .map((e) => e.assignedCorridor)
+        .toSet();
+
+    int bestBay = 0;
+    int bestDir = 1;
+    double bestScore = -1.0;
+
+    for (int bay = 0; bay < 16; bay++) {
+      for (final dir in [1, -1]) {
+        final pred = widget.engine.predictSow(bay, dir);
+        double score = 0.0;
+
+        if (pred.triggersLance &&
+            activeCorridors.contains(pred.terminalCorridor)) {
+          score += 1000.0 + pred.predictedDamage;
+        }
+        if (pred.triggersRelay) {
+          score += 500.0 + (pred.totalCascadeLaps * 100.0);
+        }
+        if (pred.terminalBay >= 8) {
+          score += 50.0;
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestBay = bay;
+          bestDir = dir;
+        }
+      }
+    }
+
+    _handleInjectCore(bestBay, bestDir);
   }
 
   void _syncState() {
@@ -267,6 +322,9 @@ class _CombatScreenState extends State<CombatScreen>
                   difficultyTier: widget.difficultyTier,
                   onSettingsTap: _openCodex,
                   onTutorialTap: () => setState(() => _showTutorial = true),
+                  isAutoSolving: _isAutoSolving,
+                  onToggleAutoSolve: () =>
+                      setState(() => _isAutoSolving = !_isAutoSolving),
                 ),
 
                 // Tactical Combat Corridor (Upper Viewport)
@@ -314,6 +372,56 @@ class _CombatScreenState extends State<CombatScreen>
             Positioned.fill(
               child: TutorialOverlay(
                 onDismiss: () => setState(() => _showTutorial = false),
+              ),
+            ),
+
+          // AI Tactical Solver Status Banner
+          if (_isAutoSolving)
+            Positioned(
+              top: 56.0,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14.0,
+                    vertical: 4.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: VoidTheme.cardSurface.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(
+                      color: VoidTheme.crimsonFlare,
+                      width: 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: VoidTheme.crimsonFlare.withValues(alpha: 0.3),
+                        blurRadius: 8.0,
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.smart_toy,
+                        color: VoidTheme.crimsonFlare,
+                        size: 14.0,
+                      ),
+                      SizedBox(width: 6.0),
+                      Text(
+                        'AI TACTICAL SOLVER ACTIVE',
+                        style: TextStyle(
+                          color: VoidTheme.crimsonFlare,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
         ],

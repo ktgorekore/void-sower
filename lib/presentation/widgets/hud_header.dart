@@ -24,6 +24,8 @@ class HudHeader extends StatelessWidget {
     required this.difficultyTier,
     required this.onSettingsTap,
     this.onTutorialTap,
+    this.isAutoSolving = false,
+    this.onToggleAutoSolve,
   });
 
   final int reserveCores;
@@ -31,6 +33,8 @@ class HudHeader extends StatelessWidget {
   final int difficultyTier;
   final VoidCallback onSettingsTap;
   final VoidCallback? onTutorialTap;
+  final bool isAutoSolving;
+  final VoidCallback? onToggleAutoSolve;
 
   String get tierName {
     switch (difficultyTier) {
@@ -119,6 +123,23 @@ class HudHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8.0),
+                if (onToggleAutoSolve != null)
+                  IconButton(
+                    icon: Icon(
+                      isAutoSolving
+                          ? Icons.smart_toy
+                          : Icons.smart_toy_outlined,
+                      color: isAutoSolving
+                          ? VoidTheme.crimsonFlare
+                          : VoidTheme.plasmaCyanLight,
+                      size: 20.0,
+                    ),
+                    onPressed: onToggleAutoSolve,
+                    visualDensity: VisualDensity.compact,
+                    tooltip: isAutoSolving
+                        ? 'Stop AI Tactical Solver'
+                        : 'Launch AI Tactical Solver',
+                  ),
                 if (onTutorialTap != null)
                   IconButton(
                     icon: const Icon(
