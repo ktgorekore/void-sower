@@ -1,0 +1,13 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Void Sower",
+  "sectorMap": "Bassin Nébuleuse de Kilwa",
+  "engage": "ENGAGER",
+  "cores": "NOYAUX",
+  "score": "SCORE",
+  "orbitalBreach": "BRÈCHE ORBITALE",
+  "sectorLiberated": "SECTEUR LIBÉRÉ",
+  "advanceSector": "SECTEUR SUIVANT",
+  "reEngage": "RÉENGAGER",
+  "fleetTelemetry": "TÉLÉMÉTRIE DE FLOTTE"
+}

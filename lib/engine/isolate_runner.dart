@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:void_sower/engine/mock_void_sower_engine.dart';
-import 'package:void_sower/main.dart';
+import 'dart:async';
+import 'dart:isolate';
 
-void main() {
-  testWidgets('VoidSowerApp launches campaign map screen', (
-    WidgetTester tester,
+/// Helper utility for offloading computationally intensive algorithms
+/// (e.g. procedural wave generation and MCTS solvability validation)
+/// to background isolates to guarantee uncompromised 60/120 FPS UI execution.
+class IsolateRunner {
+  /// Executes a computation function [callback] with [message] on a dedicated background isolate.
+  static Future<R> run<M, R>(
+    FutureOr<R> Function(M message) callback,
+    M message,
   ) async {
-    final mockEngine = MockVoidSowerEngine();
-    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
-    await tester.pumpAndSettle();
-
-    expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
-    expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
-    expect(find.text('ENGAGE'), findsWidgets);
-  });
+    return Isolate.run(() => callback(message));
+  }
 }

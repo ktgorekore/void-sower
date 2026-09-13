@@ -53,6 +53,7 @@ set(VOID_SOWER_CORE_SOURCES
   "ecs/systems/spatial_grid.cpp"
   "ecs/systems/combat_system.cpp"
   "ecs/systems/wave_generator.cpp"
+  "ecs/systems/mcts_solver.cpp"
 )
 
 add_library(void_sower SHARED ${VOID_SOWER_CORE_SOURCES})

@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "ecs/engine.h"
+#include "ecs/systems/mcts_solver.h"
 
 namespace void_sower::ecs {
 
@@ -98,6 +99,22 @@ TEST(WaveGeneratorTest, DeterministicSeedInvariance) {
     EXPECT_FLOAT_EQ(enemies1[i].current_shields, enemies2[i].current_shields);
     EXPECT_EQ(enemies1[i].vessel_type, enemies2[i].vessel_type);
   }
+}
+
+TEST(WaveGeneratorTest, MctsSolvabilityInvariant) {
+  Engine engine;
+  WaveGeneratorConfig cfg{
+      .difficulty = EncounterDifficulty::PlanetarySiege,
+      .random_seed = 777,
+      .core_budget = 16,
+  };
+  ASSERT_TRUE(engine.GenerateWave(cfg));
+
+  MctsSolver solver(engine.GetRegistry());
+  auto result = solver.EvaluateSolvability(300, 6);
+  EXPECT_TRUE(result.is_solvable);
+  EXPECT_GT(result.simulated_rollouts, 0);
+  EXPECT_LE(result.optimal_move_count, 16);
 }
 
 }  // namespace void_sower::ecs

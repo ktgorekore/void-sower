@@ -75,6 +75,10 @@ class Engine {
   /// Returns simulation state.
   SimulationState GetSimulationState() const;
 
+  /// Returns reference to registry (for MCTS / testing).
+  entt::registry& GetRegistry() { return registry_; }
+  const entt::registry& GetRegistry() const { return registry_; }
+
   /// Resets the engine.
   void Reset();
 

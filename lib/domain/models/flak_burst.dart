@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:void_sower/engine/mock_void_sower_engine.dart';
-import 'package:void_sower/main.dart';
-
-void main() {
-  testWidgets('VoidSowerApp launches campaign map screen', (
-    WidgetTester tester,
-  ) async {
-    final mockEngine = MockVoidSowerEngine();
-    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
-    await tester.pumpAndSettle();
-
-    expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
-    expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
-    expect(find.text('ENGAGE'), findsWidgets);
+/// State representation of a secondary radial flak explosion.
+class FlakBurst {
+  const FlakBurst({
+    required this.worldPosX,
+    required this.worldPosY,
+    required this.blastRadius,
+    required this.areaDamage,
+    required this.lifetime,
+    required this.remainingLifetime,
+    required this.active,
   });
+
+  final double worldPosX;
+  final double worldPosY;
+  final double blastRadius;
+  final double areaDamage;
+  final double lifetime;
+  final double remainingLifetime;
+  final bool active;
 }

@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:void_sower/engine/mock_void_sower_engine.dart';
-import 'package:void_sower/main.dart';
-
-void main() {
-  testWidgets('VoidSowerApp launches campaign map screen', (
-    WidgetTester tester,
-  ) async {
-    final mockEngine = MockVoidSowerEngine();
-    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
-    await tester.pumpAndSettle();
-
-    expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
-    expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
-    expect(find.text('ENGAGE'), findsWidgets);
+/// Dry-run predictive targeting telemetry.
+class PredictionResult {
+  const PredictionResult({
+    required this.terminalBay,
+    required this.terminalCorridor,
+    required this.finalMass,
+    required this.predictedDamage,
+    required this.totalCascadeLaps,
+    required this.triggersLance,
+    required this.triggersRelay,
   });
+
+  final int terminalBay;
+  final int terminalCorridor;
+  final int finalMass;
+  final double predictedDamage;
+  final int totalCascadeLaps;
+  final bool triggersLance;
+  final bool triggersRelay;
 }

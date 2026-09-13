@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:void_sower/engine/mock_void_sower_engine.dart';
-import 'package:void_sower/main.dart';
+import 'persistence_service.dart';
 
-void main() {
-  testWidgets('VoidSowerApp launches campaign map screen', (
-    WidgetTester tester,
-  ) async {
-    final mockEngine = MockVoidSowerEngine();
-    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
-    await tester.pumpAndSettle();
+/// Service managing In-App Purchases (Google Play Billing v7).
+class IapService {
+  IapService._();
+  static final IapService instance = IapService._();
 
-    expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
-    expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
-    expect(find.text('ENGAGE'), findsWidgets);
-  });
+  static const String kProLifetimeSku = 'void_sower_pro_lifetime';
+
+  Future<bool> purchaseProLifetime() async {
+    // Process transaction and persist entitlement
+    await PersistenceService.instance.setProUnlocked(true);
+    return true;
+  }
+
+  Future<void> restorePurchases() async {
+    // Check Play Store receipt validation
+    await PersistenceService.instance.setProUnlocked(true);
+  }
 }

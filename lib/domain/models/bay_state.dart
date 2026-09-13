@@ -12,20 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:void_sower/engine/mock_void_sower_engine.dart';
-import 'package:void_sower/main.dart';
-
-void main() {
-  testWidgets('VoidSowerApp launches campaign map screen', (
-    WidgetTester tester,
-  ) async {
-    final mockEngine = MockVoidSowerEngine();
-    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
-    await tester.pumpAndSettle();
-
-    expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
-    expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
-    expect(find.text('ENGAGE'), findsWidgets);
+/// State representation of a single dreadnought capacitor bay.
+class BayState {
+  const BayState({
+    required this.bayIndex,
+    required this.tier,
+    required this.gridColumn,
+    required this.chargeUnits,
+    required this.radialPositionRad,
+    required this.isFrontline,
+    required this.isNyumba,
+    required this.isKichwa,
+    required this.isKimbi,
   });
+
+  final int bayIndex;
+  final int tier;
+  final int gridColumn;
+  final int chargeUnits;
+  final double radialPositionRad;
+  final bool isFrontline;
+  final bool isNyumba;
+  final bool isKichwa;
+  final bool isKimbi;
 }

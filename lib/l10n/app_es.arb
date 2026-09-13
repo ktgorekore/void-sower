@@ -1,0 +1,13 @@
+{
+  "@@locale": "es",
+  "appTitle": "Void Sower",
+  "sectorMap": "Cuenca Nebulosa de Kilwa",
+  "engage": "ATACAR",
+  "cores": "NÚCLEOS",
+  "score": "PUNTOS",
+  "orbitalBreach": "BRECHA ORBITAL",
+  "sectorLiberated": "SECTOR LIBERADO",
+  "advanceSector": "SIGUIENTE SECTOR",
+  "reEngage": "REINTENTAR",
+  "fleetTelemetry": "TELEMETRÍA DE FLOTA"
+}

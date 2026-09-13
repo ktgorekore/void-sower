@@ -40,3 +40,9 @@ flutter:
   assets:
     - assets/audio/
     - assets/icons/
+  shaders:
+    - shaders/particle_lance.frag
+    - shaders/flak_burst.frag
+    - shaders/plasma_capacitor.frag
+    - shaders/atmospheric_siphon.frag
+

@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "appTitle": "Void Sower",
+  "sectorMap": "Kilwa Nebula Basin",
+  "engage": "ENGAGE",
+  "cores": "CORES",
+  "score": "SCORE",
+  "orbitalBreach": "ORBITAL BREACH",
+  "sectorLiberated": "SECTOR LIBERATED",
+  "advanceSector": "ADVANCE SECTOR",
+  "reEngage": "RE-ENGAGE",
+  "fleetTelemetry": "FLEET TELEMETRY"
+}
