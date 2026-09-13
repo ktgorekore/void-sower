@@ -1,0 +1,39 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter/Dart/Pub related
+/pubspec.lock
+**/doc/api/
+.dart_tool/
+.flutter-plugins-dependencies
+build/
+**/build/
+.gradle/
+**/.gradle/
+/build_native/
+/src/build/
+/coverage/
+.agents/tmp/
+*.jks
+*.keystore
+key.properties
+keystore_secrets.txt
+*crash_log*.txt
+Testing/

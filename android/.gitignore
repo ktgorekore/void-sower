@@ -1,0 +1,13 @@
+*.iml
+.gradle
+/local.properties
+/key.properties
+/keystore_secrets.txt
+*.jks
+*.keystore
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.cxx
