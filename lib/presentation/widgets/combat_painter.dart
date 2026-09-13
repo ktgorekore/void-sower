@@ -74,9 +74,11 @@ class CombatPainter extends CustomPainter {
       final corridor = lance.firingBayIndex < 8
           ? lance.firingBayIndex
           : 15 - lance.firingBayIndex;
-      final centerX =
-          (corridor + 0.5) * corridorWidth + dreadnought.orbitalPositionX;
-      final beamW = math.max(lance.beamWidth, 8.0);
+      final centerX = (corridor + 0.5) * corridorWidth;
+      final rawWidth = lance.beamWidth <= 1.0
+          ? (lance.beamWidth * size.width)
+          : lance.beamWidth;
+      final beamW = math.max(rawWidth, 8.0);
 
       // Lance outer glow
       final glowPaint = Paint()
@@ -109,11 +111,15 @@ class CombatPainter extends CustomPainter {
     }
 
     // 4. Draw Active Secondary Flak Bursts
+    final topMargin = size.height * 0.06;
     for (final flak in flaks) {
       if (!flak.active) continue;
       final progress =
           1.0 - (flak.remainingLifetime / math.max(flak.lifetime, 0.01));
-      final radius = flak.blastRadius * progress;
+      final rawRadius = flak.blastRadius <= 1.0
+          ? (flak.blastRadius * size.width)
+          : flak.blastRadius;
+      final radius = rawRadius * progress;
       final alpha = (1.0 - progress).clamp(0.0, 1.0);
 
       final flakPaint = Paint()
@@ -121,18 +127,29 @@ class CombatPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3.0 * (1.0 - progress);
 
-      canvas.drawCircle(
-        Offset(flak.worldPosX + (size.width / 2), flak.worldPosY),
-        radius,
-        flakPaint,
-      );
+      final flakX = flak.worldPosX <= 1.0
+          ? flak.worldPosX * size.width
+          : flak.worldPosX;
+      final flakY = flak.worldPosY <= 1.0
+          ? topMargin +
+                ((1.0 - flak.worldPosY.clamp(0.0, 1.0)) / 0.85) *
+                    (boundaryY - topMargin)
+          : flak.worldPosY;
+
+      canvas.drawCircle(Offset(flakX, flakY), radius, flakPaint);
     }
 
     // 5. Draw Enemy Assault Craft
     for (final enemy in enemies) {
       if (enemy.isDestroyed) continue;
       final x = (enemy.assignedCorridor + 0.5) * corridorWidth;
-      final y = enemy.worldPosY;
+      final double y;
+      if (enemy.worldPosY <= 1.0) {
+        final normY = enemy.worldPosY.clamp(0.0, 1.0);
+        y = topMargin + ((1.0 - normY) / 0.85) * (boundaryY - topMargin);
+      } else {
+        y = enemy.worldPosY;
+      }
 
       if (y < -50 || y > size.height) continue;
 
@@ -217,7 +234,12 @@ class CombatPainter extends CustomPainter {
   }
 
   void _drawDreadnoughtPlatform(Canvas canvas, Size size, double boundaryY) {
-    final centerX = (size.width / 2) + dreadnought.orbitalPositionX;
+    final dreadNormX =
+        (dreadnought.orbitalPositionX > 0.0 &&
+            dreadnought.orbitalPositionX <= 1.0)
+        ? dreadnought.orbitalPositionX
+        : 0.5;
+    final centerX = dreadNormX * size.width;
     final platformW = size.width * 0.85;
 
     // Platform glow arc

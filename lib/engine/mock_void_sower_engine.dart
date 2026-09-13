@@ -47,11 +47,11 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
-  void initialize({int startingCores = 32, double boundaryY = 800.0}) {
+  void initialize({int startingCores = 32, double boundaryY = 0.15}) {
     _reserveCores = startingCores;
     _boundaryY = boundaryY;
-    _orbitalX = 0.0;
-    _targetX = 0.0;
+    _orbitalX = 0.5;
+    _targetX = 0.5;
     _score = 0;
     _coresUsed = 0;
     _simState = 0;
@@ -67,19 +67,20 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     int difficulty = 0,
     int randomSeed = 42,
     int coreBudget = 16,
-    double initialVelocityY = 15.0,
+    double initialVelocityY = 0.025,
   }) {
     _enemies.clear();
     final count = (difficulty + 1) * 4;
+    final speed = initialVelocityY <= 1.0 ? initialVelocityY : 0.025;
     for (var i = 0; i < count; i++) {
       final corridor = i % 8;
       _enemies.add(
         EnemyCraft(
           entityId: i + 1,
           assignedCorridor: corridor,
-          worldPosX: (corridor - 3.5) * 60.0,
-          worldPosY: -100.0 - (i * 50.0),
-          velocityY: initialVelocityY,
+          worldPosX: (corridor + 0.5) / 8.0,
+          worldPosY: 0.90 - (i * 0.05),
+          velocityY: speed,
           currentShields: 50.0 + (difficulty * 25.0),
           maxShields: 50.0 + (difficulty * 25.0),
           currentHull: 100.0,
@@ -114,12 +115,14 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     final isFrontline = currentBay < 8;
 
     if (isFrontline && finalMass >= 4) {
+      final corridor = currentBay < 8 ? currentBay : 15 - currentBay;
+      final lanceX = (corridor + 0.5) / 8.0;
       _lances.add(
         LanceBeam(
           firingBayIndex: currentBay,
-          originX: (currentBay - 3.5) * 40.0,
-          originY: 0.0,
-          beamWidth: 12.0 + (finalMass * 2.0),
+          originX: lanceX,
+          originY: _boundaryY,
+          beamWidth: 0.04 + (finalMass * 0.015),
           sustainedDuration: 0.5,
           remainingDuration: 0.5,
           totalDamage: finalMass * finalMass * 15.0,
@@ -150,8 +153,8 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       final e = _enemies[i];
       if (e.isDestroyed) continue;
 
-      final newY = e.worldPosY + (e.velocityY * deltaTime);
-      if (newY >= _boundaryY) {
+      final newY = e.worldPosY - (e.velocityY * deltaTime);
+      if (newY <= _boundaryY) {
         _simState = 8; // GameOver
       }
 
@@ -162,7 +165,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
       for (final l in _lances) {
         if (!l.active) continue;
-        if ((e.worldPosX - l.originX).abs() < (l.beamWidth + 20.0)) {
+        if ((e.worldPosX - l.originX).abs() < 0.08) {
           final dmg = l.totalDamage * deltaTime * 2.0;
           if (shields > 0) {
             shields = (shields - dmg).clamp(0.0, e.maxShields);
@@ -175,7 +178,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
               FlakBurst(
                 worldPosX: e.worldPosX,
                 worldPosY: e.worldPosY,
-                blastRadius: 40.0,
+                blastRadius: 0.15,
                 areaDamage: 50.0,
                 lifetime: 0.4,
                 remainingLifetime: 0.4,

@@ -50,7 +50,8 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
         maxWidth / 3,
       );
     });
-    widget.onSlidePosition(_sliderOffset);
+    final normalizedX = (0.5 + (_sliderOffset / maxWidth)).clamp(0.0, 1.0);
+    widget.onSlidePosition(normalizedX);
   }
 
   @override
@@ -166,24 +167,25 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
           HapticService.instance.sowTick();
           widget.onBaySelected(bay.bayIndex);
         },
-        onHorizontalDragEnd: (details) {
-          final velocity = details.primaryVelocity ?? 0;
-          if (velocity > 150) {
-            // Swipe right = Clockwise (+1)
-            HapticService.instance.sowTick();
-            widget.onSowAction(bay.bayIndex, 1);
-          } else if (velocity < -150) {
-            // Swipe left = Counter-Clockwise (-1)
-            HapticService.instance.sowTick();
-            widget.onSowAction(bay.bayIndex, -1);
-          }
+        onDoubleTap: () {
+          HapticService.instance.injectionClick();
+          widget.onInjectCore(bay.bayIndex, 1);
         },
-        onVerticalDragEnd: (details) {
-          final velocity = details.primaryVelocity ?? 0;
-          if (velocity < -150) {
+        onPanEnd: (details) {
+          final vx = details.velocity.pixelsPerSecond.dx;
+          final vy = details.velocity.pixelsPerSecond.dy;
+          if (vy < -120 && vy.abs() > vx.abs()) {
             // Upward flick = Core Injection (namua)
             HapticService.instance.injectionClick();
             widget.onInjectCore(bay.bayIndex, 1);
+          } else if (vx > 100) {
+            // Swipe right = Clockwise (+1)
+            HapticService.instance.sowTick();
+            widget.onSowAction(bay.bayIndex, 1);
+          } else if (vx < -100) {
+            // Swipe left = Counter-Clockwise (-1)
+            HapticService.instance.sowTick();
+            widget.onSowAction(bay.bayIndex, -1);
           }
         },
         child: Container(

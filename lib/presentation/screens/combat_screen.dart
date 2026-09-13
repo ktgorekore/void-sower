@@ -80,12 +80,12 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _startCombat() {
-    widget.engine.initialize(startingCores: 28, boundaryY: 600.0);
+    widget.engine.initialize(startingCores: 28, boundaryY: 0.15);
     widget.engine.generateWave(
       difficulty: widget.difficultyTier,
       randomSeed: DateTime.now().millisecondsSinceEpoch % 100000,
       coreBudget: 16 + (widget.difficultyTier * 4),
-      initialVelocityY: 18.0 + (widget.difficultyTier * 6.0),
+      initialVelocityY: 0.02 + (widget.difficultyTier * 0.008),
     );
     _syncState();
   }
