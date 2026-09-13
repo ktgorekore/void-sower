@@ -72,22 +72,47 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Gesture Guide Bar
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.touch_app,
+                      size: 12.0,
+                      color: VoidTheme.plasmaCyan,
+                    ),
+                    const SizedBox(width: 4.0),
+                    Text(
+                      'TAP: SELECT  •  SWIPE: SOW  •  FLICK ▲: INJECT',
+                      style: TextStyle(
+                        color: VoidTheme.textSecondary.withValues(alpha: 0.8),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
               // Frontline Tier (Bays 0 to 7)
               _buildBayRow(frontlineBays, isFrontline: true),
-              const SizedBox(height: 8.0),
+              const SizedBox(height: 6.0),
 
               // Backline Tier (Bays 8 to 15)
               _buildBayRow(backlineBays, isFrontline: false),
-              const SizedBox(height: 12.0),
+              const SizedBox(height: 10.0),
 
               // Horizontal Lateral Orbital Platform Slider
               GestureDetector(
                 onPanUpdate: (d) => _handlePanUpdate(d, constraints.maxWidth),
                 child: Container(
-                  height: 36.0,
+                  height: 38.0,
                   decoration: BoxDecoration(
                     color: VoidTheme.cardSurface,
-                    borderRadius: BorderRadius.circular(18.0),
+                    borderRadius: BorderRadius.circular(19.0),
                     border: Border.all(
                       color: VoidTheme.textMuted.withValues(alpha: 0.5),
                     ),
@@ -95,36 +120,56 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      const Text(
-                        '◀ SLIDE TO PAN DREADNOUGHT ▶',
-                        style: TextStyle(
-                          color: VoidTheme.textSecondary,
-                          fontSize: 10.0,
-                          letterSpacing: 1.0,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      // Corridor Grid Notches
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: List.generate(8, (i) {
+                          return Text(
+                            'C${i + 1}',
+                            style: TextStyle(
+                              color: VoidTheme.textMuted.withValues(alpha: 0.6),
+                              fontSize: 9.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        }),
                       ),
                       Transform.translate(
                         offset: Offset(_sliderOffset, 0),
                         child: Container(
-                          width: 54.0,
-                          height: 28.0,
+                          width: 58.0,
+                          height: 30.0,
                           decoration: BoxDecoration(
                             color: VoidTheme.solarGold,
-                            borderRadius: BorderRadius.circular(14.0),
+                            borderRadius: BorderRadius.circular(15.0),
                             boxShadow: [
                               BoxShadow(
                                 color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.4,
+                                  alpha: 0.45,
                                 ),
-                                blurRadius: 8.0,
+                                blurRadius: 10.0,
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.drag_handle,
-                            color: VoidTheme.obsidianBlack,
-                            size: 18.0,
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chevron_left,
+                                color: VoidTheme.obsidianBlack,
+                                size: 14.0,
+                              ),
+                              Icon(
+                                Icons.rocket,
+                                color: VoidTheme.obsidianBlack,
+                                size: 16.0,
+                              ),
+                              Icon(
+                                Icons.chevron_right,
+                                color: VoidTheme.obsidianBlack,
+                                size: 14.0,
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -150,14 +195,19 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
     final isSelected = widget.selectedBay == bay.bayIndex;
 
     Color borderColor = VoidTheme.textMuted.withValues(alpha: 0.4);
+    Color bayGlow = Colors.transparent;
     if (isSelected) {
       borderColor = VoidTheme.plasmaCyan;
+      bayGlow = VoidTheme.plasmaCyan.withValues(alpha: 0.3);
     } else if (bay.isNyumba) {
       borderColor = VoidTheme.solarGold;
+      bayGlow = VoidTheme.solarGold.withValues(alpha: 0.15);
     } else if (bay.isKichwa) {
       borderColor = VoidTheme.nebulaAmethyst;
+      bayGlow = VoidTheme.nebulaAmethyst.withValues(alpha: 0.15);
     } else if (bay.isKimbi) {
-      borderColor = Colors.tealAccent;
+      borderColor = VoidTheme.emeraldShield;
+      bayGlow = VoidTheme.emeraldShield.withValues(alpha: 0.15);
     }
 
     return Expanded(
@@ -189,12 +239,14 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
           }
         },
         child: Container(
-          height: 52.0,
-          margin: const EdgeInsets.symmetric(horizontal: 2.0),
+          height: 56.0,
+          margin: const EdgeInsets.symmetric(horizontal: 1.5),
           decoration: BoxDecoration(
             color: isSelected
-                ? VoidTheme.plasmaCyan.withValues(alpha: 0.2)
-                : VoidTheme.cardSurface,
+                ? VoidTheme.plasmaCyan.withValues(alpha: 0.22)
+                : (bayGlow != Colors.transparent
+                      ? bayGlow
+                      : VoidTheme.cardSurface),
             borderRadius: BorderRadius.circular(6.0),
             border: Border.all(
               color: borderColor,
@@ -234,9 +286,17 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         fontSize: 8.0,
                       ),
                     ),
+                  if (bay.isKimbi)
+                    const Text(
+                      '▲',
+                      style: TextStyle(
+                        color: VoidTheme.emeraldShield,
+                        fontSize: 8.0,
+                      ),
+                    ),
                 ],
               ),
-              const SizedBox(height: 2.0),
+              const SizedBox(height: 1.0),
 
               // Accumulated Plasma Units (M)
               Text(
@@ -247,10 +307,30 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                             ? VoidTheme.plasmaCyan
                             : VoidTheme.solarGold)
                       : VoidTheme.textPrimary,
-                  fontSize: 15.0,
+                  fontSize: 14.0,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
+              // Concentric Charge Pips (Up to 4 pips)
+              if (bay.chargeUnits > 0)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    bay.chargeUnits.clamp(1, 4),
+                    (i) => Container(
+                      width: 3.5,
+                      height: 3.5,
+                      margin: const EdgeInsets.symmetric(horizontal: 0.6),
+                      decoration: BoxDecoration(
+                        color: bay.chargeUnits >= 4
+                            ? VoidTheme.plasmaCyan
+                            : VoidTheme.solarGold,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

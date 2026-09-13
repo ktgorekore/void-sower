@@ -14,6 +14,7 @@
 
 import 'package:flutter/material.dart';
 import '../theme/void_theme.dart';
+import 'tactile_button.dart';
 
 /// Modal overlay presented when enemy vessels breach the orbital boundary.
 class GameOverDialog extends StatelessWidget {
@@ -70,7 +71,7 @@ class GameOverDialog extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(color: VoidTheme.textSecondary, fontSize: 13.0),
             ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 14.0),
             Text(
               'FINAL SCORE: $score',
               style: const TextStyle(
@@ -80,30 +81,58 @@ class GameOverDialog extends StatelessWidget {
                 letterSpacing: 1.0,
               ),
             ),
-            const SizedBox(height: 24.0),
+            const SizedBox(height: 16.0),
+            Container(
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: VoidTheme.cardSurface.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(
+                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.3),
+                  width: 1.0,
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.lightbulb_outline,
+                    color: VoidTheme.solarGold,
+                    size: 18.0,
+                  ),
+                  SizedBox(width: 8.0),
+                  Expanded(
+                    child: Text(
+                      'TACTICAL TIP: Sowing into Nyumba (Bays 3 & 4) retains charges for a massive quadratic overload.',
+                      style: TextStyle(
+                        color: VoidTheme.textSecondary,
+                        fontSize: 11.0,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22.0),
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: VoidTheme.textSecondary,
-                      side: const BorderSide(color: VoidTheme.textMuted),
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    ),
+                  child: TactileButton(
+                    label: 'SECTOR MAP',
                     onPressed: onReturnToMap,
-                    child: const Text('SECTOR MAP'),
+                    accentColor: VoidTheme.textSecondary,
+                    isPrimary: false,
+                    height: 44.0,
                   ),
                 ),
                 const SizedBox(width: 12.0),
                 Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: VoidTheme.crimsonFlare,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    ),
+                  child: TactileButton(
+                    label: 'TRY AGAIN',
+                    icon: Icons.refresh,
                     onPressed: onRetry,
-                    child: const Text('RE-ENGAGE'),
+                    accentColor: VoidTheme.crimsonFlare,
+                    height: 44.0,
                   ),
                 ),
               ],

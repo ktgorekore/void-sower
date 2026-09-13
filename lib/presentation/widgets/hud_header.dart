@@ -23,12 +23,14 @@ class HudHeader extends StatelessWidget {
     required this.score,
     required this.difficultyTier,
     required this.onSettingsTap,
+    this.onTutorialTap,
   });
 
   final int reserveCores;
   final int score;
   final int difficultyTier;
   final VoidCallback onSettingsTap;
+  final VoidCallback? onTutorialTap;
 
   String get tierName {
     switch (difficultyTier) {
@@ -104,7 +106,7 @@ class HudHeader extends StatelessWidget {
               ),
             ),
 
-            // Score & Settings
+            // Score & Actions
             Row(
               children: [
                 Text(
@@ -116,15 +118,27 @@ class HudHeader extends StatelessWidget {
                     letterSpacing: 1.0,
                   ),
                 ),
-                const SizedBox(width: 12.0),
+                const SizedBox(width: 8.0),
+                if (onTutorialTap != null)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.help_outline,
+                      color: VoidTheme.solarGold,
+                      size: 20.0,
+                    ),
+                    onPressed: onTutorialTap,
+                    visualDensity: VisualDensity.compact,
+                    tooltip: 'Flight Academy',
+                  ),
                 IconButton(
                   icon: const Icon(
-                    Icons.settings,
-                    color: VoidTheme.textSecondary,
+                    Icons.menu_book,
+                    color: VoidTheme.plasmaCyan,
                     size: 20.0,
                   ),
                   onPressed: onSettingsTap,
                   visualDensity: VisualDensity.compact,
+                  tooltip: 'Bao Codex',
                 ),
               ],
             ),

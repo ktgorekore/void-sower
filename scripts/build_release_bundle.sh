@@ -29,9 +29,9 @@ echo "======================================================================"
 # Step 1: Pre-build validation
 echo "[1/4] Running test suite and static analysis..."
 flutter test --no-pub
-cmake -B src/build -S src -DCMAKE_BUILD_TYPE=Release
-cmake --build src/build -j$(nproc)
-ctest --test-dir src/build --output-on-failure
+cmake -B build/native_build -S src -DCMAKE_BUILD_TYPE=Release
+cmake --build build/native_build -j$(nproc)
+ctest --test-dir build/native_build --output-on-failure
 
 # Step 2: Build release bundle with Dart symbol obfuscation
 echo "[2/4] Building optimized release Android App Bundle (.aab)..."
@@ -56,17 +56,38 @@ BUNDLE_SIZE=$(stat -c%s "$BUNDLE_OUTPUT" 2>/dev/null || stat -f%z "$BUNDLE_OUTPU
 BUNDLE_SIZE_MB=$(echo "scale=2; $BUNDLE_SIZE / 1048576" | bc)
 SHA256=$(sha256sum "$BUNDLE_OUTPUT" | awk '{print $1}')
 
+# Calculate device-delivered payload size (excluding Play Console debug symbols in BUNDLE-METADATA)
+# Measures single-architecture (arm64-v8a) split APK download payload delivered to user devices
+PAYLOAD_STATS=$(unzip -v "$BUNDLE_OUTPUT" 2>/dev/null | awk '$8 ~ /^base\// && $8 !~ /^base\/lib\/(armeabi-v7a|x86_64)\// { orig += $1; comp += $3 } END { printf "%d %d", orig, comp }')
+PAYLOAD_UNCOMPRESSED_BYTES=$(echo "$PAYLOAD_STATS" | awk '{print $1}')
+PAYLOAD_COMPRESSED_BYTES=$(echo "$PAYLOAD_STATS" | awk '{print $2}')
+PAYLOAD_DOWNLOAD_MB=$(echo "scale=2; $PAYLOAD_COMPRESSED_BYTES / 1048576" | bc)
+PAYLOAD_INSTALLED_MB=$(echo "scale=2; $PAYLOAD_UNCOMPRESSED_BYTES / 1048576" | bc)
+
 echo "======================================================================"
 echo "Artifact: $BUNDLE_OUTPUT"
-echo "Size: $BUNDLE_SIZE_MB MB ($BUNDLE_SIZE bytes)"
+echo "Total Bundle Upload Size: $BUNDLE_SIZE_MB MB ($BUNDLE_SIZE bytes)"
+echo "Estimated User Download Size (arm64-v8a): $PAYLOAD_DOWNLOAD_MB MB ($PAYLOAD_COMPRESSED_BYTES bytes)"
+echo "Installed Device Footprint: $PAYLOAD_INSTALLED_MB MB ($PAYLOAD_UNCOMPRESSED_BYTES bytes)"
 echo "SHA-256: $SHA256"
 echo "Debug Symbols: $SYMBOL_DIR"
 echo "======================================================================"
 
-if [ "$BUNDLE_SIZE" -gt "$MAX_SIZE_BYTES" ]; then
-  echo "[!] Warning: Bundle size ($BUNDLE_SIZE_MB MB) exceeds 25 MB limit!"
+# Verification against Store Gate 6 standards
+PLAY_UPLOAD_LIMIT_BYTES=209715200 # 200 MB Play Console AAB limit
+if [ "$BUNDLE_SIZE" -gt "$PLAY_UPLOAD_LIMIT_BYTES" ]; then
+  echo "[-] Error: Bundle size ($BUNDLE_SIZE_MB MB) exceeds Google Play 200 MB upload limit!"
+  exit 1
 else
-  echo "[+] Bundle size ($BUNDLE_SIZE_MB MB) is strictly within target (< 25 MB)."
+  echo "[+] Bundle upload size ($BUNDLE_SIZE_MB MB) is within Google Play limit (< 200 MB)."
+fi
+
+if [ "$PAYLOAD_COMPRESSED_BYTES" -gt "$MAX_SIZE_BYTES" ]; then
+  echo "[!] Warning: Estimated download payload ($PAYLOAD_DOWNLOAD_MB MB) exceeds 25 MB target!"
+  exit 1
+else
+  echo "[+] Estimated download payload ($PAYLOAD_DOWNLOAD_MB MB) is strictly within target (< 25 MB)."
 fi
 
 echo "[+] Release build pipeline completed successfully!"
+

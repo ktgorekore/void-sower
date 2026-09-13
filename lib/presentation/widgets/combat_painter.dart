@@ -22,6 +22,32 @@ import '../../domain/models/lance_beam.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
 
+/// Arcade floating damage number drifting upward on impacts.
+class FloatingDamageNumber {
+  FloatingDamageNumber({
+    required this.text,
+    required this.x,
+    required this.y,
+    required this.color,
+    this.lifetime = 0.75,
+    this.isCritical = false,
+  }) : remainingLifetime = lifetime;
+
+  final String text;
+  final double x;
+  double y;
+  final Color color;
+  final double lifetime;
+  double remainingLifetime;
+  final bool isCritical;
+
+  bool update(double dt) {
+    remainingLifetime -= dt;
+    y -= 50.0 * dt;
+    return remainingLifetime > 0.0;
+  }
+}
+
 /// 60 FPS CustomPainter rendering combat corridors, particle lances,
 /// secondary flak bursts, enemy vessels, and particle systems.
 class CombatPainter extends CustomPainter {
@@ -31,6 +57,7 @@ class CombatPainter extends CustomPainter {
     required this.lances,
     required this.flaks,
     required this.particles,
+    this.damageNumbers = const [],
     required this.animationTime,
   });
 
@@ -39,6 +66,7 @@ class CombatPainter extends CustomPainter {
   final List<LanceBeam> lances;
   final List<FlakBurst> flaks;
   final List<VisualParticle> particles;
+  final List<FloatingDamageNumber> damageNumbers;
   final double animationTime;
 
   @override
@@ -166,6 +194,30 @@ class CombatPainter extends CustomPainter {
 
     // 7. Draw Dreadnought Flagship Platform on Horizon
     _drawDreadnoughtPlatform(canvas, size, boundaryY);
+
+    // 8. Draw Floating Arcade Damage Numbers
+    for (final num in damageNumbers) {
+      final alpha = (num.remainingLifetime / num.lifetime).clamp(0.0, 1.0);
+      final textSpan = TextSpan(
+        text: num.text,
+        style: TextStyle(
+          color: num.color.withValues(alpha: alpha),
+          fontSize: num.isCritical ? 15.0 : 12.0,
+          fontWeight: FontWeight.bold,
+          shadows: [
+            Shadow(
+              color: VoidTheme.obsidianBlack.withValues(alpha: alpha),
+              blurRadius: 4.0,
+            ),
+          ],
+        ),
+      );
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      )..layout();
+      textPainter.paint(canvas, Offset(num.x - (textPainter.width / 2), num.y));
+    }
   }
 
   void _drawEnemyVessel(

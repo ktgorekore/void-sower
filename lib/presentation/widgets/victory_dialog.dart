@@ -14,6 +14,7 @@
 
 import 'package:flutter/material.dart';
 import '../theme/void_theme.dart';
+import 'tactile_button.dart';
 
 /// Modal overlay presented upon neutralizing all assault craft in a sector wave.
 class VictoryDialog extends StatelessWidget {
@@ -72,6 +73,23 @@ class VictoryDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16.0),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (i) {
+                final earned =
+                    i <
+                    (coresRemaining >= 16 ? 3 : (coresRemaining >= 8 ? 2 : 1));
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: Icon(
+                    earned ? Icons.star : Icons.star_border,
+                    color: VoidTheme.solarGold,
+                    size: 32.0,
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 16.0),
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _buildStatColumn('SCORE', '$score', VoidTheme.textPrimary),
@@ -83,23 +101,13 @@ class VictoryDialog extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 24.0),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: VoidTheme.solarGold,
-                  foregroundColor: VoidTheme.obsidianBlack,
-                  padding: const EdgeInsets.symmetric(vertical: 14.0),
-                ),
-                onPressed: onNextSector,
-                child: const Text(
-                  'ADVANCE SECTOR',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-              ),
+            TactileButton(
+              label: 'ADVANCE SECTOR',
+              icon: Icons.navigate_next,
+              onPressed: onNextSector,
+              accentColor: VoidTheme.solarGold,
+              minWidth: double.infinity,
+              height: 48.0,
             ),
           ],
         ),

@@ -27,10 +27,54 @@ class VoidTheme {
   static const Color plasmaCyanLight = Color(0xFF84FFFF);
   static const Color crimsonFlare = Color(0xFFFF1744);
   static const Color nebulaAmethyst = Color(0xFF7C4DFF);
+  static const Color emeraldShield = Color(0xFF00FFA3);
 
   static const Color textPrimary = Color(0xFFF0F4FC);
   static const Color textSecondary = Color(0xFF90A0C0);
   static const Color textMuted = Color(0xFF5A6882);
+
+  /// Glassmorphic frosted-glass box decoration with subtle neon border glow.
+  static BoxDecoration glassmorphic({
+    Color borderColor = cardSurface,
+    double borderWidth = 1.0,
+    double borderRadius = 12.0,
+    double opacity = 0.85,
+    List<BoxShadow>? extraShadows,
+  }) {
+    return BoxDecoration(
+      color: cardSurface.withValues(alpha: opacity),
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(color: borderColor, width: borderWidth),
+      boxShadow: [
+        BoxShadow(
+          color: obsidianBlack.withValues(alpha: 0.6),
+          blurRadius: 12.0,
+          offset: const Offset(0, 4),
+        ),
+        ...?extraShadows,
+      ],
+    );
+  }
+
+  /// Neon glowing box decoration for active tactical indicators and buttons.
+  static BoxDecoration neonGlow({
+    required Color color,
+    double blur = 10.0,
+    double borderRadius = 8.0,
+  }) {
+    return BoxDecoration(
+      color: color.withValues(alpha: 0.15),
+      borderRadius: BorderRadius.circular(borderRadius),
+      border: Border.all(color: color, width: 1.5),
+      boxShadow: [
+        BoxShadow(
+          color: color.withValues(alpha: 0.35),
+          blurRadius: blur,
+          spreadRadius: 1.0,
+        ),
+      ],
+    );
+  }
 
   static ThemeData get darkTheme {
     return ThemeData(

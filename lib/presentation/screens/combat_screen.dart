@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -26,11 +27,13 @@ import '../services/audio_service.dart';
 import '../services/haptic_service.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
+import '../widgets/bao_codex_dialog.dart';
 import '../widgets/combat_painter.dart';
 import '../widgets/command_arc_widget.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/hud_header.dart';
 import '../widgets/projection_shelf.dart';
+import '../widgets/tutorial_overlay.dart';
 import '../widgets/victory_dialog.dart';
 
 /// Primary Combat Viewport coordinating 60 Hz simulation, rendering, and one-thumb controls.
@@ -57,6 +60,10 @@ class _CombatScreenState extends State<CombatScreen>
   double _animationTime = 0.0;
 
   final ParticleService _particleService = ParticleService(maxParticles: 300);
+  final List<FloatingDamageNumber> _damageNumbers = [];
+  final math.Random _random = math.Random();
+  Offset _screenShake = Offset.zero;
+  bool _showTutorial = false;
 
   int? _selectedBay;
   PredictionResult? _prediction;
@@ -73,6 +80,7 @@ class _CombatScreenState extends State<CombatScreen>
   @override
   void initState() {
     super.initState();
+    _showTutorial = widget.difficultyTier == 0;
     _startCombat();
 
     _ticker = createTicker(_onTick);
@@ -103,8 +111,41 @@ class _CombatScreenState extends State<CombatScreen>
     widget.engine.stepSimulation(clampedDt);
     _particleService.update(clampedDt);
 
+    // Update floating arcade damage numbers
+    _damageNumbers.removeWhere((d) => !d.update(clampedDt));
+
+    // Screen shake damping
+    if (_screenShake != Offset.zero) {
+      _screenShake = Offset(_screenShake.dx * 0.82, _screenShake.dy * 0.82);
+      if (_screenShake.distance < 0.2) _screenShake = Offset.zero;
+    }
+
     // Sync entities
     _syncState();
+
+    // Spawn damage numbers and camera shake when lances fire
+    for (final lance in _lances) {
+      if (lance.active) {
+        _screenShake = Offset(
+          (_random.nextDouble() - 0.5) * 5.5,
+          (_random.nextDouble() - 0.5) * 5.5,
+        );
+        if (_damageNumbers.length < 5 && _random.nextDouble() < 0.25) {
+          final corridor = lance.firingBayIndex < 8
+              ? lance.firingBayIndex
+              : 15 - lance.firingBayIndex;
+          _damageNumbers.add(
+            FloatingDamageNumber(
+              text: '${(lance.totalDamage * 10).toInt()}',
+              x: (corridor + 0.5) * (MediaQuery.of(context).size.width / 8.0),
+              y: MediaQuery.of(context).size.height * 0.35,
+              color: VoidTheme.plasmaCyan,
+              isCritical: lance.totalDamage >= 2.0,
+            ),
+          );
+        }
+      }
+    }
 
     // Check FSM states
     if (_dreadnought.isGameOver && !_isGameOverModalVisible) {
@@ -196,6 +237,13 @@ class _CombatScreenState extends State<CombatScreen>
     );
   }
 
+  void _openCodex() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => const BaoCodexDialog(),
+    );
+  }
+
   @override
   void dispose() {
     _ticker.dispose();
@@ -207,48 +255,68 @@ class _CombatScreenState extends State<CombatScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: VoidTheme.obsidianBlack,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Top HUD
-            HudHeader(
-              reserveCores: _dreadnought.reserveCores,
-              score: _dreadnought.totalScore,
-              difficultyTier: widget.difficultyTier,
-              onSettingsTap: () {},
-            ),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              children: [
+                // Top HUD
+                HudHeader(
+                  reserveCores: _dreadnought.reserveCores,
+                  score: _dreadnought.totalScore,
+                  difficultyTier: widget.difficultyTier,
+                  onSettingsTap: _openCodex,
+                  onTutorialTap: () => setState(() => _showTutorial = true),
+                ),
 
-            // Tactical Combat Corridor (Upper Viewport)
-            Expanded(
-              child: RepaintBoundary(
-                child: CustomPaint(
-                  size: Size.infinite,
-                  painter: CombatPainter(
-                    dreadnought: _dreadnought,
-                    enemies: _enemies,
-                    lances: _lances,
-                    flaks: _flaks,
-                    particles: _particleService.activeParticles,
-                    animationTime: _animationTime,
+                // Tactical Combat Corridor (Upper Viewport)
+                Expanded(
+                  child: RepaintBoundary(
+                    child: Transform.translate(
+                      offset: _screenShake,
+                      child: CustomPaint(
+                        size: Size.infinite,
+                        painter: CombatPainter(
+                          dreadnought: _dreadnought,
+                          enemies: _enemies,
+                          lances: _lances,
+                          flaks: _flaks,
+                          particles: _particleService.activeParticles,
+                          damageNumbers: _damageNumbers,
+                          animationTime: _animationTime,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
+
+                // Middle Dynamic Projection Shelf
+                ProjectionShelf(
+                  prediction: _prediction,
+                  selectedBay: _selectedBay,
+                ),
+
+                // Lower Primary Thumb Command Arc
+                CommandArcWidget(
+                  bays: _bays,
+                  selectedBay: _selectedBay,
+                  onBaySelected: _handleBaySelected,
+                  onSowAction: _handleSowAction,
+                  onInjectCore: _handleInjectCore,
+                  onSlidePosition: _handleSlidePosition,
+                ),
+              ],
+            ),
+          ),
+
+          // Flight Academy Onboarding Overlay
+          if (_showTutorial)
+            Positioned.fill(
+              child: TutorialOverlay(
+                onDismiss: () => setState(() => _showTutorial = false),
               ),
             ),
-
-            // Middle Dynamic Projection Shelf
-            ProjectionShelf(prediction: _prediction, selectedBay: _selectedBay),
-
-            // Lower Primary Thumb Command Arc
-            CommandArcWidget(
-              bays: _bays,
-              selectedBay: _selectedBay,
-              onBaySelected: _handleBaySelected,
-              onSowAction: _handleSowAction,
-              onInjectCore: _handleInjectCore,
-              onSlidePosition: _handleSlidePosition,
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

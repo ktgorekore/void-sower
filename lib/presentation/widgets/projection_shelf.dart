@@ -33,15 +33,27 @@ class ProjectionShelf extends StatelessWidget {
       return Container(
         height: 48.0,
         alignment: Alignment.center,
-        color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
-        child: const Text(
-          'TAP & SWIPE TO SOW • FLICK UP TO INJECT (NAMUA)',
-          style: TextStyle(
-            color: VoidTheme.textMuted,
-            fontSize: 11.0,
-            letterSpacing: 1.0,
-            fontWeight: FontWeight.w500,
+        decoration: BoxDecoration(
+          color: VoidTheme.obsidianBlack.withValues(alpha: 0.75),
+          border: const Border.symmetric(
+            horizontal: BorderSide(color: VoidTheme.cardSurface, width: 1.0),
           ),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.radar, size: 14.0, color: VoidTheme.plasmaCyan),
+            SizedBox(width: 6.0),
+            Text(
+              'SELECT BAY TO PREVIEW LANCE & SOWING TRAJECTORY',
+              style: TextStyle(
+                color: VoidTheme.textSecondary,
+                fontSize: 10.5,
+                letterSpacing: 1.0,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       );
     }
