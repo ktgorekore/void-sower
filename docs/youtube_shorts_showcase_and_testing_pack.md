@@ -20,9 +20,9 @@ This document outlines the official recorded showcase video pack, YouTube Shorts
 
 ---
 
-## 📹 25-Second Showcase Video Specifications
+## 📹 30-Second Showcase Video Specifications
 
-The gameplay showcase was recorded live on the **Google Pixel 10 Pro XL** emulator with hardware GPU acceleration offloaded to the host NVIDIA GPU (`__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia`). It captures the real-time AI Tactical Solver autonomously executing kinetic count-and-capture sowing sequences, triggering quadratic particle lance discharges, and vaporizing descending alien invaders.
+The gameplay showcase was recorded live on the **Google Pixel 10 Pro XL** emulator with hardware GPU acceleration offloaded to the host NVIDIA GPU (`__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia`). It captures the real-time AI Tactical Solver autonomously executing kinetic count-and-capture sowing sequences, dynamically advancing across all three difficulty tiers (`Sector Patrol` -> `Planetary Siege` -> `Flagship Bastion`), triggering quadratic particle lance discharges, and vaporizing descending alien invaders.
 
 > [!NOTE]
 > **Video & Preview Media Assets:**
@@ -31,14 +31,16 @@ The gameplay showcase was recorded live on the **Google Pixel 10 Pro XL** emulat
 > - **Store Promotional Copy:** [`../store_listing/assets/promo_gameplay.mp4`](../store_listing/assets/promo_gameplay.mp4)
 > - **Aspect Ratio:** `9:16` Vertical Portrait (`720 x 1280 px`)
 > - **Framerate:** `60 FPS`
-> - **Duration:** `24.97 seconds` (Optimized for YouTube Shorts & Google Play store listing video previews)
-> - **Video Codec:** `H.264 (High Profile)` (~598 kbps)
-> - **File Size:** `1.86 MB` (Ultra-fast mobile streaming and instant preload)
+> - **Duration:** Exactly `30.0 seconds` (Optimized for YouTube Shorts & Google Play store listing video previews)
+> - **Video Codec:** `H.264 (High Profile)` (~415 kbps)
+> - **File Size:** `1.55 MB` (Ultra-fast mobile streaming and instant preload)
 > - **Pacing & Action Breakdown:**
->   - **0:00 – 0:05:** Battle grid initialization, 16-bay capacitor ring telemetry, enemy assault waves descending down orbital corridors.
->   - **0:05 – 0:12:** `[AI TACTICAL SOLVER ACTIVE]` engages via the HUD. The heuristic solver scans 16 bays $\times$ 2 directions ($O(1)$ bitwise ring arithmetic) and selects optimal sowing cadence.
->   - **0:12 – 0:18:** Automated plasma core injection (Namua) and fluid clockwise/counter-clockwise sowing trajectory rendering.
->   - **0:18 – 0:25:** Termination in occupied frontline bay triggers a massive Quadratic Particle Lance ($D = \alpha \cdot M^2$), dynamic camera shake, floating damage numbers, and corridor wipeout.
+>   - **0:00 – 0:08:** **Tier 1 (Sector Patrol)** — Heuristic solver scans 16 bays $\times$ 2 directions, injects plasma cores (Namua), aligns the dreadnought along corridor 5, and discharges a quadratic Particle Lance ($1600\text{ DMG}$) vaporizing the initial enemy wave.
+>   - **0:08 – 0:10:** **Sector Liberated** — 3-star victory fanfare and rewards sequence.
+>   - **0:10 – 0:20:** **Tier 2 (Planetary Siege)** — Swarm of 4 enemy gunships descend at increased velocity. The solver maneuvers across corridors, executes multi-lap capacitor transfers, and fires a massive Particle Lance down corridor 7.
+>   - **0:20 – 0:22:** **Sector Liberated** — 3-star celebratory sequence and automatic transition into deep-space flagship combat.
+>   - **0:22 – 0:30:** **Tier 3 (Flagship Bastion)** — Heavily armored alien Flagship and escort cruisers descend. The solver executes high-mass sowing ($M=7$) unleashing a devastating $4900\text{ DMG}$ Particle Lance, screen shake, and floating arcade damage numbers!
+
 
 ---
 

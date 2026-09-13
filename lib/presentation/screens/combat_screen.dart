@@ -43,11 +43,13 @@ class CombatScreen extends StatefulWidget {
     required this.engine,
     this.difficultyTier = 0,
     this.onReturnToMap,
+    this.autoStartSolver = false,
   });
 
   final IVoidSowerEngine engine;
   final int difficultyTier;
   final VoidCallback? onReturnToMap;
+  final bool autoStartSolver;
 
   @override
   State<CombatScreen> createState() => _CombatScreenState();
@@ -74,6 +76,7 @@ class _CombatScreenState extends State<CombatScreen>
   List<LanceBeam> _lances = const [];
   List<FlakBurst> _flaks = const [];
 
+  late int _currentDifficultyTier;
   bool _isGameOverModalVisible = false;
   bool _isVictoryModalVisible = false;
   bool _isAutoSolving = false;
@@ -82,7 +85,12 @@ class _CombatScreenState extends State<CombatScreen>
   @override
   void initState() {
     super.initState();
-    _showTutorial = widget.difficultyTier == 0;
+    _currentDifficultyTier = widget.difficultyTier;
+    _isAutoSolving = widget.autoStartSolver;
+    _showTutorial = !widget.autoStartSolver && (widget.difficultyTier == 0);
+    if (_isAutoSolving) {
+      _solverCooldown = 0.4;
+    }
     _startCombat();
 
     _ticker = createTicker(_onTick);
@@ -90,14 +98,21 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _startCombat() {
+    _selectedBay = null;
+    _prediction = null;
     widget.engine.initialize(startingCores: 28, boundaryY: 0.15);
     widget.engine.generateWave(
-      difficulty: widget.difficultyTier,
+      difficulty: _currentDifficultyTier,
       randomSeed: DateTime.now().millisecondsSinceEpoch % 100000,
-      coreBudget: 16 + (widget.difficultyTier * 4),
-      initialVelocityY: 0.02 + (widget.difficultyTier * 0.008),
+      coreBudget: 16 + (_currentDifficultyTier * 4),
+      initialVelocityY: 0.02 + (_currentDifficultyTier * 0.008),
     );
     _syncState();
+  }
+
+  void _advanceNextSector() {
+    _currentDifficultyTier = (_currentDifficultyTier + 1) % 3;
+    _startCombat();
   }
 
   void _onTick(Duration elapsed) {
@@ -180,7 +195,9 @@ class _CombatScreenState extends State<CombatScreen>
       _showTutorial = false;
     }
 
-    final activeEnemies = _enemies.where((e) => e.worldPosY > 0.15).toList();
+    final activeEnemies = _enemies
+        .where((e) => !e.isDestroyed && e.worldPosY > 0.15)
+        .toList();
     if (activeEnemies.isEmpty) return;
 
     final activeCorridors = activeEnemies
@@ -198,13 +215,16 @@ class _CombatScreenState extends State<CombatScreen>
 
         if (pred.triggersLance &&
             activeCorridors.contains(pred.terminalCorridor)) {
-          score += 1000.0 + pred.predictedDamage;
+          score += 1000.0 + (pred.predictedDamage * 10.0);
         }
         if (pred.triggersRelay) {
-          score += 500.0 + (pred.totalCascadeLaps * 100.0);
+          score += 600.0 + (pred.totalCascadeLaps * 150.0);
         }
         if (pred.terminalBay >= 8) {
-          score += 50.0;
+          score += 80.0;
+        }
+        if (bay < _bays.length) {
+          score += _bays[bay].chargeUnits * 25.0;
         }
 
         if (score > bestScore) {
@@ -214,6 +234,14 @@ class _CombatScreenState extends State<CombatScreen>
         }
       }
     }
+
+    _selectedBay = bestBay;
+    _prediction = widget.engine.predictSow(bestBay, bestDir);
+
+    // Slide dreadnought to match target corridor
+    final targetCorridor = _prediction?.terminalCorridor ?? (bestBay % 8);
+    final targetX = (targetCorridor / 7.0).clamp(0.0, 1.0);
+    widget.engine.slideDreadnought(targetX);
 
     _handleInjectCore(bestBay, bestDir);
   }
@@ -274,6 +302,16 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     );
+
+    if (_isAutoSolving) {
+      Future.delayed(const Duration(milliseconds: 1800), () {
+        if (mounted && _isGameOverModalVisible) {
+          Navigator.of(context).pop();
+          _isGameOverModalVisible = false;
+          _startCombat();
+        }
+      });
+    }
   }
 
   void _showVictory() {
@@ -286,10 +324,20 @@ class _CombatScreenState extends State<CombatScreen>
         onNextSector: () {
           Navigator.of(context).pop();
           _isVictoryModalVisible = false;
-          _startCombat();
+          _advanceNextSector();
         },
       ),
     );
+
+    if (_isAutoSolving) {
+      Future.delayed(const Duration(milliseconds: 1800), () {
+        if (mounted && _isVictoryModalVisible) {
+          Navigator.of(context).pop();
+          _isVictoryModalVisible = false;
+          _advanceNextSector();
+        }
+      });
+    }
   }
 
   void _openCodex() {
@@ -319,12 +367,17 @@ class _CombatScreenState extends State<CombatScreen>
                 HudHeader(
                   reserveCores: _dreadnought.reserveCores,
                   score: _dreadnought.totalScore,
-                  difficultyTier: widget.difficultyTier,
+                  difficultyTier: _currentDifficultyTier,
                   onSettingsTap: _openCodex,
                   onTutorialTap: () => setState(() => _showTutorial = true),
                   isAutoSolving: _isAutoSolving,
-                  onToggleAutoSolve: () =>
-                      setState(() => _isAutoSolving = !_isAutoSolving),
+                  onToggleAutoSolve: () => setState(() {
+                    _isAutoSolving = !_isAutoSolving;
+                    if (_isAutoSolving) {
+                      _showTutorial = false;
+                      _solverCooldown = 0.3;
+                    }
+                  }),
                 ),
 
                 // Tactical Combat Corridor (Upper Viewport)
