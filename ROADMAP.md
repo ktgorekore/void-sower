@@ -261,15 +261,20 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 
 ## 📦 Phase 12: Build Engineering, Security Hardening & Play Console Deployment (Store Gate 6 & 7 🚦)
 
-- [ ] **Task 12.1: ProGuard / R8 Minification & FFI Symbol Preservation**
-  - [ ] Author release `android/app/proguard-rules.pro` preserving `extern "C" void_sower_*` symbols, EnTT types, and plugin registrants.
+- [x] **Task 12.0: Continuous Integration & Automated GitHub Release Pipelines**
+  - [x] Author `.github/workflows/ci.yml`: Automated quality gate (Google C++ style, GTests, 16 KB page alignment, flutter analyze, flutter test).
+  - [x] Author `.github/workflows/release.yml`: Tag/dispatch release pipeline with keystore secret decoding / debug fallback, optimized AAB build with obfuscation & split debug info, 16 KB audit, artifact packaging, SHA-256 calculation, and GitHub Release publication.
+  - [x] Author `scripts/verify_format.py`: Staged and repository-wide (`--all`) C++ and Dart format auditing.
+  - [x] Author `scripts/build_release_bundle.sh`: Local reproducible release bundle builder with symbol splitting and size validation (< 25 MB).
+- [x] **Task 12.1: ProGuard / R8 Minification & FFI Symbol Preservation**
+  - [x] Author release `android/app/proguard-rules.pro` preserving `extern "C" void_sower_*` symbols, EnTT types, and plugin registrants.
   - [ ] Verify release AAB download size is strictly under 25 MB.
 - [ ] **Task 12.2: Cross-Platform 16 KB Page Alignment Audit**
   - [ ] Build release native shared libraries (`libvoid_sower.so`) for `arm64-v8a`, `armeabi-v7a`, `x86_64`.
-  - [ ] Run `scripts/verify_16kb_alignment.sh` verifying 100% compliance with $0\times 4000$ (16 KB) alignment.
+  - [x] Run `scripts/verify_16kb_alignment.sh` verifying 100% compliance with $0\times 4000$ (16 KB) alignment.
 - [ ] **Task 12.3: Production Android Keystore & Release AAB Signing**
-  - [ ] Configure `android/key.properties` and release signing in `build.gradle.kts`.
-  - [ ] Generate signed release bundle (`.aab`) using `scripts/build_release_bundle.sh`.
+  - [x] Configure `android/key.properties` and release signing in `build.gradle.kts`.
+  - [x] Author signed release bundle pipeline using `scripts/build_release_bundle.sh`.
 - [ ] **Task 12.4: Internal Testing Track & Closed Beta Rollout**
   - [ ] Upload signed `.aab` to Google Play Console Internal Testing track.
   - [ ] Inspect Google Play Pre-Launch Report (0 native crashes, 0 ANRs, < 150 MB baseline RAM).
