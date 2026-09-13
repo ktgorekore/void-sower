@@ -282,3 +282,53 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 - [ ] **Task 12.5: Staged Production Rollout**
   - [ ] Staged production deployment: Day 1 (10%) -> Day 3 (25%) -> Day 5 (50%) -> Day 7 (100% global release).
   - [ ] Live operations monitoring with Crashlytics crash-free users $> 99.5\%$.
+
+---
+
+## ✨ Phase 13: UI/UX Aesthetic Polish, Intuitive Onboarding & Approachable Interaction Design (Pending [ ])
+
+- [ ] **Task 13.1: Afrofuturistic Space Design System & Glassmorphic HUD**
+  - [ ] Establish cohesive visual design tokens: Deep obsidian backdrops (`#0A0E17`), luminescent cyan plasma (`#00F0FF`), solar gold energy (`#FFD700`), neon violet shields (`#9D4EDD`), and energetic crimson alerts (`#FF2A6D`).
+  - [ ] Implement Swahili-inspired geometric chevrons and engraved circuit lattice borders on card headers, dialogs, and button containers.
+  - [ ] Build glassmorphic UI components with subtle background blur, soft gradient fills, and glowing neon borders for all floating overlays.
+  - [ ] Implement animated micro-interactions: $0.95\times$ scale-down press transitions, tactile ripple effects, and subtle resting breathing/pulse animations on primary call-to-actions.
+
+- [ ] **Task 13.2: Interactive Flight Academy & Approachable Onboarding (Interactive Tutorial)**
+  - [ ] Create beginner-friendly interactive tutorial overlay guiding new players through core Bao mechanics in the opening sector:
+    - *Step 1: Core Injection (Namua)* — Animated pulsing indicator guiding thumb flick from central reactor to capacitor bay.
+    - *Step 2: Sowing Traversal* — Illuminated directional arcs guiding clockwise/counter-clockwise swipe gestures.
+    - *Step 3: Quadratic Lance & Overload* — Visual callout explaining accumulated mass $M$ and lance cross-discharge.
+    - *Step 4: Lateral Alignment* — Interactive thumb slider guide demonstrating corridor matching against descending enemies.
+  - [ ] Implement contextual smart hints during gameplay (e.g. "Core Depot Low", "Overload Ready — Tap Bay 3 to Fire").
+  - [ ] In-game "Bao Codex / Rules Guide" accessible at any time from pause and main menus with animated visual diagrams.
+
+- [ ] **Task 13.3: Tactical Combat Readability & Enhanced Command Arc**
+  - [ ] Redesign 16-bay capacitor ring in `CommandArcWidget` with high-contrast, glanceable visual state indicators:
+    - Glowing concentric charge pips showing exact stored energy units per bay.
+    - Distinct thematic iconography and color coding for special bays (Nyumba = Solar Gold, Kichwa = Cyan Vector, Kimbi = Violet Deflection).
+    - Dynamic energy flow particles tracing active traversal between bays.
+  - [ ] Upgrade `ProjectionShelf` with intuitive holographic aiming preview:
+    - Translucent laser beam projecting up target corridor showing targeted enemies.
+    - Clear projected impact readout: predicted damage value, shield break indicator, and prospective enemy destruction tags.
+  - [ ] Enhance lateral orbital slider:
+    - Crisp tactile track with magnetic haptic detents for each of the 8 combat corridors.
+    - Glowing dreadnought position silhouette on the slider thumb.
+
+- [ ] **Task 13.4: Campaign Star Map & Metagame Screen Overhaul**
+  - [ ] Overhaul `CampaignMapScreen`:
+    - Layered parallax starfield with interactive nebula fog and orbiting cosmic dust particles.
+    - Pulsing constellation pathways connecting liberated and contested star sectors.
+    - Interactive sector detail bottom sheet displaying enemy wave composition, sector modifiers, 3-star targets, and high-contrast "Engage" button.
+  - [ ] Enhance `StatsDashboardScreen`:
+    - Visual radar charts and animated progression bars for player rank, accuracy, and cascade masteries.
+    - Medal showcase featuring unlockable achievement insignias.
+  - [ ] Enhance Hangar / Fleet Screen:
+    - 2.5D rotating dreadnought chassis showcase with holographic wireframe highlights.
+    - Visual comparison stat bars (Lance Alpha, Core Capacity, Hull Resilience).
+
+- [ ] **Task 13.5: Arcade Combat Juice, Damage Numbers & Screen Transitions**
+  - [ ] Floating arcade damage typography: dynamic bouncing numbers with critical-hit scaling for high $\alpha \cdot M^2$ discharges.
+  - [ ] High-impact combat juice: directional screen shake on heavy lance detonations, momentary chromatic aberration bursts on flagship kills, and pulsing shield ripple rings.
+  - [ ] Cinematic fluid screen transitions: smooth Flutter `Hero` animations and custom warp-speed radial zooms between Star Map, Hangar, and Combat Viewport.
+  - [ ] Redesigned `VictoryDialog` and `GameOverDialog`: celebratory fanfare sequence, tiered star reveal animations with sound synchronization, detailed plasma scrap rewards, and prominent "Next Sector" / "Re-Engage" buttons.
+
