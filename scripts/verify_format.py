@@ -60,6 +60,8 @@ def check_cpp_format(filepath):
         )
         if result.returncode != 0:
             print(f"[!] Formatting Error (C++): {filepath} violates Google C++ Style Guide.")
+            if result.stderr.strip():
+                print(f"    {result.stderr.strip()}")
             return False
         return True
     except FileNotFoundError:
@@ -72,11 +74,15 @@ def check_dart_format(filepath):
         return True
     try:
         result = subprocess.run(
-            ["dart", "format", "--set-exit-if-changed", filepath],
+            ["dart", "format", "--output=none", "--set-exit-if-changed", filepath],
             capture_output=True, text=True
         )
         if result.returncode != 0:
             print(f"[!] Formatting Error (Dart): {filepath} is not properly formatted.")
+            if result.stdout.strip():
+                print(f"    {result.stdout.strip()}")
+            if result.stderr.strip():
+                print(f"    {result.stderr.strip()}")
             return False
         return True
     except FileNotFoundError:
@@ -87,6 +93,14 @@ def main():
     parser = argparse.ArgumentParser(description="Audit source code formatting.")
     parser.add_argument("--all", action="store_true", help="Audit all repository source files instead of staged files.")
     args = parser.parse_args()
+
+    # Ensure Flutter package configuration is resolved so dart format respects language version constraints
+    if not os.path.exists(".dart_tool/package_config.json") and os.path.exists("pubspec.yaml"):
+        print("[*] .dart_tool/package_config.json not found. Running flutter pub get...")
+        try:
+            subprocess.run(["flutter", "pub", "get"], check=True, capture_output=True)
+        except Exception as e:
+            print(f"[!] Warning: Unable to run flutter pub get automatically: {e}")
 
     if args.all:
         files_to_check = get_all_source_files()

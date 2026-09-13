@@ -73,7 +73,11 @@ jobs:
       - name: Install Native C++ Build Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build clang g++ libstdc++-12-dev
+          sudo apt-get install -y cmake ninja-build clang clang-format g++ libstdc++-12-dev
+
+      - name: Install Flutter Dependencies
+        run: |
+          flutter pub get
 
       - name: Audit Code Style & License Compliance
         run: |
