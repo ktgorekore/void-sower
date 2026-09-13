@@ -1,0 +1,138 @@
+<!--
+  Copyright 2026 Void Sower Authors.
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Void Sower: Kinetic Mancala</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="Official Privacy Policy for Void Sower: Kinetic Mancala mobile application.">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">Legal Documentation</div>
+      <h1>Privacy Policy</h1>
+      <div class="subtitle">Void Sower: Kinetic Mancala • Last Updated: September 13, 2026</div>
+      <nav class="nav-bar">
+        <a href="index.html" class="nav-link">Hub Home</a>
+        <a href="privacy.html" class="nav-link active">Privacy Policy</a>
+        <a href="terms.html" class="nav-link">Terms of Service</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="card">
+        <h2>1. Introduction &amp; Commitment to Privacy</h2>
+        <p>
+          <strong>Void Sower Authors</strong> ("we", "us", or "our") operate the mobile game <strong>Void Sower: Kinetic Mancala</strong> ("the Game"). We believe player privacy is a non-negotiable right. This Privacy Policy details our practices regarding the collection, use, and disclosure of information when you download, install, or play the Game on Android or other supported platforms.
+        </p>
+        <div class="highlight-box">
+          <strong>Key Summary:</strong> Void Sower is designed from the ground up as an offline-first tactical game. We do not sell your personal data, we do not require account creation to play, and you can enjoy 100% of the game offline without providing personal information.
+        </div>
+
+        <h2>2. Information We Collect</h2>
+
+        <h3>A. Local On-Device Game Data</h3>
+        <p>
+          All primary gameplay state is stored exclusively on your device's local sandboxed application storage:
+        </p>
+        <ul>
+          <li><strong>Pilot Profile:</strong> Call sign, avatar selection, and combat telemetry records.</li>
+          <li><strong>Campaign Progress:</strong> Sector liberation stars, high scores, wave records, and Kilwa Basin unlocks.</li>
+          <li><strong>Fleet Hangar Inventory:</strong> Unlocked dreadnought hulls (MK-I Bastion, MK-II Monsoon Vanguard, MK-III Singularity Sovereign), weapon module configurations, and capacitor upgrades.</li>
+          <li><strong>Preferences:</strong> Audio volume, SoundPool sound effects, tactile haptic settings, and camera shake intensity.</li>
+        </ul>
+
+        <h3>B. Anonymous Technical Diagnostics &amp; Crash Logs</h3>
+        <p>
+          To maintain the stability of our high-performance C++17 EnTT simulation engine across diverse Android hardware:
+        </p>
+        <ul>
+          <li>We may collect anonymous crash diagnostics and performance telemetry (e.g., via Firebase Crashlytics).</li>
+          <li>Data includes device model, CPU architecture, GPU renderer string, operating system version, and symbolicated C++ native stack traces.</li>
+          <li><em>No Personally Identifiable Information (PII), biometric data, or GPS coordinates are ever collected or processed.</em></li>
+        </ul>
+
+        <h3>C. In-App Purchases &amp; Monetization</h3>
+        <p>
+          Void Sower does not employ predatory pay-to-win mechanisms or recurring subscriptions. If you choose to unlock the optional lifetime Admiral upgrade:
+        </p>
+        <ul>
+          <li>Transactions are processed securely by the **Google Play Billing System**. We never see, receive, or store your credit card details or billing address.</li>
+          <li>Your purchase entitlement status is tied directly to your Google Play account.</li>
+        </ul>
+
+        <h2>3. Consent Management (GDPR, CCPA &amp; IAB TCF v2.2)</h2>
+        <p>
+          For players residing in the European Economic Area (EEA), United Kingdom, Switzerland, or California:
+        </p>
+        <ul>
+          <li>We adhere strictly to the European Union General Data Protection Regulation (GDPR) and California Consumer Privacy Act (CCPA/CPRA).</li>
+          <li>We do not sell, rent, or trade your personal information.</li>
+          <li>Non-essential diagnostic telemetry is subject to user opt-in/opt-out preferences in compliance with the Google User Messaging Platform (UMP).</li>
+        </ul>
+
+        <h2>4. Children's Privacy (COPPA &amp; Google Play Families)</h2>
+        <p>
+          Void Sower complies with the Children's Online Privacy Protection Act (COPPA) and Google Play Developer Program Policies:
+        </p>
+        <ul>
+          <li>The game is rated ESRB Everyone / PEGI 3.</li>
+          <li>We do not knowingly collect personal data from children under 13 (or under 16 in applicable European jurisdictions).</li>
+          <li>All gameplay is accessible without personal data entry.</li>
+        </ul>
+
+        <h2 id="data-deletion">5. Data Deletion &amp; Player Rights</h2>
+        <p>
+          Because your gameplay data is stored locally on your device, you have complete and total control over its lifecycle:
+        </p>
+        <ul>
+          <li><strong>In-Game Reset:</strong> Open the in-game Settings modal and tap <strong>Reset Pilot Progress</strong> to wipe all locally cached save files and preferences.</li>
+          <li><strong>OS-Level Clearing:</strong> Navigate to your Android device's <strong>Settings &gt; Apps &gt; Void Sower &gt; Storage &gt; Clear Storage / Clear Data</strong>.</li>
+          <li><strong>Uninstallation:</strong> We author explicit `data_extraction_rules.xml` and configure `android:allowBackup="false"` to guarantee that uninstalling the application instantly purges all local state without silent cloud restoration.</li>
+        </ul>
+
+        <h2>6. Security Practices</h2>
+        <p>
+          Any outbound diagnostic network requests utilize industry-standard Transport Layer Security (TLS 1.3 / HTTPS). Our native C++ codebase compiles with modern hardening flags (`-fstack-protector-strong`, `-D_FORTIFY_SOURCE=2`) and undergoes continuous static analysis to prevent memory leaks and buffer overruns.
+        </p>
+
+        <h2>7. Changes to This Privacy Policy</h2>
+        <p>
+          We may update this Privacy Policy from time to time to reflect game updates or regulatory changes. Any modifications will be posted to this URL with an updated revision date.
+        </p>
+
+        <h2>8. Contact Information</h2>
+        <p>
+          If you have questions or concerns regarding this Privacy Policy, please contact our team:
+        </p>
+        <ul>
+          <li><strong>Email:</strong> <a href="mailto:support@voidsower.app" style="color: var(--neon-cyan);">support@voidsower.app</a></li>
+          <li><strong>Repository:</strong> <a href="https://github.com/ktgorekore/void-sower" target="_blank" rel="noopener" style="color: var(--neon-cyan);">github.com/ktgorekore/void-sower</a></li>
+        </ul>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Void Sower Authors. All rights reserved.</p>
+      <p>Licensed under the Apache License, Version 2.0.</p>
+    </footer>
+  </div>
+</body>
+</html>

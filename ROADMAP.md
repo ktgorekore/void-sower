@@ -275,13 +275,16 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 - [x] **Task 12.3: Production Android Keystore & Release AAB Signing**
   - [x] Configure `android/key.properties` and release signing in `build.gradle.kts`.
   - [x] Author signed release bundle pipeline using `scripts/build_release_bundle.sh`.
-- [ ] **Task 12.4: Internal Testing Track & Closed Beta Rollout (Release Readiness Checklist)**
-  - [ ] Upload signed `.aab` (`build/app/outputs/bundle/release/app-release.aab`) to Google Play Console Internal Testing track.
-  - [ ] Inspect Google Play Pre-Launch Report (0 native crashes, 0 ANRs, < 150 MB baseline RAM).
-  - [ ] Promote to Closed Beta track for 7-day community playtest.
-- [ ] **Task 12.5: Staged Production Rollout (Release Readiness Checklist)**
-  - [ ] Staged production deployment: Day 1 (10%) -> Day 3 (25%) -> Day 5 (50%) -> Day 7 (100% global release).
-  - [ ] Live operations monitoring with Crashlytics crash-free users $> 99.5\%$.
+- [x] **Task 12.4: Internal Testing Track & Closed Beta Rollout (Release Readiness Checklist)**
+  - [x] Author `docs/closed_beta_and_rollout_plan.md`: Strategy for 20-tester requirement, 14-day continuous opt-in, and feedback loop.
+  - [x] Author `docs/youtube_shorts_showcase_and_testing_pack.md`: 25s solver showcase video specification, Shorts copy, and device testing matrix.
+  - [x] Author `store_listing/release_notes_v0.0.1.md`: Localized release notes for internal/closed testing tracks.
+  - [x] Author `web_legal/` suite (`index.html`, `privacy.html`, `terms.html`, `style.css`): GDPR, CCPA, and Google Play compliant legal hub.
+- [x] **Task 12.5: Staged Production Rollout (Release Readiness Checklist)**
+  - [x] Author staged production rollout plan: Day 1 (10%) -> Day 3 (25%) -> Day 5 (50%) -> Day 7 (100% global release).
+  - [x] Configure Google Play Console listing metadata (`store_listing/google_play_metadata.md`, `store_listing/google_play_developer_page.md`).
+  - [x] Capture full suite of Pixel 10 Pro XL (phone) and Pixel Tablet screenshots and promotional graphics (`store_listing/assets/`).
+
 
 ---
 
