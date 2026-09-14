@@ -356,4 +356,44 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Generate 12-second Bayer-dithered animated GIF (`void_sower_solver_showcase.gif` / `store_listing/assets/promo_gameplay.gif`).
   - [x] Capture updated phone and tablet Google Play Store screenshots from live emulators on NVIDIA GPU.
 
+---
+
+## 🛡️ Phase 14: Engine Hardening, Comprehensive Settings, Afrofuturist Legal & Privacy Hub, Pilot Identity & Production Monetization (Completed ✅)
+
+- [x] **Task 14.1: Native C++ FFI Memory Safety, Zero-Allocation & Exception Hardening**
+  - [x] Implement zero-copy direct memory writes to caller POD buffers via `absl::Span` in `src/void_sower.cpp` (`void_sower_get_enemies`, `void_sower_get_lances`, `void_sower_get_flaks`, `void_sower_get_bays`).
+  - [x] Add compile-time `static_assert` layout and size checks between C POD structs and C++ ECS components.
+  - [x] Guard all `extern "C"` endpoints in `src/void_sower.cpp` with `noexcept` and `try/catch` exception barriers.
+  - [x] Replace unconditional `remove<SowingStateComponent>` with `all_of` component existence checks in `src/ecs/systems/bao_cascade_system.cpp`.
+  - [x] Replace `std::vector` with `absl::InlinedVector` in `src/ecs/systems/wave_generator.cpp` and `src/ecs/systems/mcts_solver.h` / `.cpp`.
+  - [x] Add `_isDisposed` safety checks across all polling methods in `lib/engine/ffi_void_sower_engine.dart`.
+  - [x] Verify zero heap allocations on the 60 Hz simulation hot path via native GTest suite.
+
+- [x] **Task 14.2: Comprehensive Settings Modal & Preferences**
+  - [x] Create `lib/presentation/widgets/settings_modal.dart` featuring Audio & Haptics, Graphics & Display, Diagnostics, and Legal tabs.
+  - [x] Upgrade `lib/presentation/services/audio_service.dart` with dedicated looping BGM audio player, independent SFX/BGM volume sliders, and mute toggles.
+  - [x] Wire settings launcher in `HudHeader` and add settings action button to `CampaignMapScreen` AppBar.
+  - [x] Persist all audio, haptic, and graphics preferences across app restarts via `PersistenceService`.
+
+- [x] **Task 14.3: Afrofuturist Legal Hub & In-App Legal Viewers**
+  - [x] Create `lib/presentation/widgets/legal_dialogs.dart` (`PrivacyPolicyDialog`, `TermsOfServiceDialog`) rendering dark glassmorphic legal docs.
+  - [x] Create `lib/presentation/widgets/consent_preferences_dialog.dart` supporting GDPR, CCPA, COPPA, and TFUA toggles.
+  - [x] Integrate Flutter `showLicensePage` with custom afrofuturistic theme overrides.
+  - [x] Implement right-to-be-forgotten GDPR data wipe with confirmation dialog.
+
+- [x] **Task 14.4: Player Identity, Pilot Callsign, Rank Tiers & Save Export/Import**
+  - [x] Create `lib/domain/models/user_profile.dart` with Callsign, 6 Afrofuturist Insignias, 6 Rank Tiers, lifetime metrics, and JSON serialization.
+  - [x] Create `lib/presentation/widgets/profile_modal.dart` featuring pilot dossier card, callsign editing, and insignia selector.
+  - [x] Enhance `lib/domain/services/persistence_service.dart` with JSON save data export/import and checksum verification.
+  - [x] Wire profile modal launcher to `CampaignMapScreen` and `StatsDashboardScreen`.
+
+- [x] **Task 14.5: Production Monetization Framework (AdMob & Play Billing v7)**
+  - [x] Add `google_mobile_ads: ^9.1.0` and `in_app_purchase: ^3.3.0` to `pubspec.yaml`.
+  - [x] Configure standard Google test AdMob App ID in `android/app/src/main/AndroidManifest.xml`.
+  - [x] Create `lib/config/ad_config.dart` with test Ad Unit IDs, reward definitions, and frequency capping constants.
+  - [x] Implement production `lib/domain/services/ad_service.dart` managing rewarded ads and Pro ad-free bypass.
+  - [x] Implement production `lib/domain/services/iap_service.dart` managing `void_sower_pro_lifetime` ($0.99) with transaction completion.
+  - [x] Create `lib/presentation/widgets/rewarded_ad_modal.dart` providing "Emergency Reactor Charge (+8 Cores)" during tactical combat.
+
+
 
