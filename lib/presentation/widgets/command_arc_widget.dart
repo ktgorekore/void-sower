@@ -166,7 +166,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                   final activeBay = selected ?? (activeCorridor + 8);
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 2.5),
+                    padding: const EdgeInsets.only(bottom: 3.5),
                     child: Row(
                       children: [
                         // SOW CCW (-1) Button
@@ -178,13 +178,13 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               widget.onSowAction(activeBay, -1);
                             },
                             child: Container(
-                              height: 24.0,
+                              height: 26.0,
                               decoration: BoxDecoration(
                                 color: VoidTheme.cardSurface,
                                 borderRadius: BorderRadius.circular(5.0),
                                 border: Border.all(
                                   color: VoidTheme.solarGold.withValues(
-                                    alpha: 0.6,
+                                    alpha: 0.7,
                                   ),
                                   width: 0.8,
                                 ),
@@ -197,14 +197,14 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                                     color: VoidTheme.solarGold,
                                     size: 11.0,
                                   ),
-                                  SizedBox(width: 3.0),
+                                  SizedBox(width: 2.0),
                                   Text(
-                                    'SOW CCW',
+                                    '◄ SOW',
                                     style: TextStyle(
                                       color: VoidTheme.solarGold,
                                       fontSize: 9.0,
                                       fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.4,
+                                      letterSpacing: 0.3,
                                     ),
                                   ),
                                 ],
@@ -212,7 +212,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 5.0),
+                        const SizedBox(width: 4.0),
                         // Primary AXIAL DISCHARGE LANCE Button
                         Expanded(
                           flex: 3,
@@ -223,7 +223,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               widget.onInjectCore(activeBay, dir);
                             },
                             child: Container(
-                              height: 24.0,
+                              height: 26.0,
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [
@@ -247,17 +247,61 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                                   const Icon(
                                     Icons.bolt,
                                     color: VoidTheme.obsidianBlack,
-                                    size: 12.0,
+                                    size: 13.0,
                                   ),
-                                  const SizedBox(width: 3.0),
+                                  const SizedBox(width: 2.0),
                                   Text(
-                                    'AXIAL DISCHARGE C${activeCorridor + 1} ►',
+                                    'AXIAL DISCHARGE C${activeCorridor + 1}',
                                     style: const TextStyle(
                                       color: VoidTheme.obsidianBlack,
-                                      fontSize: 9.0,
+                                      fontSize: 8.8,
                                       fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.4,
+                                      letterSpacing: 0.3,
                                     ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4.0),
+                        // SOW CW (+1) Button
+                        Expanded(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticService.instance.sowTick();
+                              widget.onSowAction(activeBay, 1);
+                            },
+                            child: Container(
+                              height: 26.0,
+                              decoration: BoxDecoration(
+                                color: VoidTheme.cardSurface,
+                                borderRadius: BorderRadius.circular(5.0),
+                                border: Border.all(
+                                  color: VoidTheme.plasmaCyan.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'SOW ►',
+                                    style: TextStyle(
+                                      color: VoidTheme.plasmaCyan,
+                                      fontSize: 9.0,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                  SizedBox(width: 2.0),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: VoidTheme.plasmaCyan,
+                                    size: 11.0,
                                   ),
                                 ],
                               ),
@@ -272,14 +316,16 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
 
               // Horizontal Lateral Orbital Platform Slider
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onPanUpdate: (d) => _handlePanUpdate(d, constraints.maxWidth),
                 child: Container(
-                  height: 20.0,
+                  height: 32.0,
                   decoration: BoxDecoration(
                     color: VoidTheme.cardSurface,
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(16.0),
                     border: Border.all(
-                      color: VoidTheme.textMuted.withValues(alpha: 0.35),
+                      color: VoidTheme.textMuted.withValues(alpha: 0.45),
+                      width: 1.0,
                     ),
                   ),
                   child: Stack(
@@ -292,8 +338,8 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                           return Text(
                             'C${i + 1}',
                             style: TextStyle(
-                              color: VoidTheme.textMuted.withValues(alpha: 0.6),
-                              fontSize: 7.0,
+                              color: VoidTheme.textMuted.withValues(alpha: 0.7),
+                              fontSize: 8.5,
                               fontWeight: FontWeight.bold,
                             ),
                           );
@@ -302,17 +348,18 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                       Transform.translate(
                         offset: Offset(_sliderOffset, 0),
                         child: Container(
-                          width: 38.0,
-                          height: 14.0,
+                          width: 54.0,
+                          height: 24.0,
                           decoration: BoxDecoration(
                             color: VoidTheme.solarGold,
-                            borderRadius: BorderRadius.circular(7.0),
+                            borderRadius: BorderRadius.circular(12.0),
                             boxShadow: [
                               BoxShadow(
                                 color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.35,
+                                  alpha: 0.45,
                                 ),
-                                blurRadius: 4.0,
+                                blurRadius: 6.0,
+                                spreadRadius: 0.5,
                               ),
                             ],
                           ),
@@ -322,17 +369,17 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               Icon(
                                 Icons.chevron_left,
                                 color: VoidTheme.obsidianBlack,
-                                size: 9.0,
+                                size: 13.0,
                               ),
                               Icon(
                                 Icons.rocket,
                                 color: VoidTheme.obsidianBlack,
-                                size: 8.5,
+                                size: 12.0,
                               ),
                               Icon(
                                 Icons.chevron_right,
                                 color: VoidTheme.obsidianBlack,
-                                size: 9.0,
+                                size: 13.0,
                               ),
                             ],
                           ),
