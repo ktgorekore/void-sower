@@ -69,7 +69,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
           decoration: BoxDecoration(
             color: VoidTheme.obsidianBlack,
             border: const Border(
@@ -93,16 +93,16 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                       '▲ BAYS 8–15 (FRONTLINE)',
                       style: TextStyle(
                         color: VoidTheme.plasmaCyan.withValues(alpha: 0.9),
-                        fontSize: 7.5,
+                        fontSize: 6.5,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.4,
                       ),
                     ),
                     Text(
                       'C1–C8 ──► LANCE',
                       style: TextStyle(
                         color: VoidTheme.textSecondary.withValues(alpha: 0.75),
-                        fontSize: 7.0,
+                        fontSize: 6.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -112,7 +112,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
 
               // Frontline Tier (Bays 8 to 15)
               _buildBayRow(frontlineBays, isFrontline: true),
-              const SizedBox(height: 2.0),
+              const SizedBox(height: 1.5),
 
               // Backline Tier Header
               Padding(
@@ -128,16 +128,16 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                       '▼ BAYS 0–7 (RESERVOIR)',
                       style: TextStyle(
                         color: VoidTheme.solarGold.withValues(alpha: 0.9),
-                        fontSize: 7.5,
+                        fontSize: 6.5,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.4,
                       ),
                     ),
                     Text(
                       'STORAGE ──► RELAY',
                       style: TextStyle(
                         color: VoidTheme.textSecondary.withValues(alpha: 0.75),
-                        fontSize: 7.0,
+                        fontSize: 6.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -147,7 +147,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
 
               // Backline Tier (Bays 0 to 7)
               _buildBayRow(backlineBays, isFrontline: false),
-              const SizedBox(height: 3.0),
+              const SizedBox(height: 2.0),
 
               // Tactical Flagship Conduit Action Deck (Option 1)
               Builder(
@@ -166,7 +166,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                   final activeBay = selected ?? (activeCorridor + 8);
 
                   return Padding(
-                    padding: const EdgeInsets.only(bottom: 3.0),
+                    padding: const EdgeInsets.only(bottom: 2.0),
                     child: Row(
                       children: [
                         // SOW CCW (-1) Button
@@ -178,15 +178,15 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               widget.onSowAction(activeBay, -1);
                             },
                             child: Container(
-                              height: 28.0,
+                              height: 20.0,
                               decoration: BoxDecoration(
                                 color: VoidTheme.cardSurface,
-                                borderRadius: BorderRadius.circular(6.0),
+                                borderRadius: BorderRadius.circular(4.0),
                                 border: Border.all(
                                   color: VoidTheme.solarGold.withValues(
                                     alpha: 0.6,
                                   ),
-                                  width: 1.0,
+                                  width: 0.8,
                                 ),
                               ),
                               child: const Row(
@@ -195,16 +195,16 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                                   Icon(
                                     Icons.arrow_back,
                                     color: VoidTheme.solarGold,
-                                    size: 13.0,
+                                    size: 10.0,
                                   ),
-                                  SizedBox(width: 3.0),
+                                  SizedBox(width: 2.0),
                                   Text(
                                     'SOW CCW',
                                     style: TextStyle(
                                       color: VoidTheme.solarGold,
-                                      fontSize: 9.5,
+                                      fontSize: 8.5,
                                       fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.5,
+                                      letterSpacing: 0.4,
                                     ),
                                   ),
                                 ],
@@ -212,7 +212,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 6.0),
+                        const SizedBox(width: 4.0),
                         // Primary DISCHARGE LANCE / SOW CW (+1) Button
                         Expanded(
                           flex: 3,
@@ -222,7 +222,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               widget.onInjectCore(activeBay, 1);
                             },
                             child: Container(
-                              height: 28.0,
+                              height: 20.0,
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [
@@ -230,13 +230,13 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                                     VoidTheme.plasmaCyanLight,
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(6.0),
+                                borderRadius: BorderRadius.circular(4.0),
                                 boxShadow: [
                                   BoxShadow(
                                     color: VoidTheme.plasmaCyan.withValues(
-                                      alpha: 0.35,
+                                      alpha: 0.3,
                                     ),
-                                    blurRadius: 6.0,
+                                    blurRadius: 4.0,
                                   ),
                                 ],
                               ),
@@ -246,16 +246,16 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                                   const Icon(
                                     Icons.bolt,
                                     color: VoidTheme.obsidianBlack,
-                                    size: 14.0,
+                                    size: 11.0,
                                   ),
-                                  const SizedBox(width: 3.0),
+                                  const SizedBox(width: 2.0),
                                   Text(
                                     'DISCHARGE C${activeCorridor + 1} ►',
                                     style: const TextStyle(
                                       color: VoidTheme.obsidianBlack,
-                                      fontSize: 10.5,
+                                      fontSize: 9.0,
                                       fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.6,
+                                      letterSpacing: 0.5,
                                     ),
                                   ),
                                 ],
@@ -273,12 +273,12 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
               GestureDetector(
                 onPanUpdate: (d) => _handlePanUpdate(d, constraints.maxWidth),
                 child: Container(
-                  height: 24.0,
+                  height: 16.0,
                   decoration: BoxDecoration(
                     color: VoidTheme.cardSurface,
-                    borderRadius: BorderRadius.circular(12.0),
+                    borderRadius: BorderRadius.circular(8.0),
                     border: Border.all(
-                      color: VoidTheme.textMuted.withValues(alpha: 0.4),
+                      color: VoidTheme.textMuted.withValues(alpha: 0.35),
                     ),
                   ),
                   child: Stack(
@@ -292,7 +292,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                             'C${i + 1}',
                             style: TextStyle(
                               color: VoidTheme.textMuted.withValues(alpha: 0.6),
-                              fontSize: 8.0,
+                              fontSize: 6.5,
                               fontWeight: FontWeight.bold,
                             ),
                           );
@@ -301,17 +301,17 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                       Transform.translate(
                         offset: Offset(_sliderOffset, 0),
                         child: Container(
-                          width: 44.0,
-                          height: 18.0,
+                          width: 32.0,
+                          height: 12.0,
                           decoration: BoxDecoration(
                             color: VoidTheme.solarGold,
-                            borderRadius: BorderRadius.circular(9.0),
+                            borderRadius: BorderRadius.circular(6.0),
                             boxShadow: [
                               BoxShadow(
                                 color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.4,
+                                  alpha: 0.35,
                                 ),
-                                blurRadius: 6.0,
+                                blurRadius: 4.0,
                               ),
                             ],
                           ),
@@ -321,17 +321,17 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               Icon(
                                 Icons.chevron_left,
                                 color: VoidTheme.obsidianBlack,
-                                size: 11.0,
+                                size: 8.0,
                               ),
                               Icon(
                                 Icons.rocket,
                                 color: VoidTheme.obsidianBlack,
-                                size: 10.0,
+                                size: 7.5,
                               ),
                               Icon(
                                 Icons.chevron_right,
                                 color: VoidTheme.obsidianBlack,
-                                size: 11.0,
+                                size: 8.0,
                               ),
                             ],
                           ),
@@ -415,18 +415,18 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
           scale: isSowHop ? 1.15 : 1.0,
           duration: const Duration(milliseconds: 140),
           child: Container(
-            height: 44.0,
-            margin: const EdgeInsets.symmetric(horizontal: 1.2),
+            height: 30.0,
+            margin: const EdgeInsets.symmetric(horizontal: 0.8),
             decoration: BoxDecoration(
               color: isSelected
                   ? VoidTheme.plasmaCyan.withValues(alpha: 0.22)
                   : (bayGlow != Colors.transparent
                         ? bayGlow
                         : VoidTheme.cardSurface),
-              borderRadius: BorderRadius.circular(6.0),
+              borderRadius: BorderRadius.circular(4.0),
               border: Border.all(
                 color: borderColor,
-                width: isSelected || bay.isNyumba ? 1.8 : 1.0,
+                width: isSelected || bay.isNyumba ? 1.4 : 0.8,
               ),
             ),
             child: Column(
@@ -442,7 +442,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         color: isSelected
                             ? VoidTheme.plasmaCyan
                             : VoidTheme.textSecondary,
-                        fontSize: 9.5,
+                        fontSize: 8.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -451,7 +451,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         '★',
                         style: TextStyle(
                           color: VoidTheme.solarGold,
-                          fontSize: 7.5,
+                          fontSize: 6.5,
                         ),
                       ),
                     if (bay.isKichwa)
@@ -459,7 +459,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         '♦',
                         style: TextStyle(
                           color: VoidTheme.nebulaAmethyst,
-                          fontSize: 7.5,
+                          fontSize: 6.5,
                         ),
                       ),
                     if (bay.isKimbi)
@@ -467,7 +467,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         '▲',
                         style: TextStyle(
                           color: VoidTheme.emeraldShield,
-                          fontSize: 7.5,
+                          fontSize: 6.5,
                         ),
                       ),
                   ],
@@ -482,24 +482,24 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               ? VoidTheme.plasmaCyan
                               : VoidTheme.solarGold)
                         : VoidTheme.textPrimary,
-                    fontSize: 13.0,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.bold,
-                    height: 1.05,
+                    height: 1.0,
                   ),
                 ),
 
                 // Concentric Charge Pips (Up to 4 pips)
                 if (bay.chargeUnits > 0)
                   Padding(
-                    padding: const EdgeInsets.only(top: 1.5),
+                    padding: const EdgeInsets.only(top: 0.5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         bay.chargeUnits.clamp(1, 4),
                         (i) => Container(
-                          width: 3.0,
-                          height: 3.0,
-                          margin: const EdgeInsets.symmetric(horizontal: 0.6),
+                          width: 2.2,
+                          height: 2.2,
+                          margin: const EdgeInsets.symmetric(horizontal: 0.4),
                           decoration: BoxDecoration(
                             color: bay.chargeUnits >= 4
                                 ? VoidTheme.plasmaCyan
