@@ -71,27 +71,52 @@ class _CombatScreenState extends State<CombatScreen>
       difficultyTier: widget.difficultyTier,
     );
     _coordinator.addListener(_onCoordinatorStateChanged);
-    _coordinator.initialize(autoStartSolver: widget.autoStartSolver);
+    _coordinator.initialize(
+      difficulty: widget.difficultyTier,
+      autoStartSolver: widget.autoStartSolver,
+    );
 
     _ticker = createTicker(_onTick);
     _ticker.start();
   }
 
-  void _onTick(Duration elapsed) {
-    final dtSeconds = (_lastElapsed == Duration.zero)
-        ? 0.016
-        : (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
-    _lastElapsed = elapsed;
-    final clampedDt = dtSeconds.clamp(0.001, 0.05);
-    _animationTime += clampedDt;
+  int _tickCount = 0;
 
-    final viewport =
-        _combatViewportSize ??
-        Size(
-          MediaQuery.of(context).size.width,
-          MediaQuery.of(context).size.height * 0.78,
+  void _onTick(Duration elapsed) {
+    try {
+      final dtSeconds = (_lastElapsed == Duration.zero)
+          ? 0.016
+          : (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
+      _lastElapsed = elapsed;
+      final clampedDt = dtSeconds.clamp(0.001, 0.05);
+      _animationTime += clampedDt;
+
+      final viewport =
+          _combatViewportSize ??
+          Size(
+            MediaQuery.sizeOf(context).width,
+            MediaQuery.sizeOf(context).height * 0.78,
+          );
+      _coordinator.update(clampedDt, viewport);
+      final matchStatus = _coordinator.state.status;
+      if (matchStatus == CombatMatchStatus.defeat && !_isModalOpen) {
+        _showGameOverModal();
+      } else if (matchStatus == CombatMatchStatus.victory && !_isModalOpen) {
+        _showVictoryModal();
+      }
+      if (_tickCount++ % 60 == 0) {
+        debugPrint(
+          '[VoidSower CombatScreen] Tick $_tickCount: status=${_coordinator.state.status.name}, enemies=${_coordinator.enemies.length}, bullets=${_coordinator.bulletManager.bullets.length}, lances=${_coordinator.lances.where((l) => l.active).length}',
         );
-    _coordinator.update(clampedDt, viewport);
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e, stack) {
+      debugPrint(
+        '[VoidSower CombatScreen] CRITICAL ERROR IN _onTick: $e\n$stack',
+      );
+    }
   }
 
   void _onCoordinatorStateChanged() {
@@ -173,12 +198,18 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _restartCombat() {
-    _coordinator.initialize(autoStartSolver: _coordinator.state.isAutoSolving);
+    _coordinator.initialize(
+      difficulty: _currentDifficultyTier,
+      autoStartSolver: _coordinator.state.isAutoSolving,
+    );
   }
 
   void _advanceNextSector() {
     _currentDifficultyTier = (_currentDifficultyTier + 1) % 3;
-    _coordinator.initialize(autoStartSolver: _coordinator.state.isAutoSolving);
+    _coordinator.initialize(
+      difficulty: _currentDifficultyTier,
+      autoStartSolver: _coordinator.state.isAutoSolving,
+    );
   }
 
   void _openCodex() {

@@ -75,9 +75,10 @@ class CombatSystem {
   /// Returns spatial grid.
   const SpatialGrid& GetSpatialGrid() const { return spatial_grid_; }
 
- private:
+  /// Rebuilds spatial grid indexing enemy vessels by corridor.
   void RebuildSpatialGrid();
 
+ private:
   entt::registry& registry_;
   SpatialGrid spatial_grid_;
   MovementSystem movement_system_;

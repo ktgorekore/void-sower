@@ -40,7 +40,11 @@ bool Engine::GenerateWave(const WaveGeneratorConfig& config) {
           << static_cast<int>(config.difficulty)
           << ", seed=" << config.random_seed
           << ", budget=" << config.core_budget;
-  return wave_generator_->GenerateWave(config);
+  const bool success = wave_generator_->GenerateWave(config);
+  if (success) {
+    combat_system_->RebuildSpatialGrid();
+  }
+  return success;
 }
 
 bool Engine::InjectCore(uint8_t bay_index, int8_t direction) {

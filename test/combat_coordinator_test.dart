@@ -37,6 +37,7 @@ void main() {
       expect(coordinator.state.status, equals(CombatMatchStatus.activeCombat));
       expect(coordinator.dreadnought.reserveCores, equals(28));
       expect(coordinator.bays.length, equals(16));
+      expect(coordinator.enemies.isNotEmpty, isTrue);
     });
 
     test('selectBay updates selectedBay and computes prediction', () {

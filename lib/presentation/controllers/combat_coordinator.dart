@@ -82,21 +82,50 @@ class CombatCoordinator extends ChangeNotifier {
   bool _isDisposed = false;
   Completer<void>? _sowAnimationCompleter;
 
-  /// Initializes engine entities and state machine.
+  int _currentDifficulty = 0;
+  int get currentDifficulty => _currentDifficulty;
+
+  /// Initializes engine entities, procedurally generates the solvable combat wave,
+  /// and primes the FSM.
   void initialize({
+    int? difficulty,
     int startingCores = 28,
     double boundaryY = 0.15,
     bool autoStartSolver = false,
   }) {
+    _currentDifficulty = difficulty ?? difficultyTier;
+    vlog(
+      6,
+      'CombatCoordinator: Initializing sector difficulty $_currentDifficulty',
+    );
     engine.initialize(startingCores: startingCores, boundaryY: boundaryY);
+    engine.generateWave(
+      difficulty: _currentDifficulty,
+      randomSeed: DateTime.now().millisecondsSinceEpoch % 100000,
+      coreBudget: 16 + (_currentDifficulty * 4),
+      initialVelocityY: 0.02 + (_currentDifficulty * 0.008),
+    );
     _syncDomainState();
 
+    damageNumbers.clear();
+    bulletManager.clear();
+    _activeLanceBays.clear();
+    _hasActiveFlak = false;
+
+    const initialBay = 11;
+    prediction = engine.predictSow(initialBay, 1);
+
     _state = CombatMatchState(
-      status: (difficultyTier == 0 && !autoStartSolver)
+      status: (_currentDifficulty == 0 && !autoStartSolver)
           ? CombatMatchStatus.briefing
           : CombatMatchStatus.activeCombat,
       isAutoSolving: autoStartSolver,
+      selectedBay: initialBay,
     );
+
+    if (autoStartSolver) {
+      solverController.reset();
+    }
     notifyListeners();
   }
 
@@ -195,10 +224,12 @@ class CombatCoordinator extends ChangeNotifier {
     if (dreadnought.isGameOver && _state.status != CombatMatchStatus.defeat) {
       _state = _state.copyWith(status: CombatMatchStatus.defeat);
       audio.onDefeat();
+      notifyListeners();
     } else if (dreadnought.isVictory &&
         _state.status != CombatMatchStatus.victory) {
       _state = _state.copyWith(status: CombatMatchStatus.victory);
       audio.onVictory();
+      notifyListeners();
     }
 
     // 9. Autonomous AI Tactical Solver step
@@ -211,8 +242,6 @@ class CombatCoordinator extends ChangeNotifier {
         enemies: enemies,
       );
     }
-
-    notifyListeners();
   }
 
   void _applyScreenShake(double intensity) {
@@ -225,7 +254,8 @@ class CombatCoordinator extends ChangeNotifier {
   }
 
   void _handleConduitBreached(int corridor, double x, double y) {
-    engine.damageConduit(corridor);
+    final bayIndex = 8 + corridor.clamp(0, 7);
+    engine.damageConduit(bayIndex);
     audio.onShieldHit();
     HapticService.instance.injectionClick();
     _applyScreenShake(12.0);
@@ -241,9 +271,9 @@ class CombatCoordinator extends ChangeNotifier {
   }
 
   void _handleSolverMove(int bayIndex, int direction, double targetSlideX) {
+    engine.slideDreadnought(targetSlideX);
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, direction);
-    slidePosition(targetSlideX);
     sow(bayIndex, direction);
   }
 
@@ -266,7 +296,10 @@ class CombatCoordinator extends ChangeNotifier {
     );
     notifyListeners();
 
-    _sowAnimationCompleter?.complete();
+    if (_sowAnimationCompleter != null &&
+        !_sowAnimationCompleter!.isCompleted) {
+      _sowAnimationCompleter!.complete();
+    }
     _sowAnimationCompleter = Completer<void>();
 
     int currentBay = bayIndex;
@@ -292,7 +325,10 @@ class CombatCoordinator extends ChangeNotifier {
           prediction = engine.predictSow(bayIndex, direction);
           notifyListeners();
         }
-        _sowAnimationCompleter?.complete();
+        if (_sowAnimationCompleter != null &&
+            !_sowAnimationCompleter!.isCompleted) {
+          _sowAnimationCompleter!.complete();
+        }
         return;
       }
 
@@ -364,7 +400,10 @@ class CombatCoordinator extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
-    _sowAnimationCompleter?.complete();
+    if (_sowAnimationCompleter != null &&
+        !_sowAnimationCompleter!.isCompleted) {
+      _sowAnimationCompleter!.complete();
+    }
     damageNumbers.clear();
     bulletManager.clear();
     _state = _state.copyWith(status: CombatMatchStatus.disposed);
