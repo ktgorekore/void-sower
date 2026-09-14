@@ -31,10 +31,11 @@
 
 ## 🎮 Redesigned Combat Mechanics & Visual Clarity
 
-- **Player Flagship Identification:** You command the **Olympus Dreadnought Flagship** (`▲ DREADNOUGHT FLAGSHIP ▲`) stationed at the bottom atmospheric defense line, equipped with obsidian-gold armor, delta swept wings, central plasma reactor core, dual rail turrets, animated thruster exhaust, and forward deflector shield arc.
-- **Dropping Invader Ordnance:** Void Swarm assault craft descend 8 tactical corridors and drop deadly crimson/gold plasma bombs downward toward your flagship. Maneuver horizontally along the bottom slider to evade incoming ordnance.
+- **Player Flagship Identification & Conduit Aiming:** You command the **Olympus Dreadnought Flagship** (`▲ DREADNOUGHT CONDUIT ▲`) stationed at the bottom defense line. As you glide horizontally to evade bombs, your ship automatically docks with and arms that corridor's frontline battery, projecting a vertical cyan targeting laser with lock-on reticles over descending enemies.
+- **Unified Tactical Action Deck:** Tap `DISCHARGE C[n] ►` to instantly unleash a quadratic Particle Lance, or `SOW CCW` to cycle energy into the inner reservoir. No complex multi-tap acrobatics needed while evading ordnance.
+- **Dropping Invader Ordnance:** Void Swarm assault craft descend 8 tactical corridors and drop plasma bombs directly from their cannons. Maneuver to evade or vaporize them with particle lances (`DEFLECT +50`).
 - **16-Bay Bao Mancala Sowing:**
-  - **Frontline Batteries (Bays 8–15):** Directly aligned with tactical attack corridors C1–C8. Discharging a frontline terminal bay fires a massive **UPWARD Particle Lance** that obliterates alien formations and deflects incoming bombs (`DEFLECT +50`).
+  - **Frontline Batteries (Bays 8–15):** Directly aligned with tactical attack corridors C1–C8. Discharging a frontline terminal bay fires a massive **UPWARD Particle Lance** ($D = \alpha \cdot M^2$) that obliterates alien formations and deflects incoming bombs.
   - **Inner Reservoir (Bays 0–7):** Energy storage bank. Accumulate mass ($M \ge 4$) to prime devastating multi-lap cascade relays that loop across the ring.
   - **Hop-by-Hop Visual Cadence:** Sowing traversal visibly animates energy seeds hopping pit-to-pit at 65ms per bay with harmonic audio pitches before terminal discharge.
 
