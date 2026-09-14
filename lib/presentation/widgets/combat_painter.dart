@@ -116,7 +116,7 @@ class CombatPainter extends CustomPainter {
     }
 
     // 2. Draw Atmospheric Defense Boundary Line
-    final boundaryY = size.height * 0.82;
+    final boundaryY = size.height * 0.88;
     final boundaryPaint = Paint()
       ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.5)
       ..strokeWidth = 1.5
@@ -130,9 +130,9 @@ class CombatPainter extends CustomPainter {
     // 3. Draw Active Particle Lances (FIRED UPWARD FROM DREADNOUGHT)
     for (final lance in lances) {
       if (!lance.active) continue;
-      final corridor = lance.firingBayIndex < 8
-          ? lance.firingBayIndex
-          : 15 - lance.firingBayIndex;
+      final corridor = (lance.firingBayIndex >= 8)
+          ? (lance.firingBayIndex - 8)
+          : lance.firingBayIndex;
       final centerX = (corridor + 0.5) * corridorWidth;
       final rawWidth = lance.beamWidth <= 1.0
           ? (lance.beamWidth * size.width)
@@ -609,10 +609,11 @@ class CombatPainter extends CustomPainter {
       text: labelSpan,
       textDirection: TextDirection.ltr,
     )..layout();
-    labelPainter.paint(
-      canvas,
-      Offset(centerX - (labelPainter.width / 2), shipY + 16),
+    final labelX = (centerX - (labelPainter.width / 2)).clamp(
+      8.0,
+      size.width - labelPainter.width - 8.0,
     );
+    labelPainter.paint(canvas, Offset(labelX, shipY + 26));
   }
 
   @override

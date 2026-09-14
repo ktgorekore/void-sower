@@ -83,6 +83,8 @@ class _CombatScreenState extends State<CombatScreen>
   List<EnemyCraft> _enemies = const [];
   List<LanceBeam> _lances = const [];
   List<FlakBurst> _flaks = const [];
+  Set<int> _activeLanceBays = <int>{};
+  bool _hasActiveFlak = false;
 
   late int _currentDifficultyTier;
   bool _isGameOverModalVisible = false;
@@ -162,7 +164,7 @@ class _CombatScreenState extends State<CombatScreen>
           MediaQuery.of(context).size.height * 0.55,
         );
     final corridorWidth = viewportSize.width / 8.0;
-    final boundaryY = viewportSize.height * 0.82;
+    final boundaryY = viewportSize.height * 0.88;
     final topMargin = viewportSize.height * 0.06;
 
     // 1. Enemy assault craft firing dropping plasma bullets down corridors
@@ -315,29 +317,39 @@ class _CombatScreenState extends State<CombatScreen>
       if (bullet.y >= boundaryY) {
         final hitDread = (bullet.x - dreadX).abs() < 34.0;
         if (hitDread) {
+          final activeCorridor = (bullet.x / (viewportSize.width / 8.0))
+              .floor()
+              .clamp(0, 7);
+          widget.engine.damageConduit(activeCorridor);
+          AudioService.instance.playShieldHit();
           _particleService.spawnFlakBurst(
             bullet.x,
             boundaryY,
-            VoidTheme.emeraldShield,
-            count: 14,
+            VoidTheme.crimsonFlare,
+            count: 18,
           );
           HapticService.instance.injectionClick();
+          _screenShake = Offset(
+            (_random.nextDouble() - 0.5) * 12.0,
+            (_random.nextDouble() - 0.5) * 12.0,
+          );
           if (_damageNumbers.length < 8) {
             _damageNumbers.add(
               FloatingDamageNumber(
-                text: '-10 SHIELD',
+                text: 'CONDUIT BREACH! -1 CORE',
                 x: bullet.x,
-                y: boundaryY - 20,
-                color: VoidTheme.emeraldShield,
+                y: boundaryY - 24,
+                color: VoidTheme.crimsonFlare,
                 isCritical: true,
               ),
             );
           }
         } else {
+          widget.engine.damageAtmosphere(5);
           _particleService.spawnLanceSparks(
             bullet.x,
             boundaryY,
-            VoidTheme.crimsonFlare,
+            VoidTheme.solarGold,
             count: 8,
           );
           if (_damageNumbers.length < 8) {
@@ -346,7 +358,7 @@ class _CombatScreenState extends State<CombatScreen>
                 text: '-5 ATMOS',
                 x: bullet.x,
                 y: boundaryY - 15,
-                color: VoidTheme.crimsonFlare,
+                color: VoidTheme.solarGold,
               ),
             );
           }
@@ -357,6 +369,23 @@ class _CombatScreenState extends State<CombatScreen>
       return bullet.y > viewportSize.height;
     });
 
+    // High-impact SFX triggers on newly firing lances and flak detonations
+    for (final lance in _lances) {
+      if (lance.active && !_activeLanceBays.contains(lance.firingBayIndex)) {
+        AudioService.instance.playLanceFire();
+      }
+    }
+    _activeLanceBays = _lances
+        .where((l) => l.active)
+        .map((l) => l.firingBayIndex)
+        .toSet();
+
+    final nowHasFlak = _flaks.any((f) => f.active);
+    if (nowHasFlak && !_hasActiveFlak) {
+      AudioService.instance.playFlakBurst();
+    }
+    _hasActiveFlak = nowHasFlak;
+
     // Spawn damage numbers and camera shake when lances fire
     for (final lance in _lances) {
       if (lance.active) {
@@ -365,9 +394,9 @@ class _CombatScreenState extends State<CombatScreen>
           (_random.nextDouble() - 0.5) * 5.5,
         );
         if (_damageNumbers.length < 5 && _random.nextDouble() < 0.25) {
-          final corridor = lance.firingBayIndex < 8
-              ? lance.firingBayIndex
-              : 15 - lance.firingBayIndex;
+          final corridor = (lance.firingBayIndex >= 8)
+              ? (lance.firingBayIndex - 8)
+              : lance.firingBayIndex;
           _damageNumbers.add(
             FloatingDamageNumber(
               text: '${(lance.totalDamage * 10).toInt()}',
@@ -456,8 +485,15 @@ class _CombatScreenState extends State<CombatScreen>
     _prediction = widget.engine.predictSow(bestBay, bestDir);
 
     // Slide dreadnought to match target corridor
-    final targetCorridor = _prediction?.terminalCorridor ?? (bestBay % 8);
-    final targetX = (targetCorridor / 7.0).clamp(0.0, 1.0);
+    final int targetCorridor;
+    if (_prediction != null && _prediction!.terminalCorridor >= 0) {
+      targetCorridor = _prediction!.terminalCorridor;
+    } else if (bestBay >= 8) {
+      targetCorridor = bestBay - 8;
+    } else {
+      targetCorridor = bestBay % 8;
+    }
+    final targetX = ((targetCorridor + 0.5) / 8.0).clamp(0.0, 1.0);
     widget.engine.slideDreadnought(targetX);
 
     final mass = (bestBay < _bays.length) ? _bays[bestBay].chargeUnits : 1;
@@ -558,7 +594,7 @@ class _CombatScreenState extends State<CombatScreen>
 
   void _handleInjectCore(int bayIndex, int direction) {
     HapticService.instance.injectionClick();
-    AudioService.instance.playSowStep();
+    AudioService.instance.playInjectCore();
     widget.engine.injectCore(bayIndex, direction);
     vlog(6, 'Core injected into bay $bayIndex dir $direction');
     setState(() {

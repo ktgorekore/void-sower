@@ -31,7 +31,7 @@ class ProjectionShelf extends StatelessWidget {
   Widget build(BuildContext context) {
     if (prediction == null || selectedBay == null) {
       return Container(
-        height: 48.0,
+        height: 28.0,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: VoidTheme.obsidianBlack.withValues(alpha: 0.75),
@@ -42,14 +42,14 @@ class ProjectionShelf extends StatelessWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.radar, size: 14.0, color: VoidTheme.plasmaCyan),
-            SizedBox(width: 6.0),
+            Icon(Icons.radar, size: 12.0, color: VoidTheme.plasmaCyan),
+            SizedBox(width: 5.0),
             Text(
               'SELECT BAY TO PREVIEW LANCE & SOWING TRAJECTORY',
               style: TextStyle(
                 color: VoidTheme.textSecondary,
-                fontSize: 10.5,
-                letterSpacing: 1.0,
+                fontSize: 9.5,
+                letterSpacing: 0.8,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -63,8 +63,8 @@ class ProjectionShelf extends StatelessWidget {
     final isRelay = p.triggersRelay;
 
     return Container(
-      height: 48.0,
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      height: 28.0,
+      padding: const EdgeInsets.symmetric(horizontal: 10.0),
       decoration: BoxDecoration(
         color: VoidTheme.cardSurface.withValues(alpha: 0.9),
         border: Border.symmetric(
@@ -86,31 +86,31 @@ class ProjectionShelf extends StatelessWidget {
                 const Icon(
                   Icons.radar,
                   color: VoidTheme.plasmaCyan,
-                  size: 16.0,
+                  size: 13.0,
                 ),
-                const SizedBox(width: 8.0),
+                const SizedBox(width: 6.0),
                 Text(
                   'BAY $selectedBay → BAY ${p.terminalBay}',
                   style: const TextStyle(
                     color: VoidTheme.textPrimary,
-                    fontSize: 12.0,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 0.5,
                   ),
                 ),
                 if (p.terminalCorridor >= 0) ...[
-                  const SizedBox(width: 6.0),
+                  const SizedBox(width: 5.0),
                   Text(
                     '(CORRIDOR ${p.terminalCorridor})',
                     style: const TextStyle(
                       color: VoidTheme.plasmaCyanLight,
-                      fontSize: 11.0,
+                      fontSize: 9.5,
                     ),
                   ),
                 ],
               ],
             ),
-            const SizedBox(width: 12.0),
+            const SizedBox(width: 10.0),
 
             // Damage / Effect Readout
             Row(
@@ -119,14 +119,14 @@ class ProjectionShelf extends StatelessWidget {
                   const Icon(
                     Icons.flash_on,
                     color: VoidTheme.plasmaCyan,
-                    size: 16.0,
+                    size: 13.0,
                   ),
-                  const SizedBox(width: 4.0),
+                  const SizedBox(width: 3.0),
                   Text(
                     'LANCE: ${p.predictedDamage.toInt()} DMG (M=${p.finalMass})',
                     style: const TextStyle(
                       color: VoidTheme.plasmaCyan,
-                      fontSize: 12.0,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -134,14 +134,14 @@ class ProjectionShelf extends StatelessWidget {
                   const Icon(
                     Icons.alt_route,
                     color: VoidTheme.solarGold,
-                    size: 16.0,
+                    size: 13.0,
                   ),
-                  const SizedBox(width: 4.0),
+                  const SizedBox(width: 3.0),
                   const Text(
                     'RELAY OVERLOAD (FLAK VENT)',
                     style: TextStyle(
                       color: VoidTheme.solarGold,
-                      fontSize: 11.0,
+                      fontSize: 9.5,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

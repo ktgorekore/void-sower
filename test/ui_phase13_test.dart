@@ -169,10 +169,7 @@ void main() {
 
         expect(find.text('C1'), findsOneWidget);
         expect(find.text('C8'), findsOneWidget);
-        expect(
-          find.text('TAP: SELECT  •  SWIPE: SOW  •  FLICK ▲: INJECT'),
-          findsOneWidget,
-        );
+        expect(find.byType(CommandArcWidget), findsOneWidget);
 
         // Tap bay 3
         await tester.tap(find.text('3'));
