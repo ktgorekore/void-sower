@@ -15,6 +15,8 @@
 import 'package:flutter/material.dart';
 
 /// Arcade floating damage number drifting upward on impacts.
+/// Pre-computes its TextPainter layout upon instantiation to guarantee
+/// zero allocation and zero layout passes on 60 FPS rendering hot paths.
 class FloatingDamageNumber {
   FloatingDamageNumber({
     required this.text,
@@ -23,7 +25,19 @@ class FloatingDamageNumber {
     required this.color,
     this.lifetime = 0.75,
     this.isCritical = false,
-  }) : remainingLifetime = lifetime;
+  }) : remainingLifetime = lifetime,
+       textPainter = TextPainter(
+         text: TextSpan(
+           text: text,
+           style: TextStyle(
+             color: color,
+             fontSize: isCritical ? 15.0 : 12.0,
+             fontWeight: FontWeight.bold,
+             shadows: const [Shadow(color: Colors.black, blurRadius: 4.0)],
+           ),
+         ),
+         textDirection: TextDirection.ltr,
+       )..layout();
 
   final String text;
   final double x;
@@ -32,6 +46,9 @@ class FloatingDamageNumber {
   final double lifetime;
   double remainingLifetime;
   final bool isCritical;
+
+  /// Pre-computed text layout for zero-allocation rendering.
+  final TextPainter textPainter;
 
   /// Updates lifetime and upward drift position. Returns true while still alive.
   bool update(double dt) {

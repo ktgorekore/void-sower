@@ -353,21 +353,35 @@ class _CombatScreenState extends State<CombatScreen>
                                       _coordinator.quickFireActiveCorridor();
                                     }
                                   },
-                                  child: CustomPaint(
-                                    size: _combatViewportSize!,
-                                    painter: CombatPainter(
-                                      dreadnought: dread,
-                                      enemies: _coordinator.enemies,
-                                      lances: _coordinator.lances,
-                                      flaks: _coordinator.flaks,
-                                      particles: _coordinator
-                                          .particleService
-                                          .activeParticles,
-                                      damageNumbers: _coordinator.damageNumbers,
-                                      enemyBullets:
-                                          _coordinator.bulletManager.bullets,
-                                      animationTime: _animationTime,
-                                    ),
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      // Retained Static Skia Surface (Corridors & Defense Rails)
+                                      const RepaintBoundary(
+                                        child: CustomPaint(
+                                          painter: CombatBackgroundPainter(),
+                                        ),
+                                      ),
+                                      // Dynamic Combat Entities Layer (Zero Allocation)
+                                      CustomPaint(
+                                        size: _combatViewportSize!,
+                                        painter: CombatPainter(
+                                          dreadnought: dread,
+                                          enemies: _coordinator.enemies,
+                                          lances: _coordinator.lances,
+                                          flaks: _coordinator.flaks,
+                                          particles: _coordinator
+                                              .particleService
+                                              .activeParticles,
+                                          damageNumbers:
+                                              _coordinator.damageNumbers,
+                                          enemyBullets: _coordinator
+                                              .bulletManager
+                                              .bullets,
+                                          animationTime: _animationTime,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 );
                               },
