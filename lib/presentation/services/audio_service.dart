@@ -90,6 +90,30 @@ class AudioService {
     } catch (_) {}
   }
 
+  Future<void> playShieldHit() async {
+    if (isMuted || !_initialized) return;
+    try {
+      final player = _getNextPlayer();
+      if (player != null) {
+        await player.setPlaybackRate(1.0);
+        await player.setSource(AssetSource('audio/shield_hit.wav'));
+        await player.resume();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> playInjectCore() async {
+    if (isMuted || !_initialized) return;
+    try {
+      final player = _getNextPlayer();
+      if (player != null) {
+        await player.setPlaybackRate(1.0);
+        await player.setSource(AssetSource('audio/inject_core.wav'));
+        await player.resume();
+      }
+    } catch (_) {}
+  }
+
   Future<void> playVictory() async {
     if (isMuted || !_initialized) return;
     try {
