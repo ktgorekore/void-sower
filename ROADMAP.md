@@ -335,3 +335,25 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Cinematic fluid screen transitions: smooth Flutter `Hero` animations and custom warp-speed radial zooms between Star Map, Hangar, and Combat Viewport.
   - [x] Redesigned `VictoryDialog` and `GameOverDialog`: celebratory fanfare sequence, tiered star reveal animations with sound synchronization, detailed plasma scrap rewards, and prominent "Next Sector" / "Re-Engage" buttons.
 
+- [x] **Task 13.6: Abseil & Flutter Verbose Logging Architecture (`VLOG_LEVEL`)**
+  - [x] Link `absl::log_globals` to native library targets in `src/CMakeLists.txt`.
+  - [x] Implement flat C-ABI endpoint `void_sower_set_vlog_level(int32_t level)` in `src/void_sower.h` and `src/void_sower.cpp`.
+  - [x] Add high-frequency `VLOG(6)` debug logging across `Engine` and `CombatSystem`.
+  - [x] Forward Flutter runtime `--dart-define=VLOG_LEVEL=N` environment variables through `FfiVoidSowerEngine` to native Abseil logger.
+  - [x] Implement unified Dart `vlog(level, message)` logging utility in `lib/core/logging.dart`.
+
+- [x] **Task 13.7: Combat Clarity, Flagship Dreadnought & Projectile Dynamics**
+  - [x] Redesign player character as a prominent **Olympus Dreadnought Flagship** (`lib/presentation/widgets/combat_painter.dart`) with obsidian armor, solar gold trim, dual rail turrets, glowing plasma reactor core, kinetic deflector shield arc, and twin animated rocket exhaust trails.
+  - [x] Reverse Particle Lance gradient to fire **UPWARD** from flagship turret toward space with bottom muzzle flash, upward blast gradient, and shockwave bursts.
+  - [x] Implement falling enemy plasma bullets descending along tactical corridors, replacing ambiguous static lasers with clear dodgeable threats.
+  - [x] Implement bullet interception mechanics: Particle Lance vaporization (`DEFLECT +50`), flak detonation (`INTERCEPT +25`), and dreadnought shield absorption (`-10 SHIELD`).
+  - [x] Clarify Bao capacitor ring roles: Frontline Batteries (Bays 8–15 / C1–C8) fire upward lances; Inner Reservoirs (Bays 0–7) store seed mass for cascade relays. Add active bay gold pulse during sowing steps.
+
+- [x] **Task 13.8: Master Promotional Media Suite & 60s Narrated Tutorial Video**
+  - [x] Author automated pipeline `scripts/generate_tutorial_video.py` utilizing Microsoft Neural TTS (`en-US-ChristopherNeural`), dual-oscillator ambient synth music, and synchronized ASS subtitles.
+  - [x] Master 60-second tutorial video (`docs/media/void_sower_how_to_play_60s.mp4` / `store_listing/assets/how_to_play_60s.mp4`) in 1080x2400 portrait format explaining character identity, dropping bullets, and Bao sowing mechanics.
+  - [x] Cut 30-second high-resolution Solver Showcase video (`docs/media/void_sower_solver_showcase_30s.mp4` / `store_listing/assets/promo_gameplay.mp4`) demonstrating AI MCTS tactical clearing.
+  - [x] Generate 12-second Bayer-dithered animated GIF (`void_sower_solver_showcase.gif` / `store_listing/assets/promo_gameplay.gif`).
+  - [x] Capture updated phone and tablet Google Play Store screenshots from live emulators on NVIDIA GPU.
+
+

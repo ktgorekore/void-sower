@@ -16,6 +16,8 @@
 
 #include "engine.h"
 
+#include <absl/log/log.h>
+
 #include <algorithm>
 
 namespace void_sower::ecs {
@@ -27,26 +29,40 @@ Engine::Engine() {
 }
 
 void Engine::Initialize(uint32_t starting_cores, float boundary_y) {
+  VLOG(6) << "Engine::Initialize: starting_cores=" << starting_cores
+          << ", boundary_y=" << boundary_y;
   registry_.clear();
   combat_system_->InitializeDreadnought(starting_cores, boundary_y);
 }
 
 bool Engine::GenerateWave(const WaveGeneratorConfig& config) {
+  VLOG(6) << "Engine::GenerateWave: difficulty="
+          << static_cast<int>(config.difficulty)
+          << ", seed=" << config.random_seed
+          << ", budget=" << config.core_budget;
   return wave_generator_->GenerateWave(config);
 }
 
 bool Engine::InjectCore(uint8_t bay_index, int8_t direction) {
+  VLOG(6) << "Engine::InjectCore: bay=" << static_cast<int>(bay_index)
+          << ", direction=" << static_cast<int>(direction);
   return combat_system_->InjectCore(bay_index, direction);
 }
 
 void Engine::SetTargetPositionX(float target_x) {
+  VLOG(6) << "Engine::SetTargetPositionX: target_x=" << target_x;
   combat_system_->SetTargetPositionX(target_x);
 }
 
-void Engine::Update(float delta_time) { combat_system_->Update(delta_time); }
+void Engine::Update(float delta_time) {
+  VLOG(6) << "Engine::Update: delta_time=" << delta_time;
+  combat_system_->Update(delta_time);
+}
 
 CombatSystem::PredictionResult Engine::PredictSow(uint8_t start_bay,
                                                   int8_t direction) const {
+  VLOG(6) << "Engine::PredictSow: start_bay=" << static_cast<int>(start_bay)
+          << ", direction=" << static_cast<int>(direction);
   return combat_system_->PredictSow(start_bay, direction);
 }
 

@@ -33,6 +33,10 @@ import 'void_sower_bindings_generated.dart';
 class FfiVoidSowerEngine implements IVoidSowerEngine {
   FfiVoidSowerEngine({VoidSowerBindings? bindings})
     : _bindings = bindings ?? VoidSowerBindings(_loadNativeLibrary()) {
+    const vlogLevel = int.fromEnvironment('VLOG_LEVEL', defaultValue: 0);
+    if (vlogLevel > 0) {
+      _bindings.void_sower_set_vlog_level(vlogLevel);
+    }
     _cachedBaysPtr = calloc<VoidSowerBayFFI>(kMaxBays);
     _cachedEnemiesPtr = calloc<VoidSowerEnemyFFI>(kMaxEnemies);
     _cachedLancesPtr = calloc<VoidSowerLanceFFI>(kMaxLances);

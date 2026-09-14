@@ -67,6 +67,7 @@ target_link_libraries(void_sower PRIVATE
   absl::flat_hash_map 
   absl::span
   absl::log
+  absl::log_globals
 )
 
 set_target_properties(void_sower PROPERTIES
@@ -131,6 +132,7 @@ if (BUILD_TESTS)
     absl::flat_hash_map 
     absl::span
     absl::log
+    absl::log_globals
   )
   add_test(NAME void_sower_tests COMMAND void_sower_tests)
 endif()

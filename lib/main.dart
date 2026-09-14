@@ -14,17 +14,34 @@
 
 import 'package:flutter/material.dart';
 
+import 'core/logging.dart';
 import 'domain/services/game_engine_interface.dart';
 import 'domain/services/persistence_service.dart';
 import 'engine/ffi_void_sower_engine.dart';
 import 'engine/mock_void_sower_engine.dart';
 import 'presentation/screens/campaign_map_screen.dart';
+import 'presentation/screens/combat_screen.dart';
 import 'presentation/services/audio_service.dart';
 import 'presentation/services/shader_service.dart';
 import 'presentation/theme/void_theme.dart';
 
+/// Optional environment flag to launch directly into combat viewport for testing/recording.
+const bool kStartCombat = bool.fromEnvironment(
+  'START_COMBAT',
+  defaultValue: false,
+);
+
+/// Optional environment flag to start tactical AI solver immediately.
+const bool kAutoSolve = bool.fromEnvironment('AUTO_SOLVE', defaultValue: false);
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (kVlogLevel > 0) {
+    debugPrint(
+      '[VoidSower] Verbose debug mode ENABLED with VLOG_LEVEL=$kVlogLevel',
+    );
+  }
 
   await PersistenceService.instance.initialize();
   await AudioService.instance.initialize();
@@ -56,7 +73,9 @@ class VoidSowerApp extends StatelessWidget {
       title: 'Void Sower: Bao Orbital Batteries',
       debugShowCheckedModeBanner: false,
       theme: VoidTheme.darkTheme,
-      home: CampaignMapScreen(engine: engine),
+      home: kStartCombat
+          ? CombatScreen(engine: engine, autoStartSolver: kAutoSolve)
+          : CampaignMapScreen(engine: engine),
     );
   }
 }

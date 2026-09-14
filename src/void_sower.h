@@ -130,6 +130,7 @@ typedef struct {
 
 #pragma pack(pop)
 
+FFI_PLUGIN_EXPORT void void_sower_set_vlog_level(int32_t level);
 FFI_PLUGIN_EXPORT void void_sower_init(uint32_t starting_cores,
                                        float boundary_y);
 FFI_PLUGIN_EXPORT int32_t

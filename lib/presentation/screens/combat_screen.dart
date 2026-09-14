@@ -16,6 +16,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../core/logging.dart';
 import '../../domain/models/bay_state.dart';
 import '../../domain/models/dreadnought_state.dart';
 import '../../domain/models/enemy_craft.dart';
@@ -63,6 +64,12 @@ class _CombatScreenState extends State<CombatScreen>
 
   final ParticleService _particleService = ParticleService(maxParticles: 300);
   final List<FloatingDamageNumber> _damageNumbers = [];
+  final List<EnemyBullet> _enemyBullets = [];
+  double _enemyFireCooldown = 1.0;
+  int _bulletIdCounter = 0;
+  int? _activeSowBay;
+  bool _isSowAnimating = false;
+
   final math.Random _random = math.Random();
   Offset _screenShake = Offset.zero;
   bool _showTutorial = false;
@@ -100,6 +107,11 @@ class _CombatScreenState extends State<CombatScreen>
   void _startCombat() {
     _selectedBay = null;
     _prediction = null;
+    _enemyBullets.clear();
+    _activeSowBay = null;
+    _isSowAnimating = false;
+    _enemyFireCooldown = 1.0;
+    vlog(6, 'Combat initialized for sector difficulty $_currentDifficultyTier');
     widget.engine.initialize(startingCores: 28, boundaryY: 0.15);
     widget.engine.generateWave(
       difficulty: _currentDifficultyTier,
@@ -139,6 +151,174 @@ class _CombatScreenState extends State<CombatScreen>
 
     // Sync entities
     _syncState();
+
+    final size = MediaQuery.of(context).size;
+    final corridorWidth = size.width / 8.0;
+    final boundaryY = size.height * 0.82;
+    final topMargin = size.height * 0.06;
+
+    // 1. Enemy assault craft firing dropping plasma bullets down corridors
+    _enemyFireCooldown -= clampedDt;
+    if (_enemyFireCooldown <= 0.0 && _enemies.isNotEmpty) {
+      _enemyFireCooldown = 1.0 + _random.nextDouble() * 0.8;
+      final activeEnemies = _enemies
+          .where(
+            (e) => !e.isDestroyed && e.worldPosY > 0.12 && e.worldPosY < 0.85,
+          )
+          .toList();
+      if (activeEnemies.isNotEmpty) {
+        final shooter = activeEnemies[_random.nextInt(activeEnemies.length)];
+        final enemyX = (shooter.assignedCorridor + 0.5) * corridorWidth;
+        final normY = shooter.worldPosY.clamp(0.0, 1.0);
+        final enemyY =
+            topMargin + ((1.0 - normY) / 0.85) * (boundaryY - topMargin);
+
+        Color bulletColor = VoidTheme.crimsonFlare;
+        if (shooter.vesselType == 2) {
+          bulletColor = VoidTheme.solarGold;
+        } else if (shooter.vesselType == 1) {
+          bulletColor = VoidTheme.nebulaAmethyst;
+        }
+
+        _enemyBullets.add(
+          EnemyBullet(
+            id: ++_bulletIdCounter,
+            assignedCorridor: shooter.assignedCorridor,
+            x: enemyX,
+            y: enemyY + 15.0,
+            velocityY: 190.0 + (_random.nextDouble() * 40.0),
+            color: bulletColor,
+          ),
+        );
+        vlog(
+          6,
+          'Enemy vessel in corridor ${shooter.assignedCorridor} fired bullet',
+        );
+      }
+    }
+
+    // 2. Update enemy bullets & collision checks
+    final dreadX =
+        (_dreadnought.orbitalPositionX > 0.0 &&
+            _dreadnought.orbitalPositionX <= 1.0)
+        ? _dreadnought.orbitalPositionX * size.width
+        : size.width * 0.5;
+
+    final lanceCorridors = <int>{};
+    for (final lance in _lances) {
+      if (lance.active) {
+        final c = lance.firingBayIndex < 8
+            ? lance.firingBayIndex
+            : 15 - lance.firingBayIndex;
+        lanceCorridors.add(c);
+      }
+    }
+
+    _enemyBullets.removeWhere((bullet) {
+      bullet.update(clampedDt);
+
+      // Intercepted by active Particle Lance beam
+      if (lanceCorridors.contains(bullet.assignedCorridor)) {
+        _particleService.spawnFlakBurst(
+          bullet.x,
+          bullet.y,
+          VoidTheme.plasmaCyan,
+          count: 12,
+        );
+        if (_damageNumbers.length < 8) {
+          _damageNumbers.add(
+            FloatingDamageNumber(
+              text: 'DEFLECT +50',
+              x: bullet.x,
+              y: bullet.y,
+              color: VoidTheme.plasmaCyan,
+            ),
+          );
+        }
+        return true;
+      }
+
+      // Intercepted by active Flak Bursts
+      for (final flak in _flaks) {
+        if (!flak.active) continue;
+        final flakX = flak.worldPosX <= 1.0
+            ? flak.worldPosX * size.width
+            : flak.worldPosX;
+        final flakY = flak.worldPosY <= 1.0
+            ? topMargin +
+                  ((1.0 - flak.worldPosY.clamp(0.0, 1.0)) / 0.85) *
+                      (boundaryY - topMargin)
+            : flak.worldPosY;
+        final rawRadius = flak.blastRadius <= 1.0
+            ? flak.blastRadius * size.width
+            : flak.blastRadius;
+        if ((bullet.x - flakX).abs() < rawRadius &&
+            (bullet.y - flakY).abs() < rawRadius) {
+          _particleService.spawnFlakBurst(
+            bullet.x,
+            bullet.y,
+            VoidTheme.solarGold,
+            count: 10,
+          );
+          if (_damageNumbers.length < 8) {
+            _damageNumbers.add(
+              FloatingDamageNumber(
+                text: 'INTERCEPT +25',
+                x: bullet.x,
+                y: bullet.y,
+                color: VoidTheme.solarGold,
+              ),
+            );
+          }
+          return true;
+        }
+      }
+
+      // Reached Atmospheric Boundary / Dreadnought Flagship
+      if (bullet.y >= boundaryY) {
+        final hitDread = (bullet.x - dreadX).abs() < 34.0;
+        if (hitDread) {
+          _particleService.spawnFlakBurst(
+            bullet.x,
+            boundaryY,
+            VoidTheme.emeraldShield,
+            count: 14,
+          );
+          HapticService.instance.injectionClick();
+          if (_damageNumbers.length < 8) {
+            _damageNumbers.add(
+              FloatingDamageNumber(
+                text: '-10 SHIELD',
+                x: bullet.x,
+                y: boundaryY - 20,
+                color: VoidTheme.emeraldShield,
+                isCritical: true,
+              ),
+            );
+          }
+        } else {
+          _particleService.spawnLanceSparks(
+            bullet.x,
+            boundaryY,
+            VoidTheme.crimsonFlare,
+            count: 8,
+          );
+          if (_damageNumbers.length < 8) {
+            _damageNumbers.add(
+              FloatingDamageNumber(
+                text: '-5 ATMOS',
+                x: bullet.x,
+                y: boundaryY - 15,
+                color: VoidTheme.crimsonFlare,
+              ),
+            );
+          }
+        }
+        return true;
+      }
+
+      return bullet.y > size.height;
+    });
 
     // Spawn damage numbers and camera shake when lances fire
     for (final lance in _lances) {
@@ -243,7 +423,66 @@ class _CombatScreenState extends State<CombatScreen>
     final targetX = (targetCorridor / 7.0).clamp(0.0, 1.0);
     widget.engine.slideDreadnought(targetX);
 
-    _handleInjectCore(bestBay, bestDir);
+    final mass = (bestBay < _bays.length) ? _bays[bestBay].chargeUnits : 1;
+    _animateSowTraversal(
+      originBay: bestBay,
+      direction: bestDir,
+      mass: mass + 1,
+      onComplete: () {
+        _handleInjectCore(bestBay, bestDir);
+      },
+    );
+  }
+
+  void _animateSowTraversal({
+    required int originBay,
+    required int direction,
+    required int mass,
+    required VoidCallback onComplete,
+  }) {
+    if (_isSowAnimating) {
+      onComplete();
+      return;
+    }
+    _isSowAnimating = true;
+
+    final hops = math.min(math.max(mass, 1), 16);
+    var currentHop = 0;
+    var currentBay = originBay;
+
+    void step() {
+      if (!mounted) {
+        _isSowAnimating = false;
+        return;
+      }
+      if (currentHop >= hops) {
+        setState(() {
+          _activeSowBay = currentBay;
+        });
+        Future.delayed(const Duration(milliseconds: 90), () {
+          if (mounted) {
+            setState(() {
+              _activeSowBay = null;
+              _isSowAnimating = false;
+            });
+            onComplete();
+          }
+        });
+        return;
+      }
+
+      currentBay = (currentBay + direction + 16) & 0x0F;
+      currentHop++;
+      setState(() {
+        _activeSowBay = currentBay;
+      });
+      HapticService.instance.sowTick();
+      AudioService.instance.playSowStep();
+
+      Future.delayed(const Duration(milliseconds: 65), step);
+    }
+
+    step();
   }
 
   void _syncState() {
@@ -262,19 +501,29 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _handleSowAction(int bayIndex, int direction) {
-    HapticService.instance.sowTick();
-    AudioService.instance.playSowStep();
-    widget.engine.injectCore(bayIndex, direction);
-    setState(() {
-      _selectedBay = bayIndex;
-      _prediction = widget.engine.predictSow(bayIndex, direction);
-    });
+    final mass = (bayIndex < _bays.length) ? _bays[bayIndex].chargeUnits : 1;
+    _animateSowTraversal(
+      originBay: bayIndex,
+      direction: direction,
+      mass: mass + 1,
+      onComplete: () {
+        HapticService.instance.sowTick();
+        AudioService.instance.playSowStep();
+        widget.engine.injectCore(bayIndex, direction);
+        vlog(6, 'Player sow action on bay $bayIndex dir $direction complete');
+        setState(() {
+          _selectedBay = bayIndex;
+          _prediction = widget.engine.predictSow(bayIndex, direction);
+        });
+      },
+    );
   }
 
   void _handleInjectCore(int bayIndex, int direction) {
     HapticService.instance.injectionClick();
     AudioService.instance.playSowStep();
     widget.engine.injectCore(bayIndex, direction);
+    vlog(6, 'Core injected into bay $bayIndex dir $direction');
     setState(() {
       _selectedBay = bayIndex;
       _prediction = widget.engine.predictSow(bayIndex, direction);
@@ -380,6 +629,58 @@ class _CombatScreenState extends State<CombatScreen>
                   }),
                 ),
 
+                // AI Tactical Solver Banner
+                if (_isAutoSolving)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    color: VoidTheme.obsidianBlack.withValues(alpha: 0.7),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 3.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.cardSurface.withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(
+                            color: VoidTheme.crimsonFlare,
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: VoidTheme.crimsonFlare.withValues(
+                                alpha: 0.3,
+                              ),
+                              blurRadius: 6.0,
+                            ),
+                          ],
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.smart_toy,
+                              color: VoidTheme.crimsonFlare,
+                              size: 13.0,
+                            ),
+                            SizedBox(width: 6.0),
+                            Text(
+                              'AI TACTICAL SOLVER ACTIVE',
+                              style: TextStyle(
+                                color: VoidTheme.crimsonFlare,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
                 // Tactical Combat Corridor (Upper Viewport)
                 Expanded(
                   child: RepaintBoundary(
@@ -394,6 +695,7 @@ class _CombatScreenState extends State<CombatScreen>
                           flaks: _flaks,
                           particles: _particleService.activeParticles,
                           damageNumbers: _damageNumbers,
+                          enemyBullets: _enemyBullets,
                           animationTime: _animationTime,
                         ),
                       ),
@@ -411,6 +713,7 @@ class _CombatScreenState extends State<CombatScreen>
                 CommandArcWidget(
                   bays: _bays,
                   selectedBay: _selectedBay,
+                  activeSowBay: _activeSowBay,
                   onBaySelected: _handleBaySelected,
                   onSowAction: _handleSowAction,
                   onInjectCore: _handleInjectCore,
@@ -425,56 +728,6 @@ class _CombatScreenState extends State<CombatScreen>
             Positioned.fill(
               child: TutorialOverlay(
                 onDismiss: () => setState(() => _showTutorial = false),
-              ),
-            ),
-
-          // AI Tactical Solver Status Banner
-          if (_isAutoSolving)
-            Positioned(
-              top: 56.0,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14.0,
-                    vertical: 4.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: VoidTheme.cardSurface.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(12.0),
-                    border: Border.all(
-                      color: VoidTheme.crimsonFlare,
-                      width: 1.0,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: VoidTheme.crimsonFlare.withValues(alpha: 0.3),
-                        blurRadius: 8.0,
-                      ),
-                    ],
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.smart_toy,
-                        color: VoidTheme.crimsonFlare,
-                        size: 14.0,
-                      ),
-                      SizedBox(width: 6.0),
-                      Text(
-                        'AI TACTICAL SOLVER ACTIVE',
-                        style: TextStyle(
-                          color: VoidTheme.crimsonFlare,
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
         ],

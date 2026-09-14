@@ -155,3 +155,13 @@ CARACTERÍSTICAS PRINCIPALES:
 • Academia de Vuelo Interactiva: Guía paso a paso para aprender las reglas y tácticas del Bao.
 • Motor Nativo C++ Ultrarrápido: Simulación ECS a 60/120 FPS optimizada para Android 15.
 ```
+
+---
+
+## 🎥 Google Play Promo Video Deliverables
+
+| Asset | Local File Path | Specifications | Purpose |
+| :--- | :--- | :--- | :--- |
+| **60s Narrated Tutorial Video** | [`store_listing/assets/how_to_play_60s.mp4`](assets/how_to_play_60s.mp4) | 1080x2400 Portrait, 60s, Neural voiceover (`en-US-ChristopherNeural`), HUD subtitles, ambient synth score | Primary YouTube / Play Store trailer explaining rules, controls, and combat |
+| **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30s, High-action AI tactical solver, multi-tier sector clears, synth audio | High-CTR short showcase for YouTube Shorts and mobile store previews |
+| **Animated Promo Gameplay GIF** | [`store_listing/assets/promo_gameplay.gif`](assets/promo_gameplay.gif) | 360x800, 12s loop, optimized 128-color Bayer dither, 1.79 MB | Lightweight animated preview for developer portals, GitHub READMEs, and store cards |

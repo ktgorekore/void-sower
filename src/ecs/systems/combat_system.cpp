@@ -16,6 +16,8 @@
 
 #include "combat_system.h"
 
+#include <absl/log/log.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -25,6 +27,8 @@ CombatSystem::CombatSystem(entt::registry& registry) : registry_(registry) {}
 
 void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
                                          float boundary_y) {
+  VLOG(6) << "CombatSystem::InitializeDreadnought: starting_cores="
+          << starting_cores << ", boundary_y=" << boundary_y;
   // Create or retrieve Dreadnought singleton entity
   if (dreadnought_entity_ == entt::null ||
       !registry_.valid(dreadnought_entity_)) {
@@ -76,6 +80,9 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
 }
 
 bool CombatSystem::InjectCore(uint8_t target_bay, int8_t direction) {
+  VLOG(6) << "CombatSystem::InjectCore: target_bay="
+          << static_cast<int>(target_bay)
+          << ", direction=" << static_cast<int>(direction);
   if (target_bay >= kTotalBays || (direction != 1 && direction != -1)) {
     return false;
   }
@@ -349,6 +356,8 @@ void CombatSystem::StepFSM(float delta_time) {
 }
 
 void CombatSystem::ExecuteCrossDischarge(uint8_t firing_bay, uint32_t mass) {
+  VLOG(6) << "CombatSystem::ExecuteCrossDischarge: firing_bay="
+          << static_cast<int>(firing_bay) << ", mass=" << mass;
   auto& bay = registry_.get<BatteryComponent>(bay_entities_[firing_bay]);
   bay.charge_units = 0;  // Discharging completely empties the firing chamber
 
@@ -424,6 +433,8 @@ void CombatSystem::ExecuteCrossDischarge(uint8_t firing_bay, uint32_t mass) {
 
 void CombatSystem::ExecuteFlakDetonation(float pos_x, float pos_y,
                                          uint32_t mass) {
+  VLOG(6) << "CombatSystem::ExecuteFlakDetonation: x=" << pos_x
+          << ", y=" << pos_y << ", mass=" << mass;
   const float area_damage = ComputeFlakDamage(mass);
   const float blast_radius = 0.15f + 0.02f * static_cast<float>(mass);
 

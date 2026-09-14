@@ -52,7 +52,7 @@ class HudHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
       decoration: BoxDecoration(
         color: VoidTheme.obsidianBlack.withValues(alpha: 0.85),
         border: const Border(
@@ -66,65 +66,74 @@ class HudHeader extends StatelessWidget {
           children: [
             // Reserve Cores Indicator
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.lens, color: VoidTheme.solarGold, size: 16.0),
-                const SizedBox(width: 6.0),
+                const Icon(Icons.lens, color: VoidTheme.solarGold, size: 13.0),
+                const SizedBox(width: 4.0),
                 Text(
                   'CORES: $reserveCores',
                   style: const TextStyle(
                     color: VoidTheme.solarGold,
-                    fontSize: 14.0,
+                    fontSize: 12.0,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 0.8,
                   ),
                 ),
               ],
             ),
 
             // Tier Classification Badge
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 4.0,
-              ),
-              decoration: BoxDecoration(
-                color: VoidTheme.cardSurface,
-                borderRadius: BorderRadius.circular(4.0),
-                border: Border.all(
-                  color: difficultyTier == 2
-                      ? VoidTheme.crimsonFlare
-                      : VoidTheme.plasmaCyan,
-                  width: 1.0,
+            Flexible(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6.0,
+                  vertical: 3.0,
                 ),
-              ),
-              child: Text(
-                tierName,
-                style: TextStyle(
-                  color: difficultyTier == 2
-                      ? VoidTheme.crimsonFlare
-                      : VoidTheme.plasmaCyan,
-                  fontSize: 11.0,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
+                decoration: BoxDecoration(
+                  color: VoidTheme.cardSurface,
+                  borderRadius: BorderRadius.circular(4.0),
+                  border: Border.all(
+                    color: difficultyTier == 2
+                        ? VoidTheme.crimsonFlare
+                        : VoidTheme.plasmaCyan,
+                    width: 1.0,
+                  ),
+                ),
+                child: Text(
+                  tierName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: difficultyTier == 2
+                        ? VoidTheme.crimsonFlare
+                        : VoidTheme.plasmaCyan,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                  ),
                 ),
               ),
             ),
 
             // Score & Actions
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   'SCORE: $score',
                   style: const TextStyle(
                     color: VoidTheme.textPrimary,
-                    fontSize: 14.0,
+                    fontSize: 12.0,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 0.8,
                   ),
                 ),
-                const SizedBox(width: 8.0),
+                const SizedBox(width: 4.0),
                 if (onToggleAutoSolve != null)
                   IconButton(
+                    padding: const EdgeInsets.all(4.0),
+                    constraints: const BoxConstraints(),
                     icon: Icon(
                       isAutoSolving
                           ? Icons.smart_toy
@@ -132,33 +141,36 @@ class HudHeader extends StatelessWidget {
                       color: isAutoSolving
                           ? VoidTheme.crimsonFlare
                           : VoidTheme.plasmaCyanLight,
-                      size: 20.0,
+                      size: 18.0,
                     ),
                     onPressed: onToggleAutoSolve,
-                    visualDensity: VisualDensity.compact,
                     tooltip: isAutoSolving
                         ? 'Stop AI Tactical Solver'
                         : 'Launch AI Tactical Solver',
                   ),
+                const SizedBox(width: 2.0),
                 if (onTutorialTap != null)
                   IconButton(
+                    padding: const EdgeInsets.all(4.0),
+                    constraints: const BoxConstraints(),
                     icon: const Icon(
                       Icons.help_outline,
                       color: VoidTheme.solarGold,
-                      size: 20.0,
+                      size: 18.0,
                     ),
                     onPressed: onTutorialTap,
-                    visualDensity: VisualDensity.compact,
                     tooltip: 'Flight Academy',
                   ),
+                const SizedBox(width: 2.0),
                 IconButton(
+                  padding: const EdgeInsets.all(4.0),
+                  constraints: const BoxConstraints(),
                   icon: const Icon(
                     Icons.menu_book,
                     color: VoidTheme.plasmaCyan,
-                    size: 20.0,
+                    size: 18.0,
                   ),
                   onPressed: onSettingsTap,
-                  visualDensity: VisualDensity.compact,
                   tooltip: 'Bao Codex',
                 ),
               ],

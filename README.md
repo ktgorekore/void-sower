@@ -20,9 +20,30 @@
 
 ---
 
+## 🎬 Official Gameplay & Tutorial Media
+
+| 60-Second Narrated Tutorial Video | 30-Second AI Tactical Solver Showcase |
+| :---: | :---: |
+| [![60s Narrated Tutorial Video](store_listing/screenshots/phone/01_tactical_combat_grid.png)](docs/media/void_sower_how_to_play_60s.mp4) | [![30s AI Tactical Solver](docs/media/void_sower_solver_showcase.gif)](docs/media/void_sower_solver_showcase_30s.mp4) |
+| *[Watch 60s Narrated Tutorial (MP4)](docs/media/void_sower_how_to_play_60s.mp4)*<br>Neural voiceover (`ChristopherNeural`), HUD subtitles, ambient synth score | *[Watch 30s Solver Showcase (MP4)](docs/media/void_sower_solver_showcase_30s.mp4)*<br>Heuristic MCTS solver clearing 3 difficulty tiers with quadratic lances |
+
+---
+
+## 🎮 Redesigned Combat Mechanics & Visual Clarity
+
+- **Player Flagship Identification:** You command the **Olympus Dreadnought Flagship** (`▲ DREADNOUGHT FLAGSHIP ▲`) stationed at the bottom atmospheric defense line, equipped with obsidian-gold armor, delta swept wings, central plasma reactor core, dual rail turrets, animated thruster exhaust, and forward deflector shield arc.
+- **Dropping Invader Ordnance:** Void Swarm assault craft descend 8 tactical corridors and drop deadly crimson/gold plasma bombs downward toward your flagship. Maneuver horizontally along the bottom slider to evade incoming ordnance.
+- **16-Bay Bao Mancala Sowing:**
+  - **Frontline Batteries (Bays 8–15):** Directly aligned with tactical attack corridors C1–C8. Discharging a frontline terminal bay fires a massive **UPWARD Particle Lance** that obliterates alien formations and deflects incoming bombs (`DEFLECT +50`).
+  - **Inner Reservoir (Bays 0–7):** Energy storage bank. Accumulate mass ($M \ge 4$) to prime devastating multi-lap cascade relays that loop across the ring.
+  - **Hop-by-Hop Visual Cadence:** Sowing traversal visibly animates energy seeds hopping pit-to-pit at 65ms per bay with harmonic audio pitches before terminal discharge.
+
+---
+
 ## 🛠️ Core Technology Stack
 
 - **Frontend UI Layer:** Flutter 3.x / Dart FFI Engine (Android mobile first, portrait orientation & responsive tablet pillarbox).
+- **Abseil Verbose Debug Logging:** Full runtime VLOG support integrated across Flutter and native C++ via `absl::SetGlobalVLogLevel(level)` and `--dart-define=VLOG_LEVEL=6`.
 - **Core Game Engine Backend:** Modern C++ (C++17) with EnTT Entity Component System (ECS v3.13.2).
   - Power-of-two bitwise ring buffer masking (`& 0x0F`) with zero per-frame dynamic allocations on simulation hot paths.
   - Spatial grid corridor partitioning ($O(1)$ corridor lookup, capacity bounded to 32 entities per bucket).
@@ -92,6 +113,18 @@ Run the full Flutter unit and widget test suite (covering domain models, service
 
 ```bash
 flutter test
+```
+
+### 5. Running with Abseil VLOG Debug Mode & Direct Combat Solver
+
+Launch the application with full Abseil verbose logging enabled across both Flutter and the native C++ engine, with optional direct combat testing flags:
+
+```bash
+# Run with Abseil VLOG verbose debug mode (modeled after oware-2048)
+flutter run --dart-define=VLOG_LEVEL=6
+
+# Or launch directly into combat with the AI Tactical Solver active:
+flutter run --dart-define=VLOG_LEVEL=6 --dart-define=START_COMBAT=true --dart-define=AUTO_SOLVE=true
 ```
 
 ---

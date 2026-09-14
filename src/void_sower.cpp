@@ -16,11 +16,14 @@
 
 #include "void_sower.h"
 
+#include <absl/log/globals.h>
+#include <absl/log/log.h>
+#include <absl/types/span.h>
+
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
 
-#include "absl/types/span.h"
 #include "ecs/engine.h"
 
 namespace {
@@ -38,6 +41,11 @@ void_sower::ecs::Engine& GetOrCreateEngine() {
 }  // namespace
 
 extern "C" {
+
+void void_sower_set_vlog_level(int32_t level) {
+  absl::SetGlobalVLogLevel(level);
+  LOG(INFO) << "[VoidSower Native] Abseil Global VLOG Level set to: " << level;
+}
 
 void void_sower_init(uint32_t starting_cores, float boundary_y) {
   std::unique_lock<std::shared_mutex> lock(g_engine_mutex);

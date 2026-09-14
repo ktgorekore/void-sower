@@ -14,32 +14,61 @@
   limitations under the License.
 -->
 
-# 🎬 Void Sower: Tactical Solver Showcase Video & Testing Pack
+# 🎬 Void Sower: Video Media Suite, Tactical Showcase & Testing Pack
 
-This document outlines the official recorded showcase video pack, YouTube Shorts copy, Closed Testing recruitment strategy, and cross-device testing matrix for **Void Sower: Kinetic Mancala** (`com.voidsower.app`).
+This document outlines the official video media suite, YouTube Shorts & Tutorial copy, Closed Testing recruitment strategy, and cross-device testing matrix for **Void Sower: Kinetic Mancala** (`com.voidsower.app`).
 
 ---
 
-## 📹 30-Second Showcase Video Specifications
+## 🎙️ 1-Minute Narrated "How to Play" Tutorial Video Specifications
 
-The gameplay showcase was recorded live on the **Google Pixel 10 Pro XL** emulator with hardware GPU acceleration offloaded to the host NVIDIA GPU (`__NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia`). It captures the real-time AI Tactical Solver autonomously executing kinetic count-and-capture sowing sequences, dynamically advancing across all three difficulty tiers (`Sector Patrol` -> `Planetary Siege` -> `Flagship Bastion`), triggering quadratic particle lance discharges, and vaporizing descending alien invaders.
+To eliminate onboarding friction and explain the unique fusion of African Bao la Kiswahili sowing mathematics with tactical space combat, a complete 60-second narrated gameplay tutorial has been authored, voiced with high-clarity neural speech, backed by polyphonic analog synthesizers, and captioned with burned-in HUD subtitles.
+
+> [!NOTE]
+> **60-Second Tutorial Media Assets:**
+> - **Video Asset:** [`media/void_sower_how_to_play_60s.mp4`](media/void_sower_how_to_play_60s.mp4)
+> - **Store Listing Asset:** [`../store_listing/assets/how_to_play_60s.mp4`](../store_listing/assets/how_to_play_60s.mp4)
+> - **Voiceover Model:** Microsoft Neural Engine — `en-US-ChristopherNeural` (Authoritative Commander Tone, +4% rate)
+> - **Subtitles:** Burned-in high-contrast HUD captions (`DejaVu Sans Bold`, 44pt, cyan/white glow, obsidian shadow)
+> - **Background Score:** Dual-oscillator C-Minor ambient space drone pad + sub-bass fundamental (mixed at -16 dB)
+> - **Resolution:** `1080 x 2400 px` (9:16 Portrait, 60 FPS H.264)
+> - **Duration:** `59.82 seconds`
+
+### 📜 Tutorial Narration Script & Gameplay Alignment
+
+| Timestamp | Subtitle Caption & Voiceover Script | Gameplay Visual Focus |
+| :--- | :--- | :--- |
+| **0:00 – 0:02** | *"Welcome Commander to Void Sower."* | Tactical corridor view initializes over Kilwa Basin. |
+| **0:02 – 0:10** | *"You command the Olympus Dreadnought flagship stationed at the bottom atmospheric defense line, defending against relentless waves of the Void Swarm."* | Visual pan down to the **Olympus Dreadnought Flagship** (`▲ DREADNOUGHT FLAGSHIP ▲`) with delta wings, glowing plasma reactor, twin rocket thrusters, and deflector shield arc. |
+| **0:10 – 0:18** | *"Alien assault vessels advance down eight tactical corridors, dropping deadly plasma bombs directly toward your flagship."* | Invader gunships enter corridors and drop glowing crimson/gold plasma orbs downward toward the defense line. |
+| **0:18 – 0:23** | *"Maneuver horizontally along the command arc to evade incoming ordnance."* | Lateral platform slider shifts flagship horizontally between corridors to dodge descending plasma bombs. |
+| **0:23 – 0:28** | *"Your primary weapon is the ancient sixteen-bay Bao Mancala capacitor ring."* | Command arc highlights the 16 orbital capacitor bays partitioned into frontline and reservoir tiers. |
+| **0:28 – 0:35** | *"Tap any bay to load a plasma core, then swipe left or right to sow energy seeds sequentially around the orbital ring."* | Sowing traversal animation sequentially pulses gold through bays at 65ms per hop with harmonic audio tones. |
+| **0:35 – 0:42** | *"When your sow terminates in frontline batteries eight through fifteen, it unleashes a catastrophic upward Particle Lance."* | Terminal bay discharges into corridor; massive white-hot Particle Lance blasts **UPWARD** from flagship turret. |
+| **0:42 – 0:47** | *"The lance vaporizes enemy formations and deflects incoming bombs in that corridor."* | Descending bullets vaporize on contact (`DEFLECT +50`); enemy gunships explode with spark particles. |
+| **0:47 – 0:54** | *"Sow into the inner reservoir bays zero through seven to bank energy for devastating multi-lap cascade relays."* | Inner storage bays (0–7) accumulate high seed mass ($M \ge 4$), priming multi-lap continuous cascade loops. |
+| **0:54 – 0:59** | *"Master the ancient African sowing mathematics to liberate the cosmos!"* | 3-star victory celebration, sector liberation fanfare, and automatic warp transition to next sector. |
+
+---
+
+## 📹 30-Second Tactical Solver Showcase Video Specifications
+
+The gameplay showcase captures the real-time AI Tactical Solver autonomously calculating count-and-capture sowing trajectories, dynamically advancing across all three difficulty tiers (`Sector Patrol` -> `Planetary Siege` -> `Flagship Bastion`), intercepting incoming ordnance, and vaporizing descending alien invaders with quadratic Particle Lances.
 
 > [!NOTE]
 > **Video & Preview Media Assets:**
 > - **Video Asset:** [`media/void_sower_solver_showcase_30s.mp4`](media/void_sower_solver_showcase_30s.mp4)
 > - **Animated Preview GIF:** [`media/void_sower_solver_showcase.gif`](media/void_sower_solver_showcase.gif)
 > - **Store Promotional Copy:** [`../store_listing/assets/promo_gameplay.mp4`](../store_listing/assets/promo_gameplay.mp4)
-> - **Aspect Ratio:** `9:16` Vertical Portrait (`720 x 1280 px`)
-> - **Framerate:** `60 FPS`
-> - **Duration:** Exactly `30.0 seconds` (Optimized for YouTube Shorts & Google Play store listing video previews)
-> - **Video Codec:** `H.264 (High Profile)` (~415 kbps)
-> - **File Size:** `1.55 MB` (Ultra-fast mobile streaming and instant preload)
-> - **Pacing & Action Breakdown:**
->   - **0:00 – 0:08:** **Tier 1 (Sector Patrol)** — Heuristic solver scans 16 bays $\times$ 2 directions, injects plasma cores (Namua), aligns the dreadnought along corridor 5, and discharges a quadratic Particle Lance ($1600\text{ DMG}$) vaporizing the initial enemy wave.
->   - **0:08 – 0:10:** **Sector Liberated** — 3-star victory fanfare and rewards sequence.
->   - **0:10 – 0:20:** **Tier 2 (Planetary Siege)** — Swarm of 4 enemy gunships descend at increased velocity. The solver maneuvers across corridors, executes multi-lap capacitor transfers, and fires a massive Particle Lance down corridor 7.
->   - **0:20 – 0:22:** **Sector Liberated** — 3-star celebratory sequence and automatic transition into deep-space flagship combat.
->   - **0:22 – 0:30:** **Tier 3 (Flagship Bastion)** — Heavily armored alien Flagship and escort cruisers descend. The solver executes high-mass sowing ($M=7$) unleashing a devastating $4900\text{ DMG}$ Particle Lance, screen shake, and floating arcade damage numbers!
+> - **Store Promotional GIF:** [`../store_listing/assets/promo_gameplay.gif`](../store_listing/assets/promo_gameplay.gif)
+> - **Aspect Ratio:** `9:16` Vertical Portrait (`1080 x 2400 px` / `360 x 800 px` GIF)
+> - **Duration:** Exactly `30.0 seconds` (12.0s loop for GIF)
+> - **Audio:** Ambient atmospheric sci-fi synth score with 1s fade-in and 1.5s fade-out.
+> - **Pacing Breakdown:**
+>   - **0:00 – 0:08:** **Tier 1 (Sector Patrol)** — Dreadnought aligns with corridor 2; AI injects into bay 7, sows to bay 10, unleashing a 2500 DMG upward Particle Lance vaporizing alien escort vessels and deflecting incoming plasma bombs (`DEFLECT +50`).
+>   - **0:08 – 0:10:** **Sector Liberated** — 3-star fanfare with 300 score and 26 cores saved.
+>   - **0:10 – 0:20:** **Tier 2 (Planetary Siege)** — 4 enemy vessels drop crimson ordnance. Dreadnought maneuvers laterally, accumulates inner reservoir charge, and fires an upward lance down corridor 6.
+>   - **0:20 – 0:30:** **Tier 3 (Flagship Bastion)** — High-mass sowing ($M=6$) triggers an astronomical $3600\text{ DMG}$ Particle Lance, screen shake, and floating arcade damage numbers.
 
 
 ---

@@ -48,8 +48,37 @@ class FloatingDamageNumber {
   }
 }
 
+/// Descending enemy plasma projectile fired from assault craft down corridors.
+class EnemyBullet {
+  EnemyBullet({
+    required this.id,
+    required this.assignedCorridor,
+    required this.x,
+    required this.y,
+    this.velocityY = 190.0,
+    this.radius = 4.5,
+    this.damage = 10,
+    required this.color,
+  });
+
+  final int id;
+  final int assignedCorridor;
+  double x;
+  double y;
+  final double velocityY;
+  final double radius;
+  final int damage;
+  final Color color;
+
+  bool update(double dt) {
+    y += velocityY * dt;
+    return true;
+  }
+}
+
 /// 60 FPS CustomPainter rendering combat corridors, particle lances,
-/// secondary flak bursts, enemy vessels, and particle systems.
+/// secondary flak bursts, enemy vessels, dropping enemy projectiles,
+/// and the player's flagship dreadnought.
 class CombatPainter extends CustomPainter {
   CombatPainter({
     required this.dreadnought,
@@ -58,6 +87,7 @@ class CombatPainter extends CustomPainter {
     required this.flaks,
     required this.particles,
     this.damageNumbers = const [],
+    this.enemyBullets = const [],
     required this.animationTime,
   });
 
@@ -67,6 +97,7 @@ class CombatPainter extends CustomPainter {
   final List<FlakBurst> flaks;
   final List<VisualParticle> particles;
   final List<FloatingDamageNumber> damageNumbers;
+  final List<EnemyBullet> enemyBullets;
   final double animationTime;
 
   @override
@@ -96,7 +127,7 @@ class CombatPainter extends CustomPainter {
       boundaryPaint,
     );
 
-    // 3. Draw Active Particle Lances
+    // 3. Draw Active Particle Lances (FIRED UPWARD FROM DREADNOUGHT)
     for (final lance in lances) {
       if (!lance.active) continue;
       final corridor = lance.firingBayIndex < 8
@@ -106,29 +137,33 @@ class CombatPainter extends CustomPainter {
       final rawWidth = lance.beamWidth <= 1.0
           ? (lance.beamWidth * size.width)
           : lance.beamWidth;
-      final beamW = math.max(rawWidth, 8.0);
+      final beamW = math.max(rawWidth, 10.0);
 
-      // Lance outer glow
+      // Upward firing lance outer glow: Brightest at Dreadnought turret (bottom), shooting UP!
       final glowPaint = Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            VoidTheme.plasmaCyan.withValues(alpha: 0.9),
-            VoidTheme.plasmaCyan.withValues(alpha: 0.2),
-          ],
-        ).createShader(Rect.fromLTWH(centerX - beamW, 0, beamW * 2, boundaryY))
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+        ..shader =
+            LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                VoidTheme.plasmaCyan.withValues(alpha: 0.95),
+                VoidTheme.plasmaCyan.withValues(alpha: 0.70),
+                Colors.white.withValues(alpha: 0.85),
+              ],
+            ).createShader(
+              Rect.fromLTWH(centerX - beamW * 1.5, 0, beamW * 3, boundaryY),
+            )
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
       canvas.drawRect(
-        Rect.fromLTWH(centerX - beamW, 0, beamW * 2, boundaryY),
+        Rect.fromLTWH(centerX - beamW * 1.5, 0, beamW * 3, boundaryY),
         glowPaint,
       );
 
-      // Lance core axial beam
+      // Core axial laser beam
       final corePaint = Paint()
         ..color = Colors.white
-        ..strokeWidth = math.max(beamW * 0.3, 3.0)
+        ..strokeWidth = math.max(beamW * 0.4, 4.0)
         ..strokeCap = StrokeCap.round;
 
       canvas.drawLine(
@@ -136,6 +171,28 @@ class CombatPainter extends CustomPainter {
         Offset(centerX, 0),
         corePaint,
       );
+
+      // Muzzle Flare at the Dreadnought Turret
+      final muzzlePaint = Paint()
+        ..color = Colors.white
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+      canvas.drawCircle(Offset(centerX, boundaryY), beamW * 1.6, muzzlePaint);
+
+      final muzzleSpikePaint = Paint()
+        ..color = VoidTheme.solarGold
+        ..strokeWidth = 2.5;
+      canvas.drawLine(
+        Offset(centerX - beamW * 2.2, boundaryY),
+        Offset(centerX + beamW * 2.2, boundaryY),
+        muzzleSpikePaint,
+      );
+
+      // Impact shockwave at top (invader line)
+      final impactPaint = Paint()
+        ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.85)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0;
+      canvas.drawCircle(Offset(centerX, 25), beamW * 1.8, impactPaint);
     }
 
     // 4. Draw Active Secondary Flak Bursts
@@ -184,7 +241,12 @@ class CombatPainter extends CustomPainter {
       _drawEnemyVessel(canvas, x, y, enemy, corridorWidth);
     }
 
-    // 6. Draw Visual Particles
+    // 6. Draw Descending Enemy Plasma Bullets
+    for (final bullet in enemyBullets) {
+      _drawEnemyBullet(canvas, bullet);
+    }
+
+    // 7. Draw Visual Particles
     for (final p in particles) {
       final pPaint = Paint()
         ..color = p.color.withValues(alpha: p.alpha)
@@ -192,10 +254,10 @@ class CombatPainter extends CustomPainter {
       canvas.drawCircle(Offset(p.x, p.y), p.radius, pPaint);
     }
 
-    // 7. Draw Dreadnought Flagship Platform on Horizon
+    // 8. Draw Dreadnought Flagship on Defense Horizon
     _drawDreadnoughtPlatform(canvas, size, boundaryY);
 
-    // 8. Draw Floating Arcade Damage Numbers
+    // 9. Draw Floating Arcade Damage Numbers
     for (final num in damageNumbers) {
       final alpha = (num.remainingLifetime / num.lifetime).clamp(0.0, 1.0);
       final textSpan = TextSpan(
@@ -220,6 +282,51 @@ class CombatPainter extends CustomPainter {
     }
   }
 
+  void _drawEnemyBullet(Canvas canvas, EnemyBullet bullet) {
+    // 1. Motion tail streak pointing upward (bullet moves downward)
+    final tailPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.bottomCenter,
+        end: Alignment.topCenter,
+        colors: [
+          bullet.color.withValues(alpha: 0.85),
+          bullet.color.withValues(alpha: 0.15),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromLTWH(bullet.x - 2.5, bullet.y - 18, 5, 18))
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+      Rect.fromLTWH(bullet.x - 2.0, bullet.y - 18, 4, 18),
+      tailPaint,
+    );
+
+    // 2. Outer plasma glow
+    final glowPaint = Paint()
+      ..color = bullet.color.withValues(alpha: 0.55)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(
+      Offset(bullet.x, bullet.y),
+      bullet.radius * 1.9,
+      glowPaint,
+    );
+
+    // 3. Core plasma orb
+    final orbPaint = Paint()
+      ..color = bullet.color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(bullet.x, bullet.y), bullet.radius, orbPaint);
+
+    // 4. White-hot center
+    final centerPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(
+      Offset(bullet.x, bullet.y),
+      bullet.radius * 0.45,
+      centerPaint,
+    );
+  }
+
   void _drawEnemyVessel(
     Canvas canvas,
     double x,
@@ -234,7 +341,7 @@ class CombatPainter extends CustomPainter {
     final h = (width * 0.4) * sizeRatio;
 
     final hullPath = Path();
-    hullPath.moveTo(x, y + h); // Nose pointing downward
+    hullPath.moveTo(x, y + h); // Nose pointing downward toward player!
     hullPath.lineTo(x - w / 2, y - h / 2);
     hullPath.lineTo(x, y - h / 4);
     hullPath.lineTo(x + w / 2, y - h / 2);
@@ -292,26 +399,180 @@ class CombatPainter extends CustomPainter {
         ? dreadnought.orbitalPositionX
         : 0.5;
     final centerX = dreadNormX * size.width;
-    final platformW = size.width * 0.85;
+    final shipY = boundaryY + 16.0;
 
-    // Platform glow arc
-    final arcPaint = Paint()
-      ..color = VoidTheme.solarGold.withValues(alpha: 0.4)
-      ..strokeWidth = 2.0
+    // 1. Planetary Defense Horizon Line
+    final railPaint = Paint()
+      ..color = VoidTheme.solarGold.withValues(alpha: 0.35)
+      ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
-
-    final rect = Rect.fromCenter(
-      center: Offset(centerX, boundaryY + 120),
-      width: platformW,
-      height: 180,
+    canvas.drawLine(
+      Offset(0, boundaryY + 28),
+      Offset(size.width, boundaryY + 28),
+      railPaint,
     );
-    canvas.drawArc(rect, math.pi * 1.15, math.pi * 0.7, false, arcPaint);
 
-    // Core capacitor emitter hub
-    final emitterPaint = Paint()
-      ..color = VoidTheme.solarGold
+    // Active corridor highlight under dreadnought
+    final activeCorridor = (centerX / (size.width / 8.0)).floor().clamp(0, 7);
+    final highlightPaint = Paint()
+      ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.08)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(centerX, boundaryY + 15), 6.0, emitterPaint);
+    canvas.drawRect(
+      Rect.fromLTWH(
+        activeCorridor * (size.width / 8.0),
+        0,
+        size.width / 8.0,
+        boundaryY,
+      ),
+      highlightPaint,
+    );
+
+    // 2. Animated Twin Plasma Thrusters
+    final flameHeight = 13.0 + math.sin(animationTime * 20.0) * 4.0;
+    final leftThrusterX = centerX - 14.0;
+    final rightThrusterX = centerX + 14.0;
+    final thrusterY = shipY + 10.0;
+
+    final flamePaint = Paint()
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              VoidTheme.plasmaCyan,
+              VoidTheme.solarGold.withValues(alpha: 0.7),
+              Colors.transparent,
+            ],
+          ).createShader(
+            Rect.fromLTWH(leftThrusterX - 4, thrusterY, 8, flameHeight),
+          );
+
+    final leftFlamePath = Path()
+      ..moveTo(leftThrusterX - 3.5, thrusterY)
+      ..lineTo(leftThrusterX, thrusterY + flameHeight)
+      ..lineTo(leftThrusterX + 3.5, thrusterY)
+      ..close();
+    canvas.drawPath(leftFlamePath, flamePaint);
+
+    final rightFlamePath = Path()
+      ..moveTo(rightThrusterX - 3.5, thrusterY)
+      ..lineTo(rightThrusterX, thrusterY + flameHeight)
+      ..lineTo(rightThrusterX + 3.5, thrusterY)
+      ..close();
+    canvas.drawPath(rightFlamePath, flamePaint);
+
+    // 3. Dreadnought Flagship Hull
+    const shipW = 58.0;
+    const shipH = 28.0;
+
+    // Delta wings & chassis
+    final hullPath = Path()
+      ..moveTo(centerX, shipY - 14) // Forward lance turret nose pointing UP!
+      ..lineTo(centerX + 11, shipY - 4)
+      ..lineTo(centerX + shipW / 2, shipY + 6) // Starboard wingtip
+      ..lineTo(centerX + 18, shipY + 11) // Starboard thruster mount
+      ..lineTo(centerX + 8, shipY + 7)
+      ..lineTo(centerX - 8, shipY + 7)
+      ..lineTo(centerX - 18, shipY + 11) // Port thruster mount
+      ..lineTo(centerX - shipW / 2, shipY + 6) // Port wingtip
+      ..lineTo(centerX - 11, shipY - 4)
+      ..close();
+
+    // Hull obsidian base
+    final hullFillPaint = Paint()
+      ..color = VoidTheme.obsidianBlack
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(hullPath, hullFillPaint);
+
+    // Hull armor plating gradient
+    final armorPaint = Paint()
+      ..shader =
+          LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              VoidTheme.solarGold.withValues(alpha: 0.85),
+              VoidTheme.cardSurface,
+              VoidTheme.obsidianBlack,
+            ],
+          ).createShader(
+            Rect.fromLTWH(centerX - shipW / 2, shipY - 14, shipW, shipH),
+          )
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(hullPath, armorPaint);
+
+    // Hull glowing cyan trim & outlines
+    final outlinePaint = Paint()
+      ..color = VoidTheme.plasmaCyan
+      ..strokeWidth = 1.8
+      ..style = PaintingStyle.stroke;
+    canvas.drawPath(hullPath, outlinePaint);
+
+    // 4. Forward Twin Particle Lance Turrets (Pointing UP)
+    final turretPaint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(
+      Offset(centerX - 3.5, shipY - 8),
+      Offset(centerX - 3.5, shipY - 16),
+      turretPaint,
+    );
+    canvas.drawLine(
+      Offset(centerX + 3.5, shipY - 8),
+      Offset(centerX + 3.5, shipY - 16),
+      turretPaint,
+    );
+
+    // 5. Central Plasma Reactor Core
+    final coreGlow = 4.0 + math.sin(animationTime * 10.0) * 1.5;
+    final coreGlowPaint = Paint()
+      ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.65)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+    canvas.drawCircle(Offset(centerX, shipY + 1), coreGlow + 2, coreGlowPaint);
+
+    final coreCenterPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(centerX, shipY + 1), 3.0, coreCenterPaint);
+
+    // 6. Forward Kinetic Energy Shield Arc
+    final shieldArcPaint = Paint()
+      ..color = VoidTheme.emeraldShield.withValues(alpha: 0.6)
+      ..strokeWidth = 2.2
+      ..style = PaintingStyle.stroke;
+    final shieldRect = Rect.fromCenter(
+      center: Offset(centerX, shipY - 6),
+      width: shipW * 1.15,
+      height: 28,
+    );
+    canvas.drawArc(
+      shieldRect,
+      math.pi * 1.15,
+      math.pi * 0.7,
+      false,
+      shieldArcPaint,
+    );
+
+    // 7. Unmistakable Flagship Label HUD
+    final labelSpan = TextSpan(
+      text: '▲ DREADNOUGHT FLAGSHIP ▲',
+      style: const TextStyle(
+        color: VoidTheme.solarGold,
+        fontSize: 8.5,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.2,
+        shadows: [Shadow(color: Colors.black, blurRadius: 4.0)],
+      ),
+    );
+    final labelPainter = TextPainter(
+      text: labelSpan,
+      textDirection: TextDirection.ltr,
+    )..layout();
+    labelPainter.paint(
+      canvas,
+      Offset(centerX - (labelPainter.width / 2), shipY + 16),
+    );
   }
 
   @override

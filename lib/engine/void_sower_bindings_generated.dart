@@ -38,6 +38,18 @@ class VoidSowerBindings {
     ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName) lookup,
   ) : _lookup = lookup;
 
+  /// Sets the global Abseil VLOG verbosity level.
+  void void_sower_set_vlog_level(int level) {
+    return _void_sower_set_vlog_level(level);
+  }
+
+  late final _void_sower_set_vlog_levelPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Int32)>>(
+        'void_sower_set_vlog_level',
+      );
+  late final _void_sower_set_vlog_level = _void_sower_set_vlog_levelPtr
+      .asFunction<void Function(int)>();
+
   void void_sower_init(int starting_cores, double boundary_y) {
     return _void_sower_init(starting_cores, boundary_y);
   }

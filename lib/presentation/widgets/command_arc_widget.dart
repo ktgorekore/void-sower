@@ -23,6 +23,7 @@ class CommandArcWidget extends StatefulWidget {
     super.key,
     required this.bays,
     required this.selectedBay,
+    this.activeSowBay,
     required this.onBaySelected,
     required this.onSowAction,
     required this.onInjectCore,
@@ -31,6 +32,7 @@ class CommandArcWidget extends StatefulWidget {
 
   final List<BayState> bays;
   final int? selectedBay;
+  final int? activeSowBay;
   final ValueChanged<int> onBaySelected;
   final void Function(int bayIndex, int direction) onSowAction;
   final void Function(int bayIndex, int direction) onInjectCore;
@@ -97,9 +99,71 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                 ),
               ),
 
-              // Frontline Tier (Bays 0 to 7)
+              // Frontline Tier Header
+              Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 3.0,
+                  left: 2.0,
+                  right: 2.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '▲ FRONTLINE BATTERIES (BAYS 8–15)',
+                      style: TextStyle(
+                        color: VoidTheme.plasmaCyan.withValues(alpha: 0.9),
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                    Text(
+                      'C1–C8 ──► PARTICLE LANCE',
+                      style: TextStyle(
+                        color: VoidTheme.textSecondary.withValues(alpha: 0.75),
+                        fontSize: 8.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Frontline Tier (Bays 8 to 15)
               _buildBayRow(frontlineBays, isFrontline: true),
               const SizedBox(height: 6.0),
+
+              // Backline Tier Header
+              Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 3.0,
+                  left: 2.0,
+                  right: 2.0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '▼ INNER RESERVOIR (BAYS 0–7)',
+                      style: TextStyle(
+                        color: VoidTheme.solarGold.withValues(alpha: 0.9),
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                    Text(
+                      'STORAGE ──► CASCADE RELAY',
+                      style: TextStyle(
+                        color: VoidTheme.textSecondary.withValues(alpha: 0.75),
+                        fontSize: 8.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               // Backline Tier (Bays 8 to 15)
               _buildBayRow(backlineBays, isFrontline: false),
@@ -193,10 +257,14 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
 
   Widget _buildBayCell(BayState bay, bool isFrontline) {
     final isSelected = widget.selectedBay == bay.bayIndex;
+    final isSowHop = widget.activeSowBay == bay.bayIndex;
 
     Color borderColor = VoidTheme.textMuted.withValues(alpha: 0.4);
     Color bayGlow = Colors.transparent;
-    if (isSelected) {
+    if (isSowHop) {
+      borderColor = VoidTheme.solarGold;
+      bayGlow = VoidTheme.solarGold.withValues(alpha: 0.55);
+    } else if (isSelected) {
       borderColor = VoidTheme.plasmaCyan;
       bayGlow = VoidTheme.plasmaCyan.withValues(alpha: 0.3);
     } else if (bay.isNyumba) {
@@ -238,100 +306,104 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
             widget.onSowAction(bay.bayIndex, -1);
           }
         },
-        child: Container(
-          height: 56.0,
-          margin: const EdgeInsets.symmetric(horizontal: 1.5),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? VoidTheme.plasmaCyan.withValues(alpha: 0.22)
-                : (bayGlow != Colors.transparent
-                      ? bayGlow
-                      : VoidTheme.cardSurface),
-            borderRadius: BorderRadius.circular(6.0),
-            border: Border.all(
-              color: borderColor,
-              width: isSelected || bay.isNyumba ? 2.0 : 1.0,
+        child: AnimatedScale(
+          scale: isSowHop ? 1.15 : 1.0,
+          duration: const Duration(milliseconds: 140),
+          child: Container(
+            height: 56.0,
+            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? VoidTheme.plasmaCyan.withValues(alpha: 0.22)
+                  : (bayGlow != Colors.transparent
+                        ? bayGlow
+                        : VoidTheme.cardSurface),
+              borderRadius: BorderRadius.circular(6.0),
+              border: Border.all(
+                color: borderColor,
+                width: isSelected || bay.isNyumba ? 2.0 : 1.0,
+              ),
             ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Bay Index label & Special badges
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${bay.bayIndex}',
-                    style: TextStyle(
-                      color: isSelected
-                          ? VoidTheme.plasmaCyan
-                          : VoidTheme.textSecondary,
-                      fontSize: 10.0,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  if (bay.isNyumba)
-                    const Text(
-                      '★',
-                      style: TextStyle(
-                        color: VoidTheme.solarGold,
-                        fontSize: 8.0,
-                      ),
-                    ),
-                  if (bay.isKichwa)
-                    const Text(
-                      '♦',
-                      style: TextStyle(
-                        color: VoidTheme.nebulaAmethyst,
-                        fontSize: 8.0,
-                      ),
-                    ),
-                  if (bay.isKimbi)
-                    const Text(
-                      '▲',
-                      style: TextStyle(
-                        color: VoidTheme.emeraldShield,
-                        fontSize: 8.0,
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 1.0),
-
-              // Accumulated Plasma Units (M)
-              Text(
-                '${bay.chargeUnits}',
-                style: TextStyle(
-                  color: bay.chargeUnits >= 4
-                      ? (isFrontline
-                            ? VoidTheme.plasmaCyan
-                            : VoidTheme.solarGold)
-                      : VoidTheme.textPrimary,
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              // Concentric Charge Pips (Up to 4 pips)
-              if (bay.chargeUnits > 0)
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Bay Index label & Special badges
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    bay.chargeUnits.clamp(1, 4),
-                    (i) => Container(
-                      width: 3.5,
-                      height: 3.5,
-                      margin: const EdgeInsets.symmetric(horizontal: 0.6),
-                      decoration: BoxDecoration(
-                        color: bay.chargeUnits >= 4
+                  children: [
+                    Text(
+                      '${bay.bayIndex}',
+                      style: TextStyle(
+                        color: isSelected
                             ? VoidTheme.plasmaCyan
-                            : VoidTheme.solarGold,
-                        shape: BoxShape.circle,
+                            : VoidTheme.textSecondary,
+                        fontSize: 10.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (bay.isNyumba)
+                      const Text(
+                        '★',
+                        style: TextStyle(
+                          color: VoidTheme.solarGold,
+                          fontSize: 8.0,
+                        ),
+                      ),
+                    if (bay.isKichwa)
+                      const Text(
+                        '♦',
+                        style: TextStyle(
+                          color: VoidTheme.nebulaAmethyst,
+                          fontSize: 8.0,
+                        ),
+                      ),
+                    if (bay.isKimbi)
+                      const Text(
+                        '▲',
+                        style: TextStyle(
+                          color: VoidTheme.emeraldShield,
+                          fontSize: 8.0,
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 1.0),
+
+                // Accumulated Plasma Units (M)
+                Text(
+                  '${bay.chargeUnits}',
+                  style: TextStyle(
+                    color: bay.chargeUnits >= 4
+                        ? (isFrontline
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.solarGold)
+                        : VoidTheme.textPrimary,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                // Concentric Charge Pips (Up to 4 pips)
+                if (bay.chargeUnits > 0)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      bay.chargeUnits.clamp(1, 4),
+                      (i) => Container(
+                        width: 3.5,
+                        height: 3.5,
+                        margin: const EdgeInsets.symmetric(horizontal: 0.6),
+                        decoration: BoxDecoration(
+                          color: bay.chargeUnits >= 4
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.solarGold,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
