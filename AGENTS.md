@@ -79,10 +79,14 @@ Drawing directly from our low-latency infrastructure in `cognitas-trading`:
 
 ## 6. Code Style, Documentation & Quality Verification
 
-1. **Doxygen Documentation:** All public functions, classes, and structs MUST contain comprehensive, explicit API documentation using Doxygen style tags (`/** ... */` with `@brief`, `@param`, `@return`).
-2. **Code Formatting Prior to Committing:** Always format modified files generously before performing any staging or git commit operations (`clang-format -style=Google` for C++, `dart format` for Dart).
-3. **Unit Testing:** All new code blocks MUST be accompanied by comprehensive, self-documenting unit tests verifying edge cases, boundary wrapping, and operational limits (Google Test for C++, `flutter test` for Dart).
-4. **Commit After Verification:** You must always stage and commit your changes to git after successful verification of tests and formatting.
+1. **Strict Style Guide Adherence:** All C++ code MUST strictly adhere to the official **Google C++ Style Guide** and all Dart code MUST strictly adhere to the official **Google Dart Style Guide** without exception. This encompasses naming conventions, class design, memory management, comment styles, and structural layouts.
+2. **Doxygen & DartDoc Documentation:** All public functions, classes, and structs MUST contain comprehensive, explicit API documentation using Doxygen style tags (`/** ... */` with `@brief`, `@param`, `@return`) for C++ and official DartDoc markdown format (`/// ...`) for Dart.
+3. **Mandatory Code Formatting Prior to Committing:** Always format modified files prior to performing any staging or git commit operations:
+   - C++: `clang-format -style=Google -i <file>`
+   - Dart: `dart format <file>`
+   - Zero-warning requirement: Must pass `flutter analyze` with 0 issues and C++ builds with `-Wall -Wextra -Werror` compliance.
+4. **Unit Testing:** All new code blocks MUST be accompanied by comprehensive, self-documenting unit tests verifying edge cases, boundary wrapping, and operational limits (Google Test for C++, `flutter test` for Dart).
+5. **Frequent, Verified Commits:** Stage and commit your changes to git frequently and systematically after each verified milestone, test suite pass, and formatting cycle. Do not accumulate large batches of uncommitted changes.
 
 ---
 
