@@ -45,6 +45,11 @@ void main() {
     });
 
     testWidgets('TutorialOverlay steps through flight academy', (tester) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
       bool dismissed = false;
       await tester.pumpWidget(
         MaterialApp(

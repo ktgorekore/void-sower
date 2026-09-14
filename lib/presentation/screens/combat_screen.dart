@@ -246,9 +246,7 @@ class _CombatScreenState extends State<CombatScreen>
                   score: dread.totalScore,
                   difficultyTier: _currentDifficultyTier,
                   onSettingsTap: _openCodex,
-                  onTutorialTap: () {
-                    _coordinator.dismissTutorial();
-                  },
+                  onTutorialTap: _coordinator.showTutorial,
                   isAutoSolving: matchState.isAutoSolving,
                   onToggleAutoSolve: _coordinator.toggleAutoSolve,
                 ),

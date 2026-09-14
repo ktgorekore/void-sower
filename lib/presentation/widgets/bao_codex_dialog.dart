@@ -87,8 +87,9 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: '1. NAMUA (CORE INJECTION)',
                       body:
-                          'During combat, injecting a plasma core into an empty or charged bay '
-                          'primes it for orbital sowing. Upward flick or double-tap executes injection.',
+                          'Your reactor pool holds 28 Reserve Cores per sector. '
+                          'Injecting a core into any bay (even with 0 charge) spends 1 reserve core '
+                          '(Bao "Namua" rule) to prime and initiate orbital sowing. Energy is never created from nothing.',
                       icon: Icons.bolt,
                       color: VoidTheme.plasmaCyan,
                     ),
@@ -96,9 +97,9 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: '2. QUADRATIC LANCES (D = α · M²)',
                       body:
-                          'When a sowing sequence finishes on an occupied frontline bay (Bays 0–7), '
-                          'its accumulated mass M discharges as an orbital particle lance. '
-                          'Because damage scales quadratically, concentrated charges deal exponentially more damage!',
+                          'When a sowing sequence finishes on a frontline bay (Bays 8–15 facing an active corridor), '
+                          'its accumulated mass M discharges as an axial Particle Lance (D = 100 · M²). '
+                          'Single shots deal only 100 DMG, while accumulated mass reaches 3,600 to 14,400 DMG!',
                       icon: Icons.flash_on,
                       color: VoidTheme.crimsonFlare,
                     ),

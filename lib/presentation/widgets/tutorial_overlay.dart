@@ -34,56 +34,66 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   final List<_TutorialStepData> _steps = const [
     _TutorialStepData(
       title: '1. CORE INJECTION (NAMUA)',
-      subtitle: 'Energize the Capacitor Ring',
+      subtitle: '28-Core Economy & Zero-Bay Sowing',
       body:
-          'Tap any capacitor bay (or flick upward) to inject a reserve plasma core. '
-          'Each injected core charges the bay and prepares it for orbital sowing.',
+          'Your dreadnought reactor holds a finite pool of 28 Reserve Cores for each sector.\n\n'
+          '• SOWING FROM ZERO: Sowing from any bay (even with 0 charge) draws 1 core from your reserves (Bao "Namua" rule) to initiate the cascade. Energy is never created from nothing!\n'
+          '• REACTOR DEPLETION: If reserves hit 0, empty bays cannot be sown—you can only circulate existing energy already on the ship.',
       icon: Icons.electric_bolt,
       accentColor: VoidTheme.solarGold,
-      tipText: 'Flick UP from thumb area or double-tap a bay to inject.',
+      tipText:
+          'Watch the top-left REACTOR gauge. Each Namua injection spends 1 core!',
     ),
     _TutorialStepData(
       title: '2. SOWING TRAVERSAL',
-      subtitle: 'Count-and-Capture Distribution',
+      subtitle: 'Count-and-Capture Energy Circulation',
       body:
-          'Swipe LEFT or RIGHT across a charged bay to sow its plasma units along '
-          'the 16-bay orbital ring in circular cadence.',
+          'Swipe across any bay to pick up its plasma cores and sow them sequentially along the 16-bay orbital ring.\n\n'
+          '• CLOCKWISE (+1): Swipe RIGHT across the bay.\n'
+          '• COUNTER-CLOCKWISE (-1): Swipe LEFT across the bay (or tap SOW CCW).\n'
+          '• BAO CASCADE RELAY: When your last seed lands in an already-occupied bay, it scoops those cores and keeps cascading without spending extra fuel!',
       icon: Icons.sync,
       accentColor: VoidTheme.plasmaCyan,
       tipText:
-          'Swipe RIGHT for Clockwise (+1), LEFT for Counter-Clockwise (-1).',
+          'Sowing existing cores redistributes fuel for FREE without burning reserves.',
     ),
     _TutorialStepData(
       title: '3. QUADRATIC LANCE DISCHARGE',
-      subtitle: 'Orbital Cross-Discharge Mechanics',
+      subtitle: 'Single-Taps vs. High-Mass Destruction',
       body:
-          'When your sowing sequence terminates in an occupied frontline bay (≥ 2 units), '
-          'an axial Particle Lance fires straight up that corridor! Damage scales quadratically: D = α · M².',
+          'When your sowing cascade finishes in a frontline bay (Bays 8–15 facing an enemy corridor), the Particle Lance automatically fires!\n\n'
+          '• QUADRATIC FORMULA: D = 100 · M² (Scales with mass squared).\n'
+          '• SINGLE TAP (M = 1): Deals only 100 DMG (good for scout drones).\n'
+          '• SOWN MASS (M = 6 to 10): Unleashes 3,600 to 10,000 DMG—piercing through heavy assault craft and boss armors in one shot!',
       icon: Icons.vertical_align_top,
       accentColor: VoidTheme.crimsonFlare,
-      tipText: 'Higher accumulated mass (M) creates devastating lance beams.',
+      tipText:
+          'Single shots will drain your fuel! Build high mass (M) to vaporize capital ships.',
     ),
     _TutorialStepData(
       title: '4. ORBITAL PLATFORM ALIGNMENT',
-      subtitle: 'Corridor Defense & Aiming',
+      subtitle: 'Two Ways to Fire & Corridor Aiming',
       body:
-          'Drag the bottom slider laterally to reposition your dreadnought across the 8 combat corridors. '
-          'Align your firing bay with descending enemy assault craft.',
+          'Drag the bottom slider (or drag anywhere on the combat canvas) to reposition your dreadnought across the 8 combat corridors.\n\n'
+          '• METHOD 1 (QUICK ACTION): Slide under an enemy and tap glowing cyan "DISCHARGE C►" to inject and fire an emergency single shot.\n'
+          '• METHOD 2 (TACTICAL SOW): Swipe a loaded bay to cascade high mass into the target corridor for massive quadratic destruction.',
       icon: Icons.drag_handle,
       accentColor: VoidTheme.emeraldShield,
-      tipText: 'Watch the Projection Shelf for real-time aiming telemetry.',
+      tipText:
+          'Sliding the ship auto-locks onto that corridor\'s frontline emitter bay!',
     ),
     _TutorialStepData(
       title: '5. BOMB EVASION & BREACH',
-      subtitle: 'Shield Protection & Interception',
+      subtitle: 'Conduit Shielding & Bomb Deflection',
       body:
-          'Invaders drop plasma bombs. Slide laterally to evade!\n'
-          '• DIRECT HIT: Drains 1 core & wipes corridor battery.\n'
-          '• ATMOSPHERE PASS: -5 score penalty.\n'
-          '• LANCES/FLAK: Destroy bombs mid-air for bonus score.',
+          'Invaders drop plasma bombs down all 8 corridors simultaneously:\n\n'
+          '• CONDUIT DEFLECTION: If a frontline bay has stored cores, its magnetic field deflects bombs (+50 bonus points)!\n'
+          '• CONDUIT BREACH: If a bomb hits an empty conduit, it causes an EMP breach (-1 core penalty).\n'
+          '• INTERCEPTION: Particle Lances and Flak Bursts vaporize falling bombs mid-air.',
       icon: Icons.shield,
       accentColor: VoidTheme.crimsonFlare,
-      tipText: 'Evade descending bombs or blast them with Particle Lances!',
+      tipText:
+          'Keep your frontline bays charged to shield your conduits from falling bombs!',
     ),
   ];
 

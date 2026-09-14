@@ -357,6 +357,15 @@ class CombatCoordinator extends ChangeNotifier {
       6,
       'CombatCoordinator: Injected core into bay $bayIndex dir $direction',
     );
+    damageNumbers.add(
+      FloatingDamageNumber(
+        text: '-1 CORE (NAMUA)',
+        x: dreadnought.orbitalPositionX,
+        y: (dreadnought.boundaryLineY + 0.04).clamp(0.0, 1.0),
+        color: VoidTheme.solarGold,
+        isCritical: false,
+      ),
+    );
     _syncDomainState();
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, direction);
@@ -374,6 +383,12 @@ class CombatCoordinator extends ChangeNotifier {
       prediction = engine.predictSow(frontlineBay, 1);
       notifyListeners();
     }
+  }
+
+  /// Opens tactical tutorial overlay (pausing combat).
+  void showTutorial() {
+    _state = _state.copyWith(status: CombatMatchStatus.briefing);
+    notifyListeners();
   }
 
   /// Dismisses tactical tutorial overlay and starts active combat.

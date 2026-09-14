@@ -52,128 +52,246 @@ class HudHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
       decoration: BoxDecoration(
-        color: VoidTheme.obsidianBlack.withValues(alpha: 0.85),
+        color: VoidTheme.obsidianBlack.withValues(alpha: 0.92),
         border: const Border(
           bottom: BorderSide(color: VoidTheme.cardSurface, width: 1.0),
         ),
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Reserve Cores Indicator
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.lens, color: VoidTheme.solarGold, size: 13.0),
-                const SizedBox(width: 4.0),
-                Text(
-                  'CORES: $reserveCores',
-                  style: const TextStyle(
-                    color: VoidTheme.solarGold,
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-              ],
-            ),
-
-            // Tier Classification Badge
-            Flexible(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 6.0),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 6.0,
-                  vertical: 3.0,
-                ),
-                decoration: BoxDecoration(
-                  color: VoidTheme.cardSurface,
-                  borderRadius: BorderRadius.circular(4.0),
-                  border: Border.all(
-                    color: difficultyTier == 2
-                        ? VoidTheme.crimsonFlare
-                        : VoidTheme.plasmaCyan,
-                    width: 1.0,
-                  ),
-                ),
-                child: Text(
-                  tierName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: difficultyTier == 2
-                        ? VoidTheme.crimsonFlare
-                        : VoidTheme.plasmaCyan,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.4,
+            // STRIP 1: Primary Mission Telemetry & Reactor Economy
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 4.5,
+              ),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: VoidTheme.cardSurface.withValues(alpha: 0.5),
+                    width: 0.8,
                   ),
                 ),
               ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Reactor Reserve Core Gauge (Namua Fuel Pool)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7.0,
+                      vertical: 2.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: VoidTheme.cardSurface,
+                      borderRadius: BorderRadius.circular(5.0),
+                      border: Border.all(
+                        color: reserveCores <= 5
+                            ? VoidTheme.crimsonFlare
+                            : VoidTheme.solarGold.withValues(alpha: 0.7),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.bolt,
+                          color: reserveCores <= 5
+                              ? VoidTheme.crimsonFlare
+                              : VoidTheme.solarGold,
+                          size: 13.0,
+                        ),
+                        const SizedBox(width: 3.0),
+                        Text(
+                          'REACTOR: $reserveCores',
+                          style: TextStyle(
+                            color: reserveCores <= 5
+                                ? VoidTheme.crimsonFlare
+                                : VoidTheme.solarGold,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Sector Threat Tier Badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8.0,
+                      vertical: 2.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: VoidTheme.cardSurface,
+                      borderRadius: BorderRadius.circular(4.0),
+                      border: Border.all(
+                        color: difficultyTier == 2
+                            ? VoidTheme.crimsonFlare
+                            : VoidTheme.plasmaCyan,
+                        width: 1.0,
+                      ),
+                    ),
+                    child: Text(
+                      '$tierName • TIER ${difficultyTier + 1}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: difficultyTier == 2
+                            ? VoidTheme.crimsonFlare
+                            : VoidTheme.plasmaCyan,
+                        fontSize: 9.0,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+
+                  // Mission Combat Score
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'SCORE: ',
+                        style: TextStyle(
+                          color: VoidTheme.textSecondary,
+                          fontSize: 10.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Text(
+                        '$score',
+                        style: const TextStyle(
+                          color: VoidTheme.plasmaCyanLight,
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
 
-            // Score & Actions
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'SCORE: $score',
-                  style: const TextStyle(
-                    color: VoidTheme.textPrimary,
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
+            // STRIP 2: Tactical Command & Auxiliary Controls
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 2.0,
+              ),
+              color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Tactical Status Guidance Pill
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6.0,
+                        height: 6.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isAutoSolving
+                              ? VoidTheme.crimsonFlare
+                              : VoidTheme.emeraldShield,
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  (isAutoSolving
+                                          ? VoidTheme.crimsonFlare
+                                          : VoidTheme.emeraldShield)
+                                      .withValues(alpha: 0.6),
+                              blurRadius: 4.0,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 5.0),
+                      Text(
+                        isAutoSolving
+                            ? 'AI TACTICAL SOLVER ACTIVE'
+                            : '▲ 8 CONDUITS ARMED • SOW TO DISCHARGE',
+                        style: TextStyle(
+                          color: isAutoSolving
+                              ? VoidTheme.crimsonFlare
+                              : VoidTheme.textSecondary,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 4.0),
-                if (onToggleAutoSolve != null)
-                  IconButton(
-                    padding: const EdgeInsets.all(4.0),
-                    constraints: const BoxConstraints(),
-                    icon: Icon(
-                      isAutoSolving
-                          ? Icons.smart_toy
-                          : Icons.smart_toy_outlined,
-                      color: isAutoSolving
-                          ? VoidTheme.crimsonFlare
-                          : VoidTheme.plasmaCyanLight,
-                      size: 18.0,
-                    ),
-                    onPressed: onToggleAutoSolve,
-                    tooltip: isAutoSolving
-                        ? 'Stop AI Tactical Solver'
-                        : 'Launch AI Tactical Solver',
+
+                  // Auxiliary Action Buttons
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (onToggleAutoSolve != null)
+                        IconButton(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0,
+                            vertical: 2.0,
+                          ),
+                          constraints: const BoxConstraints(),
+                          icon: Icon(
+                            isAutoSolving
+                                ? Icons.smart_toy
+                                : Icons.smart_toy_outlined,
+                            color: isAutoSolving
+                                ? VoidTheme.crimsonFlare
+                                : VoidTheme.plasmaCyanLight,
+                            size: 16.0,
+                          ),
+                          onPressed: onToggleAutoSolve,
+                          tooltip: isAutoSolving
+                              ? 'Stop AI Tactical Solver'
+                              : 'Launch AI Tactical Solver',
+                        ),
+                      const SizedBox(width: 4.0),
+                      if (onTutorialTap != null)
+                        IconButton(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0,
+                            vertical: 2.0,
+                          ),
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(
+                            Icons.school_outlined,
+                            color: VoidTheme.solarGold,
+                            size: 16.0,
+                          ),
+                          onPressed: onTutorialTap,
+                          tooltip: 'Flight Academy',
+                        ),
+                      const SizedBox(width: 4.0),
+                      IconButton(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4.0,
+                          vertical: 2.0,
+                        ),
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(
+                          Icons.menu_book_outlined,
+                          color: VoidTheme.plasmaCyan,
+                          size: 16.0,
+                        ),
+                        onPressed: onSettingsTap,
+                        tooltip: 'Bao Codex',
+                      ),
+                    ],
                   ),
-                const SizedBox(width: 2.0),
-                if (onTutorialTap != null)
-                  IconButton(
-                    padding: const EdgeInsets.all(4.0),
-                    constraints: const BoxConstraints(),
-                    icon: const Icon(
-                      Icons.help_outline,
-                      color: VoidTheme.solarGold,
-                      size: 18.0,
-                    ),
-                    onPressed: onTutorialTap,
-                    tooltip: 'Flight Academy',
-                  ),
-                const SizedBox(width: 2.0),
-                IconButton(
-                  padding: const EdgeInsets.all(4.0),
-                  constraints: const BoxConstraints(),
-                  icon: const Icon(
-                    Icons.menu_book,
-                    color: VoidTheme.plasmaCyan,
-                    size: 18.0,
-                  ),
-                  onPressed: onSettingsTap,
-                  tooltip: 'Bao Codex',
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
