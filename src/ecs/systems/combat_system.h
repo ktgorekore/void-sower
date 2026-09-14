@@ -17,6 +17,7 @@
 #ifndef VOID_SOWER_ECS_SYSTEMS_COMBAT_SYSTEM_H_
 #define VOID_SOWER_ECS_SYSTEMS_COMBAT_SYSTEM_H_
 
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <entt/entt.hpp>
@@ -24,13 +25,18 @@
 #include "../combat_rules.h"
 #include "../components.h"
 #include "absl/types/span.h"
+#include "bao_cascade_system.h"
+#include "discharge_system.h"
+#include "match_lifecycle_system.h"
+#include "movement_system.h"
 #include "ring_buffer.h"
 #include "spatial_grid.h"
 
 namespace void_sower::ecs {
 
 /**
- * @brief Executes combat simulation, FSM updates, and damage calculations.
+ * @brief Coordinates the primary 60 Hz combat loop, composing movement,
+ * cascading, discharge, and lifecycle subsystems.
  */
 class CombatSystem {
  public:
@@ -50,15 +56,7 @@ class CombatSystem {
 
   /// Performs an instantaneous dry-run forward simulation of injecting a core
   /// to predict damage/corridor.
-  struct PredictionResult {
-    uint8_t terminal_bay;
-    int8_t terminal_corridor;  ///< 0..7 if frontline, -1 if inner reservoir.
-    uint32_t final_mass;
-    float predicted_damage;
-    uint16_t total_cascade_laps;
-    bool triggers_lance;
-    bool triggers_relay;
-  };
+  using PredictionResult = BaoCascadeSystem::PredictionResult;
   PredictionResult PredictSow(uint8_t start_bay, int8_t direction) const;
 
   /// Updates dreadnought horizontal target position.
@@ -78,17 +76,14 @@ class CombatSystem {
   const SpatialGrid& GetSpatialGrid() const { return spatial_grid_; }
 
  private:
-  void StepFSM(float delta_time);
-  void AdvanceEnemies(float delta_time);
   void RebuildSpatialGrid();
-  void ExecuteCrossDischarge(uint8_t firing_bay, uint32_t mass);
-  void ExecuteFlakDetonation(float pos_x, float pos_y, uint32_t mass);
-  void ProcessParticleLances(float delta_time);
-  void ProcessFlakBursts(float delta_time);
-  void CheckVictoryLossConditions();
 
   entt::registry& registry_;
   SpatialGrid spatial_grid_;
+  MovementSystem movement_system_;
+  DischargeSystem discharge_system_;
+  MatchLifecycleSystem match_lifecycle_system_;
+  BaoCascadeSystem bao_cascade_system_;
   entt::entity dreadnought_entity_{entt::null};
   std::array<entt::entity, kTotalBays> bay_entities_{};
 };
