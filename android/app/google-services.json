@@ -91,11 +91,27 @@
           }
         },
         {
+          "client_id": "368139306134-4g6r9pge4dim7t92v9ktgb4fud0jd4be.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.voidsower.app",
+            "certificate_hash": "1fb8beece83d885fe765eb8ed77419e99adb941c"
+          }
+        },
+        {
           "client_id": "368139306134-fb461j1nbmloospmbbav7e5ialfv2voc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.voidsower.app",
             "certificate_hash": "612565bb51ce284c8caf148f70ff85f308e9a722"
+          }
+        },
+        {
+          "client_id": "368139306134-vg49vuak94rek9dljd4kfbuud84mso2r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.voidsower.app",
+            "certificate_hash": "8be539d9c2e3be5d3dbe8f33298e68d97b9995c8"
           }
         },
         {
