@@ -73,6 +73,18 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       accentColor: VoidTheme.emeraldShield,
       tipText: 'Watch the Projection Shelf for real-time aiming telemetry.',
     ),
+    _TutorialStepData(
+      title: '5. BOMB EVASION & BREACH',
+      subtitle: 'Shield Protection & Interception',
+      body:
+          'Invaders drop plasma bombs. Slide laterally to evade!\n'
+          '• DIRECT HIT: Drains 1 core & wipes corridor battery.\n'
+          '• ATMOSPHERE PASS: -5 score penalty.\n'
+          '• LANCES/FLAK: Destroy bombs mid-air for bonus score.',
+      icon: Icons.shield,
+      accentColor: VoidTheme.crimsonFlare,
+      tipText: 'Evade descending bombs or blast them with Particle Lances!',
+    ),
   ];
 
   void _nextStep() {
@@ -98,161 +110,165 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     return Container(
       color: VoidTheme.obsidianBlack.withValues(alpha: 0.82),
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 420.0),
-        padding: const EdgeInsets.all(22.0),
-        decoration: VoidTheme.glassmorphic(
-          borderColor: step.accentColor,
-          borderWidth: 2.0,
-          borderRadius: 16.0,
-          extraShadows: [
-            BoxShadow(
-              color: step.accentColor.withValues(alpha: 0.25),
-              blurRadius: 20.0,
-              spreadRadius: 2.0,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Academy Header & Step Indicator
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(step.icon, color: step.accentColor, size: 22.0),
-                    const SizedBox(width: 8.0),
-                    Text(
-                      'FLIGHT ACADEMY',
-                      style: TextStyle(
-                        color: step.accentColor,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  '${_currentStep + 1} / ${_steps.length}',
-                  style: const TextStyle(
-                    color: VoidTheme.textSecondary,
-                    fontSize: 12.0,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const Divider(color: VoidTheme.cardSurface, height: 20.0),
-
-            // Step Title & Subtitle
-            Text(
-              step.title,
-              style: const TextStyle(
-                color: VoidTheme.textPrimary,
-                fontSize: 16.0,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.8,
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+      child: SingleChildScrollView(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420.0),
+          padding: const EdgeInsets.all(18.0),
+          decoration: VoidTheme.glassmorphic(
+            borderColor: step.accentColor,
+            borderWidth: 2.0,
+            borderRadius: 16.0,
+            extraShadows: [
+              BoxShadow(
+                color: step.accentColor.withValues(alpha: 0.25),
+                blurRadius: 20.0,
+                spreadRadius: 2.0,
               ),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              step.subtitle,
-              style: TextStyle(
-                color: step.accentColor.withValues(alpha: 0.9),
-                fontSize: 12.0,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 14.0),
-
-            // Step Body Description
-            Text(
-              step.body,
-              style: const TextStyle(
-                color: VoidTheme.textSecondary,
-                fontSize: 13.0,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 16.0),
-
-            // Pro Tip Box
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 10.0,
-              ),
-              decoration: BoxDecoration(
-                color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(
-                  color: step.accentColor.withValues(alpha: 0.4),
-                  width: 1.0,
-                ),
-              ),
-              child: Row(
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Academy Header & Step Indicator
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(
-                    Icons.lightbulb_outline,
-                    color: VoidTheme.solarGold,
-                    size: 16.0,
-                  ),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: Text(
-                      step.tipText,
-                      style: const TextStyle(
-                        color: VoidTheme.solarGoldLight,
-                        fontSize: 11.0,
-                        fontStyle: FontStyle.italic,
+                  Row(
+                    children: [
+                      Icon(step.icon, color: step.accentColor, size: 22.0),
+                      const SizedBox(width: 8.0),
+                      Text(
+                        'FLIGHT ACADEMY',
+                        style: TextStyle(
+                          color: step.accentColor,
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                        ),
                       ),
+                    ],
+                  ),
+                  Text(
+                    '${_currentStep + 1} / ${_steps.length}',
+                    style: const TextStyle(
+                      color: VoidTheme.textSecondary,
+                      fontSize: 12.0,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 22.0),
+              const Divider(color: VoidTheme.cardSurface, height: 20.0),
 
-            // Navigation Actions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                if (_currentStep > 0)
-                  TactileButton(
-                    label: 'PREV',
-                    onPressed: _prevStep,
-                    accentColor: VoidTheme.textSecondary,
-                    minWidth: 80.0,
-                    height: 42.0,
-                    isPrimary: false,
-                  )
-                else
-                  TextButton(
-                    onPressed: widget.onDismiss,
-                    child: const Text(
-                      'SKIP TUTORIAL',
-                      style: TextStyle(
-                        color: VoidTheme.textMuted,
-                        fontSize: 11.0,
-                        letterSpacing: 0.5,
+              // Step Title & Subtitle
+              Text(
+                step.title,
+                style: const TextStyle(
+                  color: VoidTheme.textPrimary,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 4.0),
+              Text(
+                step.subtitle,
+                style: TextStyle(
+                  color: step.accentColor.withValues(alpha: 0.9),
+                  fontSize: 12.0,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 14.0),
+
+              // Step Body Description
+              Text(
+                step.body,
+                style: const TextStyle(
+                  color: VoidTheme.textSecondary,
+                  fontSize: 13.0,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 16.0),
+
+              // Pro Tip Box
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 10.0,
+                ),
+                decoration: BoxDecoration(
+                  color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(
+                    color: step.accentColor.withValues(alpha: 0.4),
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.lightbulb_outline,
+                      color: VoidTheme.solarGold,
+                      size: 16.0,
+                    ),
+                    const SizedBox(width: 8.0),
+                    Expanded(
+                      child: Text(
+                        step.tipText,
+                        style: const TextStyle(
+                          color: VoidTheme.solarGoldLight,
+                          fontSize: 11.0,
+                          fontStyle: FontStyle.italic,
+                        ),
                       ),
                     ),
-                  ),
-                TactileButton(
-                  label: _currentStep == _steps.length - 1 ? 'LAUNCH!' : 'NEXT',
-                  onPressed: _nextStep,
-                  accentColor: step.accentColor,
-                  minWidth: 110.0,
-                  height: 42.0,
+                  ],
                 ),
-              ],
-            ),
-          ],
+              ),
+              const SizedBox(height: 22.0),
+
+              // Navigation Actions
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  if (_currentStep > 0)
+                    TactileButton(
+                      label: 'PREV',
+                      onPressed: _prevStep,
+                      accentColor: VoidTheme.textSecondary,
+                      minWidth: 80.0,
+                      height: 42.0,
+                      isPrimary: false,
+                    )
+                  else
+                    TextButton(
+                      onPressed: widget.onDismiss,
+                      child: const Text(
+                        'SKIP TUTORIAL',
+                        style: TextStyle(
+                          color: VoidTheme.textMuted,
+                          fontSize: 11.0,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  TactileButton(
+                    label: _currentStep == _steps.length - 1
+                        ? 'LAUNCH!'
+                        : 'NEXT',
+                    onPressed: _nextStep,
+                    accentColor: step.accentColor,
+                    minWidth: 110.0,
+                    height: 42.0,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -138,6 +138,18 @@ class AudioService {
     } catch (_) {}
   }
 
+  Future<void> playBulletDeflect() async {
+    if (isMuted || !_initialized) return;
+    try {
+      final player = _getNextPlayer();
+      if (player != null) {
+        await player.setPlaybackRate(1.0);
+        await player.setSource(AssetSource('audio/bullet_deflect.wav'));
+        await player.resume();
+      }
+    } catch (_) {}
+  }
+
   void dispose() {
     for (final player in _playerPool) {
       player.dispose();

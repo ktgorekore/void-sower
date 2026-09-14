@@ -89,7 +89,7 @@ class _CombatScreenState extends State<CombatScreen>
         _combatViewportSize ??
         Size(
           MediaQuery.of(context).size.width,
-          MediaQuery.of(context).size.height * 0.55,
+          MediaQuery.of(context).size.height * 0.78,
         );
     _coordinator.update(clampedDt, viewport);
   }
@@ -222,106 +222,113 @@ class _CombatScreenState extends State<CombatScreen>
                   onToggleAutoSolve: _coordinator.toggleAutoSolve,
                 ),
 
-                // AI Tactical Solver Banner
-                if (matchState.isAutoSolving)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    color: VoidTheme.obsidianBlack.withValues(alpha: 0.7),
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 3.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: VoidTheme.cardSurface.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(10.0),
-                          border: Border.all(
-                            color: VoidTheme.crimsonFlare,
-                            width: 1.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: VoidTheme.crimsonFlare.withValues(
-                                alpha: 0.3,
-                              ),
-                              blurRadius: 6.0,
-                            ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.smart_toy,
-                              color: VoidTheme.crimsonFlare,
-                              size: 13.0,
-                            ),
-                            SizedBox(width: 6.0),
-                            Text(
-                              'AI TACTICAL SOLVER ACTIVE',
-                              style: TextStyle(
-                                color: VoidTheme.crimsonFlare,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
                 // Tactical Combat Corridor (Upper Viewport)
                 Expanded(
                   child: RepaintBoundary(
-                    child: Transform.translate(
-                      offset: matchState.screenShake,
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          _combatViewportSize = Size(
-                            constraints.maxWidth,
-                            constraints.maxHeight,
-                          );
-                          return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onPanUpdate: (details) {
-                              final normX =
-                                  (details.localPosition.dx /
-                                          constraints.maxWidth)
-                                      .clamp(0.0, 1.0);
-                              _coordinator.slidePosition(normX);
-                            },
-                            onTap: () {
-                              if (matchState.selectedBay != null &&
-                                  matchState.canReceiveInput) {
-                                _coordinator.injectCore(
-                                  matchState.selectedBay!,
-                                  1,
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Transform.translate(
+                            offset: matchState.screenShake,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                _combatViewportSize = Size(
+                                  constraints.maxWidth,
+                                  constraints.maxHeight,
                                 );
-                              }
-                            },
-                            child: CustomPaint(
-                              size: _combatViewportSize!,
-                              painter: CombatPainter(
-                                dreadnought: dread,
-                                enemies: _coordinator.enemies,
-                                lances: _coordinator.lances,
-                                flaks: _coordinator.flaks,
-                                particles: _coordinator
-                                    .particleService
-                                    .activeParticles,
-                                damageNumbers: _coordinator.damageNumbers,
-                                enemyBullets:
-                                    _coordinator.bulletManager.bullets,
-                                animationTime: _animationTime,
+                                return GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onPanUpdate: (details) {
+                                    final normX =
+                                        (details.localPosition.dx /
+                                                constraints.maxWidth)
+                                            .clamp(0.0, 1.0);
+                                    _coordinator.slidePosition(normX);
+                                  },
+                                  onTap: () {
+                                    if (matchState.selectedBay != null &&
+                                        matchState.canReceiveInput) {
+                                      _coordinator.injectCore(
+                                        matchState.selectedBay!,
+                                        1,
+                                      );
+                                    }
+                                  },
+                                  child: CustomPaint(
+                                    size: _combatViewportSize!,
+                                    painter: CombatPainter(
+                                      dreadnought: dread,
+                                      enemies: _coordinator.enemies,
+                                      lances: _coordinator.lances,
+                                      flaks: _coordinator.flaks,
+                                      particles: _coordinator
+                                          .particleService
+                                          .activeParticles,
+                                      damageNumbers: _coordinator.damageNumbers,
+                                      enemyBullets:
+                                          _coordinator.bulletManager.bullets,
+                                      animationTime: _animationTime,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        // Floating AI Tactical Solver Badge (Zero vertical footprint)
+                        if (matchState.isAutoSolving)
+                          Positioned(
+                            top: 6.0,
+                            left: 0,
+                            right: 0,
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0,
+                                  vertical: 2.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: VoidTheme.cardSurface.withValues(
+                                    alpha: 0.85,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  border: Border.all(
+                                    color: VoidTheme.crimsonFlare,
+                                    width: 1.0,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: VoidTheme.crimsonFlare.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      blurRadius: 6.0,
+                                    ),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.smart_toy,
+                                      color: VoidTheme.crimsonFlare,
+                                      size: 12.0,
+                                    ),
+                                    SizedBox(width: 5.0),
+                                    Text(
+                                      'AI TACTICAL SOLVER ACTIVE',
+                                      style: TextStyle(
+                                        color: VoidTheme.crimsonFlare,
+                                        fontSize: 9.0,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                      ],
                     ),
                   ),
                 ),

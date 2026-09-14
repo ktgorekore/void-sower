@@ -216,7 +216,7 @@ class InvaderBulletManager {
           if (damageNumbers.length < 8) {
             damageNumbers.add(
               FloatingDamageNumber(
-                text: 'CONDUIT BREACH! -1 CORE',
+                text: 'CONDUIT BREACH! -1 CORE & DRAINED',
                 x: bullet.x,
                 y: boundaryY - 24,
                 color: VoidTheme.crimsonFlare,
@@ -235,7 +235,7 @@ class InvaderBulletManager {
           if (damageNumbers.length < 8) {
             damageNumbers.add(
               FloatingDamageNumber(
-                text: '-5 ATMOS',
+                text: '-5 ATMOS PASS',
                 x: bullet.x,
                 y: boundaryY - 15,
                 color: VoidTheme.solarGold,

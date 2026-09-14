@@ -64,7 +64,7 @@ class CombatPainter extends CustomPainter {
     }
 
     // 2. Draw Atmospheric Defense Boundary Line
-    final boundaryY = size.height * 0.88;
+    final boundaryY = size.height - 32.0;
     final boundaryPaint = Paint()
       ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.5)
       ..strokeWidth = 1.5
@@ -347,7 +347,7 @@ class CombatPainter extends CustomPainter {
         ? dreadnought.orbitalPositionX
         : 0.5;
     final centerX = dreadNormX * size.width;
-    final shipY = boundaryY + 16.0;
+    final shipY = boundaryY + 8.0;
 
     // 1. Planetary Defense Horizon Line
     final railPaint = Paint()
@@ -355,8 +355,8 @@ class CombatPainter extends CustomPainter {
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
     canvas.drawLine(
-      Offset(0, boundaryY + 28),
-      Offset(size.width, boundaryY + 28),
+      Offset(0, boundaryY + 18),
+      Offset(size.width, boundaryY + 18),
       railPaint,
     );
 

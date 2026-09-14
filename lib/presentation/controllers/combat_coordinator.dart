@@ -136,7 +136,7 @@ class CombatCoordinator extends ChangeNotifier {
     particleService.update(clampedDt);
 
     // 5. Update enemy bullets & collisions
-    final boundaryY = viewportSize.height * 0.88;
+    final boundaryY = viewportSize.height - 32.0;
     final dreadX =
         (dreadnought.orbitalPositionX > 0.0 &&
             dreadnought.orbitalPositionX <= 1.0)
@@ -236,6 +236,7 @@ class CombatCoordinator extends ChangeNotifier {
   }
 
   void _handleBulletDeflected(double x, double y, Color color) {
+    audio.onBulletDeflected();
     HapticService.instance.sowTick();
   }
 

@@ -72,6 +72,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('4. ORBITAL PLATFORM ALIGNMENT'), findsOneWidget);
 
+      // Step to next (Bomb Evasion)
+      await tester.tap(find.text('NEXT'));
+      await tester.pumpAndSettle();
+      expect(find.text('5. BOMB EVASION & BREACH'), findsOneWidget);
+
       // Final step -> launch
       await tester.tap(find.text('LAUNCH!'));
       await tester.pumpAndSettle();

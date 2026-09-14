@@ -56,4 +56,9 @@ class CombatAudioOrchestrator {
   void onDefeat() {
     _audio.playGameOver();
   }
+
+  /// Triggers laser deflection / bomb interception ping SFX.
+  void onBulletDeflected() {
+    _audio.playBulletDeflect();
+  }
 }
