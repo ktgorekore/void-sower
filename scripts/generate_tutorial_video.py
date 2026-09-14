@@ -31,7 +31,7 @@ NARRATION_TEXT = (
     "stationed at the bottom atmospheric defense line, defending against relentless waves of the Void Swarm. "
     "Alien assault vessels advance down eight tactical corridors, dropping deadly plasma bombs directly toward your flagship. "
     "Maneuver horizontally to evade incoming ordnance while your flagship conduit locks onto that corridor. "
-    "Your weapon system is the ancient sixteen-bay Bao Mancala capacitor ring. "
+    "Your weapon system is powered by a twenty-eight core reactor and the sixteen-bay Bao Mancala capacitor ring. "
     "Tap Discharge or sow seeds sequentially around the orbital ring to unleash a catastrophic upward Particle Lance. "
     "The lance vaporizes enemy formations and deflects incoming bombs in that corridor. "
     "Sow into the inner reservoir bays zero through seven to bank energy for devastating multi-lap cascade relays. "

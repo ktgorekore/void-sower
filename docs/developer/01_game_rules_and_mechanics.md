@@ -88,8 +88,11 @@ graph TD
    - The tactical HUD displays live trajectory predictions, terminal corridor targets, and anticipated quadratic lance damage.
 
 2. **Phase 2: Core Injection (`CoreInjection` / *Namua*)**:
-   - A plasma core is deducted from `reserve_cores` and added to target bay $b_0$.
-   - The entire accumulated plasma mass $M = \text{charge\_units}(b_0)$ is scooped into the distribution head, emptying the chamber:
+   - **The 28-Core Finite Economy**: The flagship reactor maintains a strict budget of **28 Reserve Cores** per sector.
+   - **Zero-Bay Sowing (*Namua* Rule)**: Sowing from any bay (even with $0$ charge) draws $1$ core from reserves to plant into that bay before scooping and initiating the traversal. **Energy is never created from nothing.**
+   - Floating arcade telemetry (`-1 CORE (NAMUA)`) drifts from the hull, and the HUD reactor gauge decrements from $28 \to 27$.
+   - Once `reserve_cores == 0`, empty bays can no longer be sown—players may only redistribute existing energy already in the capacitor ring.
+   - The entire accumulated plasma mass $M = \text{charge\_units}(b_0)$ is scooped into the distribution head:
      $$\text{remaining\_units} \leftarrow M, \quad \text{charge\_units}(b_0) \leftarrow 0$$
    - The dreadnought locks input controls (`is_cascading = 1`).
 
@@ -116,6 +119,30 @@ graph TD
    - If any enemy vessel crossed the atmospheric threshold ($y \le 0.2$), game state transitions to `GameOver`.
    - If all enemy assault craft are destroyed, game state transitions to `Victory`.
    - Otherwise, the state resets to `OrbitalIdle` for the next tactical command.
+
+---
+
+### 3.1 Two Combat Control Paradigms
+
+Void Sower supports two complementary interaction styles:
+
+1. **Method 1: Rapid-Fire Combat Flow (Quick Action)**
+   - **Controls**: Slide the flagship laterally to align with a corridor, then tap the glowing cyan **`DISCHARGE C<n> ►`** button (or double-tap the ship).
+   - **Tactical Role**: Emergency sidearm. Spends $1$ reserve core to fire a baseline $100\text{ DMG}$ shot. Ideal for picking off low-HP scout drones, but attempting to use Method 1 exclusively will exhaust all $28$ reserve cores within $30$ seconds.
+
+2. **Method 2: Tactical Sowing Cascade (High-Damage Bao Mancala)**
+   - **Controls**: Select any bay holding multiple cores, then swipe **RIGHT** for Clockwise ($+1$) or **LEFT** for Counter-Clockwise ($-1$).
+   - **Tactical Role**: Siege cannon. Redistributes and concentrates stored cores without draining reserve fuel. Accumulating $M = 6 \dots 10$ cores unleashes $3,600 \dots 10,000\text{ DMG}$ particle lances capable of vaporizing heavy cruisers and boss dreadnoughts in a single strike.
+
+---
+
+### 3.2 Defensive Conduit Shielding & Bomb Deflection
+
+Enemy assault craft drop plasma bombs down all $8$ corridors:
+- **Magnetic Deflection (`DEFLECT +50`)**: If an incoming bomb strikes a corridor whose frontline bay ($8 \dots 15$) holds stored plasma cores, the bay's magnetic field absorbs the impact, detonating the bomb safely and awarding $+50$ bonus points.
+- **EMP Conduit Breach (`-1 CORE`)**: If an incoming bomb strikes an uncharged frontline conduit ($0$ stored cores), the conduit suffers an EMP breach, draining $1$ reserve core from the flagship reactor and triggering screen shake.
+- **Atmospheric Leak (`-5 SCORE`)**: Bombs that slip past the flagship into the lower atmosphere penalize the mission score by $-5$ points.
+- **Interception**: Active Particle Lances and Radial Flak Bursts vaporize bombs mid-air along their trajectory.
 
 ---
 

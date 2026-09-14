@@ -28,9 +28,12 @@ Void Sower features a distinctive **Afrofuturist** visual aesthetic set in the s
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                            FLUTTER WIDGET HIERARCHY                         │
 │  CombatScreen                                                               │
-│   ├── HudHeader (Cores, Score, Threat Tier, Codex & Telemetry Buttons)      │
+│   ├── HudHeader (Two-Strip Tactical HUD: Fuel Gauge, Score, Tier & Commands)│
+│   │    ├── Strip 1: Reactor Fuel ([⚡ REACTOR: 28]), Threat Tier & Score    │
+│   │    └── Strip 2: Live Guidance Beacon, AI Solver, Academy & Bao Codex    │
 │   ├── CombatPainter (CustomPainter Canvas: Stars, Lances, Flak, Enemies)    │
-│   │    └── Impeller GLSL Shaders (shaders/lance_beam.frag, flak_burst.frag) │
+│   │    ├── Impeller GLSL Shaders (shaders/lance_beam.frag, flak_burst.frag) │
+│   │    └── Floating Arcade Telemetry (-1 CORE (NAMUA), Damage & Deflects)   │
 │   ├── ProjectionShelf (Real-Time Sowing & Damage Telemetry)                 │
 │   └── CommandArcWidget (Lower 30% Viewport Ergonomic One-Thumb Controls)    │
 └─────────────────────────────────────────────────────────────────────────────┘

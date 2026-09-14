@@ -36,8 +36,9 @@ Defend the frontier against waves of descending alien assault craft. Instead of 
 
 ⚔️ REVOLUTIONARY KINETIC COMBAT
 • Count-and-Capture Tactics: Inject plasma cores (Namua) into capacitor bays and swipe to sow charges along the ring in clockwise or counter-clockwise cadence.
+• 28-Core Finite Economy: Manage your dreadnought's finite 28-core reactor fuel—every Namua injection draws from reserve power to initiate strategic cascades.
 • Quadratic Particle Lances: When your sowing sequence terminates in an occupied frontline bay, its accumulated mass discharges as a devastating laser lance. Damage scales quadratically: D = α · M²!
-• Cascade Relays: Trigger multi-lap chain reactions when landing in special bays, clearing multiple combat corridors in a single decisive maneuver.
+• Cascade Relays & Conduit Shields: Trigger multi-lap chain reactions across the ring and deflect incoming enemy ordnance with charged frontline batteries.
 
 🌌 THE KILWA NEBULA CAMPAIGN
 • 7 Contested Star Sectors: Battle across the Outer Bastions, navigate the turbulent Monsoon Straits, and defend the vital Core Siphon.
@@ -45,7 +46,8 @@ Defend the frontier against waves of descending alien assault craft. Instead of 
 • Tactical Dreadnought Chassis: Equip and master the balanced MK-I Bastion, the high-capacity MK-II Monsoon Vanguard, and the devastating MK-III Singularity Sovereign.
 
 🚀 FLIGHT ACADEMY & INTUITIVE ONBOARDING
-• Step-by-Step Flight Academy: Master core injection, sowing cadences, quadratic lances, and lateral platform positioning with interactive tutorials.
+• 5-Step Interactive Flight Academy: Master 28-core reactor fuel, Namua injection, sowing cadences, quadratic lances, and lateral platform positioning with interactive tutorials.
+• Two-Strip Tactical HUD: Monitor reactor fuel, sector threat tiers, live guidance beacons, and one-tap AI Tactical Solver controls in real time.
 • Holographic Aiming Telemetry: Inspect real-time damage projections, shield-break probabilities, and corridor trajectories on the tactical Projection Shelf.
 • In-Game Bao Codex: Discover the rich mathematical heritage and cultural lore behind traditional East African count-and-capture games.
 

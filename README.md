@@ -31,9 +31,17 @@
 
 ## 🎮 Redesigned Combat Mechanics & Visual Clarity
 
+- **Two-Strip Tactical HUD Header:** The top viewport organizes critical telemetry into two high-visibility strips:
+  - **Strip 1 (Reactor Economy & Threat Telemetry):** Real-time 28-core reactor fuel gauge (`[⚡ REACTOR: 28]`) with low-fuel crimson warning alerts, sector threat tier badge, and current combat score.
+  - **Strip 2 (Tactical Guidance Beacon & Quick Actions):** Live guidance beacon (`● ▲ 8 CONDUITS ARMED • SOW TO DISCHARGE` or `🤖 AI TACTICAL SOLVER ACTIVE`) alongside quick-access buttons for AI Tactical Solver, Flight Academy, and the Bao Orbital Codex.
+- **The 28-Core Finite Economy & Namua Rule:** In adherence to traditional Bao la Kiswahili count-and-capture rules, sowing introduces energy from reserves (*Namua*). Sowing from any bay (even with $0$ charge) draws $1$ core from the 28 reserve cores. When reserves hit $0$, empty bays cannot be sown—players must redistribute existing ring energy.
+- **Two Complementary Combat Control Paradigms:**
+  - *Method 1: Rapid-Fire Combat Flow (Quick Action):* Slide flagship & tap glowing `DISCHARGE C<n> ►` for rapid single shots ($100\text{ DMG}$) to eliminate low-HP drones.
+  - *Method 2: Tactical Sowing Cascade (High-Damage Mancala):* Swipe capacitor bays left/right to execute circular sowing cascades, concentrating mass for quadratic particle lances ($D = 100 \cdot M^2$, dealing $3,600 \dots 14,400+\text{ DMG}$) to vaporize heavy cruisers and boss dreadnoughts.
 - **Player Flagship Identification & Conduit Aiming:** You command the **Olympus Dreadnought Flagship** (`▲ DREADNOUGHT CONDUIT ▲`) stationed at the bottom defense line. As you glide horizontally to evade bombs, your ship automatically docks with and arms that corridor's frontline battery, projecting a vertical cyan targeting laser with lock-on reticles over descending enemies.
 - **Unified Tactical Action Deck:** Tap `DISCHARGE C[n] ►` to instantly unleash a quadratic Particle Lance, or `SOW CCW` to cycle energy into the inner reservoir. No complex multi-tap acrobatics needed while evading ordnance.
-- **Dropping Invader Ordnance:** Void Swarm assault craft descend 8 tactical corridors and drop plasma bombs directly from their cannons. Maneuver to evade or vaporize them with particle lances (`DEFLECT +50`).
+- **Defensive Conduit Shielding & Bomb Deflection:** Frontline batteries with stored charges magnetically deflect falling enemy plasma bombs (`DEFLECT +50`). Uncharged conduits suffer EMP breaches that drain reactor cores.
+- **Dropping Invader Ordnance:** Void Swarm assault craft descend 8 tactical corridors and drop plasma bombs directly from their cannons. Maneuver to evade or vaporize them mid-air with particle lances.
 - **16-Bay Bao Mancala Sowing:**
   - **Frontline Batteries (Bays 8–15):** Directly aligned with tactical attack corridors C1–C8. Discharging a frontline terminal bay fires a massive **UPWARD Particle Lance** ($D = \alpha \cdot M^2$) that obliterates alien formations and deflects incoming bombs.
   - **Inner Reservoir (Bays 0–7):** Energy storage bank. Accumulate mass ($M \ge 4$) to prime devastating multi-lap cascade relays that loop across the ring.
