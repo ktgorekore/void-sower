@@ -67,6 +67,7 @@ class _CombatScreenState extends State<CombatScreen>
   final List<EnemyBullet> _enemyBullets = [];
   double _enemyFireCooldown = 1.0;
   int _bulletIdCounter = 0;
+  Size? _combatViewportSize;
   int? _activeSowBay;
   bool _isSowAnimating = false;
 
@@ -152,10 +153,15 @@ class _CombatScreenState extends State<CombatScreen>
     // Sync entities
     _syncState();
 
-    final size = MediaQuery.of(context).size;
-    final corridorWidth = size.width / 8.0;
-    final boundaryY = size.height * 0.82;
-    final topMargin = size.height * 0.06;
+    final viewportSize =
+        _combatViewportSize ??
+        Size(
+          MediaQuery.of(context).size.width,
+          MediaQuery.of(context).size.height * 0.55,
+        );
+    final corridorWidth = viewportSize.width / 8.0;
+    final boundaryY = viewportSize.height * 0.82;
+    final topMargin = viewportSize.height * 0.06;
 
     // 1. Enemy assault craft firing dropping plasma bullets down corridors
     _enemyFireCooldown -= clampedDt;
@@ -163,15 +169,35 @@ class _CombatScreenState extends State<CombatScreen>
       _enemyFireCooldown = 1.0 + _random.nextDouble() * 0.8;
       final activeEnemies = _enemies
           .where(
-            (e) => !e.isDestroyed && e.worldPosY > 0.12 && e.worldPosY < 0.85,
+            (e) => !e.isDestroyed && e.worldPosY > 0.15 && e.worldPosY <= 1.0,
           )
           .toList();
       if (activeEnemies.isNotEmpty) {
-        final shooter = activeEnemies[_random.nextInt(activeEnemies.length)];
+        // Group by corridor to select the frontmost enemy in each corridor
+        // (lowest worldPosY is closest to the player, leading the assault)
+        final frontEnemiesByCorridor = <int, EnemyCraft>{};
+        for (final enemy in activeEnemies) {
+          final c = enemy.assignedCorridor;
+          if (!frontEnemiesByCorridor.containsKey(c) ||
+              enemy.worldPosY < frontEnemiesByCorridor[c]!.worldPosY) {
+            frontEnemiesByCorridor[c] = enemy;
+          }
+        }
+        final candidateShooters = frontEnemiesByCorridor.values.toList();
+        final shooter =
+            candidateShooters[_random.nextInt(candidateShooters.length)];
+
         final enemyX = (shooter.assignedCorridor + 0.5) * corridorWidth;
         final normY = shooter.worldPosY.clamp(0.0, 1.0);
         final enemyY =
             topMargin + ((1.0 - normY) / 0.85) * (boundaryY - topMargin);
+
+        // Compute exact vessel mouth (downward-pointing nose) matching CombatPainter._drawEnemyVessel
+        final sizeRatio = shooter.vesselType == 2
+            ? 1.6
+            : (shooter.vesselType == 1 ? 1.2 : 0.8);
+        final h = (corridorWidth * 0.4) * sizeRatio;
+        final mouthY = enemyY + h;
 
         Color bulletColor = VoidTheme.crimsonFlare;
         if (shooter.vesselType == 2) {
@@ -185,14 +211,23 @@ class _CombatScreenState extends State<CombatScreen>
             id: ++_bulletIdCounter,
             assignedCorridor: shooter.assignedCorridor,
             x: enemyX,
-            y: enemyY + 15.0,
+            y: mouthY + 2.0,
             velocityY: 190.0 + (_random.nextDouble() * 40.0),
             color: bulletColor,
           ),
         );
+
+        // Spawn a muzzle flash particle burst right at the invader's mouth
+        _particleService.spawnLanceSparks(
+          enemyX,
+          mouthY,
+          bulletColor,
+          count: 5,
+        );
+
         vlog(
-          6,
-          'Enemy vessel in corridor ${shooter.assignedCorridor} fired bullet',
+          10,
+          'Enemy vessel in corridor ${shooter.assignedCorridor} fired bullet from mouth ($enemyX, $mouthY)',
         );
       }
     }
@@ -201,8 +236,8 @@ class _CombatScreenState extends State<CombatScreen>
     final dreadX =
         (_dreadnought.orbitalPositionX > 0.0 &&
             _dreadnought.orbitalPositionX <= 1.0)
-        ? _dreadnought.orbitalPositionX * size.width
-        : size.width * 0.5;
+        ? _dreadnought.orbitalPositionX * viewportSize.width
+        : viewportSize.width * 0.5;
 
     final lanceCorridors = <int>{};
     for (final lance in _lances) {
@@ -242,7 +277,7 @@ class _CombatScreenState extends State<CombatScreen>
       for (final flak in _flaks) {
         if (!flak.active) continue;
         final flakX = flak.worldPosX <= 1.0
-            ? flak.worldPosX * size.width
+            ? flak.worldPosX * viewportSize.width
             : flak.worldPosX;
         final flakY = flak.worldPosY <= 1.0
             ? topMargin +
@@ -250,7 +285,7 @@ class _CombatScreenState extends State<CombatScreen>
                       (boundaryY - topMargin)
             : flak.worldPosY;
         final rawRadius = flak.blastRadius <= 1.0
-            ? flak.blastRadius * size.width
+            ? flak.blastRadius * viewportSize.width
             : flak.blastRadius;
         if ((bullet.x - flakX).abs() < rawRadius &&
             (bullet.y - flakY).abs() < rawRadius) {
@@ -317,7 +352,7 @@ class _CombatScreenState extends State<CombatScreen>
         return true;
       }
 
-      return bullet.y > size.height;
+      return bullet.y > viewportSize.height;
     });
 
     // Spawn damage numbers and camera shake when lances fire
@@ -334,8 +369,8 @@ class _CombatScreenState extends State<CombatScreen>
           _damageNumbers.add(
             FloatingDamageNumber(
               text: '${(lance.totalDamage * 10).toInt()}',
-              x: (corridor + 0.5) * (MediaQuery.of(context).size.width / 8.0),
-              y: MediaQuery.of(context).size.height * 0.35,
+              x: (corridor + 0.5) * corridorWidth,
+              y: viewportSize.height * 0.35,
               color: VoidTheme.plasmaCyan,
               isCritical: lance.totalDamage >= 2.0,
             ),
@@ -686,18 +721,26 @@ class _CombatScreenState extends State<CombatScreen>
                   child: RepaintBoundary(
                     child: Transform.translate(
                       offset: _screenShake,
-                      child: CustomPaint(
-                        size: Size.infinite,
-                        painter: CombatPainter(
-                          dreadnought: _dreadnought,
-                          enemies: _enemies,
-                          lances: _lances,
-                          flaks: _flaks,
-                          particles: _particleService.activeParticles,
-                          damageNumbers: _damageNumbers,
-                          enemyBullets: _enemyBullets,
-                          animationTime: _animationTime,
-                        ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          _combatViewportSize = Size(
+                            constraints.maxWidth,
+                            constraints.maxHeight,
+                          );
+                          return CustomPaint(
+                            size: _combatViewportSize!,
+                            painter: CombatPainter(
+                              dreadnought: _dreadnought,
+                              enemies: _enemies,
+                              lances: _lances,
+                              flaks: _flaks,
+                              particles: _particleService.activeParticles,
+                              damageNumbers: _damageNumbers,
+                              enemyBullets: _enemyBullets,
+                              animationTime: _animationTime,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),

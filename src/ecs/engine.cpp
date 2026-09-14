@@ -50,19 +50,19 @@ bool Engine::InjectCore(uint8_t bay_index, int8_t direction) {
 }
 
 void Engine::SetTargetPositionX(float target_x) {
-  VLOG(6) << "Engine::SetTargetPositionX: target_x=" << target_x;
+  VLOG(10) << "Engine::SetTargetPositionX: target_x=" << target_x;
   combat_system_->SetTargetPositionX(target_x);
 }
 
 void Engine::Update(float delta_time) {
-  VLOG(6) << "Engine::Update: delta_time=" << delta_time;
+  VLOG(10) << "Engine::Update: delta_time=" << delta_time;
   combat_system_->Update(delta_time);
 }
 
 CombatSystem::PredictionResult Engine::PredictSow(uint8_t start_bay,
                                                   int8_t direction) const {
-  VLOG(6) << "Engine::PredictSow: start_bay=" << static_cast<int>(start_bay)
-          << ", direction=" << static_cast<int>(direction);
+  VLOG(10) << "Engine::PredictSow: start_bay=" << static_cast<int>(start_bay)
+           << ", direction=" << static_cast<int>(direction);
   return combat_system_->PredictSow(start_bay, direction);
 }
 
