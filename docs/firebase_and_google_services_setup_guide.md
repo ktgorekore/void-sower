@@ -33,6 +33,50 @@ This guide details the complete protocol for provisioning, configuring, and link
 
 ---
 
+## 🎮 Step 0: Google Play Console — App Creation & Registration
+
+To register the game in the [Google Play Console](https://play.google.com/console/), navigate to **All apps** > **Create app** and provide the following exact production metadata:
+
+### 1. App Details
+- **App name**: `Void Sower: Kinetic Mancala`
+  - *Character count*: **27 / 30 characters** (Strictly within the 30-character Play Console limit).
+  - *Alternative compliant titles*: `Void Sower: Bao Orbital Arcade` (29 chars), `Void Sower: Orbital Defense` (27 chars).
+- **Package name**: `com.voidsower.app`
+  - *Character count*: **17 / 150 characters** (Configured as `applicationId` in `android/app/build.gradle.kts`).
+- **Default language**: `English (United States) – en-US`
+- **App or game**: Select **`Game`** (Category: *Games > Arcade*).
+- **Free or paid**: Select **`Free`**
+  - *Note*: Void Sower is free-to-play with optional Rewarded Ads (AdMob) and an optional In-App Purchase ($0.99 Pro Lifetime). Once published as Free, Google Play does not permit switching to Paid.
+
+### 2. Declarations
+- **Developer Program Policies**:
+  - ☑ **Confirm app meets the Developer Program Policies**
+  - *Policy Compliance*: Void Sower is fully compliant with Google Play Developer Program Policies. All store assets, icons, and descriptions reflect authentic gameplay without misleading marketing or restricted keywords.
+- **US export laws**:
+  - ☑ **Accept US export laws**
+  - *Legal & Encryption Export Classification*: The application uses standard encryption algorithms (TLS 1.3 / HTTPS / AES-256) provided natively by the Android OS and Google Play Billing APIs. It does not implement custom proprietary cryptography. Under US Export Administration Regulations (EAR), standard mass-market consumer software utilizing open encryption qualifies under **ECCN 5D992.c** and is authorized for export without a formal Commodity Classification (CCATS) under EAR § 740.17(b)(1).
+
+---
+
+### 3. Google Play Policy & App Content Declarations Checklist
+
+Before releasing to internal, closed, or open testing tracks, complete the required declarations in **App content**:
+
+| Policy Section | Required Selection / Value | Regulatory Rationale |
+| :--- | :--- | :--- |
+| **Privacy Policy** | `https://ktgorekore.github.io/void-sower/privacy.html` | Public URL hosting GDPR/CCPA compliant policy |
+| **App Access** | *All functionality is available without special access* | No restricted login gates or invite credentials required |
+| **Ads** | *Yes, my app contains ads* | AdMob rewarded ads for Emergency Reactor Flare (+8 cores) |
+| **Content Rating (IARC)** | *Category: Game > Arcade* | Fantasy Violence only (mild laser blasts, no blood/gore) -> **PEGI 3 / ESRB Everyone / USK 0** |
+| **Target Audience & Content** | *Ages 13 and above* | Non-directed audience with COPPA/TFUA in-app consent preferences |
+| **News Apps** | *No* | Entertainment gaming software |
+| **COVID-19 Contact Tracing** | *No* | Non-medical entertainment software |
+| **Data Safety** | *Collects Crash Logs & Diagnostics* | Crashlytics anonymous stack traces, encrypted in transit (HTTPS), user-requested data erasure supported |
+| **Government Apps** | *No* | Commercial independent game |
+| **Financial Features** | *No* | Uses Google Play Billing for in-app purchases only |
+
+---
+
 ## 🛠️ Step 1: Create Firebase Project
 
 ### Method A: Via Firebase CLI (Recommended)

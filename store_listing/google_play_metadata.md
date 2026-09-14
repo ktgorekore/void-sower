@@ -45,15 +45,21 @@ Defend the frontier against waves of descending alien assault craft. Instead of 
 • Dynamic Enemy Swarms: Outmaneuver scout interceptors, heavy gunships, and fortified enemy flagships with frequency-matched shielding.
 • Tactical Dreadnought Chassis: Equip and master the balanced MK-I Bastion, the high-capacity MK-II Monsoon Vanguard, and the devastating MK-III Singularity Sovereign.
 
-🚀 FLIGHT ACADEMY & INTUITIVE ONBOARDING
+🎖️ PILOT IDENTITY & PROGRESSION
+• Custom Pilot Dossier: Register your callsign and track lifetime telemetry (lances fired, high scores, cascade laps).
+• 6 Cultural Insignias: Adorn your flagship with historic motifs including the Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown, and Swahili Navigator.
+• 6 Military Rank Tiers: Rise from Cadet to Navigator, Vanguard, Corsair, Admiral, and Grand Sovereign as you liberate star sectors.
+• Tamper-Proof Save Mobility: Easily backup, export, and import your mission progress across devices with cryptographically verified save codes.
+
+🚀 FLIGHT ACADEMY & TACTICAL CONTROLS
 • 5-Step Interactive Flight Academy: Master 28-core reactor fuel, Namua injection, sowing cadences, quadratic lances, and lateral platform positioning with interactive tutorials.
 • Two-Strip Tactical HUD: Monitor reactor fuel, sector threat tiers, live guidance beacons, and one-tap AI Tactical Solver controls in real time.
 • Holographic Aiming Telemetry: Inspect real-time damage projections, shield-break probabilities, and corridor trajectories on the tactical Projection Shelf.
-• In-Game Bao Codex: Discover the rich mathematical heritage and cultural lore behind traditional East African count-and-capture games.
+• In-Game Bao Codex & Settings: Fine-tune dual-channel BGM/SFX audio, haptic click feedback, and particle LODs, or explore the rich East African cultural history of count-and-capture games.
 
 💎 AFROFUTURIST AUDIOVISUAL SPLENDOR
 • Custom GLSL Fragment Shaders: Experience pulsing plasma capacitors, chromatic shockwave bursts, and energetic scrolling horizons.
-• Low-Latency SoundPool Audio: Harmonic pitch-ramping chimes celebrate multi-lap cascade relays with tactile haptic synchronization.
+• Dual-Channel Dynamic Audio: Atmospheric ambient nebula music paired with low-latency SoundPool combat sound effects and harmonic pitch-ramping chimes.
 • 100% Native C++ Engine: Zero-allocation game simulation powered by EnTT ECS, cache-aligned ring buffers, and Android 15 16 KB page size optimization.
 
 Join the fleet, master the sacred cadence, and liberate the stars!
@@ -167,3 +173,44 @@ CARACTERÍSTICAS PRINCIPALES:
 | **60s Narrated Tutorial Video** | [`store_listing/assets/how_to_play_60s.mp4`](assets/how_to_play_60s.mp4) | 1080x2400 Portrait, 60s, Neural voiceover (`en-US-ChristopherNeural`), HUD subtitles, ambient synth score | Primary YouTube / Play Store trailer explaining rules, controls, and combat |
 | **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30s, High-action AI tactical solver, multi-tier sector clears, synth audio | High-CTR short showcase for YouTube Shorts and mobile store previews |
 | **Animated Promo Gameplay GIF** | [`store_listing/assets/promo_gameplay.gif`](assets/promo_gameplay.gif) | 360x800, 12s loop, optimized 128-color Bayer dither, 1.79 MB | Lightweight animated preview for developer portals, GitHub READMEs, and store cards |
+
+---
+
+## 🛒 Store Settings, Monetization & In-App Purchases
+
+### 1. Store Categorization & Tags
+- **Application Category**: Games > Arcade
+- **Secondary Category**: Games > Strategy
+- **Tags**:
+  - `Arcade`
+  - `Strategy`
+  - `Space combat`
+  - `Board`
+  - `Offline`
+  - `Single player`
+  - `Casual`
+  - `Sci-fi`
+
+### 2. Digital In-App Products (Google Play Billing v7)
+- **Product ID (SKU)**: `void_sower_pro_lifetime`
+- **Product Type**: In-App Product (Non-consumable)
+- **Title**: `Commander Pro (Lifetime Access)`
+- **Description**: `Permanent ad-free emergency flares, exclusive Golden Dreadnought flagship hull, and unlockable veteran insignias.`
+- **Default Price**: `$0.99 USD` (Local currency equivalents auto-converted in Play Console)
+- **Status**: Active
+
+### 3. Rewarded Video Ads (Google Mobile Ads / AdMob)
+- **Format**: Rewarded Interstitial Video
+- **Ad Unit ID (Production)**: Configure in AdMob Console (linked to `com.voidsower.app`)
+- **Ad Unit ID (Testing)**: `ca-app-pub-3940256099942544/5224354917` (Android)
+- **Reward**: `Emergency Reactor Charge (+8 Cores)` when reactor fuel falls below 2 cores
+- **Cooldown**: 3-minute tactical frequency cap (bypassed instantly for Pro Commanders)
+
+### 4. Legal & Privacy Compliance URLs
+- **Privacy Policy**: `https://ktgorekore.github.io/void-sower/privacy.html`
+- **Terms of Service**: `https://ktgorekore.github.io/void-sower/terms.html`
+- **Support & Developer Contact**: `voidsower-dev@googlegroups.com`
+- **Website**: `https://ktgorekore.github.io/void-sower/`
+- **Target Age**: 13 and above (Non-directed audience, COPPA compliant consent controls)
+- **Content Rating (IARC)**: Everyone (ESRB) / PEGI 3 / USK 0 (Mild Fantasy Violence, no gore or foul language)
+
