@@ -652,7 +652,7 @@ class _SettingsModalState extends State<SettingsModal>
               ),
               SizedBox(height: 4.0),
               Text(
-                'Engine v0.2.0+2 (EnTT v3.13.2 + Abseil C++17)',
+                'Engine v0.2.1+3 (EnTT v3.13.2 + Abseil C++17)',
                 style: TextStyle(
                   color: VoidTheme.starWhite,
                   fontSize: 10.0,
