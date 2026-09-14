@@ -34,17 +34,24 @@ void DischargeSystem::ExecuteCrossDischarge(
   auto& bay = registry.get<BatteryComponent>(bay_entities[firing_bay]);
   bay.charge_units = 0;
 
-  const int8_t corridor = CorridorForFrontlineBay(firing_bay);
-  if (corridor < 0) return;
+  if (dreadnought_entity == entt::null || !registry.valid(dreadnought_entity)) {
+    return;
+  }
 
-  const float lance_origin_x = (static_cast<float>(corridor) + 0.5f) /
-                               static_cast<float>(kCorridorCount);
   const auto& dread =
       registry.get<DreadnoughtStateComponent>(dreadnought_entity);
+
+  // Axial alignment: Beam origin is pinned directly to the Dreadnought's prow.
+  const float lance_origin_x = dread.orbital_position_x;
   const float lance_origin_y = dread.boundary_line_y;
+  const int8_t target_corridor = static_cast<int8_t>(
+      std::clamp(static_cast<int>(dread.orbital_position_x *
+                                  static_cast<float>(kCorridorCount)),
+                 0, kCorridorCount - 1));
+
   const float damage = ComputeLanceDamage(mass);
 
-  // Spawn ParticleLance entity
+  // Spawn ParticleLance entity originating axially from dreadnought prow
   auto lance_entity = registry.create();
   registry.emplace<ParticleLanceComponent>(
       lance_entity, ParticleLanceComponent{
@@ -58,8 +65,14 @@ void DischargeSystem::ExecuteCrossDischarge(
                         .active = 1,
                     });
 
-  // Raycast through enemies in this specific corridor
-  auto occupants = spatial_grid.GetCorridorOccupants(corridor);
+  // Raycast through enemies in the Dreadnought's aligned active corridor
+  auto occupants = spatial_grid.GetCorridorOccupants(target_corridor);
+  if (occupants.empty()) {
+    const int8_t bay_corridor = CorridorForFrontlineBay(firing_bay);
+    if (bay_corridor >= 0 && bay_corridor != target_corridor) {
+      occupants = spatial_grid.GetCorridorOccupants(bay_corridor);
+    }
+  }
   float remaining_damage = damage;
 
   for (uint32_t entity_id : occupants) {

@@ -75,17 +75,22 @@ class CombatPainter extends CustomPainter {
       boundaryPaint,
     );
 
-    // 3. Draw Active Particle Lances (FIRED UPWARD FROM DREADNOUGHT)
+    // 3. Draw Active Particle Lances (FIRED AXIALLY FROM DREADNOUGHT PROW)
     for (final lance in lances) {
       if (!lance.active) continue;
       final corridor = (lance.firingBayIndex >= 8)
           ? (lance.firingBayIndex - 8)
           : lance.firingBayIndex;
-      final centerX = (corridor + 0.5) * corridorWidth;
+      final centerX = (lance.originX > 0.0 && lance.originX <= 1.0)
+          ? lance.originX * size.width
+          : (dreadnought.orbitalPositionX > 0.0 &&
+                dreadnought.orbitalPositionX <= 1.0)
+          ? dreadnought.orbitalPositionX * size.width
+          : (corridor + 0.5) * corridorWidth;
       final rawWidth = lance.beamWidth <= 1.0
           ? (lance.beamWidth * size.width)
           : lance.beamWidth;
-      final beamW = math.max(rawWidth, 10.0);
+      final beamW = math.max(rawWidth, 12.0);
 
       // Upward firing lance outer glow: Brightest at Dreadnought turret (bottom), shooting UP!
       final glowPaint = Paint()

@@ -230,10 +230,13 @@ class CombatCoordinator extends ChangeNotifier {
           final corridor = (lance.firingBayIndex >= 8)
               ? (lance.firingBayIndex - 8)
               : lance.firingBayIndex;
+          final lanceX = (lance.originX > 0.0 && lance.originX <= 1.0)
+              ? lance.originX * viewportSize.width
+              : (corridor + 0.5) * (viewportSize.width / 8.0);
           damageNumbers.add(
             FloatingDamageNumber(
               text: '${(lance.totalDamage * 10).toInt()}',
-              x: (corridor + 0.5) * (viewportSize.width / 8.0),
+              x: lanceX,
               y: viewportSize.height * 0.35,
               color: VoidTheme.plasmaCyan,
               isCritical: lance.totalDamage >= 2.0,
@@ -392,6 +395,44 @@ class CombatCoordinator extends ChangeNotifier {
     _syncDomainState();
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, direction);
+    notifyListeners();
+  }
+
+  /// Discharges an immediate axial particle lance from the Dreadnought's prow
+  /// into the current corridor, drawing from the aligned bay or injecting a core.
+  void quickFireActiveCorridor() {
+    if (!_state.canReceiveInput) return;
+    final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
+    final activeBay = corridor + 8;
+    // Sowing inward along the frontline keeps single-hop shots on the frontline batteries
+    final direction = (corridor >= 4) ? -1 : 1;
+
+    HapticService.instance.injectionClick();
+    audio.onCoreInjected();
+
+    engine.injectCore(activeBay, direction);
+    vlog(
+      6,
+      'CombatCoordinator: Quick-fire active corridor $corridor via bay $activeBay dir $direction',
+    );
+
+    damageNumbers.add(
+      FloatingDamageNumber(
+        text: '-1 CORE (AXIAL LANCE)',
+        x:
+            (dreadnought.orbitalPositionX > 0.0 &&
+                dreadnought.orbitalPositionX <= 1.0)
+            ? dreadnought.orbitalPositionX
+            : 0.5,
+        y: (dreadnought.boundaryLineY + 0.04).clamp(0.0, 1.0),
+        color: VoidTheme.solarGold,
+        isCritical: false,
+      ),
+    );
+
+    _syncDomainState();
+    _state = _state.copyWith(selectedBay: activeBay);
+    prediction = engine.predictSow(activeBay, direction);
     notifyListeners();
   }
 

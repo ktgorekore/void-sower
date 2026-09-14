@@ -343,13 +343,14 @@ class _CombatScreenState extends State<CombatScreen>
                                             .clamp(0.0, 1.0);
                                     _coordinator.slidePosition(normX);
                                   },
+                                  onDoubleTap: () {
+                                    if (matchState.canReceiveInput) {
+                                      _coordinator.quickFireActiveCorridor();
+                                    }
+                                  },
                                   onTap: () {
-                                    if (matchState.selectedBay != null &&
-                                        matchState.canReceiveInput) {
-                                      _coordinator.injectCore(
-                                        matchState.selectedBay!,
-                                        1,
-                                      );
+                                    if (matchState.canReceiveInput) {
+                                      _coordinator.quickFireActiveCorridor();
                                     }
                                   },
                                   child: CustomPaint(

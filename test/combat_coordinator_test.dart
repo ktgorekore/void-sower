@@ -136,5 +136,27 @@ void main() {
         replayCoordinator.dispose();
       },
     );
+
+    test('quickFireActiveCorridor injects core axially inward', () {
+      // Position at Corridor 2 (X = 0.31) -> Active bay is 10, inward direction +1
+      coordinator.slidePosition(0.31);
+      expect(coordinator.state.selectedBay, equals(10));
+
+      final initialCores = coordinator.dreadnought.reserveCores;
+      coordinator.quickFireActiveCorridor();
+
+      // Injected core into bay 10 with inward direction (+1)
+      expect(coordinator.dreadnought.reserveCores, equals(initialCores - 1));
+      expect(
+        coordinator.damageNumbers.any((d) => d.text.contains('AXIAL LANCE')),
+        isTrue,
+      );
+
+      // Position on right half: Corridor 6 (X = 0.81) -> Active bay is 14, inward direction -1
+      coordinator.slidePosition(0.81);
+      expect(coordinator.state.selectedBay, equals(14));
+      coordinator.quickFireActiveCorridor();
+      expect(coordinator.dreadnought.reserveCores, equals(initialCores - 2));
+    });
   });
 }

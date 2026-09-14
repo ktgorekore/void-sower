@@ -213,13 +213,14 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                           ),
                         ),
                         const SizedBox(width: 5.0),
-                        // Primary DISCHARGE LANCE / SOW CW (+1) Button
+                        // Primary AXIAL DISCHARGE LANCE Button
                         Expanded(
                           flex: 3,
                           child: GestureDetector(
                             onTap: () {
                               HapticService.instance.injectionClick();
-                              widget.onInjectCore(activeBay, 1);
+                              final dir = (activeCorridor >= 4) ? -1 : 1;
+                              widget.onInjectCore(activeBay, dir);
                             },
                             child: Container(
                               height: 24.0,
@@ -250,12 +251,12 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                                   ),
                                   const SizedBox(width: 3.0),
                                   Text(
-                                    'DISCHARGE C${activeCorridor + 1} ►',
+                                    'AXIAL DISCHARGE C${activeCorridor + 1} ►',
                                     style: const TextStyle(
                                       color: VoidTheme.obsidianBlack,
-                                      fontSize: 9.5,
+                                      fontSize: 9.0,
                                       fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
+                                      letterSpacing: 0.4,
                                     ),
                                   ),
                                 ],

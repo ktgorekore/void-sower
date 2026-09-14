@@ -107,4 +107,54 @@ TEST(CombatSimulationTest, CrossDischargeDestroysEnemy) {
   // Second injection with 2 units would finish it off!
 }
 
+TEST(CombatSimulationTest, AxialLanceFiresFromDreadnoughtPosition) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought(12, 0.2f);
+
+  // Position dreadnought in Corridor 3 (X = 0.4375f)
+  combat.SetTargetPositionX(0.4375f);
+  for (int i = 0; i < 40; ++i) {
+    combat.Update(kFixedTimeStep);
+  }
+
+  // Spawn enemy in Corridor 3
+  auto enemy = registry.create();
+  registry.emplace<EnemyVesselComponent>(enemy, EnemyVesselComponent{
+                                                    .entity_id = 101,
+                                                    .assigned_corridor = 3,
+                                                    .world_pos_x = 0.4375f,
+                                                    .world_pos_y = 0.7f,
+                                                    .velocity_y = 0.0f,
+                                                    .current_shields = 0.0f,
+                                                    .max_shields = 0.0f,
+                                                    .current_hull = 200.0f,
+                                                    .max_hull = 200.0f,
+                                                    .vessel_type = 1,
+                                                    .is_destroyed = 0,
+                                                });
+
+  // Inject into bay 10 (+1) -> lands in bay 11
+  EXPECT_TRUE(combat.InjectCore(10, 1));
+  combat.Update(kFixedTimeStep);  // SowingTraversal
+  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
+
+  // Check that ParticleLance component was created with origin_x matching
+  // dreadnought position
+  bool found_lance = false;
+  auto lance_view = registry.view<ParticleLanceComponent>();
+  for (auto l_entity : lance_view) {
+    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    EXPECT_NEAR(lance.origin_x, 0.4375f, 0.05f);
+    EXPECT_EQ(lance.active, 1);
+    found_lance = true;
+  }
+  EXPECT_TRUE(found_lance);
+
+  // Verify enemy in Corridor 3 received lance damage (D(1) = 100 -> 100 hull
+  // remaining)
+  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
+}
+
 }  // namespace void_sower::ecs

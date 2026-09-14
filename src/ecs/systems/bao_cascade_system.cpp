@@ -146,11 +146,19 @@ void BaoCascadeSystem::StepFSM(
       const uint32_t final_mass = bay.charge_units;
 
       if (IsFrontlineBay(term_bay)) {
-        const int8_t corridor = CorridorForFrontlineBay(term_bay);
-        const bool corridor_has_enemies =
-            (corridor >= 0 && spatial_grid.GetCorridorCount(corridor) > 0);
+        const auto& dread_state =
+            registry.get<DreadnoughtStateComponent>(dreadnought_entity);
+        const int8_t dread_corridor = static_cast<int8_t>(
+            std::clamp(static_cast<int>(dread_state.orbital_position_x *
+                                        static_cast<float>(kCorridorCount)),
+                       0, kCorridorCount - 1));
+        const int8_t bay_corridor = CorridorForFrontlineBay(term_bay);
+        const bool has_enemies =
+            (spatial_grid.GetCorridorCount(dread_corridor) > 0 ||
+             (bay_corridor >= 0 &&
+              spatial_grid.GetCorridorCount(bay_corridor) > 0));
 
-        if (corridor_has_enemies && final_mass > 0) {
+        if (final_mass > 0 && (has_enemies || final_mass == 1)) {
           dread.current_sim_state =
               static_cast<uint8_t>(SimulationState::CrossDischarge);
           discharge_system.ExecuteCrossDischarge(registry, dreadnought_entity,
@@ -161,7 +169,10 @@ void BaoCascadeSystem::StepFSM(
               static_cast<uint8_t>(SimulationState::RelayOverload);
         } else {
           dread.current_sim_state =
-              static_cast<uint8_t>(SimulationState::CleanupCheck);
+              static_cast<uint8_t>(SimulationState::CrossDischarge);
+          discharge_system.ExecuteCrossDischarge(registry, dreadnought_entity,
+                                                 bay_entities, spatial_grid,
+                                                 term_bay, final_mass);
         }
       } else {
         if (final_mass > 1 && !IsNyumbaBay(term_bay)) {
