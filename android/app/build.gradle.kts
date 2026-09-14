@@ -58,9 +58,11 @@ android {
     signingConfigs {
         create("release") {
             if (keystorePropertiesFile.exists()) {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                val rawStoreFile = keystoreProperties["storeFile"] as String
+                keyAlias = (keystoreProperties["keyAlias"] as String).trim()
+                val storePwd = (keystoreProperties["storePassword"] as String).trim()
+                val keyPwd = (keystoreProperties["keyPassword"] as? String)?.trim()
+                keyPassword = if (keyPwd.isNullOrEmpty()) storePwd else keyPwd
+                val rawStoreFile = (keystoreProperties["storeFile"] as String).trim()
                 val appCandidate = file(rawStoreFile)
                 val rootCandidate = rootProject.file(rawStoreFile)
                 storeFile = if (appCandidate.exists()) {
@@ -70,7 +72,7 @@ android {
                 } else {
                     appCandidate
                 }
-                storePassword = keystoreProperties["storePassword"] as String
+                storePassword = storePwd
             }
         }
     }
