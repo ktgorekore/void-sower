@@ -31,7 +31,7 @@ class ProjectionShelf extends StatelessWidget {
   Widget build(BuildContext context) {
     if (prediction == null || selectedBay == null) {
       return Container(
-        height: 18.0,
+        height: 22.0,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: VoidTheme.obsidianBlack.withValues(alpha: 0.75),
@@ -42,13 +42,13 @@ class ProjectionShelf extends StatelessWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.radar, size: 10.0, color: VoidTheme.plasmaCyan),
-            SizedBox(width: 4.0),
+            Icon(Icons.radar, size: 11.0, color: VoidTheme.plasmaCyan),
+            SizedBox(width: 5.0),
             Text(
               'SELECT BAY TO PREVIEW LANCE & SOWING TRAJECTORY',
               style: TextStyle(
                 color: VoidTheme.textSecondary,
-                fontSize: 8.0,
+                fontSize: 8.5,
                 letterSpacing: 0.6,
                 fontWeight: FontWeight.w600,
               ),
@@ -63,7 +63,7 @@ class ProjectionShelf extends StatelessWidget {
     final isRelay = p.triggersRelay;
 
     return Container(
-      height: 18.0,
+      height: 22.0,
       padding: const EdgeInsets.symmetric(horizontal: 6.0),
       decoration: BoxDecoration(
         color: VoidTheme.cardSurface.withValues(alpha: 0.9),
