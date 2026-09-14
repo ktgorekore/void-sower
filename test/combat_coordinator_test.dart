@@ -14,16 +14,22 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/domain/state/combat_match_state.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/presentation/controllers/combat_coordinator.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('CombatCoordinator Architecture Tests', () {
     late MockVoidSowerEngine engine;
     late CombatCoordinator coordinator;
 
-    setUp(() {
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      await PersistenceService.instance.initialize();
       engine = MockVoidSowerEngine();
       coordinator = CombatCoordinator(engine: engine, difficultyTier: 1);
       coordinator.initialize(startingCores: 28, boundaryY: 0.15);
@@ -69,5 +75,66 @@ void main() {
       coordinator.update(0.016, const Size(800, 1000));
       expect(coordinator.dreadnought, isNotNull);
     });
+
+    test(
+      'Tutorial briefing pauses simulation until player dismisses/launches',
+      () async {
+        final tier0Coordinator = CombatCoordinator(
+          engine: engine,
+          difficultyTier: 0,
+        );
+        tier0Coordinator.initialize(startingCores: 28, boundaryY: 0.15);
+
+        // Before tutorial is completed, tier 0 starts in briefing mode
+        expect(
+          tier0Coordinator.state.status,
+          equals(CombatMatchStatus.briefing),
+        );
+
+        final initialEnemyY = tier0Coordinator.enemies.first.worldPosY;
+
+        // Calling update multiple times while in briefing must NOT move enemies
+        for (var i = 0; i < 20; i++) {
+          tier0Coordinator.update(0.016, const Size(800, 1000));
+        }
+        expect(tier0Coordinator.enemies.first.worldPosY, equals(initialEnemyY));
+
+        // Dismissing tutorial starts active combat and records completion
+        tier0Coordinator.dismissTutorial();
+        expect(
+          tier0Coordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+        expect(PersistenceService.instance.hasCompletedTutorial, isTrue);
+
+        // Now active combat steps simulation and advances enemies
+        tier0Coordinator.update(0.016, const Size(800, 1000));
+        expect(
+          tier0Coordinator.enemies.first.worldPosY,
+          lessThan(initialEnemyY),
+        );
+
+        // Subsequent sector 0 launch starts directly in active combat
+        final replayCoordinator = CombatCoordinator(
+          engine: engine,
+          difficultyTier: 0,
+        );
+        replayCoordinator.initialize(startingCores: 28, boundaryY: 0.15);
+        expect(
+          replayCoordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+
+        // Manual showTutorial pauses active combat
+        replayCoordinator.showTutorial();
+        expect(
+          replayCoordinator.state.status,
+          equals(CombatMatchStatus.briefing),
+        );
+
+        tier0Coordinator.dispose();
+        replayCoordinator.dispose();
+      },
+    );
   });
 }

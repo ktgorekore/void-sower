@@ -52,9 +52,16 @@ class PersistenceService {
   static const String _kPersonalizedAdsConsent =
       'void_sower_personalized_ads_consent';
 
+  static const String _kCompletedTutorial = 'void_sower_completed_tutorial';
   static const String _kUserProfile = 'void_sower_user_profile';
 
   // --- Campaign & Scores ---
+  bool get hasCompletedTutorial =>
+      _prefs?.getBool(_kCompletedTutorial) ?? false;
+  Future<void> setCompletedTutorial(bool completed) async {
+    await _prefs?.setBool(_kCompletedTutorial, completed);
+  }
+
   int get highScore => _prefs?.getInt(_kHighScore) ?? 0;
   Future<void> setHighScore(int score) async {
     if (score > highScore) {

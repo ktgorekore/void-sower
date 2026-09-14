@@ -563,14 +563,19 @@ class _SettingsModalState extends State<SettingsModal>
           icon: Icons.school,
           accentColor: VoidTheme.solarGold,
           height: 40.0,
-          onPressed: () {
+          onPressed: () async {
+            await PersistenceService.instance.setCompletedTutorial(false);
             widget.onResetTutorial?.call();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Flight Academy Tutorial reset for next launch.'),
-                backgroundColor: VoidTheme.cardSurface,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Flight Academy Tutorial reset for next launch.',
+                  ),
+                  backgroundColor: VoidTheme.cardSurface,
+                ),
+              );
+            }
           },
         ),
       ],

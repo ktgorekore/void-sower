@@ -12,20 +12,62 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/main.dart';
 
 void main() {
-  testWidgets('VoidSowerApp launches campaign map screen', (
-    WidgetTester tester,
-  ) async {
-    final mockEngine = MockVoidSowerEngine();
-    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
-    await tester.pumpAndSettle();
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
-    expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
-    expect(find.text('ENGAGE'), findsWidgets);
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    await PersistenceService.instance.initialize();
   });
+
+  testWidgets(
+    'VoidSowerApp launches campaign map screen with command deck UI',
+    (WidgetTester tester) async {
+      final mockEngine = MockVoidSowerEngine();
+      await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
+      await tester.pumpAndSettle();
+
+      // Verify command deck and branding
+      expect(find.text('VOID SOWER'), findsOneWidget);
+      expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
+      expect(find.text('ORBITAL COMMAND DECK'), findsOneWidget);
+
+      // Verify prominent greeting command cards
+      expect(find.text('USER PROFILE'), findsOneWidget);
+      expect(find.text('ACTIVE FLEET'), findsOneWidget);
+      expect(find.text('Vanguard-01'), findsOneWidget);
+      expect(find.text('MK-I Bastion'), findsOneWidget);
+
+      // Verify sectors & engage buttons
+      expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+      expect(find.text('ENGAGE'), findsWidgets);
+
+      // Tap USER PROFILE card -> Opens Profile Dossier Modal
+      await tester.tap(find.text('USER PROFILE'));
+      await tester.pumpAndSettle();
+      expect(find.text('PILOT FLIGHT DOSSIER'), findsOneWidget);
+
+      // Dismiss Profile Modal
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+      expect(find.text('PILOT FLIGHT DOSSIER'), findsNothing);
+
+      // Tap ACTIVE FLEET card -> Opens Fleet Hangar Modal
+      await tester.tap(find.text('ACTIVE FLEET'));
+      await tester.pumpAndSettle();
+      expect(find.text('ORBITAL FLEET HANGAR'), findsOneWidget);
+
+      // Dismiss Fleet Hangar Modal
+      await tester.tap(find.text('CLOSE HANGAR'));
+      await tester.pumpAndSettle();
+      expect(find.text('ORBITAL FLEET HANGAR'), findsNothing);
+    },
+  );
 }

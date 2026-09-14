@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/campaign_sector.dart';
+import '../../domain/models/user_profile.dart';
 import '../../domain/services/campaign_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
@@ -194,41 +195,60 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profile = PersistenceService.instance.userProfile;
+
     return Scaffold(
       backgroundColor: VoidTheme.obsidianBlack,
       appBar: AppBar(
         backgroundColor: VoidTheme.obsidianBlack,
         elevation: 0,
-        title: const Text(
-          'KILWA NEBULA BASIN',
-          style: TextStyle(
-            color: VoidTheme.solarGold,
-            fontSize: 16.0,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2.0,
-          ),
+        title: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'VOID SOWER',
+              style: TextStyle(
+                color: VoidTheme.solarGold,
+                fontSize: 16.0,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.0,
+              ),
+            ),
+            Text(
+              'KILWA NEBULA BASIN',
+              style: TextStyle(
+                color: VoidTheme.plasmaCyan,
+                fontSize: 9.5,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
+              ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.precision_manufacturing,
-              color: VoidTheme.plasmaCyan,
-            ),
+            icon: const Icon(Icons.rocket_launch, color: VoidTheme.plasmaCyan),
             tooltip: 'Fleet Hangar',
             onPressed: _openHangar,
           ),
           IconButton(
-            icon: const Icon(Icons.badge, color: VoidTheme.plasmaCyanLight),
+            icon: const Icon(Icons.account_circle, color: VoidTheme.solarGold),
             tooltip: 'Pilot Profile',
             onPressed: _openProfile,
           ),
           IconButton(
-            icon: const Icon(Icons.menu_book, color: VoidTheme.solarGold),
+            icon: const Icon(
+              Icons.menu_book_rounded,
+              color: VoidTheme.solarGoldLight,
+            ),
             tooltip: 'Bao Codex',
             onPressed: _openCodex,
           ),
           IconButton(
-            icon: const Icon(Icons.bar_chart, color: VoidTheme.starWhite),
+            icon: const Icon(
+              Icons.leaderboard_rounded,
+              color: VoidTheme.starWhite,
+            ),
             tooltip: 'Combat Telemetry',
             onPressed: () {
               Navigator.of(context).push(
@@ -239,15 +259,67 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.settings, color: VoidTheme.solarGold),
+            icon: const Icon(
+              Icons.settings_rounded,
+              color: VoidTheme.solarGold,
+            ),
             tooltip: 'Fleet Settings',
             onPressed: _openSettings,
           ),
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Pilot Profile & Active Flagship Status Row
+          // Command Deck Status Row
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 8.0,
+                      height: 8.0,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: VoidTheme.emeraldShield,
+                        boxShadow: [
+                          BoxShadow(
+                            color: VoidTheme.emeraldShield,
+                            blurRadius: 6.0,
+                            spreadRadius: 1.0,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    const Text(
+                      'ORBITAL COMMAND DECK',
+                      style: TextStyle(
+                        color: VoidTheme.emeraldShield,
+                        fontSize: 10.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  'SECTORS: ${PersistenceService.instance.liberatedSectors} / ${_sectors.length} LIBERATED',
+                  style: const TextStyle(
+                    color: VoidTheme.textSecondary,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Pilot Profile & Active Flagship Cards Row
           Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 16.0,
@@ -255,154 +327,29 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             ),
             child: Row(
               children: [
-                // Pilot Profile Pill
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _openProfile,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0,
-                        vertical: 8.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VoidTheme.cardSurface.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(
-                          color:
-                              PersistenceService
-                                  .instance
-                                  .userProfile
-                                  .isGoogleLinked
-                              ? VoidTheme.plasmaCyan
-                              : VoidTheme.solarGold.withValues(alpha: 0.5),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            PersistenceService
-                                .instance
-                                .userProfile
-                                .insignia
-                                .iconData,
-                            color:
-                                PersistenceService
-                                    .instance
-                                    .userProfile
-                                    .isGoogleLinked
-                                ? VoidTheme.plasmaCyan
-                                : VoidTheme.solarGold,
-                            size: 16.0,
-                          ),
-                          const SizedBox(width: 8.0),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  PersistenceService
-                                      .instance
-                                      .userProfile
-                                      .callsign,
-                                  style: const TextStyle(
-                                    color: VoidTheme.starWhite,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                Text(
-                                  '${PersistenceService.instance.userProfile.rank.title.toUpperCase()} • ${PersistenceService.instance.userProfile.isGoogleLinked ? "GOOGLE" : "GUEST"}',
-                                  style: TextStyle(
-                                    color:
-                                        PersistenceService
-                                            .instance
-                                            .userProfile
-                                            .isGoogleLinked
-                                        ? VoidTheme.plasmaCyan
-                                        : VoidTheme.emeraldShield,
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(
-                            Icons.chevron_right,
-                            color: VoidTheme.solarGold,
-                            size: 16.0,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                // Active Flagship Status Banner
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _openHangar,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0,
-                        vertical: 8.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VoidTheme.cardSurface.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(8.0),
-                        border: Border.all(
-                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.flight,
-                            color: VoidTheme.plasmaCyan,
-                            size: 16.0,
-                          ),
-                          const SizedBox(width: 8.0),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _selectedChassisId == 'mk1_bastion'
-                                      ? 'MK-I Bastion'
-                                      : (_selectedChassisId == 'mk2_monsoon'
-                                            ? 'MK-II Monsoon'
-                                            : 'MK-III Singularity'),
-                                  style: const TextStyle(
-                                    color: VoidTheme.plasmaCyanLight,
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const Text(
-                                  'FLAGSHIP • HANGAR',
-                                  style: TextStyle(
-                                    color: VoidTheme.solarGold,
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(
-                            Icons.chevron_right,
-                            color: VoidTheme.plasmaCyan,
-                            size: 16.0,
-                          ),
-                        ],
-                      ),
-                    ),
+                // 1. Prominent Pilot Profile Card
+                Expanded(child: _buildPilotProfileCard(profile)),
+                const SizedBox(width: 10.0),
+                // 2. Prominent Active Flagship Card
+                Expanded(child: _buildFlagshipCard()),
+              ],
+            ),
+          ),
+
+          // Campaign Sector List Header
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+            child: Row(
+              children: [
+                Icon(Icons.radar, color: VoidTheme.solarGold, size: 14.0),
+                SizedBox(width: 6.0),
+                Text(
+                  'MISSION TARGETS • SELECT SECTOR',
+                  style: TextStyle(
+                    color: VoidTheme.solarGold,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
                   ),
                 ),
               ],
@@ -412,10 +359,13 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           // Sector List
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 6.0,
+              ),
               itemCount: _sectors.length,
               separatorBuilder: (context, index) =>
-                  const SizedBox(height: 12.0),
+                  const SizedBox(height: 10.0),
               itemBuilder: (context, index) {
                 final s = _sectors[index];
                 return _buildSectorCard(s);
@@ -423,6 +373,286 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPilotProfileCard(UserProfile profile) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _openProfile,
+        borderRadius: BorderRadius.circular(12.0),
+        child: Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: VoidTheme.cardSurface.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(
+              color: profile.isGoogleLinked
+                  ? VoidTheme.plasmaCyan
+                  : VoidTheme.solarGold.withValues(alpha: 0.7),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color:
+                    (profile.isGoogleLinked
+                            ? VoidTheme.plasmaCyan
+                            : VoidTheme.solarGold)
+                        .withValues(alpha: 0.12),
+                blurRadius: 8.0,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Category Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.account_circle,
+                        color: profile.isGoogleLinked
+                            ? VoidTheme.plasmaCyan
+                            : VoidTheme.solarGold,
+                        size: 13.0,
+                      ),
+                      const SizedBox(width: 4.0),
+                      Text(
+                        'USER PROFILE',
+                        style: TextStyle(
+                          color: profile.isGoogleLinked
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.solarGold,
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: profile.isGoogleLinked
+                        ? VoidTheme.plasmaCyan
+                        : VoidTheme.solarGold,
+                    size: 14.0,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+              // Avatar & Pilot Identifiers
+              Row(
+                children: [
+                  Container(
+                    width: 34.0,
+                    height: 34.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: VoidTheme.obsidianBlack,
+                      border: Border.all(
+                        color: profile.isGoogleLinked
+                            ? VoidTheme.plasmaCyan
+                            : VoidTheme.solarGold,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        Icons.person,
+                        color: profile.isGoogleLinked
+                            ? VoidTheme.plasmaCyan
+                            : VoidTheme.solarGold,
+                        size: 20.0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          profile.callsign,
+                          style: const TextStyle(
+                            color: VoidTheme.starWhite,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.4,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 1.0),
+                        Text(
+                          '${profile.rank.title.toUpperCase()} • ${profile.isGoogleLinked ? "GOOGLE" : "GUEST"}',
+                          style: TextStyle(
+                            color: profile.isGoogleLinked
+                                ? VoidTheme.plasmaCyan
+                                : VoidTheme.emeraldShield,
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6.0),
+              const Text(
+                'Tap to manage dossier',
+                style: TextStyle(color: VoidTheme.textMuted, fontSize: 8.0),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFlagshipCard() {
+    final chassisName = _selectedChassisId == 'mk1_bastion'
+        ? 'MK-I Bastion'
+        : (_selectedChassisId == 'mk2_monsoon'
+              ? 'MK-II Monsoon'
+              : 'MK-III Singularity');
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _openHangar,
+        borderRadius: BorderRadius.circular(12.0),
+        child: Container(
+          padding: const EdgeInsets.all(10.0),
+          decoration: BoxDecoration(
+            color: VoidTheme.cardSurface.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(12.0),
+            border: Border.all(
+              color: VoidTheme.plasmaCyan.withValues(alpha: 0.7),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: VoidTheme.plasmaCyan.withValues(alpha: 0.12),
+                blurRadius: 8.0,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Category Header
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.rocket_launch,
+                        color: VoidTheme.plasmaCyan,
+                        size: 13.0,
+                      ),
+                      SizedBox(width: 4.0),
+                      Text(
+                        'ACTIVE FLEET',
+                        style: TextStyle(
+                          color: VoidTheme.plasmaCyan,
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Icon(
+                    Icons.chevron_right,
+                    color: VoidTheme.plasmaCyan,
+                    size: 14.0,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+              // Flagship Emblem & Info
+              Row(
+                children: [
+                  Container(
+                    width: 34.0,
+                    height: 34.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: VoidTheme.obsidianBlack,
+                      border: Border.all(
+                        color: VoidTheme.plasmaCyan,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.rocket_launch,
+                        color: VoidTheme.plasmaCyan,
+                        size: 18.0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          chassisName,
+                          style: const TextStyle(
+                            color: VoidTheme.plasmaCyanLight,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.4,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 1.0),
+                        const Text(
+                          'DREADNOUGHT • HANGAR',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6.0),
+              const Text(
+                'Tap to open fleet hangar',
+                style: TextStyle(color: VoidTheme.textMuted, fontSize: 8.0),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -449,14 +679,14 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           onTap: () => _showSectorBriefing(sector),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16.0,
-            vertical: 8.0,
+            vertical: 6.0,
           ),
           leading: CircleAvatar(
             backgroundColor: sector.isUnlocked
                 ? VoidTheme.solarGold
                 : VoidTheme.textMuted,
             child: Icon(
-              sector.isUnlocked ? Icons.shield : Icons.lock,
+              sector.isUnlocked ? Icons.radar : Icons.lock,
               color: VoidTheme.obsidianBlack,
               size: 20.0,
             ),
@@ -468,7 +698,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                   ? VoidTheme.textPrimary
                   : VoidTheme.textMuted,
               fontWeight: FontWeight.bold,
-              fontSize: 15.0,
+              fontSize: 14.5,
             ),
           ),
           subtitle: Row(
@@ -479,7 +709,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                   color: sector.isUnlocked
                       ? VoidTheme.plasmaCyan
                       : VoidTheme.textMuted,
-                  fontSize: 11.0,
+                  fontSize: 10.5,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -499,19 +729,23 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             ],
           ),
           trailing: sector.isUnlocked
-              ? ElevatedButton(
+              ? ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: VoidTheme.solarGold,
                     foregroundColor: VoidTheme.obsidianBlack,
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
+                      horizontal: 14.0,
+                      vertical: 6.0,
                     ),
                   ),
+                  icon: const Icon(Icons.rocket_launch, size: 14.0),
                   onPressed: () => _launchSector(sector),
-                  child: const Text(
+                  label: const Text(
                     'ENGAGE',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11.5,
+                    ),
                   ),
                 )
               : const Text(

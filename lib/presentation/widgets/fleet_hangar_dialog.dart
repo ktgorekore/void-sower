@@ -74,7 +74,7 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
             Row(
               children: [
                 const Icon(
-                  Icons.precision_manufacturing,
+                  Icons.rocket_launch,
                   color: VoidTheme.plasmaCyan,
                   size: 24.0,
                 ),
@@ -151,8 +151,27 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Container(
+                padding: const EdgeInsets.all(6.0),
+                decoration: BoxDecoration(
+                  color: VoidTheme.obsidianBlack,
+                  borderRadius: BorderRadius.circular(6.0),
+                  border: Border.all(
+                    color: isEquipped
+                        ? VoidTheme.plasmaCyan
+                        : VoidTheme.cardSurface,
+                  ),
+                ),
+                child: Icon(
+                  Icons.rocket_launch,
+                  size: 16.0,
+                  color: isEquipped
+                      ? VoidTheme.plasmaCyan
+                      : VoidTheme.textSecondary,
+                ),
+              ),
+              const SizedBox(width: 8.0),
               Expanded(
                 child: Text(
                   chassis.name,

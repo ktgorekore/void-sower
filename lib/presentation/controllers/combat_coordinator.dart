@@ -25,6 +25,7 @@ import '../../domain/models/floating_damage_number.dart';
 import '../../domain/models/lance_beam.dart';
 import '../../domain/models/prediction_result.dart';
 import '../../domain/services/game_engine_interface.dart';
+import '../../domain/services/persistence_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../services/haptic_service.dart';
 import '../services/particle_service.dart';
@@ -115,8 +116,13 @@ class CombatCoordinator extends ChangeNotifier {
     const initialBay = 11;
     prediction = engine.predictSow(initialBay, 1);
 
+    final shouldShowTutorial =
+        !PersistenceService.instance.hasCompletedTutorial &&
+        _currentDifficulty == 0 &&
+        !autoStartSolver;
+
     _state = CombatMatchState(
-      status: (_currentDifficulty == 0 && !autoStartSolver)
+      status: shouldShowTutorial
           ? CombatMatchStatus.briefing
           : CombatMatchStatus.activeCombat,
       isAutoSolving: autoStartSolver,
@@ -151,6 +157,14 @@ class CombatCoordinator extends ChangeNotifier {
   void update(double dt, Size viewportSize) {
     if (_isDisposed) return;
     final clampedDt = dt.clamp(0.001, 0.05);
+
+    // If game is in tactical tutorial briefing or paused, freeze combat simulation!
+    // This guarantees the player can read instructions without enemies advancing or firing.
+    if (_state.status == CombatMatchStatus.briefing ||
+        _state.status == CombatMatchStatus.paused) {
+      particleService.update(clampedDt * 0.2);
+      return;
+    }
 
     // 1. Advance native C++ simulation
     engine.stepSimulation(clampedDt);
@@ -403,6 +417,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Dismisses tactical tutorial overlay and starts active combat.
   void dismissTutorial() {
     if (_state.status == CombatMatchStatus.briefing) {
+      PersistenceService.instance.setCompletedTutorial(true);
       _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
       notifyListeners();
     }

@@ -98,10 +98,11 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   ];
 
   void _nextStep() {
-    HapticService.instance.sowTick();
     if (_currentStep < _steps.length - 1) {
+      HapticService.instance.sowTick();
       setState(() => _currentStep++);
     } else {
+      HapticService.instance.injectionClick();
       widget.onDismiss();
     }
   }
@@ -170,7 +171,45 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                   ),
                 ],
               ),
-              const Divider(color: VoidTheme.cardSurface, height: 20.0),
+              const SizedBox(height: 6.0),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0,
+                  vertical: 3.0,
+                ),
+                decoration: BoxDecoration(
+                  color: VoidTheme.emeraldShield.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4.0),
+                  border: Border.all(
+                    color: VoidTheme.emeraldShield.withValues(alpha: 0.4),
+                    width: 0.8,
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.pause_circle_outline,
+                      color: VoidTheme.emeraldShield,
+                      size: 13.0,
+                    ),
+                    SizedBox(width: 5.0),
+                    Flexible(
+                      child: Text(
+                        'COMBAT PAUSED • READ AT YOUR PACE',
+                        style: TextStyle(
+                          color: VoidTheme.emeraldShield,
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.4,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: VoidTheme.cardSurface, height: 16.0),
 
               // Step Title & Subtitle
               Text(

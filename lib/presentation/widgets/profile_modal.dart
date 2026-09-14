@@ -413,7 +413,7 @@ class _ProfileModalState extends State<ProfileModal> {
                     const Row(
                       children: [
                         Icon(
-                          Icons.badge,
+                          Icons.account_circle,
                           color: VoidTheme.plasmaCyan,
                           size: 22.0,
                         ),
@@ -478,8 +478,8 @@ class _ProfileModalState extends State<ProfileModal> {
                                     width: 2.0,
                                   ),
                                 ),
-                                child: Icon(
-                                  _profile.insignia.iconData,
+                                child: const Icon(
+                                  Icons.person,
                                   color: VoidTheme.solarGold,
                                   size: 28.0,
                                 ),

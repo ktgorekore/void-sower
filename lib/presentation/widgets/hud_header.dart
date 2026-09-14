@@ -114,11 +114,11 @@ class HudHeader extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            profile.insignia.iconData,
+                            Icons.account_circle,
                             color: profile.isGoogleLinked
                                 ? VoidTheme.plasmaCyan
                                 : VoidTheme.solarGold,
-                            size: 13.0,
+                            size: 14.0,
                           ),
                           const SizedBox(width: 4.0),
                           ConstrainedBox(
@@ -344,12 +344,12 @@ class HudHeader extends StatelessWidget {
                           ),
                           constraints: const BoxConstraints(),
                           icon: const Icon(
-                            Icons.badge_outlined,
+                            Icons.account_circle_outlined,
                             color: VoidTheme.plasmaCyanLight,
                             size: 16.0,
                           ),
                           onPressed: onProfileTap,
-                          tooltip: 'Pilot Flight Dossier',
+                          tooltip: 'User Profile & Dossier',
                         ),
                       ],
                       if (onTutorialTap != null) ...[
