@@ -64,7 +64,7 @@ class CombatPainter extends CustomPainter {
     }
 
     // 2. Draw Atmospheric Defense Boundary Line
-    final boundaryY = size.height - 32.0;
+    final boundaryY = size.height - 70.0;
     final boundaryPaint = Paint()
       ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.5)
       ..strokeWidth = 1.5
@@ -347,7 +347,7 @@ class CombatPainter extends CustomPainter {
         ? dreadnought.orbitalPositionX
         : 0.5;
     final centerX = dreadNormX * size.width;
-    final shipY = boundaryY + 8.0;
+    final shipY = boundaryY + 16.0;
 
     // 1. Planetary Defense Horizon Line
     final railPaint = Paint()
@@ -355,8 +355,8 @@ class CombatPainter extends CustomPainter {
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
     canvas.drawLine(
-      Offset(0, boundaryY + 18),
-      Offset(size.width, boundaryY + 18),
+      Offset(0, boundaryY + 28),
+      Offset(size.width, boundaryY + 28),
       railPaint,
     );
 
@@ -542,12 +542,12 @@ class CombatPainter extends CustomPainter {
       shieldArcPaint,
     );
 
-    // 7. Unmistakable Flagship Label HUD
+    // 7. Unmistakable Defender Conduit Label
     final labelSpan = TextSpan(
-      text: '▲ DREADNOUGHT CONDUIT [C${activeCorridor + 1}] ▲',
+      text: '▲ DEFENDER CONDUIT [C${activeCorridor + 1}] ▲',
       style: const TextStyle(
         color: VoidTheme.solarGold,
-        fontSize: 8.5,
+        fontSize: 9.0,
         fontWeight: FontWeight.w900,
         letterSpacing: 1.2,
         shadows: [Shadow(color: Colors.black, blurRadius: 4.0)],
@@ -561,7 +561,7 @@ class CombatPainter extends CustomPainter {
       8.0,
       size.width - labelPainter.width - 8.0,
     );
-    labelPainter.paint(canvas, Offset(labelX, shipY + 26));
+    labelPainter.paint(canvas, Offset(labelX, shipY + 24));
   }
 
   @override

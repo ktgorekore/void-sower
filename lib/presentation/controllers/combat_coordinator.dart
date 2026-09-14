@@ -136,7 +136,7 @@ class CombatCoordinator extends ChangeNotifier {
     particleService.update(clampedDt);
 
     // 5. Update enemy bullets & collisions
-    final boundaryY = viewportSize.height - 32.0;
+    final boundaryY = viewportSize.height - 70.0;
     final dreadX =
         (dreadnought.orbitalPositionX > 0.0 &&
             dreadnought.orbitalPositionX <= 1.0)

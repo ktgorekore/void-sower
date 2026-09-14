@@ -203,10 +203,108 @@ def vtt_to_ass(vtt_file: str, ass_file: str):
   print(f"[Subtitles] Formatted ASS subtitle track ({len(ass_content) - 13} cues) -> {ass_file}")
 
 
+def generate_sfx_mix(output_path: str, duration_sec: float = 60.0):
+  """Composites authentic Void Sower in-game sound effects synchronized with combat actions."""
+  sample_rate = 44100
+  total_samples = int(sample_rate * duration_sec)
+  mix = np.zeros(total_samples, dtype=np.float32)
+
+  audio_dir = "/home/kelvingorekore/projects/void-sower/assets/audio"
+
+  def load_wav(name):
+    path = os.path.join(audio_dir, name)
+    if not os.path.exists(path):
+      return np.zeros(0, dtype=np.float32)
+    with wave.open(path, "rb") as wf:
+      n = wf.getnframes()
+      frames = wf.readframes(n)
+      samples = np.frombuffer(frames, dtype=np.int16).astype(np.float32) / 32768.0
+      if wf.getnchannels() == 2:
+        samples = samples.reshape(-1, 2).mean(axis=1)
+      return samples
+
+  sow_step = load_wav("sow_step.wav")
+  lance_fire = load_wav("lance_fire.wav")
+  flak_burst = load_wav("flak_burst.wav")
+  inject_core = load_wav("inject_core.wav")
+  shield_hit = load_wav("shield_hit.wav")
+  bullet_deflect = load_wav("bullet_deflect.wav")
+  victory = load_wav("victory.wav")
+
+  def place_sfx(sfx, start_time_sec, volume=1.0):
+    if len(sfx) == 0:
+      return
+    start_idx = int(start_time_sec * sample_rate)
+    end_idx = min(start_idx + len(sfx), total_samples)
+    if start_idx < total_samples:
+      chunk_len = end_idx - start_idx
+      mix[start_idx:end_idx] += sfx[:chunk_len] * volume
+
+  # 1. Opening sequence (briefing & initial core injection)
+  place_sfx(inject_core, 0.8, 0.8)
+  place_sfx(inject_core, 2.2, 0.8)
+
+  # 2. First sowing cadence (Bao Mancala hops)
+  for i, t_offset in enumerate([4.0, 4.25, 4.5, 4.75, 5.0, 5.25]):
+    place_sfx(sow_step, t_offset, 0.75 + i * 0.05)
+
+  # 3. First devastating Particle Lance blast & explosion
+  place_sfx(lance_fire, 5.6, 1.2)
+  place_sfx(flak_burst, 6.2, 0.9)
+  place_sfx(bullet_deflect, 7.0, 0.8)
+
+  # 4. Continuous active combat loops throughout 60s
+  combat_events = [
+      (9.0, "sow"), (9.2, "sow"), (9.4, "sow"), (9.6, "lance"), (10.2, "flak"),
+      (12.5, "inject"), (13.5, "sow"), (13.7, "sow"), (13.9, "sow"), (14.1, "lance"), (14.8, "deflect"),
+      (17.0, "sow"), (17.2, "sow"), (17.5, "lance"), (18.2, "flak"), (19.0, "shield"),
+      (21.5, "inject"), (22.2, "sow"), (22.4, "sow"), (22.6, "sow"), (22.9, "lance"), (23.5, "flak"),
+      (26.0, "sow"), (26.2, "sow"), (26.5, "lance"), (27.2, "deflect"), (28.0, "deflect"),
+      (30.5, "inject"), (31.2, "sow"), (31.4, "sow"), (31.6, "sow"), (31.9, "lance"), (32.6, "flak"),
+      (35.0, "sow"), (35.2, "sow"), (35.5, "lance"), (36.2, "flak"), (37.5, "shield"),
+      (40.0, "sow"), (40.2, "sow"), (40.4, "sow"), (40.7, "lance"), (41.4, "deflect"),
+      (44.0, "inject"), (45.0, "sow"), (45.2, "sow"), (45.5, "lance"), (46.2, "flak"),
+      (48.5, "sow"), (48.7, "sow"), (49.0, "lance"), (49.8, "flak"), (50.5, "deflect"),
+      (53.0, "sow"), (53.2, "sow"), (53.4, "sow"), (53.7, "lance"), (54.5, "flak"),
+  ]
+  for t_sec, ev in combat_events:
+    if ev == "sow":
+      place_sfx(sow_step, t_sec, 0.7)
+    elif ev == "lance":
+      place_sfx(lance_fire, t_sec, 1.15)
+    elif ev == "flak":
+      place_sfx(flak_burst, t_sec, 0.85)
+    elif ev == "inject":
+      place_sfx(inject_core, t_sec, 0.8)
+    elif ev == "deflect":
+      place_sfx(bullet_deflect, t_sec, 0.75)
+    elif ev == "shield":
+      place_sfx(shield_hit, t_sec, 0.8)
+
+  # 5. Grand victory finale
+  place_sfx(victory, 56.5, 1.1)
+
+  peak = np.max(np.abs(mix))
+  if peak > 0:
+    mix = np.tanh(mix * 0.95)
+
+  pcm_data = (mix * 32767).astype(np.int16)
+  stereo_data = np.empty((total_samples * 2,), dtype=np.int16)
+  stereo_data[0::2] = pcm_data
+  stereo_data[1::2] = pcm_data
+
+  with wave.open(output_path, "wb") as wf:
+    wf.setnchannels(2)
+    wf.setsampwidth(2)
+    wf.setframerate(sample_rate)
+    wf.writeframes(stereo_data.tobytes())
+  print(f"[SFX] Synthesized full gameplay sound effects track -> {output_path}")
+
+
 def build_final_video(
-    raw_video: str, narration_audio: str, synth_audio: str, ass_sub: str, output_path: str
+    raw_video: str, narration_audio: str, synth_audio: str, sfx_audio: str, ass_sub: str, output_path: str
 ):
-  """Composites video, narration, background music, and subtitles into master video."""
+  """Composites video, narration, background music, game sound effects, and subtitles."""
   os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
   cmd = [
@@ -218,13 +316,16 @@ def build_final_video(
       narration_audio,
       "-i",
       synth_audio,
+      "-i",
+      sfx_audio,
       "-filter_complex",
       (
           "[0:v]trim=0:60,setpts=PTS-STARTPTS,"
           f"ass={ass_sub}[v];"
           "[1:a]volume=1.35[a_voice];"
-          "[2:a]volume=0.32[a_bg];"
-          "[a_voice][a_bg]amix=inputs=2:duration=first:dropout_transition=2[a]"
+          "[2:a]volume=0.28[a_bg];"
+          "[3:a]volume=0.88[a_sfx];"
+          "[a_voice][a_bg][a_sfx]amix=inputs=3:duration=first:dropout_transition=2[a]"
       ),
       "-map",
       "[v]",
@@ -263,13 +364,15 @@ def main():
   narration_srt = os.path.join(SCRATCH_DIR, "subtitles.srt")
   narration_ass = os.path.join(SCRATCH_DIR, "subtitles.ass")
   synth_wav = os.path.join(SCRATCH_DIR, "background_synth.wav")
+  sfx_wav = os.path.join(SCRATCH_DIR, "combat_sfx.wav")
 
   # 1. Synthesize Speech
   synthesize_narration(narration_wav, narration_srt)
   vtt_to_ass(narration_srt, narration_ass)
 
-  # 2. Synthesize Background Audio
+  # 2. Synthesize Background Audio & Sound Effects
   generate_synth_music(synth_wav, duration_sec=62.0)
+  generate_sfx_mix(sfx_wav, duration_sec=62.0)
 
   # 3. Pull gameplay recording from device if available
   local_raw_video = os.path.join(SCRATCH_DIR, "raw_gameplay_60s.mp4")
@@ -287,7 +390,7 @@ def main():
   target_docs = "/home/kelvingorekore/projects/void-sower/docs/media/void_sower_how_to_play_60s.mp4"
   target_store = "/home/kelvingorekore/projects/void-sower/store_listing/assets/how_to_play_60s.mp4"
 
-  build_final_video(local_raw_video, narration_wav, synth_wav, narration_ass, target_docs)
+  build_final_video(local_raw_video, narration_wav, synth_wav, sfx_wav, narration_ass, target_docs)
   shutil.copyfile(target_docs, target_store)
   print(f"[Deploy] Copied to store assets: {target_store}")
 
