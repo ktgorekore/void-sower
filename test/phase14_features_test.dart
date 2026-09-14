@@ -201,11 +201,26 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('PILOT FLIGHT DOSSIER'), findsOneWidget);
+      expect(find.text('PILOT CLOUD ACCOUNT'), findsOneWidget);
+      expect(find.text('SQUADRON ROSTER (PROFILES)'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.text('SQUADRON CULTURAL INSIGNIA'),
+        150.0,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('SQUADRON CULTURAL INSIGNIA'), findsOneWidget);
+
+      await tester.scrollUntilVisible(
+        find.text('LIFETIME COMBAT TELEMETRY'),
+        150.0,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('LIFETIME COMBAT TELEMETRY'), findsOneWidget);
+
       await tester.scrollUntilVisible(
         find.text('EXPORT SAVE'),
-        200.0,
+        150.0,
         scrollable: find.byType(Scrollable).first,
       );
       expect(find.text('EXPORT SAVE'), findsOneWidget);

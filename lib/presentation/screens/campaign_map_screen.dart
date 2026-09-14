@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import '../../domain/models/campaign_sector.dart';
 import '../../domain/services/campaign_service.dart';
 import '../../domain/services/game_engine_interface.dart';
+import '../../domain/services/persistence_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import '../widgets/bao_codex_dialog.dart';
@@ -246,55 +247,165 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
       ),
       body: Column(
         children: [
-          // Active Flagship Status Banner
-          GestureDetector(
-            onTap: _openHangar,
-            child: Container(
-              margin: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 6.0,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14.0,
-                vertical: 8.0,
-              ),
-              decoration: BoxDecoration(
-                color: VoidTheme.cardSurface.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(
-                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                  width: 1.0,
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.flight,
-                    color: VoidTheme.plasmaCyan,
-                    size: 16.0,
-                  ),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: Text(
-                      'ACTIVE SHIP: ${_selectedChassisId == 'mk1_bastion' ? 'MK-I Bastion' : (_selectedChassisId == 'mk2_monsoon' ? 'MK-II Monsoon' : 'MK-III Singularity')}',
-                      style: const TextStyle(
-                        color: VoidTheme.plasmaCyanLight,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.8,
+          // Pilot Profile & Active Flagship Status Row
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 6.0,
+            ),
+            child: Row(
+              children: [
+                // Pilot Profile Pill
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _openProfile,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0,
+                        vertical: 8.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VoidTheme.cardSurface.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color:
+                              PersistenceService
+                                  .instance
+                                  .userProfile
+                                  .isGoogleLinked
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.solarGold.withValues(alpha: 0.5),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            PersistenceService
+                                .instance
+                                .userProfile
+                                .insignia
+                                .iconData,
+                            color:
+                                PersistenceService
+                                    .instance
+                                    .userProfile
+                                    .isGoogleLinked
+                                ? VoidTheme.plasmaCyan
+                                : VoidTheme.solarGold,
+                            size: 16.0,
+                          ),
+                          const SizedBox(width: 8.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  PersistenceService
+                                      .instance
+                                      .userProfile
+                                      .callsign,
+                                  style: const TextStyle(
+                                    color: VoidTheme.starWhite,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '${PersistenceService.instance.userProfile.rank.title.toUpperCase()} • ${PersistenceService.instance.userProfile.isGoogleLinked ? "GOOGLE" : "GUEST"}',
+                                  style: TextStyle(
+                                    color:
+                                        PersistenceService
+                                            .instance
+                                            .userProfile
+                                            .isGoogleLinked
+                                        ? VoidTheme.plasmaCyan
+                                        : VoidTheme.emeraldShield,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: VoidTheme.solarGold,
+                            size: 16.0,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                  const Text(
-                    'CHANGE ➔',
-                    style: TextStyle(
-                      color: VoidTheme.solarGold,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.bold,
+                ),
+                const SizedBox(width: 8.0),
+                // Active Flagship Status Banner
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _openHangar,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0,
+                        vertical: 8.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VoidTheme.cardSurface.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.flight,
+                            color: VoidTheme.plasmaCyan,
+                            size: 16.0,
+                          ),
+                          const SizedBox(width: 8.0),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  _selectedChassisId == 'mk1_bastion'
+                                      ? 'MK-I Bastion'
+                                      : (_selectedChassisId == 'mk2_monsoon'
+                                            ? 'MK-II Monsoon'
+                                            : 'MK-III Singularity'),
+                                  style: const TextStyle(
+                                    color: VoidTheme.plasmaCyanLight,
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const Text(
+                                  'FLAGSHIP • HANGAR',
+                                  style: TextStyle(
+                                    color: VoidTheme.solarGold,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: VoidTheme.plasmaCyan,
+                            size: 16.0,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
 

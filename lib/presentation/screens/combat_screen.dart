@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../domain/services/game_engine_interface.dart';
+import '../../domain/services/persistence_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../controllers/combat_coordinator.dart';
 import '../theme/void_theme.dart';
@@ -25,6 +26,7 @@ import '../widgets/combat_painter.dart';
 import '../widgets/command_arc_widget.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/hud_header.dart';
+import '../widgets/profile_modal.dart';
 import '../widgets/projection_shelf.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
@@ -261,6 +263,27 @@ class _CombatScreenState extends State<CombatScreen>
     });
   }
 
+  void _openProfile() {
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (context) => ProfileModal(
+        onProfileUpdated: () {
+          if (mounted) setState(() {});
+        },
+      ),
+    ).then((_) {
+      if (mounted &&
+          wasTicking &&
+          _coordinator.state.status == CombatMatchStatus.activeCombat) {
+        _ticker.start();
+      }
+    });
+  }
+
   @override
   void dispose() {
     _autoAdvanceTimer?.cancel();
@@ -284,6 +307,8 @@ class _CombatScreenState extends State<CombatScreen>
               children: [
                 // Top HUD
                 HudHeader(
+                  userProfile: PersistenceService.instance.userProfile,
+                  onProfileTap: _openProfile,
                   reserveCores: dread.reserveCores,
                   score: dread.totalScore,
                   difficultyTier: _currentDifficultyTier,

@@ -28,6 +28,7 @@ dependencies:
   flutter:
     sdk: flutter
   google_mobile_ads: ^9.1.0
+  google_sign_in: ^6.2.2
   in_app_purchase: ^3.3.0
   shared_preferences: ^2.5.5
 

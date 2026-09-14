@@ -16,12 +16,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../domain/models/user_profile.dart';
+import '../../domain/services/auth_service.dart';
 import '../../domain/services/persistence_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
-/// Modal dialog presenting pilot identity, insignia selector, rank progression, and save mobility.
+/// Modal dialog presenting pilot identity, insignia selector, Google Play auth, multi-profile roster, and save mobility.
 class ProfileModal extends StatefulWidget {
   const ProfileModal({super.key, this.onProfileUpdated});
 
@@ -34,8 +35,13 @@ class ProfileModal extends StatefulWidget {
 class _ProfileModalState extends State<ProfileModal> {
   late UserProfile _profile;
   late TextEditingController _callsignController;
+  final TextEditingController _newProfileController = TextEditingController();
   bool _isEditingCallsign = false;
+  bool _isCreatingNewProfile = false;
+  bool _isAuthLoading = false;
   String? _callsignError;
+  String? _newProfileError;
+  String? _authError;
 
   @override
   void initState() {
@@ -47,6 +53,7 @@ class _ProfileModalState extends State<ProfileModal> {
   @override
   void dispose() {
     _callsignController.dispose();
+    _newProfileController.dispose();
     super.dispose();
   }
 
@@ -79,6 +86,128 @@ class _ProfileModalState extends State<ProfileModal> {
     setState(() => _profile = updated);
     await PersistenceService.instance.saveUserProfile(updated);
     widget.onProfileUpdated?.call();
+  }
+
+  Future<void> _linkGoogleAccount() async {
+    setState(() {
+      _isAuthLoading = true;
+      _authError = null;
+    });
+    HapticService.instance.sowTick();
+
+    final success = await AuthService.instance.linkWithGoogle();
+    if (!mounted) return;
+
+    if (!success) {
+      final err = AuthService.instance.lastError;
+      setState(() {
+        _isAuthLoading = false;
+        _authError = err;
+      });
+    } else {
+      final updated = PersistenceService.instance.userProfile;
+      setState(() {
+        _profile = updated;
+        _callsignController.text = updated.callsign;
+        _isAuthLoading = false;
+        _authError = null;
+      });
+      widget.onProfileUpdated?.call();
+    }
+  }
+
+  Future<void> _linkSimulatedGoogleAccount() async {
+    setState(() {
+      _isAuthLoading = true;
+      _authError = null;
+    });
+    HapticService.instance.sowTick();
+
+    await AuthService.instance.linkWithSimulatedGoogleAccount();
+    if (!mounted) return;
+
+    final updated = PersistenceService.instance.userProfile;
+    setState(() {
+      _profile = updated;
+      _callsignController.text = updated.callsign;
+      _isAuthLoading = false;
+      _authError = null;
+    });
+    widget.onProfileUpdated?.call();
+  }
+
+  Future<void> _unlinkGoogleAccount() async {
+    HapticService.instance.sowTick();
+    await AuthService.instance.signOut();
+    if (!mounted) return;
+
+    final updated = PersistenceService.instance.userProfile;
+    setState(() {
+      _profile = updated;
+      _authError = null;
+    });
+    widget.onProfileUpdated?.call();
+  }
+
+  Future<void> _submitNewProfile() async {
+    final text = _newProfileController.text.trim();
+    if (text.isEmpty || text.length > 16) {
+      setState(() => _newProfileError = '1-16 chars required');
+      return;
+    }
+    final regex = RegExp(r'^[a-zA-Z0-9\-]+$');
+    if (!regex.hasMatch(text)) {
+      setState(() => _newProfileError = 'Alphanumeric and - only');
+      return;
+    }
+
+    final success = await PersistenceService.instance.createProfile(text);
+    if (!mounted) return;
+
+    if (success) {
+      HapticService.instance.injectionClick();
+      final updated = PersistenceService.instance.userProfile;
+      setState(() {
+        _profile = updated;
+        _callsignController.text = updated.callsign;
+        _isCreatingNewProfile = false;
+        _newProfileError = null;
+        _newProfileController.clear();
+      });
+      widget.onProfileUpdated?.call();
+    } else {
+      setState(() => _newProfileError = 'Callsign already registered');
+    }
+  }
+
+  Future<void> _switchProfile(String profileId) async {
+    HapticService.instance.sowTick();
+    await PersistenceService.instance.switchProfile(profileId);
+    if (!mounted) return;
+
+    final updated = PersistenceService.instance.userProfile;
+    setState(() {
+      _profile = updated;
+      _callsignController.text = updated.callsign;
+      _isCreatingNewProfile = false;
+      _newProfileError = null;
+    });
+    widget.onProfileUpdated?.call();
+  }
+
+  Future<void> _deleteProfile(String profileId) async {
+    HapticService.instance.sowTick();
+    final success = await PersistenceService.instance.deleteProfile(profileId);
+    if (!mounted) return;
+
+    if (success) {
+      final updated = PersistenceService.instance.userProfile;
+      setState(() {
+        _profile = updated;
+        _callsignController.text = updated.callsign;
+      });
+      widget.onProfileUpdated?.call();
+    }
   }
 
   void _exportSave() {
@@ -253,23 +382,6 @@ class _ProfileModalState extends State<ProfileModal> {
     );
   }
 
-  IconData _iconForInsignia(PilotInsignia insignia) {
-    switch (insignia) {
-      case PilotInsignia.kilwaCrest:
-        return Icons.waves;
-      case PilotInsignia.shonaStar:
-        return Icons.auto_awesome;
-      case PilotInsignia.zuluAegis:
-        return Icons.shield;
-      case PilotInsignia.oyoComet:
-        return Icons.bolt;
-      case PilotInsignia.songhaiCrown:
-        return Icons.military_tech;
-      case PilotInsignia.swahiliNavigator:
-        return Icons.explore;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final rank = _profile.rank;
@@ -282,7 +394,7 @@ class _ProfileModalState extends State<ProfileModal> {
         vertical: 20.0,
       ),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 680),
+        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 720),
         decoration: VoidTheme.glassmorphic(
           borderColor: VoidTheme.plasmaCyan,
           borderWidth: 1.5,
@@ -334,7 +446,7 @@ class _ProfileModalState extends State<ProfileModal> {
                 child: ListView(
                   padding: const EdgeInsets.all(16.0),
                   children: [
-                    // Holographic ID Card
+                    // Active Pilot Holographic ID Card
                     Container(
                       padding: const EdgeInsets.all(16.0),
                       decoration: BoxDecoration(
@@ -367,7 +479,7 @@ class _ProfileModalState extends State<ProfileModal> {
                                   ),
                                 ),
                                 child: Icon(
-                                  _iconForInsignia(_profile.insignia),
+                                  _profile.insignia.iconData,
                                   color: VoidTheme.solarGold,
                                   size: 28.0,
                                 ),
@@ -380,13 +492,16 @@ class _ProfileModalState extends State<ProfileModal> {
                                     if (!_isEditingCallsign)
                                       Row(
                                         children: [
-                                          Text(
-                                            _profile.callsign,
-                                            style: const TextStyle(
-                                              color: VoidTheme.starWhite,
-                                              fontSize: 16.0,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 1.2,
+                                          Flexible(
+                                            child: Text(
+                                              _profile.callsign,
+                                              style: const TextStyle(
+                                                color: VoidTheme.starWhite,
+                                                fontSize: 16.0,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 1.2,
+                                              ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                           IconButton(
@@ -433,14 +548,68 @@ class _ProfileModalState extends State<ProfileModal> {
                                           ),
                                         ],
                                       ),
-                                    Text(
-                                      'RANK: ${rank.title.toUpperCase()}',
-                                      style: const TextStyle(
-                                        color: VoidTheme.plasmaCyan,
-                                        fontSize: 12.0,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.0,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'RANK: ${rank.title.toUpperCase()}',
+                                          style: const TextStyle(
+                                            color: VoidTheme.plasmaCyan,
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.0,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8.0),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 5.0,
+                                            vertical: 1.5,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: _profile.isGoogleLinked
+                                                ? VoidTheme.plasmaCyan
+                                                      .withValues(alpha: 0.2)
+                                                : VoidTheme.emeraldShield
+                                                      .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              4.0,
+                                            ),
+                                            border: Border.all(
+                                              color: _profile.isGoogleLinked
+                                                  ? VoidTheme.plasmaCyan
+                                                  : VoidTheme.emeraldShield,
+                                              width: 0.8,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                _profile.isGoogleLinked
+                                                    ? Icons.g_mobiledata
+                                                    : Icons.account_circle,
+                                                color: _profile.isGoogleLinked
+                                                    ? VoidTheme.plasmaCyan
+                                                    : VoidTheme.emeraldShield,
+                                                size: 12.0,
+                                              ),
+                                              const SizedBox(width: 2.0),
+                                              Text(
+                                                _profile.isGoogleLinked
+                                                    ? 'GOOGLE'
+                                                    : 'LOCAL GUEST',
+                                                style: TextStyle(
+                                                  color: _profile.isGoogleLinked
+                                                      ? VoidTheme.plasmaCyan
+                                                      : VoidTheme.emeraldShield,
+                                                  fontSize: 9.0,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -492,6 +661,16 @@ class _ProfileModalState extends State<ProfileModal> {
 
                     const SizedBox(height: 16.0),
 
+                    // Cloud Account & Google Sign-In Card
+                    _buildCloudAccountCard(),
+
+                    const SizedBox(height: 16.0),
+
+                    // Squadron Roster (Multi-Profile Management)
+                    _buildSquadronRoster(),
+
+                    const SizedBox(height: 16.0),
+
                     // Insignia Selector Grid
                     const Text(
                       'SQUADRON CULTURAL INSIGNIA',
@@ -538,7 +717,7 @@ class _ProfileModalState extends State<ProfileModal> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
-                                  _iconForInsignia(ins),
+                                  ins.iconData,
                                   color: isSelected
                                       ? VoidTheme.plasmaCyan
                                       : VoidTheme.starWhite,
@@ -646,6 +825,339 @@ class _ProfileModalState extends State<ProfileModal> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCloudAccountCard() {
+    final isLinked = _profile.isGoogleLinked;
+
+    return Container(
+      padding: const EdgeInsets.all(14.0),
+      decoration: BoxDecoration(
+        color: VoidTheme.cardSurface,
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(
+          color: isLinked
+              ? VoidTheme.plasmaCyan.withValues(alpha: 0.6)
+              : VoidTheme.cardSurface,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                isLinked ? Icons.g_mobiledata : Icons.cloud_queue,
+                color: isLinked ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
+                size: 22.0,
+              ),
+              const SizedBox(width: 8.0),
+              Expanded(
+                child: Text(
+                  isLinked
+                      ? 'GOOGLE PLAY CLOUD IDENTITY'
+                      : 'PILOT CLOUD ACCOUNT',
+                  style: const TextStyle(
+                    color: VoidTheme.starWhite,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+              if (isLinked)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6.0,
+                    vertical: 2.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: VoidTheme.plasmaCyan.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4.0),
+                    border: Border.all(color: VoidTheme.plasmaCyan),
+                  ),
+                  child: const Text(
+                    'SYNCED',
+                    style: TextStyle(
+                      color: VoidTheme.plasmaCyan,
+                      fontSize: 9.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6.0),
+          Text(
+            isLinked
+                ? 'Linked with ${_profile.googleEmail ?? _profile.callsign}. Combat scores and sector achievements are backed up.'
+                : 'Link your pilot profile with Google Play to enable cloud backup, verified leaderboards, and seamless device mobility.',
+            style: TextStyle(
+              color: VoidTheme.starWhite.withValues(alpha: 0.7),
+              fontSize: 11.0,
+            ),
+          ),
+          if (_authError != null) ...[
+            const SizedBox(height: 6.0),
+            Text(
+              _authError!,
+              style: const TextStyle(
+                color: VoidTheme.crimsonFlare,
+                fontSize: 10.5,
+              ),
+            ),
+          ],
+          const SizedBox(height: 10.0),
+          if (!isLinked) ...[
+            if (_isAuthLoading)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.0,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      VoidTheme.plasmaCyan,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: TactileButton(
+                      label: 'SIGN IN WITH GOOGLE',
+                      icon: Icons.login,
+                      accentColor: VoidTheme.plasmaCyan,
+                      height: 38.0,
+                      onPressed: _linkGoogleAccount,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  IconButton(
+                    onPressed: _linkSimulatedGoogleAccount,
+                    tooltip: 'Simulate Google Account (Dev/Offline)',
+                    icon: const Icon(
+                      Icons.science_outlined,
+                      color: VoidTheme.solarGold,
+                      size: 20.0,
+                    ),
+                  ),
+                ],
+              ),
+          ] else ...[
+            TactileButton(
+              label: 'DISCONNECT CLOUD IDENTITY',
+              icon: Icons.logout,
+              accentColor: VoidTheme.crimsonFlare,
+              height: 36.0,
+              onPressed: _unlinkGoogleAccount,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSquadronRoster() {
+    final allProfiles = PersistenceService.instance.profiles;
+
+    return Container(
+      padding: const EdgeInsets.all(14.0),
+      decoration: BoxDecoration(
+        color: VoidTheme.cardSurface,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Expanded(
+                child: Text(
+                  'SQUADRON ROSTER (PROFILES)',
+                  style: TextStyle(
+                    color: VoidTheme.plasmaCyan,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _isCreatingNewProfile = !_isCreatingNewProfile;
+                    _newProfileError = null;
+                  });
+                },
+                icon: Icon(
+                  _isCreatingNewProfile ? Icons.list : Icons.person_add_alt_1,
+                  size: 15.0,
+                  color: VoidTheme.solarGold,
+                ),
+                label: Text(
+                  _isCreatingNewProfile ? 'ROSTER' : '+ NEW PILOT',
+                  style: const TextStyle(
+                    color: VoidTheme.solarGold,
+                    fontSize: 11.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6.0),
+
+          if (_isCreatingNewProfile) ...[
+            Container(
+              padding: const EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                color: VoidTheme.obsidianBlack,
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(
+                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.5),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Register new pilot callsign:',
+                    style: TextStyle(
+                      color: VoidTheme.starWhite,
+                      fontSize: 11.0,
+                    ),
+                  ),
+                  const SizedBox(height: 6.0),
+                  TextField(
+                    controller: _newProfileController,
+                    style: const TextStyle(
+                      color: VoidTheme.solarGold,
+                      fontSize: 13.0,
+                      fontFamily: 'monospace',
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'e.g. Sentinel-99',
+                      hintStyle: TextStyle(
+                        color: VoidTheme.starWhite.withValues(alpha: 0.4),
+                      ),
+                      isDense: true,
+                      errorText: _newProfileError,
+                      filled: true,
+                      fillColor: VoidTheme.cardSurface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6.0),
+                      ),
+                    ),
+                    onSubmitted: (_) => _submitNewProfile(),
+                  ),
+                  const SizedBox(height: 8.0),
+                  TactileButton(
+                    label: 'CREATE PILOT',
+                    icon: Icons.check,
+                    accentColor: VoidTheme.plasmaCyan,
+                    height: 36.0,
+                    onPressed: _submitNewProfile,
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            Column(
+              children: allProfiles.map((p) {
+                final isActive = p.id == _profile.id;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 6.0),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? VoidTheme.plasmaCyan.withValues(alpha: 0.15)
+                        : VoidTheme.obsidianBlack.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
+                      color: isActive
+                          ? VoidTheme.plasmaCyan
+                          : Colors.transparent,
+                      width: 1.2,
+                    ),
+                  ),
+                  child: ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10.0,
+                      vertical: 0.0,
+                    ),
+                    leading: CircleAvatar(
+                      backgroundColor: VoidTheme.obsidianBlack,
+                      radius: 14.0,
+                      child: Icon(
+                        p.insignia.iconData,
+                        color: isActive
+                            ? VoidTheme.solarGold
+                            : VoidTheme.starWhite,
+                        size: 16.0,
+                      ),
+                    ),
+                    title: Text(
+                      p.callsign,
+                      style: TextStyle(
+                        color: isActive
+                            ? VoidTheme.solarGold
+                            : VoidTheme.starWhite,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${p.rank.title} • Score: ${p.lifetimeScore}',
+                      style: TextStyle(
+                        color: VoidTheme.starWhite.withValues(alpha: 0.6),
+                        fontSize: 10.0,
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (isActive)
+                          const Icon(
+                            Icons.check_circle,
+                            color: VoidTheme.plasmaCyan,
+                            size: 18.0,
+                          )
+                        else
+                          TextButton(
+                            onPressed: () => _switchProfile(p.id),
+                            child: const Text(
+                              'SWITCH',
+                              style: TextStyle(
+                                color: VoidTheme.plasmaCyan,
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        if (allProfiles.length > 1 && !isActive)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete_outline,
+                              color: VoidTheme.crimsonFlare,
+                              size: 16.0,
+                            ),
+                            onPressed: () => _deleteProfile(p.id),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
       ),
     );
   }

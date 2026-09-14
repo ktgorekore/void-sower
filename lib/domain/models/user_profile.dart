@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/material.dart';
+
 /// Afrofuturist squadron insignia motifs.
 enum PilotInsignia {
   kilwaCrest(
@@ -46,6 +48,24 @@ enum PilotInsignia {
 
   /// Lore description of the insignia motif.
   final String description;
+
+  /// Iconic Material representation of the insignia motif.
+  IconData get iconData {
+    switch (this) {
+      case PilotInsignia.kilwaCrest:
+        return Icons.waves;
+      case PilotInsignia.shonaStar:
+        return Icons.auto_awesome;
+      case PilotInsignia.zuluAegis:
+        return Icons.shield;
+      case PilotInsignia.oyoComet:
+        return Icons.bolt;
+      case PilotInsignia.songhaiCrown:
+        return Icons.military_tech;
+      case PilotInsignia.swahiliNavigator:
+        return Icons.explore;
+    }
+  }
 }
 
 /// Military rank tiers earned through combat score.
@@ -82,6 +102,7 @@ enum PilotRank {
 /// Player identity and lifetime progression telemetry.
 class UserProfile {
   const UserProfile({
+    this.id = 'pilot_default',
     this.callsign = 'Vanguard-01',
     this.insignia = PilotInsignia.kilwaCrest,
     this.lifetimeScore = 0,
@@ -89,7 +110,14 @@ class UserProfile {
     this.lancesFired = 0,
     this.maxCascadeLaps = 0,
     this.unlockedAchievements = const <String>[],
+    this.isGoogleLinked = false,
+    this.googleEmail,
+    this.googleDisplayName,
+    this.googlePhotoUrl,
   });
+
+  /// Unique identifier for this pilot profile.
+  final String id;
 
   /// Pilot callsign handle (alphanumeric and hyphens, max 16 chars).
   final String callsign;
@@ -112,6 +140,18 @@ class UserProfile {
   /// List of achievement IDs unlocked by the pilot.
   final List<String> unlockedAchievements;
 
+  /// Whether this profile is linked to a Google Play account.
+  final bool isGoogleLinked;
+
+  /// Associated Google email address if linked.
+  final String? googleEmail;
+
+  /// Associated Google display name if linked.
+  final String? googleDisplayName;
+
+  /// Associated Google avatar photo URL if available.
+  final String? googlePhotoUrl;
+
   /// Pilot military rank calculated from lifetime combat score.
   PilotRank get rank => PilotRank.fromScore(lifetimeScore);
 
@@ -126,6 +166,7 @@ class UserProfile {
 
   /// Creates a copy of this profile with updated attributes.
   UserProfile copyWith({
+    String? id,
     String? callsign,
     PilotInsignia? insignia,
     int? lifetimeScore,
@@ -133,8 +174,13 @@ class UserProfile {
     int? lancesFired,
     int? maxCascadeLaps,
     List<String>? unlockedAchievements,
+    bool? isGoogleLinked,
+    String? googleEmail,
+    String? googleDisplayName,
+    String? googlePhotoUrl,
   }) {
     return UserProfile(
+      id: id ?? this.id,
       callsign: callsign ?? this.callsign,
       insignia: insignia ?? this.insignia,
       lifetimeScore: lifetimeScore ?? this.lifetimeScore,
@@ -142,12 +188,17 @@ class UserProfile {
       lancesFired: lancesFired ?? this.lancesFired,
       maxCascadeLaps: maxCascadeLaps ?? this.maxCascadeLaps,
       unlockedAchievements: unlockedAchievements ?? this.unlockedAchievements,
+      isGoogleLinked: isGoogleLinked ?? this.isGoogleLinked,
+      googleEmail: googleEmail ?? this.googleEmail,
+      googleDisplayName: googleDisplayName ?? this.googleDisplayName,
+      googlePhotoUrl: googlePhotoUrl ?? this.googlePhotoUrl,
     );
   }
 
   /// Serializes profile to JSON map.
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'callsign': callsign,
       'insignia': insignia.name,
       'lifetimeScore': lifetimeScore,
@@ -155,6 +206,10 @@ class UserProfile {
       'lancesFired': lancesFired,
       'maxCascadeLaps': maxCascadeLaps,
       'unlockedAchievements': unlockedAchievements,
+      'isGoogleLinked': isGoogleLinked,
+      'googleEmail': googleEmail,
+      'googleDisplayName': googleDisplayName,
+      'googlePhotoUrl': googlePhotoUrl,
     };
   }
 
@@ -169,8 +224,14 @@ class UserProfile {
       parsedInsignia = PilotInsignia.kilwaCrest;
     }
 
+    final parsedCallsign = json['callsign'] as String? ?? 'Vanguard-01';
+    final parsedId =
+        json['id'] as String? ??
+        'pilot_${parsedCallsign.toLowerCase().replaceAll(' ', '_')}';
+
     return UserProfile(
-      callsign: json['callsign'] as String? ?? 'Vanguard-01',
+      id: parsedId,
+      callsign: parsedCallsign,
       insignia: parsedInsignia,
       lifetimeScore: (json['lifetimeScore'] as num?)?.toInt() ?? 0,
       enemiesDestroyed: (json['enemiesDestroyed'] as num?)?.toInt() ?? 0,
@@ -181,6 +242,10 @@ class UserProfile {
               ?.map((e) => e.toString())
               .toList() ??
           const <String>[],
+      isGoogleLinked: json['isGoogleLinked'] as bool? ?? false,
+      googleEmail: json['googleEmail'] as String?,
+      googleDisplayName: json['googleDisplayName'] as String?,
+      googlePhotoUrl: json['googlePhotoUrl'] as String?,
     );
   }
 }

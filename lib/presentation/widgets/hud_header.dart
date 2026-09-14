@@ -13,9 +13,11 @@
 // limitations under the License.
 
 import 'package:flutter/material.dart';
+
+import '../../domain/models/user_profile.dart';
 import '../theme/void_theme.dart';
 
-/// Top Tactical HUD header displaying reserve cores, score, wave tier, and controls.
+/// Top Tactical HUD header displaying pilot profile, reserve cores, score, wave tier, and controls.
 class HudHeader extends StatelessWidget {
   const HudHeader({
     super.key,
@@ -28,6 +30,8 @@ class HudHeader extends StatelessWidget {
     this.onEmergencyFlareTap,
     this.isAutoSolving = false,
     this.onToggleAutoSolve,
+    this.userProfile,
+    this.onProfileTap,
   });
 
   final int reserveCores;
@@ -39,6 +43,8 @@ class HudHeader extends StatelessWidget {
   final VoidCallback? onEmergencyFlareTap;
   final bool isAutoSolving;
   final VoidCallback? onToggleAutoSolve;
+  final UserProfile? userProfile;
+  final VoidCallback? onProfileTap;
 
   String get tierName {
     switch (difficultyTier) {
@@ -55,6 +61,8 @@ class HudHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final profile = userProfile ?? const UserProfile();
+
     return Container(
       decoration: BoxDecoration(
         color: VoidTheme.obsidianBlack.withValues(alpha: 0.92),
@@ -67,11 +75,11 @@ class HudHeader extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // STRIP 1: Primary Mission Telemetry & Reactor Economy
+            // STRIP 1: Pilot Profile, Reactor Economy, Sector Tier & Mission Score
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 10.0,
-                vertical: 4.5,
+                horizontal: 8.0,
+                vertical: 4.0,
               ),
               decoration: BoxDecoration(
                 border: Border(
@@ -84,12 +92,68 @@ class HudHeader extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Reactor Reserve Core Gauge (Namua Fuel Pool)
+                  // 1. Pilot Profile Pill (Avatar/Insignia, Callsign, Google indicator)
+                  GestureDetector(
+                    onTap: onProfileTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6.0,
+                        vertical: 2.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VoidTheme.cardSurface,
+                        borderRadius: BorderRadius.circular(5.0),
+                        border: Border.all(
+                          color: profile.isGoogleLinked
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.solarGold.withValues(alpha: 0.5),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            profile.insignia.iconData,
+                            color: profile.isGoogleLinked
+                                ? VoidTheme.plasmaCyan
+                                : VoidTheme.solarGold,
+                            size: 13.0,
+                          ),
+                          const SizedBox(width: 4.0),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 125.0),
+                            child: Text(
+                              profile.callsign,
+                              style: const TextStyle(
+                                color: VoidTheme.starWhite,
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.4,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (profile.isGoogleLinked) ...[
+                            const SizedBox(width: 2.0),
+                            const Icon(
+                              Icons.g_mobiledata,
+                              color: VoidTheme.plasmaCyan,
+                              size: 14.0,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // 2. Reactor Reserve Core Gauge (Namua Fuel Pool)
                   GestureDetector(
                     onTap: onEmergencyFlareTap,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 7.0,
+                        horizontal: 6.0,
                         vertical: 2.5,
                       ),
                       decoration: BoxDecoration(
@@ -112,16 +176,16 @@ class HudHeader extends StatelessWidget {
                                 : VoidTheme.solarGold,
                             size: 13.0,
                           ),
-                          const SizedBox(width: 3.0),
+                          const SizedBox(width: 2.0),
                           Text(
-                            'REACTOR: $reserveCores',
+                            '$reserveCores CORES',
                             style: TextStyle(
                               color: reserveCores <= 5
                                   ? VoidTheme.crimsonFlare
                                   : VoidTheme.solarGold,
-                              fontSize: 11.5,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.w900,
-                              letterSpacing: 0.6,
+                              letterSpacing: 0.4,
                             ),
                           ),
                         ],
@@ -129,10 +193,10 @@ class HudHeader extends StatelessWidget {
                     ),
                   ),
 
-                  // Sector Threat Tier Badge
+                  // 3. Sector Threat Tier Badge
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
+                      horizontal: 5.0,
                       vertical: 2.5,
                     ),
                     decoration: BoxDecoration(
@@ -146,21 +210,21 @@ class HudHeader extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      '$tierName • TIER ${difficultyTier + 1}',
+                      'TIER ${difficultyTier + 1}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: difficultyTier == 2
                             ? VoidTheme.crimsonFlare
                             : VoidTheme.plasmaCyan,
-                        fontSize: 9.0,
+                        fontSize: 9.5,
                         fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
+                        letterSpacing: 0.4,
                       ),
                     ),
                   ),
 
-                  // Mission Combat Score
+                  // 4. Mission Combat Score
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -168,18 +232,18 @@ class HudHeader extends StatelessWidget {
                         'SCORE: ',
                         style: TextStyle(
                           color: VoidTheme.textSecondary,
-                          fontSize: 10.0,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.4,
                         ),
                       ),
                       Text(
                         '$score',
                         style: const TextStyle(
                           color: VoidTheme.plasmaCyanLight,
-                          fontSize: 12.0,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
+                          letterSpacing: 0.6,
                         ),
                       ),
                     ],
@@ -191,7 +255,7 @@ class HudHeader extends StatelessWidget {
             // STRIP 2: Tactical Command & Auxiliary Controls
             Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: 10.0,
+                horizontal: 8.0,
                 vertical: 2.0,
               ),
               color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
@@ -199,45 +263,52 @@ class HudHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Tactical Status Guidance Pill
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6.0,
-                        height: 6.0,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isAutoSolving
-                              ? VoidTheme.crimsonFlare
-                              : VoidTheme.emeraldShield,
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  (isAutoSolving
-                                          ? VoidTheme.crimsonFlare
-                                          : VoidTheme.emeraldShield)
-                                      .withValues(alpha: 0.6),
-                              blurRadius: 4.0,
+                  Expanded(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6.0,
+                          height: 6.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isAutoSolving
+                                ? VoidTheme.crimsonFlare
+                                : VoidTheme.emeraldShield,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    (isAutoSolving
+                                            ? VoidTheme.crimsonFlare
+                                            : VoidTheme.emeraldShield)
+                                        .withValues(alpha: 0.6),
+                                blurRadius: 4.0,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 5.0),
+                        Expanded(
+                          child: Text(
+                            isAutoSolving
+                                ? 'AI TACTICAL SOLVER ACTIVE'
+                                : '8 CONDUITS ARMED • SOW TO DISCHARGE',
+                            style: TextStyle(
+                              color: isAutoSolving
+                                  ? VoidTheme.crimsonFlare
+                                  : VoidTheme.textSecondary,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.4,
                             ),
-                          ],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 5.0),
-                      Text(
-                        isAutoSolving
-                            ? 'AI TACTICAL SOLVER ACTIVE'
-                            : '▲ 8 CONDUITS ARMED • SOW TO DISCHARGE',
-                        style: TextStyle(
-                          color: isAutoSolving
-                              ? VoidTheme.crimsonFlare
-                              : VoidTheme.textSecondary,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 4.0),
 
                   // Auxiliary Action Buttons
                   Row(
@@ -264,8 +335,25 @@ class HudHeader extends StatelessWidget {
                               ? 'Stop AI Tactical Solver'
                               : 'Launch AI Tactical Solver',
                         ),
-                      const SizedBox(width: 4.0),
-                      if (onTutorialTap != null)
+                      if (onProfileTap != null) ...[
+                        const SizedBox(width: 4.0),
+                        IconButton(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0,
+                            vertical: 2.0,
+                          ),
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(
+                            Icons.badge_outlined,
+                            color: VoidTheme.plasmaCyanLight,
+                            size: 16.0,
+                          ),
+                          onPressed: onProfileTap,
+                          tooltip: 'Pilot Flight Dossier',
+                        ),
+                      ],
+                      if (onTutorialTap != null) ...[
+                        const SizedBox(width: 4.0),
                         IconButton(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 4.0,
@@ -280,6 +368,7 @@ class HudHeader extends StatelessWidget {
                           onPressed: onTutorialTap,
                           tooltip: 'Flight Academy',
                         ),
+                      ],
                       if (onCodexTap != null) ...[
                         const SizedBox(width: 4.0),
                         IconButton(

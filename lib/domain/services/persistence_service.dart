@@ -144,23 +144,122 @@ class PersistenceService {
     await _prefs?.setBool(_kPersonalizedAdsConsent, consent);
   }
 
-  // --- User Profile ---
-  UserProfile get userProfile {
-    final raw = _prefs?.getString(_kUserProfile);
-    if (raw == null || raw.isEmpty) {
-      return const UserProfile();
+  static const String _kActiveProfileId = 'void_sower_active_profile_id';
+  static const String _kProfilesList = 'void_sower_profiles_list';
+
+  // --- User Profiles & Pilot Identity ---
+
+  /// List of all registered local pilot profiles.
+  List<UserProfile> get profiles {
+    final rawList = _prefs?.getStringList(_kProfilesList);
+    if (rawList != null && rawList.isNotEmpty) {
+      final list = <UserProfile>[];
+      for (final raw in rawList) {
+        try {
+          final map = jsonDecode(raw) as Map<String, dynamic>;
+          list.add(UserProfile.fromJson(map));
+        } catch (_) {}
+      }
+      if (list.isNotEmpty) return list;
     }
-    try {
-      final map = jsonDecode(raw) as Map<String, dynamic>;
-      return UserProfile.fromJson(map);
-    } catch (_) {
-      return const UserProfile();
+
+    // Fallback to legacy single profile key
+    final legacyRaw = _prefs?.getString(_kUserProfile);
+    if (legacyRaw != null && legacyRaw.isNotEmpty) {
+      try {
+        final map = jsonDecode(legacyRaw) as Map<String, dynamic>;
+        final profile = UserProfile.fromJson(map);
+        return [profile];
+      } catch (_) {}
     }
+
+    return const [UserProfile(id: 'pilot_default', callsign: 'Vanguard-01')];
   }
 
+  /// ID of the currently active pilot profile.
+  String get activeProfileId {
+    final activeId = _prefs?.getString(_kActiveProfileId);
+    if (activeId != null && activeId.isNotEmpty) {
+      return activeId;
+    }
+    return profiles.first.id;
+  }
+
+  /// Active pilot user profile.
+  UserProfile get userProfile {
+    final currentList = profiles;
+    final activeId = activeProfileId;
+    for (final p in currentList) {
+      if (p.id == activeId) return p;
+    }
+    return currentList.first;
+  }
+
+  /// Saves or updates a pilot profile and marks it active.
   Future<void> saveUserProfile(UserProfile profile) async {
-    final raw = jsonEncode(profile.toJson());
-    await _prefs?.setString(_kUserProfile, raw);
+    final currentList = List<UserProfile>.from(profiles);
+    final index = currentList.indexWhere((p) => p.id == profile.id);
+    if (index >= 0) {
+      currentList[index] = profile;
+    } else {
+      currentList.add(profile);
+    }
+
+    final rawList = currentList.map((p) => jsonEncode(p.toJson())).toList();
+    await _prefs?.setStringList(_kProfilesList, rawList);
+    await _prefs?.setString(_kActiveProfileId, profile.id);
+    await _prefs?.setString(_kUserProfile, jsonEncode(profile.toJson()));
+  }
+
+  /// Creates a new pilot profile with a unique callsign.
+  Future<bool> createProfile(
+    String callsign, {
+    PilotInsignia insignia = PilotInsignia.kilwaCrest,
+  }) async {
+    final clean = callsign.trim();
+    if (clean.isEmpty) return false;
+
+    final currentList = profiles;
+    if (currentList.any(
+      (p) => p.callsign.toLowerCase() == clean.toLowerCase(),
+    )) {
+      return false;
+    }
+
+    final newProfile = UserProfile(
+      id: 'pilot_${DateTime.now().millisecondsSinceEpoch}',
+      callsign: clean,
+      insignia: insignia,
+    );
+
+    await saveUserProfile(newProfile);
+    return true;
+  }
+
+  /// Switches active user identity to the given profile ID.
+  Future<void> switchProfile(String profileId) async {
+    final currentList = profiles;
+    final match = currentList.firstWhere(
+      (p) => p.id == profileId,
+      orElse: () => currentList.first,
+    );
+    await _prefs?.setString(_kActiveProfileId, match.id);
+    await _prefs?.setString(_kUserProfile, jsonEncode(match.toJson()));
+  }
+
+  /// Deletes a pilot profile if more than one profile exists.
+  Future<bool> deleteProfile(String profileId) async {
+    final currentList = List<UserProfile>.from(profiles);
+    if (currentList.length <= 1) return false;
+
+    currentList.removeWhere((p) => p.id == profileId);
+    final rawList = currentList.map((p) => jsonEncode(p.toJson())).toList();
+    await _prefs?.setStringList(_kProfilesList, rawList);
+
+    if (activeProfileId == profileId) {
+      await switchProfile(currentList.first.id);
+    }
+    return true;
   }
 
   // --- Checksum & Save Data Mobility ---
