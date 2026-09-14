@@ -107,6 +107,28 @@ class VoidSowerBindings {
   late final _void_sower_step_simulation = _void_sower_step_simulationPtr
       .asFunction<void Function(double)>();
 
+  void void_sower_damage_conduit(int bay_index) {
+    return _void_sower_damage_conduit(bay_index);
+  }
+
+  late final _void_sower_damage_conduitPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Uint8)>>(
+        'void_sower_damage_conduit',
+      );
+  late final _void_sower_damage_conduit = _void_sower_damage_conduitPtr
+      .asFunction<void Function(int)>();
+
+  void void_sower_damage_atmosphere(int penalty) {
+    return _void_sower_damage_atmosphere(penalty);
+  }
+
+  late final _void_sower_damage_atmospherePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Uint32)>>(
+        'void_sower_damage_atmosphere',
+      );
+  late final _void_sower_damage_atmosphere = _void_sower_damage_atmospherePtr
+      .asFunction<void Function(int)>();
+
   void void_sower_predict_sow(
     int start_bay,
     int direction,

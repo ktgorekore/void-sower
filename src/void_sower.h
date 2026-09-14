@@ -139,6 +139,8 @@ FFI_PLUGIN_EXPORT int32_t void_sower_inject_core(uint8_t bay_index,
                                                  int8_t direction);
 FFI_PLUGIN_EXPORT void void_sower_slide_dreadnought(float target_x);
 FFI_PLUGIN_EXPORT void void_sower_step_simulation(float delta_time);
+FFI_PLUGIN_EXPORT void void_sower_damage_conduit(uint8_t bay_index);
+FFI_PLUGIN_EXPORT void void_sower_damage_atmosphere(uint32_t penalty);
 FFI_PLUGIN_EXPORT void void_sower_predict_sow(
     uint8_t start_bay, int8_t direction,
     VoidSowerPredictionFFI* out_prediction);

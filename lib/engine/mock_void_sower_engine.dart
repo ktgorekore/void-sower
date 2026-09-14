@@ -141,6 +141,24 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void damageConduit(int bayIndex) {
+    if (_reserveCores > 0) {
+      _reserveCores--;
+    }
+    if (bayIndex >= 0 && bayIndex < 16) {
+      _bayCharges[bayIndex] = 0;
+    }
+    if (_reserveCores == 0 && _bayCharges.every((c) => c == 0)) {
+      _simState = 8; // GameOver
+    }
+  }
+
+  @override
+  void damageAtmosphere(int penalty) {
+    _score = math.max(0, _score - penalty);
+  }
+
+  @override
   void stepSimulation(double deltaTime) {
     // Interpolate dreadnought lateral position
     _orbitalX +=

@@ -59,6 +59,16 @@ void Engine::Update(float delta_time) {
   combat_system_->Update(delta_time);
 }
 
+void Engine::DamageConduit(uint8_t bay_index) {
+  VLOG(6) << "Engine::DamageConduit: bay_index=" << static_cast<int>(bay_index);
+  combat_system_->DamageConduit(bay_index);
+}
+
+void Engine::DamageAtmosphere(uint32_t penalty) {
+  VLOG(6) << "Engine::DamageAtmosphere: penalty=" << penalty;
+  combat_system_->DamageAtmosphere(penalty);
+}
+
 CombatSystem::PredictionResult Engine::PredictSow(uint8_t start_bay,
                                                   int8_t direction) const {
   VLOG(10) << "Engine::PredictSow: start_bay=" << static_cast<int>(start_bay)

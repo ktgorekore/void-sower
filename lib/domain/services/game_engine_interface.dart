@@ -43,6 +43,12 @@ abstract class IVoidSowerEngine {
   /// Advances the deterministic 60 Hz combat simulation by [deltaTime] seconds.
   void stepSimulation(double deltaTime);
 
+  /// Applies conduit direct hit breach: drains 1 reserve core and discharges active bay.
+  void damageConduit(int bayIndex);
+
+  /// Applies atmospheric breach penalty.
+  void damageAtmosphere(int penalty);
+
   /// Computes dry-run predictive targeting telemetry without mutating game state.
   PredictionResult predictSow(int startBay, int direction);
 

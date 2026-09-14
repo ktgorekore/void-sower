@@ -80,6 +80,13 @@ class CombatSystem {
   /// Updates dreadnought horizontal target position.
   void SetTargetPositionX(float target_x);
 
+  /// Applies conduit direct hit breach: drains 1 reserve core and discharges
+  /// active bay.
+  void DamageConduit(uint8_t bay_index);
+
+  /// Applies atmospheric breach penalty.
+  void DamageAtmosphere(uint32_t penalty);
+
   /// Returns the current simulation state.
   SimulationState GetSimulationState() const;
 

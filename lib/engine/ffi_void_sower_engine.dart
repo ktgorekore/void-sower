@@ -126,6 +126,16 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void damageConduit(int bayIndex) {
+    _bindings.void_sower_damage_conduit(bayIndex);
+  }
+
+  @override
+  void damageAtmosphere(int penalty) {
+    _bindings.void_sower_damage_atmosphere(penalty);
+  }
+
+  @override
   PredictionResult predictSow(int startBay, int direction) {
     _bindings.void_sower_predict_sow(startBay, direction, _cachedPredictionPtr);
 

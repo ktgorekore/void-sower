@@ -585,6 +585,36 @@ void CombatSystem::CheckVictoryLossConditions() {
   }
 }
 
+void CombatSystem::DamageConduit(uint8_t bay_index) {
+  if (dreadnought_entity_ == entt::null ||
+      !registry_.valid(dreadnought_entity_)) {
+    return;
+  }
+  auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+  if (dread.reserve_cores > 0) {
+    dread.reserve_cores -= 1;
+  }
+  if (bay_index < kTotalBays && bay_entities_[bay_index] != entt::null &&
+      registry_.valid(bay_entities_[bay_index])) {
+    auto& bay = registry_.get<BatteryComponent>(bay_entities_[bay_index]);
+    bay.charge_units = 0;  // EMP discharge: clears accumulated plasma!
+  }
+  CheckVictoryLossConditions();
+}
+
+void CombatSystem::DamageAtmosphere(uint32_t penalty) {
+  if (dreadnought_entity_ == entt::null ||
+      !registry_.valid(dreadnought_entity_)) {
+    return;
+  }
+  auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+  if (dread.total_score >= penalty) {
+    dread.total_score -= penalty;
+  } else {
+    dread.total_score = 0;
+  }
+}
+
 CombatSystem::PredictionResult CombatSystem::PredictSow(
     uint8_t start_bay, int8_t direction) const {
   PredictionResult result{

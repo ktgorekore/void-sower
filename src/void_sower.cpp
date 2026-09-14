@@ -81,6 +81,16 @@ void void_sower_step_simulation(float delta_time) {
   GetOrCreateEngine().Update(delta_time);
 }
 
+void void_sower_damage_conduit(uint8_t bay_index) {
+  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+  GetOrCreateEngine().DamageConduit(bay_index);
+}
+
+void void_sower_damage_atmosphere(uint32_t penalty) {
+  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+  GetOrCreateEngine().DamageAtmosphere(penalty);
+}
+
 void void_sower_predict_sow(uint8_t start_bay, int8_t direction,
                             VoidSowerPredictionFFI* out_prediction) {
   if (!out_prediction) return;

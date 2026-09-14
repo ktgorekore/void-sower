@@ -52,6 +52,13 @@ class Engine {
   /// Steps the simulation by delta_time (defaults to 1/60s).
   void Update(float delta_time = kFixedTimeStep);
 
+  /// Applies conduit direct hit breach: drains 1 reserve core and discharges
+  /// active bay.
+  void DamageConduit(uint8_t bay_index);
+
+  /// Applies atmospheric breach penalty.
+  void DamageAtmosphere(uint32_t penalty);
+
   /// Dry-run predictive targeting telemetry.
   CombatSystem::PredictionResult PredictSow(uint8_t start_bay,
                                             int8_t direction) const;
