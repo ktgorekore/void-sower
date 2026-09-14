@@ -37,10 +37,25 @@ Every tagged release (`v*`) automatically triggers the continuous release workfl
    * Audits 16 KB page size alignment across all native shared libraries (`libvoid_sower.so`).
    * Packages Dart debug symbol maps (`void-sower-symbols-v1.0.0.zip`).
    * Publishes a GitHub Release under **Releases** with downloadable `.aab` artifacts and SHA-256 checksums.
-3. **Automated Signing (Repository Secrets)**:
-   Configure the following secrets under **Repository Settings > Secrets and variables > Actions**:
-   * `ANDROID_KEYSTORE_BASE64`: Base64-encoded release keystore (`base64 -w 0 android/app/upload-keystore.jks`)
-   * `ANDROID_KEY_ALIAS`: Keystore key alias
+3. **Upload Keystore Generation & Repository Secrets**:
+   If you have not yet created an upload keystore, generate one using `keytool`:
+   ```bash
+   keytool -genkeypair -v \
+     -keystore android/app/upload-keystore.jks \
+     -keyalg RSA \
+     -keysize 2048 \
+     -validity 10000 \
+     -alias upload
+   ```
+   > [!IMPORTANT]
+   > Keep `upload-keystore.jks` and your passwords safe. Keystores are strictly git-ignored (`.gitignore`) and must **never** be committed to version control.
+
+   Next, configure the following secrets under **Repository Settings > Secrets and variables > Actions**:
+   * `ANDROID_KEYSTORE_BASE64`: Base64-encoded release keystore string:
+     ```bash
+     base64 -w 0 android/app/upload-keystore.jks
+     ```
+   * `ANDROID_KEY_ALIAS`: Keystore key alias (e.g., `upload`)
    * `ANDROID_KEY_PASSWORD`: Keystore key password
    * `ANDROID_STORE_PASSWORD`: Keystore store password
 
