@@ -207,10 +207,10 @@ CARACTERÍSTICAS PRINCIPALES:
 - **Cooldown**: 3-minute tactical frequency cap (bypassed instantly for Pro Commanders)
 
 ### 4. Legal & Privacy Compliance URLs
-- **Privacy Policy**: `https://ktgorekore.github.io/void-sower/privacy.html`
-- **Terms of Service**: `https://ktgorekore.github.io/void-sower/terms.html`
-- **Support & Developer Contact**: `voidsower-dev@googlegroups.com`
-- **Website**: `https://ktgorekore.github.io/void-sower/`
+- **Privacy Policy**: `https://ktgorekore.github.io/oware-2048-legal/privacy.html`
+- **Terms of Service**: `https://ktgorekore.github.io/oware-2048-legal/terms.html`
+- **Support & Developer Contact**: `support.oware2048@gmail.com`
+- **Website / Legal Portal**: `https://ktgorekore.github.io/oware-2048-legal/`
 - **Target Age**: 13 and above (Non-directed audience, COPPA compliant consent controls)
 - **Content Rating (IARC)**: Everyone (ESRB) / PEGI 3 / USK 0 (Mild Fantasy Violence, no gore or foul language)
 

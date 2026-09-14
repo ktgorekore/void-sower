@@ -22,11 +22,11 @@ This document outlines the publisher profile, branding, merchant configuration, 
 
 ## 🏢 Publisher Account Details
 
-- **Developer Name**: `Void Sower Studios` (or organization name)
-- **Contact Email**: `support@voidsower.app`
-- **Developer Website**: `https://voidsower.app` (or GitHub project page: `https://github.com/ktgorekore/void-sower`)
-- **Privacy Policy URL**: `https://github.com/ktgorekore/void-sower/blob/main/docs/privacy_policy.md`
-- **Terms of Service URL**: `https://github.com/ktgorekore/void-sower/blob/main/docs/terms_of_service.md`
+- **Developer Name**: `Oware 2048 Inc.`
+- **Contact Email**: `support.oware2048@gmail.com`
+- **Developer Website / Legal Hub**: `https://ktgorekore.github.io/oware-2048-legal/`
+- **Privacy Policy URL**: `https://ktgorekore.github.io/oware-2048-legal/privacy.html`
+- **Terms of Service URL**: `https://ktgorekore.github.io/oware-2048-legal/terms.html`
 
 ---
 

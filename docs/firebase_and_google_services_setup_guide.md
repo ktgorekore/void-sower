@@ -64,7 +64,7 @@ Before releasing to internal, closed, or open testing tracks, complete the requi
 
 | Policy Section | Required Selection / Value | Regulatory Rationale |
 | :--- | :--- | :--- |
-| **Privacy Policy** | `https://ktgorekore.github.io/void-sower/privacy.html` | Public URL hosting GDPR/CCPA compliant policy |
+| **Privacy Policy** | `https://ktgorekore.github.io/oware-2048-legal/privacy.html` | Public URL hosting GDPR/CCPA compliant policy |
 | **App Access** | *All functionality is available without special access* | No restricted login gates or invite credentials required |
 | **Ads** | *Yes, my app contains ads* | AdMob rewarded ads for Emergency Reactor Flare (+8 cores) |
 | **Content Rating (IARC)** | *Category: Game > Arcade* | Fantasy Violence only (mild laser blasts, no blood/gore) -> **PEGI 3 / ESRB Everyone / USK 0** |
