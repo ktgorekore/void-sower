@@ -16,8 +16,9 @@
 
 #include "wave_generator.h"
 
+#include <absl/container/inlined_vector.h>
+
 #include <random>
-#include <vector>
 
 #include "combat_system.h"
 #include "ring_buffer.h"
@@ -61,7 +62,7 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig& config) {
     float health;
     VesselType type;
   };
-  std::vector<PlannedEnemy> planned_enemies;
+  absl::InlinedVector<PlannedEnemy, 16> planned_enemies;
 
   // 2. Perform Backward-Play Program Inversion
   for (uint32_t m = 0; m < moves_to_invert; ++m) {

@@ -63,6 +63,14 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   bool _isDisposed = false;
 
+  void _checkDisposed() {
+    if (_isDisposed) {
+      throw StateError(
+        'Cannot invoke native FFI operations on a disposed FfiVoidSowerEngine instance.',
+      );
+    }
+  }
+
   static ffi.DynamicLibrary _loadNativeLibrary() {
     if (Platform.isAndroid || Platform.isLinux) {
       try {
@@ -92,6 +100,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   void initialize({int startingCores = 32, double boundaryY = 800.0}) {
+    _checkDisposed();
     _bindings.void_sower_init(startingCores, boundaryY);
   }
 
@@ -102,6 +111,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     int coreBudget = 16,
     double initialVelocityY = 15.0,
   }) {
+    _checkDisposed();
     _cachedWaveConfigPtr.ref.difficulty = difficulty;
     _cachedWaveConfigPtr.ref.random_seed = randomSeed;
     _cachedWaveConfigPtr.ref.core_budget = coreBudget;
@@ -112,31 +122,37 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   int injectCore(int bayIndex, int direction) {
+    _checkDisposed();
     return _bindings.void_sower_inject_core(bayIndex, direction);
   }
 
   @override
   void slideDreadnought(double targetX) {
+    _checkDisposed();
     _bindings.void_sower_slide_dreadnought(targetX);
   }
 
   @override
   void stepSimulation(double deltaTime) {
+    _checkDisposed();
     _bindings.void_sower_step_simulation(deltaTime);
   }
 
   @override
   void damageConduit(int bayIndex) {
+    _checkDisposed();
     _bindings.void_sower_damage_conduit(bayIndex);
   }
 
   @override
   void damageAtmosphere(int penalty) {
+    _checkDisposed();
     _bindings.void_sower_damage_atmosphere(penalty);
   }
 
   @override
   PredictionResult predictSow(int startBay, int direction) {
+    _checkDisposed();
     _bindings.void_sower_predict_sow(startBay, direction, _cachedPredictionPtr);
 
     final ref = _cachedPredictionPtr.ref;
@@ -153,6 +169,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   List<BayState> getBays() {
+    _checkDisposed();
     _bindings.void_sower_get_bays(_cachedBaysPtr, kMaxBays);
     final results = <BayState>[];
 
@@ -177,6 +194,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   List<EnemyCraft> getEnemies() {
+    _checkDisposed();
     final count = _bindings.void_sower_get_enemies(
       _cachedEnemiesPtr,
       kMaxEnemies,
@@ -206,6 +224,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   List<LanceBeam> getLances() {
+    _checkDisposed();
     final count = _bindings.void_sower_get_lances(_cachedLancesPtr, kMaxLances);
     final results = <LanceBeam>[];
 
@@ -229,6 +248,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   List<FlakBurst> getFlaks() {
+    _checkDisposed();
     final count = _bindings.void_sower_get_flaks(_cachedFlaksPtr, kMaxFlaks);
     final results = <FlakBurst>[];
 
@@ -251,6 +271,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   DreadnoughtState getDreadnoughtState() {
+    _checkDisposed();
     _bindings.void_sower_get_dreadnought_state(_cachedDreadnoughtPtr);
     final d = _cachedDreadnoughtPtr.ref;
 
@@ -268,6 +289,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   void reset() {
+    _checkDisposed();
     _bindings.void_sower_reset();
   }
 

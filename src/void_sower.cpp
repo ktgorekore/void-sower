@@ -20,11 +20,32 @@
 #include <absl/log/log.h>
 #include <absl/types/span.h>
 
+#include <algorithm>
+#include <exception>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
 
+#include "ecs/components.h"
 #include "ecs/engine.h"
+
+// Static layout assertions guaranteeing zero-copy safety
+static_assert(sizeof(VoidSowerBayFFI) ==
+                  sizeof(void_sower::ecs::BatteryComponent),
+              "VoidSowerBayFFI and BatteryComponent size mismatch");
+static_assert(sizeof(VoidSowerEnemyFFI) ==
+                  sizeof(void_sower::ecs::EnemyVesselComponent),
+              "VoidSowerEnemyFFI and EnemyVesselComponent size mismatch");
+static_assert(sizeof(VoidSowerLanceFFI) ==
+                  sizeof(void_sower::ecs::ParticleLanceComponent),
+              "VoidSowerLanceFFI and ParticleLanceComponent size mismatch");
+static_assert(sizeof(VoidSowerFlakFFI) ==
+                  sizeof(void_sower::ecs::FlakBurstComponent),
+              "VoidSowerFlakFFI and FlakBurstComponent size mismatch");
+static_assert(
+    sizeof(VoidSowerDreadnoughtFFI) ==
+        sizeof(void_sower::ecs::DreadnoughtStateComponent),
+    "VoidSowerDreadnoughtFFI and DreadnoughtStateComponent size mismatch");
 
 namespace {
 
@@ -42,184 +63,241 @@ void_sower::ecs::Engine& GetOrCreateEngine() {
 
 extern "C" {
 
-void void_sower_set_vlog_level(int32_t level) {
-  absl::SetGlobalVLogLevel(level);
-  LOG(INFO) << "[VoidSower Native] Abseil Global VLOG Level set to: " << level;
+void void_sower_set_vlog_level(int32_t level) noexcept {
+  try {
+    absl::SetGlobalVLogLevel(level);
+    LOG(INFO) << "[VoidSower Native] Abseil Global VLOG Level set to: "
+              << level;
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_set_vlog_level: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_set_vlog_level";
+  }
 }
 
-void void_sower_init(uint32_t starting_cores, float boundary_y) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  GetOrCreateEngine().Initialize(starting_cores, boundary_y);
+void void_sower_init(uint32_t starting_cores, float boundary_y) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().Initialize(starting_cores, boundary_y);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_init: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_init";
+  }
 }
 
-int32_t void_sower_generate_wave(const VoidSowerWaveConfigFFI* config) {
+int32_t void_sower_generate_wave(
+    const VoidSowerWaveConfigFFI* config) noexcept {
   if (!config) return 0;
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  void_sower::ecs::WaveGeneratorConfig cfg{
-      .difficulty =
-          static_cast<void_sower::ecs::EncounterDifficulty>(config->difficulty),
-      .random_seed = config->random_seed,
-      .core_budget = config->core_budget,
-      .initial_velocity_y = config->initial_velocity_y,
-      .target_corridors_mask = 0xFF,
-  };
-  return GetOrCreateEngine().GenerateWave(cfg) ? 1 : 0;
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    void_sower::ecs::WaveGeneratorConfig cfg{
+        .difficulty = static_cast<void_sower::ecs::EncounterDifficulty>(
+            config->difficulty),
+        .random_seed = config->random_seed,
+        .core_budget = config->core_budget,
+        .initial_velocity_y = config->initial_velocity_y,
+        .target_corridors_mask = 0xFF,
+    };
+    return GetOrCreateEngine().GenerateWave(cfg) ? 1 : 0;
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_generate_wave: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_generate_wave";
+    return 0;
+  }
 }
 
-int32_t void_sower_inject_core(uint8_t bay_index, int8_t direction) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  return GetOrCreateEngine().InjectCore(bay_index, direction) ? 1 : 0;
+int32_t void_sower_inject_core(uint8_t bay_index, int8_t direction) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    return GetOrCreateEngine().InjectCore(bay_index, direction) ? 1 : 0;
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_inject_core: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_inject_core";
+    return 0;
+  }
 }
 
-void void_sower_slide_dreadnought(float target_x) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  GetOrCreateEngine().SetTargetPositionX(target_x);
+void void_sower_slide_dreadnought(float target_x) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().SetTargetPositionX(target_x);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_slide_dreadnought: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_slide_dreadnought";
+  }
 }
 
-void void_sower_step_simulation(float delta_time) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  GetOrCreateEngine().Update(delta_time);
+void void_sower_step_simulation(float delta_time) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().Update(delta_time);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_step_simulation: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_step_simulation";
+  }
 }
 
-void void_sower_damage_conduit(uint8_t bay_index) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  GetOrCreateEngine().DamageConduit(bay_index);
+void void_sower_damage_conduit(uint8_t bay_index) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().DamageConduit(bay_index);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_damage_conduit: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_damage_conduit";
+  }
 }
 
-void void_sower_damage_atmosphere(uint32_t penalty) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  GetOrCreateEngine().DamageAtmosphere(penalty);
+void void_sower_damage_atmosphere(uint32_t penalty) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().DamageAtmosphere(penalty);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_damage_atmosphere: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_damage_atmosphere";
+  }
 }
 
 void void_sower_predict_sow(uint8_t start_bay, int8_t direction,
-                            VoidSowerPredictionFFI* out_prediction) {
+                            VoidSowerPredictionFFI* out_prediction) noexcept {
   if (!out_prediction) return;
-  std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-  auto res = GetOrCreateEngine().PredictSow(start_bay, direction);
-  out_prediction->terminal_bay = res.terminal_bay;
-  out_prediction->terminal_corridor = res.terminal_corridor;
-  out_prediction->final_mass = res.final_mass;
-  out_prediction->predicted_damage = res.predicted_damage;
-  out_prediction->total_cascade_laps = res.total_cascade_laps;
-  out_prediction->triggers_lance = res.triggers_lance ? 1 : 0;
-  out_prediction->triggers_relay = res.triggers_relay ? 1 : 0;
+  try {
+    std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
+    auto res = GetOrCreateEngine().PredictSow(start_bay, direction);
+    out_prediction->terminal_bay = res.terminal_bay;
+    out_prediction->terminal_corridor = res.terminal_corridor;
+    out_prediction->final_mass = res.final_mass;
+    out_prediction->predicted_damage = res.predicted_damage;
+    out_prediction->total_cascade_laps = res.total_cascade_laps;
+    out_prediction->triggers_lance = res.triggers_lance ? 1 : 0;
+    out_prediction->triggers_relay = res.triggers_relay ? 1 : 0;
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_predict_sow: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_predict_sow";
+  }
 }
 
-void void_sower_get_bays(VoidSowerBayFFI* out_bays, uint32_t max_count) {
+void void_sower_get_bays(VoidSowerBayFFI* out_bays,
+                         uint32_t max_count) noexcept {
   if (!out_bays || max_count == 0) return;
-  std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-  const uint32_t count =
-      std::min(max_count, static_cast<uint32_t>(void_sower::ecs::kTotalBays));
-  std::array<void_sower::ecs::BatteryComponent, void_sower::ecs::kTotalBays>
-      bays{};
-  GetOrCreateEngine().GetBays(absl::MakeSpan(bays.data(), count));
-
-  for (uint32_t i = 0; i < count; ++i) {
-    out_bays[i] = VoidSowerBayFFI{
-        .bay_index = bays[i].bay_index,
-        .tier = bays[i].tier,
-        .grid_column = bays[i].grid_column,
-        .charge_units = bays[i].charge_units,
-        .radial_position_rad = bays[i].radial_position_rad,
-        .is_frontline = bays[i].is_frontline,
-        .is_nyumba = bays[i].is_nyumba,
-        .is_kichwa = bays[i].is_kichwa,
-        .is_kimbi = bays[i].is_kimbi,
-    };
+  try {
+    std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
+    const uint32_t count =
+        std::min(max_count, static_cast<uint32_t>(void_sower::ecs::kTotalBays));
+    auto span = absl::MakeSpan(
+        reinterpret_cast<void_sower::ecs::BatteryComponent*>(out_bays), count);
+    GetOrCreateEngine().GetBays(span);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_get_bays: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_get_bays";
   }
 }
 
 uint32_t void_sower_get_enemies(VoidSowerEnemyFFI* out_enemies,
-                                uint32_t max_count) {
+                                uint32_t max_count) noexcept {
   if (!out_enemies || max_count == 0) return 0;
-  std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-  std::vector<void_sower::ecs::EnemyVesselComponent> enemies(max_count);
-  uint32_t count =
-      GetOrCreateEngine().GetEnemies(absl::MakeSpan(enemies.data(), max_count));
-
-  for (uint32_t i = 0; i < count; ++i) {
-    out_enemies[i] = VoidSowerEnemyFFI{
-        .entity_id = enemies[i].entity_id,
-        .assigned_corridor = enemies[i].assigned_corridor,
-        .world_pos_x = enemies[i].world_pos_x,
-        .world_pos_y = enemies[i].world_pos_y,
-        .velocity_y = enemies[i].velocity_y,
-        .current_shields = enemies[i].current_shields,
-        .max_shields = enemies[i].max_shields,
-        .current_hull = enemies[i].current_hull,
-        .max_hull = enemies[i].max_hull,
-        .vessel_type = enemies[i].vessel_type,
-        .is_destroyed = enemies[i].is_destroyed,
-    };
+  try {
+    std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
+    auto span = absl::MakeSpan(
+        reinterpret_cast<void_sower::ecs::EnemyVesselComponent*>(out_enemies),
+        max_count);
+    return GetOrCreateEngine().GetEnemies(span);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_get_enemies: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_get_enemies";
+    return 0;
   }
-  return count;
 }
 
 uint32_t void_sower_get_lances(VoidSowerLanceFFI* out_lances,
-                               uint32_t max_count) {
+                               uint32_t max_count) noexcept {
   if (!out_lances || max_count == 0) return 0;
-  std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-  std::vector<void_sower::ecs::ParticleLanceComponent> lances(max_count);
-  uint32_t count = GetOrCreateEngine().GetParticleLances(
-      absl::MakeSpan(lances.data(), max_count));
-
-  for (uint32_t i = 0; i < count; ++i) {
-    out_lances[i] = VoidSowerLanceFFI{
-        .firing_bay_index = lances[i].firing_bay_index,
-        .origin_x = lances[i].origin_x,
-        .origin_y = lances[i].origin_y,
-        .beam_width = lances[i].beam_width,
-        .sustained_duration = lances[i].sustained_duration,
-        .remaining_duration = lances[i].remaining_duration,
-        .total_damage = lances[i].total_damage,
-        .active = lances[i].active,
-    };
+  try {
+    std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
+    auto span = absl::MakeSpan(
+        reinterpret_cast<void_sower::ecs::ParticleLanceComponent*>(out_lances),
+        max_count);
+    return GetOrCreateEngine().GetParticleLances(span);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_get_lances: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_get_lances";
+    return 0;
   }
-  return count;
 }
 
-uint32_t void_sower_get_flaks(VoidSowerFlakFFI* out_flaks, uint32_t max_count) {
+uint32_t void_sower_get_flaks(VoidSowerFlakFFI* out_flaks,
+                              uint32_t max_count) noexcept {
   if (!out_flaks || max_count == 0) return 0;
-  std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-  std::vector<void_sower::ecs::FlakBurstComponent> flaks(max_count);
-  uint32_t count = GetOrCreateEngine().GetFlakBursts(
-      absl::MakeSpan(flaks.data(), max_count));
-
-  for (uint32_t i = 0; i < count; ++i) {
-    out_flaks[i] = VoidSowerFlakFFI{
-        .world_pos_x = flaks[i].world_pos_x,
-        .world_pos_y = flaks[i].world_pos_y,
-        .blast_radius = flaks[i].blast_radius,
-        .area_damage = flaks[i].area_damage,
-        .lifetime = flaks[i].lifetime,
-        .remaining_lifetime = flaks[i].remaining_lifetime,
-        .active = flaks[i].active,
-    };
+  try {
+    std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
+    auto span = absl::MakeSpan(
+        reinterpret_cast<void_sower::ecs::FlakBurstComponent*>(out_flaks),
+        max_count);
+    return GetOrCreateEngine().GetFlakBursts(span);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_get_flaks: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_get_flaks";
+    return 0;
   }
-  return count;
 }
 
-void void_sower_get_dreadnought_state(VoidSowerDreadnoughtFFI* out_state) {
+void void_sower_get_dreadnought_state(
+    VoidSowerDreadnoughtFFI* out_state) noexcept {
   if (!out_state) return;
-  std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-  auto dread = GetOrCreateEngine().GetDreadnoughtState();
-  out_state->orbital_position_x = dread.orbital_position_x;
-  out_state->target_position_x = dread.target_position_x;
-  out_state->reserve_cores = dread.reserve_cores;
-  out_state->boundary_line_y = dread.boundary_line_y;
-  out_state->is_cascading = dread.is_cascading;
-  out_state->total_score = dread.total_score;
-  out_state->current_sim_state = dread.current_sim_state;
-  out_state->cores_used = dread.cores_used;
+  try {
+    std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
+    auto dread = GetOrCreateEngine().GetDreadnoughtState();
+    out_state->orbital_position_x = dread.orbital_position_x;
+    out_state->target_position_x = dread.target_position_x;
+    out_state->reserve_cores = dread.reserve_cores;
+    out_state->boundary_line_y = dread.boundary_line_y;
+    out_state->is_cascading = dread.is_cascading;
+    out_state->total_score = dread.total_score;
+    out_state->current_sim_state = dread.current_sim_state;
+    out_state->cores_used = dread.cores_used;
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_get_dreadnought_state: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_get_dreadnought_state";
+  }
 }
 
-void void_sower_reset(void) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  GetOrCreateEngine().Reset();
+void void_sower_reset(void) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().Reset();
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_reset: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_reset";
+  }
 }
 
-void void_sower_free(void) {
-  std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-  g_engine.reset();
+void void_sower_free(void) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    g_engine.reset();
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_free: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_free";
+  }
 }
-}
+
+}  // extern "C"

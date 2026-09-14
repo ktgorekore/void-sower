@@ -130,32 +130,43 @@ typedef struct {
 
 #pragma pack(pop)
 
-FFI_PLUGIN_EXPORT void void_sower_set_vlog_level(int32_t level);
+#ifdef __cplusplus
+#define VOID_SOWER_NOEXCEPT noexcept
+#else
+#define VOID_SOWER_NOEXCEPT
+#endif
+
+FFI_PLUGIN_EXPORT void void_sower_set_vlog_level(int32_t level)
+    VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_init(uint32_t starting_cores,
-                                       float boundary_y);
+                                       float boundary_y) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT int32_t void_sower_generate_wave(
+    const VoidSowerWaveConfigFFI* config) VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT int32_t
-void_sower_generate_wave(const VoidSowerWaveConfigFFI* config);
-FFI_PLUGIN_EXPORT int32_t void_sower_inject_core(uint8_t bay_index,
-                                                 int8_t direction);
-FFI_PLUGIN_EXPORT void void_sower_slide_dreadnought(float target_x);
-FFI_PLUGIN_EXPORT void void_sower_step_simulation(float delta_time);
-FFI_PLUGIN_EXPORT void void_sower_damage_conduit(uint8_t bay_index);
-FFI_PLUGIN_EXPORT void void_sower_damage_atmosphere(uint32_t penalty);
+void_sower_inject_core(uint8_t bay_index, int8_t direction) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_slide_dreadnought(float target_x)
+    VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_step_simulation(float delta_time)
+    VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_damage_conduit(uint8_t bay_index)
+    VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_damage_atmosphere(uint32_t penalty)
+    VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_predict_sow(
     uint8_t start_bay, int8_t direction,
-    VoidSowerPredictionFFI* out_prediction);
-FFI_PLUGIN_EXPORT void void_sower_get_bays(VoidSowerBayFFI* out_bays,
-                                           uint32_t max_count);
-FFI_PLUGIN_EXPORT uint32_t
-void_sower_get_enemies(VoidSowerEnemyFFI* out_enemies, uint32_t max_count);
-FFI_PLUGIN_EXPORT uint32_t void_sower_get_lances(VoidSowerLanceFFI* out_lances,
-                                                 uint32_t max_count);
-FFI_PLUGIN_EXPORT uint32_t void_sower_get_flaks(VoidSowerFlakFFI* out_flaks,
-                                                uint32_t max_count);
+    VoidSowerPredictionFFI* out_prediction) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_get_bays(
+    VoidSowerBayFFI* out_bays, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT uint32_t void_sower_get_enemies(
+    VoidSowerEnemyFFI* out_enemies, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT uint32_t void_sower_get_lances(
+    VoidSowerLanceFFI* out_lances, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT uint32_t void_sower_get_flaks(
+    VoidSowerFlakFFI* out_flaks, uint32_t max_count) VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_get_dreadnought_state(
-    VoidSowerDreadnoughtFFI* out_state);
-FFI_PLUGIN_EXPORT void void_sower_reset(void);
-FFI_PLUGIN_EXPORT void void_sower_free(void);
+    VoidSowerDreadnoughtFFI* out_state) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_reset(void) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_free(void) VOID_SOWER_NOEXCEPT;
 
 #ifdef __cplusplus
 }

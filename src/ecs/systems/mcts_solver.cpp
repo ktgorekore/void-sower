@@ -70,7 +70,7 @@ MctsEvaluationResult MctsSolver::EvaluateSolvability(uint32_t max_simulations,
     auto sim_bays = initial_bays;
     auto sim_health = corridor_health;
     uint32_t remaining_enemies = total_enemies;
-    std::vector<MctsMove> sequence;
+    absl::InlinedVector<MctsMove, 16> sequence;
 
     for (uint32_t depth = 0; depth < max_depth; ++depth) {
       // Pick action (greedy priority on frontline non-empty bays)

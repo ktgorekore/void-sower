@@ -17,9 +17,10 @@
 #ifndef VOID_SOWER_ECS_SYSTEMS_MCTS_SOLVER_H_
 #define VOID_SOWER_ECS_SYSTEMS_MCTS_SOLVER_H_
 
+#include <absl/container/inlined_vector.h>
+
 #include <cstdint>
 #include <entt/entt.hpp>
-#include <vector>
 
 #include "ring_buffer.h"
 
@@ -40,7 +41,7 @@ struct MctsEvaluationResult {
   bool is_solvable{false};
   uint32_t simulated_rollouts{0};
   uint32_t optimal_move_count{0};
-  std::vector<MctsMove> winning_sequence;
+  absl::InlinedVector<MctsMove, 16> winning_sequence;
 };
 
 /**

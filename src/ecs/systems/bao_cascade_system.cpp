@@ -213,7 +213,9 @@ void BaoCascadeSystem::StepFSM(
     }
 
     case SimulationState::CleanupCheck: {
-      registry.remove<SowingStateComponent>(dreadnought_entity);
+      if (registry.all_of<SowingStateComponent>(dreadnought_entity)) {
+        registry.remove<SowingStateComponent>(dreadnought_entity);
+      }
       dread.is_cascading = 0;
 
       match_lifecycle_system.CheckVictoryLossConditions(
