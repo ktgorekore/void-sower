@@ -138,6 +138,15 @@ class CombatCoordinator extends ChangeNotifier {
     flaks = engine.getFlaks();
   }
 
+  /// Grants emergency auxiliary plasma cores (e.g. from a rewarded ad transmission).
+  void grantEmergencyCores(int bonusCores) {
+    if (_isDisposed) return;
+    dreadnought = dreadnought.copyWith(
+      reserveCores: dreadnought.reserveCores + bonusCores,
+    );
+    notifyListeners();
+  }
+
   /// Core 60 Hz update step driving physics, FSM, and rendering state.
   void update(double dt, Size viewportSize) {
     if (_isDisposed) return;

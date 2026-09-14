@@ -37,4 +37,27 @@ class DreadnoughtState {
   bool get isVictory => currentSimState == 7;
   bool get isGameOver => currentSimState == 8;
   bool get isIdle => currentSimState == 0;
+
+  /// Creates a copy of this state with optional updated parameters.
+  DreadnoughtState copyWith({
+    double? orbitalPositionX,
+    double? targetPositionX,
+    int? reserveCores,
+    double? boundaryLineY,
+    bool? isCascading,
+    int? totalScore,
+    int? currentSimState,
+    int? coresUsed,
+  }) {
+    return DreadnoughtState(
+      orbitalPositionX: orbitalPositionX ?? this.orbitalPositionX,
+      targetPositionX: targetPositionX ?? this.targetPositionX,
+      reserveCores: reserveCores ?? this.reserveCores,
+      boundaryLineY: boundaryLineY ?? this.boundaryLineY,
+      isCascading: isCascading ?? this.isCascading,
+      totalScore: totalScore ?? this.totalScore,
+      currentSimState: currentSimState ?? this.currentSimState,
+      coresUsed: coresUsed ?? this.coresUsed,
+    );
+  }
 }

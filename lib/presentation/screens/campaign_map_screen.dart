@@ -21,6 +21,8 @@ import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import '../widgets/bao_codex_dialog.dart';
 import '../widgets/fleet_hangar_dialog.dart';
+import '../widgets/profile_modal.dart';
+import '../widgets/settings_modal.dart';
 import '../widgets/tactile_button.dart';
 import 'combat_screen.dart';
 import 'stats_dashboard_screen.dart';
@@ -81,6 +83,30 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     showDialog<void>(
       context: context,
       builder: (context) => const BaoCodexDialog(),
+    );
+  }
+
+  void _openProfile() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => ProfileModal(
+        onProfileUpdated: () {
+          setState(() {});
+        },
+      ),
+    );
+  }
+
+  void _openSettings() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => SettingsModal(
+        onDataWiped: () {
+          setState(() {
+            _sectors = CampaignService.instance.getSectors();
+          });
+        },
+      ),
     );
   }
 
@@ -191,13 +217,18 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             onPressed: _openHangar,
           ),
           IconButton(
+            icon: const Icon(Icons.badge, color: VoidTheme.plasmaCyanLight),
+            tooltip: 'Pilot Profile',
+            onPressed: _openProfile,
+          ),
+          IconButton(
             icon: const Icon(Icons.menu_book, color: VoidTheme.solarGold),
             tooltip: 'Bao Codex',
             onPressed: _openCodex,
           ),
           IconButton(
-            icon: const Icon(Icons.bar_chart, color: VoidTheme.plasmaCyanLight),
-            tooltip: 'Pilot Telemetry',
+            icon: const Icon(Icons.bar_chart, color: VoidTheme.starWhite),
+            tooltip: 'Combat Telemetry',
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -205,6 +236,11 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                 ),
               );
             },
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings, color: VoidTheme.solarGold),
+            tooltip: 'Fleet Settings',
+            onPressed: _openSettings,
           ),
         ],
       ),

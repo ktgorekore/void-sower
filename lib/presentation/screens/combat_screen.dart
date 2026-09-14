@@ -26,6 +26,8 @@ import '../widgets/command_arc_widget.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/hud_header.dart';
 import '../widgets/projection_shelf.dart';
+import '../widgets/rewarded_ad_modal.dart';
+import '../widgets/settings_modal.dart';
 import '../widgets/tutorial_overlay.dart';
 import '../widgets/victory_dialog.dart';
 
@@ -219,6 +221,46 @@ class _CombatScreenState extends State<CombatScreen>
     );
   }
 
+  void _openSettings() {
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => SettingsModal(
+        onResetTutorial: () {
+          _coordinator.showTutorial();
+        },
+      ),
+    ).then((_) {
+      if (mounted &&
+          wasTicking &&
+          _coordinator.state.status == CombatMatchStatus.activeCombat) {
+        _ticker.start();
+      }
+    });
+  }
+
+  void _openEmergencyFlare() {
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
+
+    showDialog<void>(
+      context: context,
+      builder: (context) => RewardedAdModal(
+        onCoresGranted: (cores) {
+          _coordinator.grantEmergencyCores(cores);
+        },
+      ),
+    ).then((_) {
+      if (mounted &&
+          wasTicking &&
+          _coordinator.state.status == CombatMatchStatus.activeCombat) {
+        _ticker.start();
+      }
+    });
+  }
+
   @override
   void dispose() {
     _autoAdvanceTimer?.cancel();
@@ -245,8 +287,10 @@ class _CombatScreenState extends State<CombatScreen>
                   reserveCores: dread.reserveCores,
                   score: dread.totalScore,
                   difficultyTier: _currentDifficultyTier,
-                  onSettingsTap: _openCodex,
+                  onSettingsTap: _openSettings,
+                  onCodexTap: _openCodex,
                   onTutorialTap: _coordinator.showTutorial,
+                  onEmergencyFlareTap: _openEmergencyFlare,
                   isAutoSolving: matchState.isAutoSolving,
                   onToggleAutoSolve: _coordinator.toggleAutoSolve,
                 ),

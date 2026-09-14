@@ -15,7 +15,9 @@
 import 'package:flutter/material.dart';
 
 import 'core/logging.dart';
+import 'domain/services/ad_service.dart';
 import 'domain/services/game_engine_interface.dart';
+import 'domain/services/iap_service.dart';
 import 'domain/services/persistence_service.dart';
 import 'engine/ffi_void_sower_engine.dart';
 import 'engine/mock_void_sower_engine.dart';
@@ -46,6 +48,8 @@ void main() async {
   await PersistenceService.instance.initialize();
   await AudioService.instance.initialize();
   await ShaderService.instance.initialize();
+  await AdService.instance.initialize();
+  await IapService.instance.initialize();
 
   IVoidSowerEngine engine;
   try {
