@@ -74,6 +74,11 @@ Drawing directly from our low-latency infrastructure in `cognitas-trading`:
 3. **Background Isolate Offloading:** Heavy procedural level generation, MCTS solvability validation, and long-range targeting calculations must execute in background isolates (`IsolateRunner`) to guarantee an uncompromised 60/120 FPS UI thread.
 4. **Ergonomic One-Thumb Mobile Viewport:** All interactive controls (radial bay selection, namua flick injection, lateral platform slider) must reside strictly within the lower 30% primary thumb command arc, maintaining $\ge 48 \times 48\text{ dp}$ touch bounds.
 5. **Clean Uninstall Hygiene:** Configure `android:allowBackup="false"` and author `data_extraction_rules.xml` so local guest progress is wiped upon uninstall without silent Google Drive backup restoration.
+6. **Android Emulator Hardware Acceleration via NVIDIA GPU:** When launching the Android emulator or Android Studio, ALWAYS use NVIDIA PRIME render offload with host GPU acceleration as configured in `~/.bashrc`:
+   ```bash
+   env __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia $ANDROID_HOME/emulator/emulator -avd <avd_name> -no-snapshot -no-boot-anim -gpu host
+   ```
+   Never run the emulator on software rendering (SwiftShader/mesa) when the NVIDIA discrete GPU is available.
 
 ---
 
