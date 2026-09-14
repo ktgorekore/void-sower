@@ -115,6 +115,7 @@ if (BUILD_TESTS)
 
   add_executable(void_sower_tests
     "tests/main_test.cpp"
+    "tests/combat_rules_test.cpp"
     "tests/ring_buffer_test.cpp"
     "tests/combat_simulation_test.cpp"
     "tests/spatial_grid_test.cpp"

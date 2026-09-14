@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'bay_role.dart';
+
 /// State representation of a single dreadnought capacitor bay.
 class BayState {
   const BayState({
@@ -35,4 +37,7 @@ class BayState {
   final bool isNyumba;
   final bool isKichwa;
   final bool isKimbi;
+
+  /// Canonical topological role of this bay in the 16-bay Bao ring.
+  BayRole get role => BayRole.fromIndex(bayIndex);
 }

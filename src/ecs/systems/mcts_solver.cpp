@@ -19,6 +19,7 @@
 #include <cmath>
 #include <random>
 
+#include "../combat_rules.h"
 #include "../components.h"
 
 namespace void_sower::ecs {
@@ -89,11 +90,10 @@ MctsEvaluationResult MctsSolver::EvaluateSolvability(uint32_t max_simulations,
       }
 
       // Check frontline lance discharge
-      if (IsFrontlineBay(current) && sim_bays[current] >= 4) {
-        uint16_t corridor = current < 8 ? current : (15 - current);
-        if (corridor < 8 && sim_health[corridor] > 0.0f) {
-          float damage =
-              static_cast<float>(sim_bays[current] * sim_bays[current] * 15);
+      if (IsFrontlineBay(current) && sim_bays[current] >= 1) {
+        int8_t corridor = CorridorForFrontlineBay(current);
+        if (corridor >= 0 && corridor < 8 && sim_health[corridor] > 0.0f) {
+          float damage = ComputeLanceDamage(sim_bays[current]);
           sim_health[corridor] -= damage;
           if (sim_health[corridor] <= 0.0f) {
             sim_health[corridor] = 0.0f;

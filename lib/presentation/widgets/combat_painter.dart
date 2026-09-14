@@ -16,65 +16,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../domain/models/dreadnought_state.dart';
+import '../../domain/models/enemy_bullet.dart';
 import '../../domain/models/enemy_craft.dart';
 import '../../domain/models/flak_burst.dart';
+import '../../domain/models/floating_damage_number.dart';
 import '../../domain/models/lance_beam.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
-
-/// Arcade floating damage number drifting upward on impacts.
-class FloatingDamageNumber {
-  FloatingDamageNumber({
-    required this.text,
-    required this.x,
-    required this.y,
-    required this.color,
-    this.lifetime = 0.75,
-    this.isCritical = false,
-  }) : remainingLifetime = lifetime;
-
-  final String text;
-  final double x;
-  double y;
-  final Color color;
-  final double lifetime;
-  double remainingLifetime;
-  final bool isCritical;
-
-  bool update(double dt) {
-    remainingLifetime -= dt;
-    y -= 50.0 * dt;
-    return remainingLifetime > 0.0;
-  }
-}
-
-/// Descending enemy plasma projectile fired from assault craft down corridors.
-class EnemyBullet {
-  EnemyBullet({
-    required this.id,
-    required this.assignedCorridor,
-    required this.x,
-    required this.y,
-    this.velocityY = 190.0,
-    this.radius = 4.5,
-    this.damage = 10,
-    required this.color,
-  });
-
-  final int id;
-  final int assignedCorridor;
-  double x;
-  double y;
-  final double velocityY;
-  final double radius;
-  final int damage;
-  final Color color;
-
-  bool update(double dt) {
-    y += velocityY * dt;
-    return true;
-  }
-}
 
 /// 60 FPS CustomPainter rendering combat corridors, particle lances,
 /// secondary flak bursts, enemy vessels, dropping enemy projectiles,

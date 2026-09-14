@@ -21,29 +21,13 @@
 #include <cstdint>
 #include <entt/entt.hpp>
 
+#include "../combat_rules.h"
 #include "../components.h"
 #include "absl/types/span.h"
 #include "ring_buffer.h"
 #include "spatial_grid.h"
 
 namespace void_sower::ecs {
-
-/**
- * @brief Computes quadratic particle lance damage from concentrated mass: D(M)
- * = alpha * M^2.
- */
-inline float ComputeLanceDamage(uint32_t mass,
-                                float alpha = kAlphaLanceDamage) {
-  return alpha * static_cast<float>(mass * mass);
-}
-
-/**
- * @brief Computes secondary flak burst damage from combined relay mass: D_flak
- * = beta * sqrt(M').
- */
-inline float ComputeFlakDamage(uint32_t mass, float beta = kBetaFlakDamage) {
-  return beta * std::sqrt(static_cast<float>(mass));
-}
 
 /**
  * @brief Executes combat simulation, FSM updates, and damage calculations.

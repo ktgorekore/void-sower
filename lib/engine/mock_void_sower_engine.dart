@@ -113,10 +113,10 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     }
 
     final finalMass = _bayCharges[currentBay];
-    final isFrontline = currentBay < 8;
+    final isFrontline = currentBay >= 8;
 
-    if (isFrontline && finalMass >= 4) {
-      final corridor = currentBay < 8 ? currentBay : 15 - currentBay;
+    if (isFrontline && finalMass >= 1) {
+      final corridor = currentBay - 8;
       final lanceX = (corridor + 0.5) / 8.0;
       _lances.add(
         LanceBeam(
@@ -126,12 +126,12 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
           beamWidth: 0.04 + (finalMass * 0.015),
           sustainedDuration: 0.5,
           remainingDuration: 0.5,
-          totalDamage: finalMass * finalMass * 15.0,
+          totalDamage: finalMass * finalMass * 100.0,
           active: true,
         ),
       );
-      _score += (finalMass * finalMass * 10);
     }
+    _score += (finalMass * finalMass * 10);
 
     return steps;
   }
@@ -276,18 +276,16 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     final carried = _bayCharges[startBay & 0x0F] + 1;
     final term = (startBay + (carried * direction) + 160) & 0x0F;
     final finalMass = _bayCharges[term] + 1;
-    final isFrontline = term < 8;
+    final isFrontline = term >= 8;
 
     return PredictionResult(
       terminalBay: term,
-      terminalCorridor: isFrontline ? term : -1,
+      terminalCorridor: isFrontline ? term - 8 : -1,
       finalMass: finalMass,
-      predictedDamage: isFrontline && finalMass >= 4
-          ? finalMass * finalMass * 15.0
-          : 0.0,
+      predictedDamage: isFrontline ? finalMass * finalMass * 100.0 : 0.0,
       totalCascadeLaps: carried ~/ 16,
-      triggersLance: isFrontline && finalMass >= 4,
-      triggersRelay: !isFrontline && finalMass >= 6,
+      triggersLance: isFrontline,
+      triggersRelay: !isFrontline && finalMass >= 4,
     );
   }
 
@@ -295,12 +293,12 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   List<BayState> getBays() {
     final result = <BayState>[];
     for (var i = 0; i < 16; i++) {
-      final isFrontline = i < 8;
+      final isFrontline = i >= 8;
       result.add(
         BayState(
           bayIndex: i,
           tier: isFrontline ? 1 : 0,
-          gridColumn: isFrontline ? i : 15 - i,
+          gridColumn: isFrontline ? (i - 8) : 0,
           chargeUnits: _bayCharges[i],
           radialPositionRad: (i / 16.0) * 6.2831853,
           isFrontline: isFrontline,
