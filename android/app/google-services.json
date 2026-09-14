@@ -1,0 +1,124 @@
+{
+  "project_info": {
+    "project_number": "368139306134",
+    "project_id": "oware-2048",
+    "storage_bucket": "oware-2048.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368139306134:android:015fc0552f1b25f8f9aeb7",
+        "android_client_info": {
+          "package_name": "com.oware2048.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "368139306134-2uvuoll3lko6eii0qnne956p2d6l960s.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.oware2048.app",
+            "certificate_hash": "5e4f869a6052b10c1c92c555ee2a0937a7feb5a7"
+          }
+        },
+        {
+          "client_id": "368139306134-c1jr37bti6f54893v8i2dq8lfou9cll7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.oware2048.app",
+            "certificate_hash": "f96c7b4a3a857507372c50055d952f52d916aa7e"
+          }
+        },
+        {
+          "client_id": "368139306134-f54sbvae4tbiu1d544tq3ktoio3b27v6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.oware2048.app",
+            "certificate_hash": "2d8eb3311255da8dfd939be155b6d76a811a5396"
+          }
+        },
+        {
+          "client_id": "368139306134-ima6rr5rgiif1cd13c9ek4d6r7ljjr8r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.oware2048.app",
+            "certificate_hash": "612565bb51ce284c8caf148f70ff85f308e9a722"
+          }
+        },
+        {
+          "client_id": "368139306134-ta5297co0cs9oqa83mgqqvqs5v2uginr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.oware2048.app",
+            "certificate_hash": "5b134821c0860d33bbb0cfd45bd25fc16b1ec646"
+          }
+        },
+        {
+          "client_id": "368139306134-keehurh5eivlpr4t641q68drrg0qjktg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDR4DlMVbBPoacOvvopj1xQoBALxxzHBJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "368139306134-keehurh5eivlpr4t641q68drrg0qjktg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:368139306134:android:21368b21f0978f18f9aeb7",
+        "android_client_info": {
+          "package_name": "com.voidsower.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "368139306134-1p26513j2qijpm6di10855onduqb963i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.voidsower.app",
+            "certificate_hash": "1acfe51740a1b2c125e0c7f16f45848935f61f4e"
+          }
+        },
+        {
+          "client_id": "368139306134-fb461j1nbmloospmbbav7e5ialfv2voc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.voidsower.app",
+            "certificate_hash": "612565bb51ce284c8caf148f70ff85f308e9a722"
+          }
+        },
+        {
+          "client_id": "368139306134-keehurh5eivlpr4t641q68drrg0qjktg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDR4DlMVbBPoacOvvopj1xQoBALxxzHBJI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "368139306134-keehurh5eivlpr4t641q68drrg0qjktg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

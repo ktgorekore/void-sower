@@ -18,6 +18,7 @@ import java.util.Properties
 plugins {
     id("com.android.application")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 val keystorePropertiesFile = rootProject.file("key.properties")
@@ -93,4 +94,9 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }
