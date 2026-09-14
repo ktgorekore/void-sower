@@ -33,6 +33,18 @@ cmake -B build/native_build -S src -DCMAKE_BUILD_TYPE=Release
 cmake --build build/native_build -j$(nproc)
 ctest --test-dir build/native_build --output-on-failure
 
+# Verify release signing configuration
+if [ ! -f "android/key.properties" ]; then
+  echo "[-] Error: 'android/key.properties' not found!"
+  echo "    Google Play rejects bundles signed with debug certificates."
+  echo "    Please create 'android/key.properties' with your release keystore credentials:"
+  echo "      storePassword=<your-password>"
+  echo "      keyPassword=<your-password>"
+  echo "      keyAlias=upload"
+  echo "      storeFile=upload-keystore.jks"
+  exit 1
+fi
+
 # Step 2: Build release bundle with Dart symbol obfuscation
 echo "[2/4] Building optimized release Android App Bundle (.aab)..."
 mkdir -p "$SYMBOL_DIR"
@@ -64,8 +76,17 @@ PAYLOAD_COMPRESSED_BYTES=$(echo "$PAYLOAD_STATS" | awk '{print $2}')
 PAYLOAD_DOWNLOAD_MB=$(echo "scale=2; $PAYLOAD_COMPRESSED_BYTES / 1048576" | bc)
 PAYLOAD_INSTALLED_MB=$(echo "scale=2; $PAYLOAD_UNCOMPRESSED_BYTES / 1048576" | bc)
 
+# Verify the bundle is signed with a release certificate (not debug)
+CERT_OWNER=$(keytool -printcert -jarfile "$BUNDLE_OUTPUT" 2>/dev/null | grep "Owner:" | head -n 1 || true)
+if echo "$CERT_OWNER" | grep -qi "Android Debug"; then
+  echo "[-] Error: Release bundle was signed with the Android Debug certificate!"
+  echo "    Google Play rejects debug-signed bundles. Verify android/key.properties."
+  exit 1
+fi
+
 echo "======================================================================"
 echo "Artifact: $BUNDLE_OUTPUT"
+echo "Signing Certificate: $CERT_OWNER"
 echo "Total Bundle Upload Size: $BUNDLE_SIZE_MB MB ($BUNDLE_SIZE bytes)"
 echo "Estimated User Download Size (arm64-v8a): $PAYLOAD_DOWNLOAD_MB MB ($PAYLOAD_COMPRESSED_BYTES bytes)"
 echo "Installed Device Footprint: $PAYLOAD_INSTALLED_MB MB ($PAYLOAD_UNCOMPRESSED_BYTES bytes)"
