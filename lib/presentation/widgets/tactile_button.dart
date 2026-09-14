@@ -28,6 +28,7 @@ class TactileButton extends StatefulWidget {
     this.minWidth = 120.0,
     this.height = 48.0,
     this.isPrimary = true,
+    this.padding = const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
   });
 
   final String label;
@@ -37,6 +38,7 @@ class TactileButton extends StatefulWidget {
   final double minWidth;
   final double height;
   final bool isPrimary;
+  final EdgeInsetsGeometry padding;
 
   @override
   State<TactileButton> createState() => _TactileButtonState();
@@ -103,7 +105,7 @@ class _TactileButtonState extends State<TactileButton>
             minWidth: widget.minWidth,
             minHeight: widget.height,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 10.0),
+          padding: widget.padding,
           decoration: BoxDecoration(
             color: widget.isPrimary
                 ? color.withValues(alpha: isEnabled ? 0.22 : 0.08)
@@ -131,15 +133,19 @@ class _TactileButtonState extends State<TactileButton>
                 Icon(widget.icon, color: color, size: 18.0),
                 const SizedBox(width: 8.0),
               ],
-              Text(
-                widget.label,
-                style: TextStyle(
-                  color: isEnabled
-                      ? VoidTheme.textPrimary
-                      : VoidTheme.textMuted,
-                  fontSize: 13.0,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+              Flexible(
+                child: Text(
+                  widget.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isEnabled
+                        ? VoidTheme.textPrimary
+                        : VoidTheme.textMuted,
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                  ),
                 ),
               ),
             ],

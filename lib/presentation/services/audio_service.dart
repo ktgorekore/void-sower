@@ -15,27 +15,50 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
-/// Low-latency audio player service with player pooling and pitch ramping.
+import '../../domain/services/persistence_service.dart';
+
+/// Low-latency audio player service with dedicated BGM and SFX pooling.
 class AudioService {
   AudioService._();
   static final AudioService instance = AudioService._();
 
-  bool isMuted = false;
-  double volume = 0.8;
+  double sfxVolume = 0.8;
+  double bgmVolume = 0.6;
+  bool isSfxMuted = false;
+  bool isBgmMuted = false;
 
-  final List<AudioPlayer> _playerPool = <AudioPlayer>[];
+  /// Backward-compatible alias for SFX mute status.
+  bool get isMuted => isSfxMuted;
+  set isMuted(bool value) => isSfxMuted = value;
+
+  /// Backward-compatible alias for SFX volume.
+  double get volume => sfxVolume;
+  set volume(double value) => sfxVolume = value;
+
+  AudioPlayer? _bgmPlayer;
+  final List<AudioPlayer> _sfxPool = <AudioPlayer>[];
   static const int _kPoolSize = 6;
   int _poolIndex = 0;
-
   bool _initialized = false;
 
+  /// Initializes BGM player and pre-allocates SFX player pool.
   Future<void> initialize() async {
     if (_initialized) return;
     try {
+      final p = PersistenceService.instance;
+      sfxVolume = p.sfxVolume;
+      bgmVolume = p.bgmVolume;
+      isSfxMuted = p.isSfxMuted;
+      isBgmMuted = p.isBgmMuted;
+
+      _bgmPlayer = AudioPlayer();
+      await _bgmPlayer!.setReleaseMode(ReleaseMode.loop);
+      await _bgmPlayer!.setVolume(isBgmMuted ? 0.0 : bgmVolume);
+
       for (var i = 0; i < _kPoolSize; i++) {
         final player = AudioPlayer();
-        await player.setVolume(volume);
-        _playerPool.add(player);
+        await player.setVolume(isSfxMuted ? 0.0 : sfxVolume);
+        _sfxPool.add(player);
       }
       _initialized = true;
     } catch (e) {
@@ -43,31 +66,95 @@ class AudioService {
     }
   }
 
+  /// Sets SFX channel volume and updates pool.
+  Future<void> setSfxVolume(double volume) async {
+    sfxVolume = volume.clamp(0.0, 1.0);
+    await PersistenceService.instance.setSfxVolume(sfxVolume);
+    for (final player in _sfxPool) {
+      await player.setVolume(isSfxMuted ? 0.0 : sfxVolume);
+    }
+  }
+
+  /// Sets BGM channel volume and updates background player.
+  Future<void> setBgmVolume(double volume) async {
+    bgmVolume = volume.clamp(0.0, 1.0);
+    await PersistenceService.instance.setBgmVolume(bgmVolume);
+    if (_bgmPlayer != null && !isBgmMuted) {
+      await _bgmPlayer!.setVolume(bgmVolume);
+    }
+  }
+
+  /// Toggles SFX mute status.
+  Future<void> setSfxMuted(bool muted) async {
+    isSfxMuted = muted;
+    await PersistenceService.instance.setSfxMuted(muted);
+    for (final player in _sfxPool) {
+      await player.setVolume(isSfxMuted ? 0.0 : sfxVolume);
+    }
+  }
+
+  /// Toggles BGM mute status.
+  Future<void> setBgmMuted(bool muted) async {
+    isBgmMuted = muted;
+    await PersistenceService.instance.setBgmMuted(muted);
+    if (_bgmPlayer != null) {
+      await _bgmPlayer!.setVolume(isBgmMuted ? 0.0 : bgmVolume);
+    }
+  }
+
+  /// Starts or restarts looping background music.
+  Future<void> startBgm({String assetPath = 'audio/kilwa_ambient.mp3'}) async {
+    if (_bgmPlayer == null) return;
+    try {
+      await _bgmPlayer!.setSource(AssetSource(assetPath));
+      await _bgmPlayer!.setVolume(isBgmMuted ? 0.0 : bgmVolume);
+      await _bgmPlayer!.resume();
+    } catch (e) {
+      debugPrint('[AudioService] startBgm fallback: $e');
+    }
+  }
+
+  /// Pauses looping background music.
+  Future<void> pauseBgm() async {
+    await _bgmPlayer?.pause();
+  }
+
+  /// Resumes background music if not muted.
+  Future<void> resumeBgm() async {
+    if (!isBgmMuted) {
+      await _bgmPlayer?.resume();
+    }
+  }
+
+  /// Stops background music.
+  Future<void> stopBgm() async {
+    await _bgmPlayer?.stop();
+  }
+
   AudioPlayer? _getNextPlayer() {
-    if (_playerPool.isEmpty) return null;
-    final player = _playerPool[_poolIndex];
-    _poolIndex = (_poolIndex + 1) % _playerPool.length;
+    if (_sfxPool.isEmpty) return null;
+    final player = _sfxPool[_poolIndex];
+    _poolIndex = (_poolIndex + 1) % _sfxPool.length;
     return player;
   }
 
+  /// Plays harmonic sow step SFX with cascade pitch ramping.
   Future<void> playSowStep({int cascadeDepth = 0}) async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
-        // Harmonic pitch ramp based on cascade depth
         final pitch = (1.0 + (cascadeDepth * 0.08)).clamp(0.5, 2.0);
         await player.setPlaybackRate(pitch);
         await player.setSource(AssetSource('audio/sow_step.wav'));
         await player.resume();
       }
-    } catch (_) {
-      // Graceful fallback if asset unprimed
-    }
+    } catch (_) {}
   }
 
+  /// Plays particle lance emission SFX.
   Future<void> playLanceFire() async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
@@ -78,8 +165,9 @@ class AudioService {
     } catch (_) {}
   }
 
+  /// Plays flak burst radial detonation SFX.
   Future<void> playFlakBurst() async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
@@ -90,8 +178,9 @@ class AudioService {
     } catch (_) {}
   }
 
+  /// Plays kinetic barrier absorption SFX.
   Future<void> playShieldHit() async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
@@ -102,8 +191,9 @@ class AudioService {
     } catch (_) {}
   }
 
+  /// Plays core injection SFX.
   Future<void> playInjectCore() async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
@@ -114,8 +204,9 @@ class AudioService {
     } catch (_) {}
   }
 
+  /// Plays sector liberation victory fanfare SFX.
   Future<void> playVictory() async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
@@ -126,8 +217,9 @@ class AudioService {
     } catch (_) {}
   }
 
+  /// Plays dreadnought destruction defeat SFX.
   Future<void> playGameOver() async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
@@ -138,8 +230,9 @@ class AudioService {
     } catch (_) {}
   }
 
+  /// Plays projectile deflection SFX.
   Future<void> playBulletDeflect() async {
-    if (isMuted || !_initialized) return;
+    if (isSfxMuted || !_initialized) return;
     try {
       final player = _getNextPlayer();
       if (player != null) {
@@ -150,11 +243,14 @@ class AudioService {
     } catch (_) {}
   }
 
+  /// Disposes BGM player and pool.
   void dispose() {
-    for (final player in _playerPool) {
+    _bgmPlayer?.dispose();
+    _bgmPlayer = null;
+    for (final player in _sfxPool) {
       player.dispose();
     }
-    _playerPool.clear();
+    _sfxPool.clear();
     _initialized = false;
   }
 }

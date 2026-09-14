@@ -23,7 +23,9 @@ class HudHeader extends StatelessWidget {
     required this.score,
     required this.difficultyTier,
     required this.onSettingsTap,
+    this.onCodexTap,
     this.onTutorialTap,
+    this.onEmergencyFlareTap,
     this.isAutoSolving = false,
     this.onToggleAutoSolve,
   });
@@ -32,7 +34,9 @@ class HudHeader extends StatelessWidget {
   final int score;
   final int difficultyTier;
   final VoidCallback onSettingsTap;
+  final VoidCallback? onCodexTap;
   final VoidCallback? onTutorialTap;
+  final VoidCallback? onEmergencyFlareTap;
   final bool isAutoSolving;
   final VoidCallback? onToggleAutoSolve;
 
@@ -81,44 +85,47 @@ class HudHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   // Reactor Reserve Core Gauge (Namua Fuel Pool)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7.0,
-                      vertical: 2.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: VoidTheme.cardSurface,
-                      borderRadius: BorderRadius.circular(5.0),
-                      border: Border.all(
-                        color: reserveCores <= 5
-                            ? VoidTheme.crimsonFlare
-                            : VoidTheme.solarGold.withValues(alpha: 0.7),
-                        width: 1.0,
+                  GestureDetector(
+                    onTap: onEmergencyFlareTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7.0,
+                        vertical: 2.5,
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.bolt,
+                      decoration: BoxDecoration(
+                        color: VoidTheme.cardSurface,
+                        borderRadius: BorderRadius.circular(5.0),
+                        border: Border.all(
                           color: reserveCores <= 5
                               ? VoidTheme.crimsonFlare
-                              : VoidTheme.solarGold,
-                          size: 13.0,
+                              : VoidTheme.solarGold.withValues(alpha: 0.7),
+                          width: 1.0,
                         ),
-                        const SizedBox(width: 3.0),
-                        Text(
-                          'REACTOR: $reserveCores',
-                          style: TextStyle(
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.bolt,
                             color: reserveCores <= 5
                                 ? VoidTheme.crimsonFlare
                                 : VoidTheme.solarGold,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.6,
+                            size: 13.0,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 3.0),
+                          Text(
+                            'REACTOR: $reserveCores',
+                            style: TextStyle(
+                              color: reserveCores <= 5
+                                  ? VoidTheme.crimsonFlare
+                                  : VoidTheme.solarGold,
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -273,6 +280,23 @@ class HudHeader extends StatelessWidget {
                           onPressed: onTutorialTap,
                           tooltip: 'Flight Academy',
                         ),
+                      if (onCodexTap != null) ...[
+                        const SizedBox(width: 4.0),
+                        IconButton(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0,
+                            vertical: 2.0,
+                          ),
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(
+                            Icons.menu_book_outlined,
+                            color: VoidTheme.plasmaCyan,
+                            size: 16.0,
+                          ),
+                          onPressed: onCodexTap,
+                          tooltip: 'Bao Codex',
+                        ),
+                      ],
                       const SizedBox(width: 4.0),
                       IconButton(
                         padding: const EdgeInsets.symmetric(
@@ -281,12 +305,12 @@ class HudHeader extends StatelessWidget {
                         ),
                         constraints: const BoxConstraints(),
                         icon: const Icon(
-                          Icons.menu_book_outlined,
-                          color: VoidTheme.plasmaCyan,
+                          Icons.settings,
+                          color: VoidTheme.solarGold,
                           size: 16.0,
                         ),
                         onPressed: onSettingsTap,
-                        tooltip: 'Bao Codex',
+                        tooltip: 'Fleet Settings',
                       ),
                     ],
                   ),

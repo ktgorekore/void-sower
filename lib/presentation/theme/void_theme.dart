@@ -30,6 +30,7 @@ class VoidTheme {
   static const Color emeraldShield = Color(0xFF00FFA3);
 
   static const Color textPrimary = Color(0xFFF0F4FC);
+  static const Color starWhite = Color(0xFFF0F4FC);
   static const Color textSecondary = Color(0xFF90A0C0);
   static const Color textMuted = Color(0xFF5A6882);
 
