@@ -153,20 +153,26 @@ Once the first `.aab` is uploaded to the Google Play Console:
    ```bash
    cp ~/Downloads/google-services.json android/app/google-services.json
    ```
-3. Verify that `android/app/build.gradle.kts` has the Google Services plugin enabled:
+3. Verify that `android/settings.gradle.kts` has the Google Services plugin declared:
+   ```kotlin
+   plugins {
+       id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+       id("com.android.application") version "9.0.1" apply false
+       id("org.jetbrains.kotlin.android") version "2.3.20" apply false
+       id("com.google.gms.google-services") version "4.5.0" apply false
+   }
+   ```
+4. Verify `android/app/build.gradle.kts` applies the plugin and Firebase BoM dependencies:
    ```kotlin
    plugins {
        id("com.android.application")
        id("dev.flutter.flutter-gradle-plugin")
-       id("com.google.gms.google-services") // Apply Google Services plugin
-       id("com.google.firebase.crashlytics") // Apply Crashlytics NDK plugin
+       id("com.google.gms.google-services")
    }
-   ```
-4. Verify `android/build.gradle.kts` root dependencies include:
-   ```kotlin
+
    dependencies {
-       classpath("com.google.gms:google-services:4.4.2")
-       classpath("com.google.firebase:firebase-crashlytics-gradle:3.0.3")
+       implementation(platform("com.google.firebase:firebase-bom:34.19.0"))
+       implementation("com.google.firebase:firebase-analytics")
    }
    ```
 
