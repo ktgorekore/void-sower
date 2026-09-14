@@ -121,6 +121,8 @@ class _CombatScreenState extends State<CombatScreen>
       initialVelocityY: 0.02 + (_currentDifficultyTier * 0.008),
     );
     _syncState();
+    _selectedBay = 11;
+    _prediction = widget.engine.predictSow(11, 1);
   }
 
   void _advanceNextSector() {
@@ -567,6 +569,14 @@ class _CombatScreenState extends State<CombatScreen>
 
   void _handleSlidePosition(double targetX) {
     widget.engine.slideDreadnought(targetX);
+    final corridor = (targetX * 8.0).floor().clamp(0, 7);
+    final frontlineBay = corridor + 8;
+    if (_selectedBay != frontlineBay && !_isSowAnimating) {
+      setState(() {
+        _selectedBay = frontlineBay;
+        _prediction = widget.engine.predictSow(frontlineBay, 1);
+      });
+    }
   }
 
   void _showGameOver() {
@@ -727,17 +737,32 @@ class _CombatScreenState extends State<CombatScreen>
                             constraints.maxWidth,
                             constraints.maxHeight,
                           );
-                          return CustomPaint(
-                            size: _combatViewportSize!,
-                            painter: CombatPainter(
-                              dreadnought: _dreadnought,
-                              enemies: _enemies,
-                              lances: _lances,
-                              flaks: _flaks,
-                              particles: _particleService.activeParticles,
-                              damageNumbers: _damageNumbers,
-                              enemyBullets: _enemyBullets,
-                              animationTime: _animationTime,
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onPanUpdate: (details) {
+                              final normX =
+                                  (details.localPosition.dx /
+                                          constraints.maxWidth)
+                                      .clamp(0.0, 1.0);
+                              _handleSlidePosition(normX);
+                            },
+                            onTap: () {
+                              if (_selectedBay != null && !_isSowAnimating) {
+                                _handleInjectCore(_selectedBay!, 1);
+                              }
+                            },
+                            child: CustomPaint(
+                              size: _combatViewportSize!,
+                              painter: CombatPainter(
+                                dreadnought: _dreadnought,
+                                enemies: _enemies,
+                                lances: _lances,
+                                flaks: _flaks,
+                                particles: _particleService.activeParticles,
+                                damageNumbers: _damageNumbers,
+                                enemyBullets: _enemyBullets,
+                                animationTime: _animationTime,
+                              ),
                             ),
                           );
                         },

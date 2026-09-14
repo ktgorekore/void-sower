@@ -54,6 +54,11 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
     });
     final normalizedX = (0.5 + (_sliderOffset / maxWidth)).clamp(0.0, 1.0);
     widget.onSlidePosition(normalizedX);
+    final corridor = (normalizedX * 8.0).floor().clamp(0, 7);
+    final frontlineBay = corridor + 8;
+    if (widget.selectedBay != frontlineBay) {
+      widget.onBaySelected(frontlineBay);
+    }
   }
 
   @override
@@ -167,7 +172,127 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
 
               // Backline Tier (Bays 8 to 15)
               _buildBayRow(backlineBays, isFrontline: false),
-              const SizedBox(height: 10.0),
+              const SizedBox(height: 8.0),
+
+              // Tactical Flagship Conduit Action Deck (Option 1)
+              Builder(
+                builder: (context) {
+                  final selected = widget.selectedBay;
+                  final activeCorridor =
+                      (selected != null && selected >= 8 && selected <= 15)
+                      ? selected - 8
+                      : ((0.5 + (_sliderOffset / constraints.maxWidth)).clamp(
+                                  0.0,
+                                  1.0,
+                                ) *
+                                8.0)
+                            .floor()
+                            .clamp(0, 7);
+                  final activeBay = selected ?? (activeCorridor + 8);
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Row(
+                      children: [
+                        // SOW CCW (-1) Button
+                        Expanded(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticService.instance.sowTick();
+                              widget.onSowAction(activeBay, -1);
+                            },
+                            child: Container(
+                              height: 38.0,
+                              decoration: BoxDecoration(
+                                color: VoidTheme.cardSurface,
+                                borderRadius: BorderRadius.circular(8.0),
+                                border: Border.all(
+                                  color: VoidTheme.solarGold.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                  width: 1.2,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.arrow_back,
+                                    color: VoidTheme.solarGold,
+                                    size: 14.0,
+                                  ),
+                                  SizedBox(width: 4.0),
+                                  Text(
+                                    'SOW CCW',
+                                    style: TextStyle(
+                                      color: VoidTheme.solarGold,
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8.0),
+                        // Primary DISCHARGE LANCE / SOW CW (+1) Button
+                        Expanded(
+                          flex: 3,
+                          child: GestureDetector(
+                            onTap: () {
+                              HapticService.instance.injectionClick();
+                              widget.onInjectCore(activeBay, 1);
+                            },
+                            child: Container(
+                              height: 38.0,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    VoidTheme.plasmaCyan,
+                                    VoidTheme.plasmaCyanLight,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(8.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: VoidTheme.plasmaCyan.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 8.0,
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.bolt,
+                                    color: VoidTheme.obsidianBlack,
+                                    size: 16.0,
+                                  ),
+                                  const SizedBox(width: 4.0),
+                                  Text(
+                                    'DISCHARGE C${activeCorridor + 1} ►',
+                                    style: const TextStyle(
+                                      color: VoidTheme.obsidianBlack,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
 
               // Horizontal Lateral Orbital Platform Slider
               GestureDetector(
@@ -283,7 +408,12 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           HapticService.instance.sowTick();
-          widget.onBaySelected(bay.bayIndex);
+          if (widget.selectedBay == bay.bayIndex) {
+            HapticService.instance.injectionClick();
+            widget.onInjectCore(bay.bayIndex, 1);
+          } else {
+            widget.onBaySelected(bay.bayIndex);
+          }
         },
         onDoubleTap: () {
           HapticService.instance.injectionClick();

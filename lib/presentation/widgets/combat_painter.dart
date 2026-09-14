@@ -414,18 +414,58 @@ class CombatPainter extends CustomPainter {
 
     // Active corridor highlight under dreadnought
     final activeCorridor = (centerX / (size.width / 8.0)).floor().clamp(0, 7);
+    final corridorWidth = size.width / 8.0;
+    final targetCenterX = (activeCorridor + 0.5) * corridorWidth;
+
     final highlightPaint = Paint()
       ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.08)
       ..style = PaintingStyle.fill;
     canvas.drawRect(
       Rect.fromLTWH(
-        activeCorridor * (size.width / 8.0),
+        activeCorridor * corridorWidth,
         0,
-        size.width / 8.0,
+        corridorWidth,
         boundaryY,
       ),
       highlightPaint,
     );
+
+    // 1b. Targeting Alignment Laser Beam (Option 1 Unified Conduit)
+    final aimPulse = 0.22 + 0.12 * math.sin(animationTime * 10.0);
+    final aimPaint = Paint()
+      ..color = VoidTheme.plasmaCyan.withValues(alpha: aimPulse)
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(
+      Offset(targetCenterX, boundaryY),
+      Offset(targetCenterX, 0),
+      aimPaint,
+    );
+
+    // Lock-on reticles on any descending enemies in active corridor
+    final topMargin = size.height * 0.06;
+    for (final enemy in enemies) {
+      if (!enemy.isDestroyed && enemy.assignedCorridor == activeCorridor) {
+        final double ey = (enemy.worldPosY <= 1.0)
+            ? topMargin +
+                  ((1.0 - enemy.worldPosY.clamp(0.0, 1.0)) / 0.85) *
+                      (boundaryY - topMargin)
+            : enemy.worldPosY;
+        final lockPaint = Paint()
+          ..color = VoidTheme.solarGold.withValues(alpha: 0.85)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.8;
+        final lockSize = 16.0 + 2.0 * math.sin(animationTime * 8.0);
+        canvas.drawRect(
+          Rect.fromCenter(
+            center: Offset(targetCenterX, ey),
+            width: lockSize * 2,
+            height: lockSize * 2,
+          ),
+          lockPaint,
+        );
+      }
+    }
 
     // 2. Animated Twin Plasma Thrusters
     final flameHeight = 13.0 + math.sin(animationTime * 20.0) * 4.0;
@@ -556,7 +596,7 @@ class CombatPainter extends CustomPainter {
 
     // 7. Unmistakable Flagship Label HUD
     final labelSpan = TextSpan(
-      text: '▲ DREADNOUGHT FLAGSHIP ▲',
+      text: '▲ DREADNOUGHT CONDUIT [C${activeCorridor + 1}] ▲',
       style: const TextStyle(
         color: VoidTheme.solarGold,
         fontSize: 8.5,
