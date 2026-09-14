@@ -15,13 +15,15 @@
 import '../../domain/models/bay_state.dart';
 import '../../domain/models/dreadnought_state.dart';
 import '../../domain/models/enemy_craft.dart';
+import '../../domain/models/prediction_result.dart';
 import '../../domain/services/game_engine_interface.dart';
 
 /// Callback when the autonomous solver selects a strategic action.
 typedef OnSolverMoveSelected =
     void Function(int bayIndex, int direction, double targetSlideX);
 
-/// Encapsulates autonomous tactical decision evaluation and action pacing.
+/// Encapsulates autonomous tactical decision evaluation, zero-allocation
+/// threat scanning, and adaptive action pacing to prevent orbital breaches.
 class TacticalSolverController {
   TacticalSolverController({
     required this.engine,
@@ -32,6 +34,9 @@ class TacticalSolverController {
   final OnSolverMoveSelected onMoveSelected;
 
   double _cooldown = 0.0;
+
+  /// Current remaining cooldown in seconds.
+  double get cooldown => _cooldown;
 
   /// Resets cooldown timer.
   void reset() {
@@ -54,27 +59,60 @@ class TacticalSolverController {
     _cooldown -= dt;
     if (_cooldown > 0.0) return;
 
-    final activeEnemies = enemies
-        .where((e) => !e.isDestroyed && e.worldPosY > 0.15)
-        .toList();
-    if (activeEnemies.isEmpty) return;
+    // Zero-allocation active enemy scan & threat proximity evaluation.
+    int activeCorridorsMask = 0;
+    int criticalCorridorsMask = 0;
+    int activeEnemyCount = 0;
+    double minDistanceToBoundary = 1.0;
 
-    final activeCorridors = activeEnemies
-        .map((e) => e.assignedCorridor)
-        .toSet();
+    for (var i = 0; i < enemies.length; i++) {
+      final enemy = enemies[i];
+      if (enemy.isDestroyed || enemy.worldPosY <= 0.15) {
+        continue;
+      }
+      activeEnemyCount++;
+      final corridor = enemy.assignedCorridor;
+      if (corridor >= 0 && corridor < 8) {
+        activeCorridorsMask |= (1 << corridor);
+        final dist = enemy.worldPosY - 0.15;
+        if (dist < minDistanceToBoundary) {
+          minDistanceToBoundary = dist;
+        }
+        // If enemy is below Y = 0.40, corridor is under imminent breach threat!
+        if (enemy.worldPosY < 0.40) {
+          criticalCorridorsMask |= (1 << corridor);
+        }
+      }
+    }
+
+    if (activeEnemyCount == 0) return;
 
     int bestBay = 0;
     int bestDir = 1;
     double bestScore = -1.0;
+    PredictionResult? bestPred;
 
     for (int bay = 0; bay < 16; bay++) {
       for (final dir in [1, -1]) {
         final pred = engine.predictSow(bay, dir);
         double score = 0.0;
 
-        if (pred.triggersLance &&
-            activeCorridors.contains(pred.terminalCorridor)) {
-          score += 1000.0 + (pred.predictedDamage * 10.0);
+        final corridor = pred.terminalCorridor;
+        final bool corridorHasEnemy =
+            corridor >= 0 &&
+            corridor < 8 &&
+            (activeCorridorsMask & (1 << corridor)) != 0;
+        final bool isCriticalCorridor =
+            corridor >= 0 &&
+            corridor < 8 &&
+            (criticalCorridorsMask & (1 << corridor)) != 0;
+
+        if (pred.triggersLance && corridorHasEnemy) {
+          score += 1200.0 + (pred.predictedDamage * 15.0);
+          // Massively prioritize destroying enemies on the verge of breach!
+          if (isCriticalCorridor) {
+            score += 3000.0;
+          }
         }
         if (pred.triggersRelay) {
           score += 600.0 + (pred.totalCascadeLaps * 150.0);
@@ -90,11 +128,12 @@ class TacticalSolverController {
           bestScore = score;
           bestBay = bay;
           bestDir = dir;
+          bestPred = pred;
         }
       }
     }
 
-    final pred = engine.predictSow(bestBay, bestDir);
+    final pred = bestPred ?? engine.predictSow(bestBay, bestDir);
     final int targetCorridor;
     if (pred.terminalCorridor >= 0) {
       targetCorridor = pred.terminalCorridor;
@@ -106,6 +145,15 @@ class TacticalSolverController {
     final targetX = ((targetCorridor + 0.5) / 8.0).clamp(0.0, 1.0);
 
     onMoveSelected(bestBay, bestDir, targetX);
-    _cooldown = 1.0;
+
+    // Adaptive reactive pacing:
+    // If invaders are near atmospheric horizon, counter immediately.
+    if (minDistanceToBoundary < 0.25) {
+      _cooldown = 0.16; // Imminent breach emergency
+    } else if (minDistanceToBoundary < 0.50) {
+      _cooldown = 0.32; // Mid-range encounter
+    } else {
+      _cooldown = 0.55; // Long-range setup
+    }
   }
 }
