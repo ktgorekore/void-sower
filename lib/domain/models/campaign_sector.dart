@@ -21,14 +21,48 @@ class CampaignSector {
     required this.difficultyTier,
     required this.starsEarned,
     required this.isUnlocked,
+    this.isLiberated = false,
     required this.bestScore,
+    this.requiredSectorId,
+    this.requiredSectorName,
   });
 
+  /// 1-based index of the sector across the 9-sector campaign.
   final int sectorId;
+
+  /// Lore designation of the orbital sector.
   final String name;
-  final String region; // 'Outer Bastions', 'Monsoon Straits', 'Core Siphon'
-  final int difficultyTier; // 0, 1, 2
-  final int starsEarned; // 0 to 3
+
+  /// Campaign region ('Outer Bastions', 'Monsoon Straits', 'Core Siphon').
+  final String region;
+
+  /// Threat tier (0 = Patrol, 1 = Monsoon, 2 = Singularity).
+  final int difficultyTier;
+
+  /// Stars earned in this sector (0 to 3).
+  final int starsEarned;
+
+  /// Whether this sector is unlocked and accessible to the commander.
   final bool isUnlocked;
+
+  /// Whether this sector has been liberated (hostiles defeated at least once).
+  final bool isLiberated;
+
+  /// High score achieved in this sector.
   final int bestScore;
+
+  /// 1-based sector ID required to unlock this sector (if locked).
+  final int? requiredSectorId;
+
+  /// Designation of the required sector (if locked).
+  final String? requiredSectorName;
+
+  /// Human-readable unlock requirement text.
+  String get unlockRequirement {
+    if (isUnlocked) return 'Sector secured for orbital transit.';
+    if (requiredSectorName != null && requiredSectorId != null) {
+      return 'Liberate Sector $requiredSectorId: $requiredSectorName to break imperial blockade.';
+    }
+    return 'Liberate the preceding sector to establish sensor lock.';
+  }
 }

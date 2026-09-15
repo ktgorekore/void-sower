@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../domain/models/pro_feature.dart';
+import '../../domain/services/campaign_service.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
@@ -44,12 +45,14 @@ class CombatScreen extends StatefulWidget {
     super.key,
     required this.engine,
     this.difficultyTier = 0,
+    this.sectorId = 1,
     this.onReturnToMap,
     this.autoStartSolver = false,
   });
 
   final IVoidSowerEngine engine;
   final int difficultyTier;
+  final int sectorId;
   final VoidCallback? onReturnToMap;
   final bool autoStartSolver;
 
@@ -67,20 +70,23 @@ class _CombatScreenState extends State<CombatScreen>
   Size? _combatViewportSize;
 
   int _currentDifficultyTier = 0;
+  int _currentSectorId = 1;
   bool _isModalOpen = false;
   Timer? _autoAdvanceTimer;
 
   @override
   void initState() {
     super.initState();
-    _currentDifficultyTier = widget.difficultyTier;
+    _currentSectorId = widget.sectorId;
+    final sector = CampaignService.instance.getSector(_currentSectorId);
+    _currentDifficultyTier = sector.difficultyTier;
     _coordinator = CombatCoordinator(
       engine: widget.engine,
-      difficultyTier: widget.difficultyTier,
+      difficultyTier: _currentDifficultyTier,
     );
     _coordinator.addListener(_onCoordinatorStateChanged);
     _coordinator.initialize(
-      difficulty: widget.difficultyTier,
+      difficulty: _currentDifficultyTier,
       autoStartSolver: widget.autoStartSolver,
     );
 
@@ -176,21 +182,58 @@ class _CombatScreenState extends State<CombatScreen>
     }
   }
 
-  void _showVictoryModal() {
+  Future<void> _showVictoryModal() async {
     _isModalOpen = true;
     _autoAdvanceTimer?.cancel();
+
+    final score = _coordinator.dreadnought.totalScore;
+    final cores = _coordinator.dreadnought.reserveCores;
+    final enemiesNeutralized = _coordinator.enemies
+        .where((e) => e.isDestroyed)
+        .length;
+    final previousLiberated = PersistenceService.instance.liberatedSectors;
+
+    await PersistenceService.instance.recordSectorVictory(
+      sectorId: _currentSectorId,
+      score: score,
+      coresRemaining: cores,
+      enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
+    );
+
+    if (!mounted) return;
+
+    final newLiberated = PersistenceService.instance.liberatedSectors;
+    final isNewUnlock =
+        newLiberated > previousLiberated && _currentSectorId < 9;
+    final nextSector = isNewUnlock
+        ? CampaignService.instance.getSector(_currentSectorId + 1)
+        : null;
+    final allSectors = CampaignService.instance.getSectors();
+    final liberatedCount = allSectors.where((s) => s.isLiberated).length;
+    final currentSector = CampaignService.instance.getSector(_currentSectorId);
 
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => VictoryDialog(
-        score: _coordinator.dreadnought.totalScore,
-        coresRemaining: _coordinator.dreadnought.reserveCores,
+        score: score,
+        coresRemaining: cores,
+        sectorId: _currentSectorId,
+        sectorName: currentSector.name,
+        isNewUnlock: isNewUnlock,
+        unlockedSectorName: nextSector?.name,
+        campaignProgressText: '$liberatedCount / 9 LIBERATED',
         onNextSector: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _isModalOpen = false;
           _advanceNextSector();
+        },
+        onReturnToMap: () {
+          _autoAdvanceTimer?.cancel();
+          Navigator.of(dialogContext).pop();
+          _isModalOpen = false;
+          _openMap();
         },
       ),
     );
@@ -207,6 +250,8 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _restartCombat() {
+    final sector = CampaignService.instance.getSector(_currentSectorId);
+    _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
       autoStartSolver: _coordinator.state.isAutoSolving,
@@ -214,7 +259,11 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _advanceNextSector() {
-    _currentDifficultyTier = (_currentDifficultyTier + 1) % 3;
+    if (_currentSectorId < 9) {
+      _currentSectorId++;
+    }
+    final sector = CampaignService.instance.getSector(_currentSectorId);
+    _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
       autoStartSolver: _coordinator.state.isAutoSolving,
@@ -401,6 +450,11 @@ class _CombatScreenState extends State<CombatScreen>
                   reserveCores: dread.reserveCores,
                   score: dread.totalScore,
                   difficultyTier: _currentDifficultyTier,
+                  sectorId: _currentSectorId,
+                  sectorName: CampaignService.instance
+                      .getSector(_currentSectorId)
+                      .name,
+                  totalInvaders: _coordinator.enemies.length,
                   invadersRemaining: _coordinator.enemies
                       .where((e) => !e.isDestroyed)
                       .length,
@@ -580,6 +634,60 @@ class _CombatScreenState extends State<CombatScreen>
                                         color: VoidTheme.crimsonFlare,
                                         fontSize: 9.0,
                                         fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        // Sector Secured Banner when all hostiles are wiped
+                        if (_coordinator.enemies.isNotEmpty &&
+                            _coordinator.enemies.every((e) => e.isDestroyed))
+                          Positioned(
+                            top: 36.0,
+                            left: 20.0,
+                            right: 20.0,
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14.0,
+                                  vertical: 6.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: VoidTheme.obsidianBlack.withValues(
+                                    alpha: 0.92,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  border: Border.all(
+                                    color: VoidTheme.emeraldShield,
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: VoidTheme.emeraldShield.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                      blurRadius: 10.0,
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.verified,
+                                      color: VoidTheme.emeraldShield,
+                                      size: 16.0,
+                                    ),
+                                    const SizedBox(width: 6.0),
+                                    Text(
+                                      'SECTOR $_currentSectorId SECURED • ALL HOSTILES ELIMINATED',
+                                      style: const TextStyle(
+                                        color: VoidTheme.emeraldShield,
+                                        fontSize: 10.0,
+                                        fontWeight: FontWeight.w900,
                                         letterSpacing: 0.8,
                                       ),
                                     ),

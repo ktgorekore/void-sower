@@ -84,6 +84,60 @@ class PersistenceService {
     }
   }
 
+  static const String _kSectorStarsPrefix = 'void_sower_sector_stars_';
+  static const String _kSectorScorePrefix = 'void_sower_sector_score_';
+
+  /// Retrieves stars earned (0 to 3) for a specific campaign sector.
+  int getSectorStars(int sectorId) {
+    return _prefs?.getInt('$_kSectorStarsPrefix$sectorId') ??
+        (liberatedSectors > sectorId ? 3 : 0);
+  }
+
+  /// Retrieves personal high score achieved in a specific campaign sector.
+  int getSectorScore(int sectorId) {
+    return _prefs?.getInt('$_kSectorScorePrefix$sectorId') ?? 0;
+  }
+
+  /// Records a successful sector defense, awards stars and score, unlocks the next sector,
+  /// and increments pilot profile statistics.
+  Future<void> recordSectorVictory({
+    required int sectorId,
+    required int score,
+    required int coresRemaining,
+    int enemiesNeutralized = 4,
+  }) async {
+    final earnedStars = coresRemaining >= 16
+        ? 3
+        : (coresRemaining >= 8 ? 2 : 1);
+    final previousStars = getSectorStars(sectorId);
+    if (earnedStars > previousStars) {
+      await _prefs?.setInt('$_kSectorStarsPrefix$sectorId', earnedStars);
+    }
+
+    final previousScore = getSectorScore(sectorId);
+    if (score > previousScore) {
+      await _prefs?.setInt('$_kSectorScorePrefix$sectorId', score);
+    }
+
+    // Advance campaign frontier if this was the current vanguard sector
+    if (sectorId >= liberatedSectors && sectorId < 9) {
+      await setLiberatedSectors(sectorId + 1);
+    } else if (sectorId == 9) {
+      await setLiberatedSectors(10);
+    }
+
+    // Update global high score
+    await setHighScore(score);
+
+    // Update active pilot profile statistics
+    final active = userProfile;
+    final updatedProfile = active.copyWith(
+      lifetimeScore: active.lifetimeScore + score,
+      enemiesDestroyed: active.enemiesDestroyed + enemiesNeutralized,
+    );
+    await saveUserProfile(updatedProfile);
+  }
+
   bool get isProUnlocked => _prefs?.getBool(_kProUnlocked) ?? false;
   Future<void> setProUnlocked(bool unlocked) async {
     await _prefs?.setBool(_kProUnlocked, unlocked);

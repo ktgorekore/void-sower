@@ -24,6 +24,8 @@ class HudHeader extends StatelessWidget {
     required this.reserveCores,
     required this.score,
     required this.difficultyTier,
+    this.sectorId = 1,
+    this.sectorName = 'Zanzibar Reef Gate',
     required this.onSettingsTap,
     this.onCodexTap,
     this.onTutorialTap,
@@ -33,6 +35,7 @@ class HudHeader extends StatelessWidget {
     this.userProfile,
     this.onProfileTap,
     this.invadersRemaining,
+    this.totalInvaders,
     this.isPaused = false,
     this.onTogglePause,
     this.onMapTap,
@@ -41,6 +44,8 @@ class HudHeader extends StatelessWidget {
   final int reserveCores;
   final int score;
   final int difficultyTier;
+  final int sectorId;
+  final String sectorName;
   final VoidCallback onSettingsTap;
   final VoidCallback? onCodexTap;
   final VoidCallback? onTutorialTap;
@@ -50,6 +55,7 @@ class HudHeader extends StatelessWidget {
   final UserProfile? userProfile;
   final VoidCallback? onProfileTap;
   final int? invadersRemaining;
+  final int? totalInvaders;
   final bool isPaused;
   final VoidCallback? onTogglePause;
   final VoidCallback? onMapTap;
@@ -121,7 +127,7 @@ class HudHeader extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'T${difficultyTier + 1} • $tierName',
+                          'S$sectorId • $tierName',
                           style: TextStyle(
                             color: difficultyTier == 2
                                 ? VoidTheme.crimsonFlare
@@ -133,7 +139,7 @@ class HudHeader extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 5.0),
-                      // Invaders Remaining Pill
+                      // Invaders Remaining / Elimination Progress Pill
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6.0,
@@ -145,9 +151,14 @@ class HudHeader extends StatelessWidget {
                           border: Border.all(
                             color:
                                 (invadersRemaining != null &&
-                                    invadersRemaining! <= 3)
-                                ? VoidTheme.solarGold
-                                : VoidTheme.textMuted.withValues(alpha: 0.4),
+                                    invadersRemaining == 0)
+                                ? VoidTheme.emeraldShield
+                                : ((invadersRemaining != null &&
+                                          invadersRemaining! <= 2)
+                                      ? VoidTheme.solarGold
+                                      : VoidTheme.textMuted.withValues(
+                                          alpha: 0.4,
+                                        )),
                             width: 0.8,
                           ),
                         ),
@@ -155,25 +166,38 @@ class HudHeader extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              Icons.shield_outlined,
+                              (invadersRemaining != null &&
+                                      invadersRemaining == 0)
+                                  ? Icons.check_circle
+                                  : Icons.shield_outlined,
                               size: 11.0,
                               color:
                                   (invadersRemaining != null &&
-                                      invadersRemaining! <= 3)
-                                  ? VoidTheme.solarGold
-                                  : VoidTheme.textSecondary,
+                                      invadersRemaining == 0)
+                                  ? VoidTheme.emeraldShield
+                                  : ((invadersRemaining != null &&
+                                            invadersRemaining! <= 2)
+                                        ? VoidTheme.solarGold
+                                        : VoidTheme.textSecondary),
                             ),
                             const SizedBox(width: 3.0),
                             Text(
                               invadersRemaining != null
-                                  ? '$invadersRemaining HOSTILES'
+                                  ? (invadersRemaining == 0
+                                        ? 'SECURED'
+                                        : (totalInvaders != null
+                                              ? '${totalInvaders! - invadersRemaining!}/$totalInvaders HOSTILES'
+                                              : '$invadersRemaining HOSTILES'))
                                   : 'DEFENSE GRID ACTIVE',
                               style: TextStyle(
                                 color:
                                     (invadersRemaining != null &&
-                                        invadersRemaining! <= 3)
-                                    ? VoidTheme.solarGold
-                                    : VoidTheme.textSecondary,
+                                        invadersRemaining == 0)
+                                    ? VoidTheme.emeraldShield
+                                    : ((invadersRemaining != null &&
+                                              invadersRemaining! <= 2)
+                                          ? VoidTheme.solarGold
+                                          : VoidTheme.textSecondary),
                                 fontSize: 8.5,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.3,

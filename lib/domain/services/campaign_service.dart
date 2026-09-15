@@ -20,8 +20,19 @@ class CampaignService {
   CampaignService._();
   static final CampaignService instance = CampaignService._();
 
+  /// Retrieves a specific sector by its 1-based sector ID.
+  CampaignSector getSector(int sectorId) {
+    final sectors = getSectors();
+    return sectors.firstWhere(
+      (s) => s.sectorId == sectorId,
+      orElse: () => sectors.first,
+    );
+  }
+
+  /// Returns the complete list of 9 campaign sectors with dynamic unlock and liberation state.
   List<CampaignSector> getSectors() {
-    final liberated = PersistenceService.instance.liberatedSectors;
+    final persistence = PersistenceService.instance;
+    final liberated = persistence.liberatedSectors;
 
     return [
       // Region 1: Outer Bastions (Tier 1)
@@ -30,27 +41,42 @@ class CampaignService {
         name: 'Zanzibar Reef Gate',
         region: 'Outer Bastions',
         difficultyTier: 0,
-        starsEarned: liberated > 1 ? 3 : 0,
+        starsEarned: persistence.getSectorStars(1),
         isUnlocked: true,
-        bestScore: 1200,
+        isLiberated: liberated > 1 || persistence.getSectorStars(1) > 0,
+        bestScore: persistence.getSectorScore(1) > 0
+            ? persistence.getSectorScore(1)
+            : 1200,
+        requiredSectorId: null,
+        requiredSectorName: null,
       ),
       CampaignSector(
         sectorId: 2,
         name: 'Pemba Channel Relay',
         region: 'Outer Bastions',
         difficultyTier: 0,
-        starsEarned: liberated > 2 ? 3 : 0,
+        starsEarned: persistence.getSectorStars(2),
         isUnlocked: liberated >= 2,
-        bestScore: 1650,
+        isLiberated: liberated > 2 || persistence.getSectorStars(2) > 0,
+        bestScore: persistence.getSectorScore(2) > 0
+            ? persistence.getSectorScore(2)
+            : 1650,
+        requiredSectorId: 1,
+        requiredSectorName: 'Zanzibar Reef Gate',
       ),
       CampaignSector(
         sectorId: 3,
         name: 'Mafia Trench Fortress',
         region: 'Outer Bastions',
         difficultyTier: 0,
-        starsEarned: liberated > 3 ? 2 : 0,
+        starsEarned: persistence.getSectorStars(3),
         isUnlocked: liberated >= 3,
-        bestScore: 2100,
+        isLiberated: liberated > 3 || persistence.getSectorStars(3) > 0,
+        bestScore: persistence.getSectorScore(3) > 0
+            ? persistence.getSectorScore(3)
+            : 2100,
+        requiredSectorId: 2,
+        requiredSectorName: 'Pemba Channel Relay',
       ),
 
       // Region 2: Monsoon Straits (Tier 2)
@@ -59,27 +85,42 @@ class CampaignService {
         name: 'Kaskazi Ion Stream',
         region: 'Monsoon Straits',
         difficultyTier: 1,
-        starsEarned: liberated > 4 ? 3 : 0,
+        starsEarned: persistence.getSectorStars(4),
         isUnlocked: liberated >= 4,
-        bestScore: 3400,
+        isLiberated: liberated > 4 || persistence.getSectorStars(4) > 0,
+        bestScore: persistence.getSectorScore(4) > 0
+            ? persistence.getSectorScore(4)
+            : 3400,
+        requiredSectorId: 3,
+        requiredSectorName: 'Mafia Trench Fortress',
       ),
       CampaignSector(
         sectorId: 5,
         name: 'Kusi Vortex Outpost',
         region: 'Monsoon Straits',
         difficultyTier: 1,
-        starsEarned: liberated > 5 ? 2 : 0,
+        starsEarned: persistence.getSectorStars(5),
         isUnlocked: liberated >= 5,
-        bestScore: 4100,
+        isLiberated: liberated > 5 || persistence.getSectorStars(5) > 0,
+        bestScore: persistence.getSectorScore(5) > 0
+            ? persistence.getSectorScore(5)
+            : 4100,
+        requiredSectorId: 4,
+        requiredSectorName: 'Kaskazi Ion Stream',
       ),
       CampaignSector(
         sectorId: 6,
         name: 'Lindi Ridge Bastion',
         region: 'Monsoon Straits',
         difficultyTier: 1,
-        starsEarned: liberated > 6 ? 3 : 0,
+        starsEarned: persistence.getSectorStars(6),
         isUnlocked: liberated >= 6,
-        bestScore: 5300,
+        isLiberated: liberated > 6 || persistence.getSectorStars(6) > 0,
+        bestScore: persistence.getSectorScore(6) > 0
+            ? persistence.getSectorScore(6)
+            : 5300,
+        requiredSectorId: 5,
+        requiredSectorName: 'Kusi Vortex Outpost',
       ),
 
       // Region 3: Core Siphon (Tier 3)
@@ -88,27 +129,42 @@ class CampaignService {
         name: 'Kilwa Kisiwani Citadel',
         region: 'Core Siphon',
         difficultyTier: 2,
-        starsEarned: liberated > 7 ? 2 : 0,
+        starsEarned: persistence.getSectorStars(7),
         isUnlocked: liberated >= 7,
-        bestScore: 7800,
+        isLiberated: liberated > 7 || persistence.getSectorStars(7) > 0,
+        bestScore: persistence.getSectorScore(7) > 0
+            ? persistence.getSectorScore(7)
+            : 7800,
+        requiredSectorId: 6,
+        requiredSectorName: 'Lindi Ridge Bastion',
       ),
       CampaignSector(
         sectorId: 8,
         name: 'Songo Mnara Flagship Berth',
         region: 'Core Siphon',
         difficultyTier: 2,
-        starsEarned: liberated > 8 ? 3 : 0,
+        starsEarned: persistence.getSectorStars(8),
         isUnlocked: liberated >= 8,
-        bestScore: 9200,
+        isLiberated: liberated > 8 || persistence.getSectorStars(8) > 0,
+        bestScore: persistence.getSectorScore(8) > 0
+            ? persistence.getSectorScore(8)
+            : 9200,
+        requiredSectorId: 7,
+        requiredSectorName: 'Kilwa Kisiwani Citadel',
       ),
       CampaignSector(
         sectorId: 9,
         name: 'Great Siphon Singularity',
         region: 'Core Siphon',
         difficultyTier: 2,
-        starsEarned: liberated > 9 ? 3 : 0,
+        starsEarned: persistence.getSectorStars(9),
         isUnlocked: liberated >= 9,
-        bestScore: 12500,
+        isLiberated: liberated > 9 || persistence.getSectorStars(9) > 0,
+        bestScore: persistence.getSectorScore(9) > 0
+            ? persistence.getSectorScore(9)
+            : 12500,
+        requiredSectorId: 8,
+        requiredSectorName: 'Songo Mnara Flagship Berth',
       ),
     ];
   }

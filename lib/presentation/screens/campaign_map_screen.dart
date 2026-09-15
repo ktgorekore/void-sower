@@ -50,7 +50,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   }
 
   void _launchSector(CampaignSector sector) {
-    if (!sector.isUnlocked) return;
+    if (!sector.isUnlocked) {
+      _showLockedSectorDialog(sector);
+      return;
+    }
     HapticService.instance.injectionClick();
 
     Navigator.of(context).push(
@@ -58,6 +61,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
         builder: (context) => CombatScreen(
           engine: widget.engine,
           difficultyTier: sector.difficultyTier,
+          sectorId: sector.sectorId,
           onReturnToMap: () {
             Navigator.of(context).pop();
             setState(() {
@@ -113,7 +117,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   }
 
   void _showSectorBriefing(CampaignSector sector) {
-    if (!sector.isUnlocked) return;
+    if (!sector.isUnlocked) {
+      _showLockedSectorDialog(sector);
+      return;
+    }
     HapticService.instance.sowTick();
 
     showModalBottomSheet<void>(
@@ -186,6 +193,173 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                 accentColor: VoidTheme.solarGold,
                 height: 48.0,
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLockedSectorDialog(CampaignSector sector) {
+    HapticService.instance.sowTick();
+
+    final requiredSector = sector.requiredSectorId != null
+        ? CampaignService.instance.getSector(sector.requiredSectorId!)
+        : null;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(22.0),
+          decoration: VoidTheme.glassmorphic(
+            borderColor: VoidTheme.crimsonFlare,
+            borderWidth: 1.5,
+            borderRadius: 20.0,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 38.0,
+                    height: 38.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: VoidTheme.crimsonFlare.withValues(alpha: 0.2),
+                      border: Border.all(
+                        color: VoidTheme.crimsonFlare,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.lock,
+                        color: VoidTheme.crimsonFlare,
+                        size: 20.0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'SECTOR ${sector.sectorId}: ${sector.name.toUpperCase()}',
+                          style: const TextStyle(
+                            color: VoidTheme.starWhite,
+                            fontSize: 15.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 2.0),
+                        const Text(
+                          'IMPERIAL ORBITAL BLOCKADE DETECTED',
+                          style: TextStyle(
+                            color: VoidTheme.crimsonFlare,
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              // Requirement Box
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: VoidTheme.cardSurface.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                    color: VoidTheme.solarGold.withValues(alpha: 0.6),
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(
+                          Icons.vpn_key,
+                          color: VoidTheme.solarGold,
+                          size: 14.0,
+                        ),
+                        SizedBox(width: 6.0),
+                        Text(
+                          'CLEARANCE REQUIREMENT',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6.0),
+                    Text(
+                      sector.unlockRequirement,
+                      style: const TextStyle(
+                        color: VoidTheme.textPrimary,
+                        fontSize: 12.5,
+                        height: 1.4,
+                      ),
+                    ),
+                    if (sector.requiredSectorName != null) ...[
+                      const SizedBox(height: 6.0),
+                      Text(
+                        'Target Hyperlane: Sector ${sector.requiredSectorId} (${sector.requiredSectorName})',
+                        style: const TextStyle(
+                          color: VoidTheme.plasmaCyan,
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18.0),
+              // Action Buttons
+              if (requiredSector != null && requiredSector.isUnlocked) ...[
+                TactileButton(
+                  label: 'DEPLOY TO SECTOR ${sector.requiredSectorId}',
+                  icon: Icons.rocket_launch,
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _launchSector(requiredSector);
+                  },
+                  accentColor: VoidTheme.solarGold,
+                  height: 46.0,
+                ),
+                const SizedBox(height: 8.0),
+                TactileButton(
+                  label: 'DISMISS INTEL',
+                  icon: Icons.close,
+                  onPressed: () => Navigator.of(context).pop(),
+                  accentColor: VoidTheme.textMuted,
+                  isPrimary: false,
+                  height: 40.0,
+                ),
+              ] else
+                TactileButton(
+                  label: 'DISMISS INTEL',
+                  icon: Icons.close,
+                  onPressed: () => Navigator.of(context).pop(),
+                  accentColor: VoidTheme.plasmaCyan,
+                  isPrimary: false,
+                  height: 44.0,
+                ),
             ],
           ),
         );
@@ -306,14 +480,45 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                     ),
                   ],
                 ),
-                Text(
-                  'SECTORS: ${PersistenceService.instance.liberatedSectors} / ${_sectors.length} LIBERATED',
-                  style: const TextStyle(
-                    color: VoidTheme.textSecondary,
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
+                Builder(
+                  builder: (context) {
+                    final liberatedCount = _sectors
+                        .where((s) => s.isLiberated)
+                        .length;
+                    final totalSectors = _sectors.length;
+                    final percent = totalSectors > 0
+                        ? liberatedCount / totalSectors
+                        : 0.0;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
+                          style: const TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 3.0),
+                        SizedBox(
+                          width: 100.0,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(2.0),
+                            child: LinearProgressIndicator(
+                              value: percent,
+                              backgroundColor: VoidTheme.cardSurface,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                VoidTheme.emeraldShield,
+                              ),
+                              minHeight: 3.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
@@ -658,100 +863,299 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   }
 
   Widget _buildSectorCard(CampaignSector sector) {
+    final isLiberated = sector.isLiberated;
+    final isUnlocked = sector.isUnlocked;
+
+    Color borderColor;
+    double borderWidth;
+    List<BoxShadow>? shadows;
+    Widget leadingAvatar;
+    Widget titleWidget;
+    Widget subtitleWidget;
+    Widget trailingWidget;
+
+    if (isLiberated) {
+      borderColor = VoidTheme.emeraldShield;
+      borderWidth = 1.4;
+      shadows = [
+        BoxShadow(
+          color: VoidTheme.emeraldShield.withValues(alpha: 0.12),
+          blurRadius: 6.0,
+        ),
+      ];
+      leadingAvatar = const CircleAvatar(
+        backgroundColor: VoidTheme.emeraldShield,
+        child: Icon(
+          Icons.check_circle,
+          color: VoidTheme.obsidianBlack,
+          size: 20.0,
+        ),
+      );
+      titleWidget = Row(
+        children: [
+          Flexible(
+            child: Text(
+              sector.name,
+              style: const TextStyle(
+                color: VoidTheme.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 14.0,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 6.0),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.0),
+            decoration: BoxDecoration(
+              color: VoidTheme.emeraldShield.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(4.0),
+              border: Border.all(color: VoidTheme.emeraldShield, width: 0.8),
+            ),
+            child: const Text(
+              'LIBERATED',
+              style: TextStyle(
+                color: VoidTheme.emeraldShield,
+                fontSize: 8.0,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
+      );
+      subtitleWidget = Row(
+        children: [
+          Text(
+            '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1}',
+            style: const TextStyle(
+              color: VoidTheme.plasmaCyan,
+              fontSize: 10.0,
+              letterSpacing: 0.5,
+            ),
+          ),
+          if (sector.starsEarned > 0) ...[
+            const SizedBox(width: 6.0),
+            Row(
+              children: List.generate(
+                sector.starsEarned,
+                (i) => const Icon(
+                  Icons.star,
+                  size: 11.0,
+                  color: VoidTheme.solarGold,
+                ),
+              ),
+            ),
+          ],
+          if (sector.bestScore > 0) ...[
+            const SizedBox(width: 6.0),
+            Text(
+              'BEST: ${sector.bestScore}',
+              style: const TextStyle(
+                color: VoidTheme.textSecondary,
+                fontSize: 9.5,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ],
+      );
+      trailingWidget = ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: VoidTheme.cardSurface,
+          foregroundColor: VoidTheme.emeraldShield,
+          side: const BorderSide(color: VoidTheme.emeraldShield, width: 1.0),
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        ),
+        icon: const Icon(Icons.refresh, size: 14.0),
+        onPressed: () => _launchSector(sector),
+        label: const Text(
+          'REPLAY',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.0),
+        ),
+      );
+    } else if (isUnlocked) {
+      borderColor = VoidTheme.solarGold;
+      borderWidth = 1.8;
+      shadows = [
+        BoxShadow(
+          color: VoidTheme.solarGold.withValues(alpha: 0.2),
+          blurRadius: 8.0,
+        ),
+      ];
+      leadingAvatar = const CircleAvatar(
+        backgroundColor: VoidTheme.solarGold,
+        child: Icon(Icons.radar, color: VoidTheme.obsidianBlack, size: 20.0),
+      );
+      titleWidget = Row(
+        children: [
+          Flexible(
+            child: Text(
+              sector.name,
+              style: const TextStyle(
+                color: VoidTheme.starWhite,
+                fontWeight: FontWeight.w900,
+                fontSize: 14.0,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 6.0),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.0),
+            decoration: BoxDecoration(
+              color: VoidTheme.solarGold.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(4.0),
+              border: Border.all(color: VoidTheme.solarGold, width: 0.8),
+            ),
+            child: const Text(
+              'OBJECTIVE',
+              style: TextStyle(
+                color: VoidTheme.solarGold,
+                fontSize: 8.0,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+        ],
+      );
+      subtitleWidget = Text(
+        '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1} • VANGUARD ASSAULT',
+        style: const TextStyle(
+          color: VoidTheme.solarGoldLight,
+          fontSize: 10.0,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.4,
+        ),
+      );
+      trailingWidget = ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: VoidTheme.solarGold,
+          foregroundColor: VoidTheme.obsidianBlack,
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+        ),
+        icon: const Icon(Icons.rocket_launch, size: 14.0),
+        onPressed: () => _launchSector(sector),
+        label: const Text(
+          'ENGAGE',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
+        ),
+      );
+    } else {
+      borderColor = VoidTheme.crimsonFlare.withValues(alpha: 0.35);
+      borderWidth = 1.2;
+      shadows = null;
+      leadingAvatar = CircleAvatar(
+        backgroundColor: VoidTheme.cardSurface,
+        child: Icon(
+          Icons.lock,
+          color: VoidTheme.crimsonFlare.withValues(alpha: 0.8),
+          size: 18.0,
+        ),
+      );
+      titleWidget = Text(
+        sector.name,
+        style: const TextStyle(
+          color: VoidTheme.textMuted,
+          fontWeight: FontWeight.bold,
+          fontSize: 14.0,
+        ),
+        overflow: TextOverflow.ellipsis,
+      );
+      subtitleWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1} [BLOCKADED]',
+            style: TextStyle(
+              color: VoidTheme.textMuted.withValues(alpha: 0.7),
+              fontSize: 9.5,
+            ),
+          ),
+          const SizedBox(height: 3.0),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.0),
+            decoration: BoxDecoration(
+              color: VoidTheme.crimsonFlare.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(4.0),
+              border: Border.all(
+                color: VoidTheme.crimsonFlare.withValues(alpha: 0.35),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.lock,
+                  size: 10.0,
+                  color: VoidTheme.solarGoldLight,
+                ),
+                const SizedBox(width: 4.0),
+                Flexible(
+                  child: Text(
+                    'UNLOCK: ${sector.unlockRequirement}',
+                    style: const TextStyle(
+                      color: VoidTheme.solarGoldLight,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+      trailingWidget = OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: VoidTheme.solarGoldLight,
+          side: BorderSide(
+            color: VoidTheme.solarGold.withValues(alpha: 0.4),
+            width: 1.0,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        ),
+        icon: const Icon(Icons.info_outline, size: 12.0),
+        label: const Text(
+          'LOCKED',
+          style: TextStyle(
+            fontSize: 9.5,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+        onPressed: () => _showLockedSectorDialog(sector),
+      );
+    }
+
     return Material(
       color: Colors.transparent,
       child: Ink(
         decoration: BoxDecoration(
-          color: sector.isUnlocked
-              ? VoidTheme.cardSurface
-              : VoidTheme.deepSpaceVoid,
+          color: isUnlocked ? VoidTheme.cardSurface : VoidTheme.deepSpaceVoid,
           borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(
-            color: sector.isUnlocked
-                ? (sector.difficultyTier == 2
-                      ? VoidTheme.crimsonFlare
-                      : VoidTheme.solarGold)
-                : VoidTheme.textMuted.withValues(alpha: 0.3),
-            width: 1.5,
-          ),
+          border: Border.all(color: borderColor, width: borderWidth),
+          boxShadow: shadows,
         ),
         child: ListTile(
-          onTap: () => _showSectorBriefing(sector),
+          onTap: () => isUnlocked
+              ? _showSectorBriefing(sector)
+              : _showLockedSectorDialog(sector),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16.0,
             vertical: 6.0,
           ),
-          leading: CircleAvatar(
-            backgroundColor: sector.isUnlocked
-                ? VoidTheme.solarGold
-                : VoidTheme.textMuted,
-            child: Icon(
-              sector.isUnlocked ? Icons.radar : Icons.lock,
-              color: VoidTheme.obsidianBlack,
-              size: 20.0,
-            ),
+          leading: leadingAvatar,
+          title: titleWidget,
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 2.0),
+            child: subtitleWidget,
           ),
-          title: Text(
-            sector.name,
-            style: TextStyle(
-              color: sector.isUnlocked
-                  ? VoidTheme.textPrimary
-                  : VoidTheme.textMuted,
-              fontWeight: FontWeight.bold,
-              fontSize: 14.5,
-            ),
-          ),
-          subtitle: Row(
-            children: [
-              Text(
-                '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1}',
-                style: TextStyle(
-                  color: sector.isUnlocked
-                      ? VoidTheme.plasmaCyan
-                      : VoidTheme.textMuted,
-                  fontSize: 10.5,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              if (sector.isUnlocked && sector.starsEarned > 0) ...[
-                const SizedBox(width: 8.0),
-                Row(
-                  children: List.generate(
-                    sector.starsEarned,
-                    (i) => const Icon(
-                      Icons.star,
-                      size: 12.0,
-                      color: VoidTheme.solarGold,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          trailing: sector.isUnlocked
-              ? ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: VoidTheme.solarGold,
-                    foregroundColor: VoidTheme.obsidianBlack,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14.0,
-                      vertical: 6.0,
-                    ),
-                  ),
-                  icon: const Icon(Icons.rocket_launch, size: 14.0),
-                  onPressed: () => _launchSector(sector),
-                  label: const Text(
-                    'ENGAGE',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11.5,
-                    ),
-                  ),
-                )
-              : const Text(
-                  'LOCKED',
-                  style: TextStyle(color: VoidTheme.textMuted, fontSize: 12.0),
-                ),
+          trailing: trailingWidget,
         ),
       ),
     );
