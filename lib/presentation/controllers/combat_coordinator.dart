@@ -417,6 +417,9 @@ class CombatCoordinator extends ChangeNotifier {
   /// into the current corridor, drawing from the aligned bay or injecting a core.
   void quickFireActiveCorridor() {
     if (!_state.canReceiveInput) return;
+    if (_state.status == CombatMatchStatus.paused) {
+      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+    }
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final activeBay = corridor + 8;
     // Sowing inward along the frontline keeps single-hop shots on the frontline batteries
@@ -490,6 +493,33 @@ class CombatCoordinator extends ChangeNotifier {
     );
     solverController.reset();
     notifyListeners();
+  }
+
+  /// Toggles tactical pause (time-dilation) allowing commanders to plan shots.
+  void toggleTacticalPause() {
+    if (_state.status == CombatMatchStatus.activeCombat) {
+      _state = _state.copyWith(status: CombatMatchStatus.paused);
+      notifyListeners();
+    } else if (_state.status == CombatMatchStatus.paused) {
+      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+      notifyListeners();
+    }
+  }
+
+  /// Pauses the combat simulation.
+  void pauseCombat() {
+    if (_state.status == CombatMatchStatus.activeCombat) {
+      _state = _state.copyWith(status: CombatMatchStatus.paused);
+      notifyListeners();
+    }
+  }
+
+  /// Resumes the combat simulation from paused state.
+  void resumeCombat() {
+    if (_state.status == CombatMatchStatus.paused) {
+      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+      notifyListeners();
+    }
   }
 
   @override

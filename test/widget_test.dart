@@ -19,6 +19,8 @@ import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/main.dart';
 
+import 'package:void_sower/presentation/screens/combat_screen.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -27,11 +29,25 @@ void main() {
     await PersistenceService.instance.initialize();
   });
 
+  testWidgets('VoidSowerApp launches directly into combat arena by default', (
+    WidgetTester tester,
+  ) async {
+    final mockEngine = MockVoidSowerEngine();
+    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
+    await tester.pump();
+
+    expect(find.byType(CombatScreen), findsOneWidget);
+    expect(find.text('RULES'), findsOneWidget);
+    expect(find.text('MAP'), findsOneWidget);
+  });
+
   testWidgets(
     'VoidSowerApp launches campaign map screen with command deck UI',
     (WidgetTester tester) async {
       final mockEngine = MockVoidSowerEngine();
-      await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
+      await tester.pumpWidget(
+        VoidSowerApp(engine: mockEngine, startCombat: false),
+      );
       await tester.pumpAndSettle();
 
       // Verify command deck and branding

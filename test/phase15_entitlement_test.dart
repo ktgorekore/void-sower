@@ -31,8 +31,8 @@ void main() {
   });
 
   group('Phase 15: EntitlementService & ProFeature Tests', () {
-    test('ProFeature enum has 8 distinct capabilities', () {
-      expect(ProFeature.values.length, 8);
+    test('ProFeature enum has 9 distinct capabilities', () {
+      expect(ProFeature.values.length, 9);
       for (final feature in ProFeature.values) {
         final meta = ProFeatureMeta.registry[feature];
         expect(meta, isNotNull);

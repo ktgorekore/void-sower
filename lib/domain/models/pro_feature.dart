@@ -39,6 +39,9 @@ enum ProFeature {
 
   /// 100% ad-free experience with instant emergency reactor core injection.
   adFreeEmergencyFlare,
+
+  /// Tactical time dilation & combat pause to inspect invader lanes and plan axial strikes.
+  tacticalPause,
 }
 
 /// Metadata and descriptive copy for a [ProFeature].
@@ -111,6 +114,13 @@ class ProFeatureMeta {
       shortDescription:
           'Zero commercials forever. Instant +8 core emergency refills with zero cooldown.',
       icon: Icons.bolt,
+    ),
+    ProFeature.tacticalPause: ProFeatureMeta(
+      feature: ProFeature.tacticalPause,
+      title: 'TACTICAL TIME DILATION',
+      shortDescription:
+          'Freeze invader advancement to analyze trajectory lanes and calibrate axial lance strikes.',
+      icon: Icons.pause_circle_outline,
     ),
   };
 }

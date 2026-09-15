@@ -75,9 +75,11 @@ class CombatMatchState {
   /// Dynamic screen shake offset decaying toward zero.
   final Offset screenShake;
 
-  /// Whether player touch input is currently permitted.
+  /// Whether player touch input is currently permitted (active combat or tactical pause).
   bool get canReceiveInput =>
-      status == CombatMatchStatus.activeCombat && !isAutoSolving;
+      (status == CombatMatchStatus.activeCombat ||
+          status == CombatMatchStatus.paused) &&
+      !isAutoSolving;
 
   /// Whether the match has concluded in a terminal outcome.
   bool get isTerminal =>

@@ -30,7 +30,7 @@ import 'presentation/theme/void_theme.dart';
 /// Optional environment flag to launch directly into combat viewport for testing/recording.
 const bool kStartCombat = bool.fromEnvironment(
   'START_COMBAT',
-  defaultValue: false,
+  defaultValue: true,
 );
 
 /// Optional environment flag to start tactical AI solver immediately.
@@ -67,9 +67,14 @@ void main() async {
 /// Root widget for the Void Sower application.
 class VoidSowerApp extends StatelessWidget {
   /// Creates the [VoidSowerApp].
-  const VoidSowerApp({super.key, required this.engine});
+  const VoidSowerApp({
+    super.key,
+    required this.engine,
+    this.startCombat = kStartCombat,
+  });
 
   final IVoidSowerEngine engine;
+  final bool startCombat;
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +82,7 @@ class VoidSowerApp extends StatelessWidget {
       title: 'Void Sower: Bao Orbital Batteries',
       debugShowCheckedModeBanner: false,
       theme: VoidTheme.darkTheme,
-      home: kStartCombat
+      home: startCombat
           ? CombatScreen(engine: engine, autoStartSolver: kAutoSolve)
           : CampaignMapScreen(engine: engine),
     );
