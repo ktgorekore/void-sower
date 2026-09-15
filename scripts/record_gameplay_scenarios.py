@@ -42,8 +42,18 @@ def keyevent(code):
 
 def record_60s_tutorial():
   print("[Record 60s] Resetting app state to fresh cadet profile...")
+  adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
   adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
   time.sleep(1.0)
+  adb_cmd([
+      "shell",
+      "run-as",
+      "com.voidsower.app",
+      "sh",
+      "-c",
+      "mkdir -p shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?><map><boolean name=\"flutter.void_sower_pro_unlocked\" value=\"true\" /></map>' > shared_prefs/FlutterSharedPreferences.xml",
+  ])
+  time.sleep(0.5)
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.5)
 

@@ -38,6 +38,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+dependency_overrides:
+  objective_c: 9.5.0
+
 flutter:
   uses-material-design: true
   assets:
