@@ -252,7 +252,7 @@ class IapService {
             ),
           );
         }
-        return completer.future;
+        return await completer.future;
       }
       return await completer.future;
     } catch (e) {
@@ -260,7 +260,7 @@ class IapService {
       if (!completer.isCompleted) {
         completer.complete(PurchaseOutcome.error(e.toString()));
       }
-      return completer.future;
+      return await completer.future;
     }
   }
 
