@@ -64,6 +64,27 @@
 
 ---
 
+## 👑 Monetization & Tier Comparison: Free vs. Pro ($1.29)
+
+Void Sower operates on an ethical, player-first hybrid monetization model: the complete campaign is **100% Free Forever**, while an optional **$1.29 One-Time Lifetime License** (`void_sower_pro_lifetime`) unlocks full ad-free gameplay, autonomous AI solvers, and advanced combat telemetry. Non-paying players can also use the **Opt-In Rewarded Ad Bridge** for temporary access without spending real money.
+
+| Feature Dimension | Free Tier (Standard Pilot) | Pro Tier ($1.29 Lifetime License) | Rewarded Ad Pass (Free Players) |
+| :--- | :--- | :--- | :--- |
+| **Price** | **Free Forever** ($0.00) | **$1.29 USD (One-Time Purchase)** | Free (Opt-in 30s transmission) |
+| **Advertisements** | Rate-limited interstitials between sectors. | **100% Ad-Free Forever** (all ads removed). | N/A |
+| **Autonomous AI Tactical Solver** | Locked. | **Unlimited Autonomous Autopilot** (MCTS). | **Tactical Overclock**: 1 ad grants 3 AI moves. |
+| **Tactical Move Advisor (Hints)** | Standard rules codex and tutorials. | **Holographic HUD Advisor** (Glowing hints). | **Tactical Scan**: 1 ad reveals next 3 moves. |
+| **Dreadnought Fleet Hangar** | **MK-I Bastion** & **MK-II Monsoon**. | **MK-III Singularity** & **MK-IV Golden Sovereign**. | **Flagship Rental**: 1 ad rents MK-III for 1 run. |
+| **Predictive Telemetry** | Basic line-of-sight reticle. | **Deep Sensor Telemetry** (Cascade splines & damage). | **Deep Scan**: 1 ad unlocks for 1 sector run. |
+| **Chrono-Anchor (Combat Rewind)** | 0 rewinds (arcade permadeath). | **3 Chrono-Anchors per Sector** (Undo slip). | **Emergency Rewind**: 1 ad reverses fatal breach. |
+| **Simulation Lab & Skirmish** | 3-Sector Campaign (`Kilwa Basin`). | **Full Simulation Lab & Endless Skirmish**. | **1 Skirmish Trial**: 1 ad grants 1 trial run. |
+| **Emergency Reactor Flares** | 1 rewarded ad per flare (+8 Cores, 3m cooldown). | **Instant Emergency Flares (+8 Cores)**, 0 ads, 0 cooldown. | Standard rewarded ad (+8 Cores). |
+| **Pilot Profile Insignias** | Standard pilot insignias & Recruit badge. | **Elite Founder Insignias** & Gilded Pro Dossier. | N/A |
+
+📖 *For complete technical details, gameplay formulas, and entitlement architecture, see [`docs/tier_definition_and_monetization.md`](docs/tier_definition_and_monetization.md).*
+
+---
+
 ## 📋 Prerequisites
 
 Before building or running the project, ensure you have the following installed:
@@ -148,7 +169,7 @@ Comprehensive technical specifications, mathematical derivations, and architectu
 | **02: Native C++17 ECS Engine** | [`docs/developer/02_cpp_ecs_engine_architecture.md`](docs/developer/02_cpp_ecs_engine_architecture.md) | EnTT ECS v3.13.2 architecture, 64-byte alignment, zero allocation hot paths, bitwise masking (`& 0x0F`), spatial grid partitioning. |
 | **03: Dart FFI Bridge & Isolates** | [`docs/developer/03_dart_ffi_bridge_and_isolate_architecture.md`](docs/developer/03_dart_ffi_bridge_and_isolate_architecture.md) | Flat C ABI (`extern "C"`), zero-copy pointer caching, Android 15 16 KB page size alignment, background isolate offloading. |
 | **04: Presentation & Shaders** | [`docs/developer/04_presentation_shaders_and_audio_visual_pipeline.md`](docs/developer/04_presentation_shaders_and_audio_visual_pipeline.md) | Impeller GLSL 460 shaders, `CombatPainter` 60/120 FPS canvas, Afrofuturist `VoidTheme`, procedural acoustics, multi-pulse haptics. |
-| **05: Campaign & Economy** | [`docs/developer/05_campaign_economy_and_player_identity.md`](docs/developer/05_campaign_economy_and_player_identity.md) | Kilwa Nebula Basin progression, Fleet Hangar chassis classes (MK-I/II/III), GDPR-compliant telemetry privacy, `$0.99` Pro IAP. |
+| **05: Campaign & Economy** | [`docs/developer/05_campaign_economy_and_player_identity.md`](docs/developer/05_campaign_economy_and_player_identity.md) | Kilwa Nebula Basin progression, Fleet Hangar chassis classes (MK-I/II/III/IV), GDPR-compliant telemetry privacy, `$1.29` Pro IAP. |
 | **06: APIs & Testing Guide** | [`docs/developer/06_apis_integration_and_testing_guide.md`](docs/developer/06_apis_integration_and_testing_guide.md) | GTest native test matrix, Flutter widget test cases, pre-commit format verification, 16 KB page alignment auditing. |
 | **07: Procedural Generation** | [`docs/developer/07_procedural_generation_and_solvability_guarantees.md`](docs/developer/07_procedural_generation_and_solvability_guarantees.md) | Backward-play program inversion, mathematical solvability proofs, Monte Carlo Tree Search (UCT) solver, encounter taxonomy. |
 
@@ -156,6 +177,7 @@ Comprehensive technical specifications, mathematical derivations, and architectu
 
 ## 📱 Release & Store Deployment Runbooks
 
+- **[Tier Definition & Feature Monetization Guide](docs/tier_definition_and_monetization.md)**: Free vs. Pro comparison, $1.29 lifetime license, Rewarded Ad Bridge, and entitlement architecture.
 - **[Google Play Console Deployment Guide](docs/play_console_deployment_guide.md)**: CI/CD automation, AAB bundle generation, Pre-Launch report audit, IAP setup.
 - **[Firebase & Google Services Setup Guide](docs/firebase_and_google_services_setup_guide.md)**: CLI provisioning, SHA fingerprint extraction, Crashlytics NDK symbol mapping.
 - **[Closed Beta & Rollout Protocol](docs/closed_beta_and_rollout_plan.md)**: 7-day beta testing protocol and staged production rollout schedule.

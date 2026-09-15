@@ -103,15 +103,27 @@ Void Sower maintains a transparent, player-first monetization model designed to 
 
 ### 4.1 Pro Upgrade In-App Purchase ([`lib/domain/services/iap_service.dart`](file:///home/kelvingorekore/projects/void-sower/lib/domain/services/iap_service.dart))
 - **Product ID**: `void_sower_pro_lifetime`
-- **Price Point**: `$0.99` (Tier 1 non-consumable)
+- **Price Point**: `$1.29 USD` (Tier 1 non-consumable)
 - **Entitlements**:
-  - Permanently removes all interstitial and banner advertisements.
-  - Instantly unlocks the MK-II Monsoon Vanguard and MK-III Singularity Sovereign chassis.
-  - Grants unlimited simulation undos and tactical trajectory telemetry overlays.
+  - Permanently removes all interstitial and banner advertisements (100% ad-free).
+  - Unlocks Autonomous AI Tactical Solver & Autopilot powered by native C++ MCTS.
+  - Unlocks Holographic Tactical Move Advisor (real-time glowing move hints).
+  - Instantly unlocks the MK-III Singularity Sovereign flagship (+30% lance alpha, 40 cores) and exclusive MK-IV Golden Sovereign hull.
+  - Unlocks Deep Sensor Telemetry (full multi-lap cascade spline trajectories and quadratic damage readouts).
+  - Grants 3 Chrono-Anchor in-combat rewinds per sector.
+  - Unlocks the Orbital Simulation Lab & Endless Skirmish arena.
+  - Instant Emergency Reactor Flares (+8 cores) on demand with zero ads and zero cooldown.
 
-### 4.2 Non-Intrusive Rewarded Energy Boosts ([`lib/domain/services/ad_service.dart`](file:///home/kelvingorekore/projects/void-sower/lib/domain/services/ad_service.dart))
-- Players playing the free tier can voluntarily opt into rewarded video ads during combat defeat screens to receive a $+4\text{ Emergency Core Injection}$ without losing campaign progress.
+### 4.2 Non-Intrusive Rewarded Transmissions ([`lib/domain/services/ad_service.dart`](file:///home/kelvingorekore/projects/void-sower/lib/domain/services/ad_service.dart))
+- Free players can voluntarily opt into rewarded video ads for single-mission or single-use passes:
+  - $+8\text{ Emergency Core Injection}$ during combat reactor depletion.
+  - Tactical Overclock: 3 optimal AI solver moves.
+  - Flagship Rental: 1 combat mission piloting the MK-III Singularity Sovereign.
+  - Deep Scan: 1 combat mission with deep cascade telemetry.
+  - Emergency Chrono-Rewind: 1 undo upon fatal reactor breach.
 - Zero forced interstitial popups during active combat simulations.
+
+📖 *See the complete breakdown and comparison matrix in [`docs/tier_definition_and_monetization.md`](../tier_definition_and_monetization.md).*
 
 ---
 
