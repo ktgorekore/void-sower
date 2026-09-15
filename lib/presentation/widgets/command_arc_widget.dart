@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../domain/models/bay_state.dart';
 import '../services/haptic_service.dart';
@@ -44,18 +45,66 @@ class CommandArcWidget extends StatefulWidget {
 
 class _CommandArcWidgetState extends State<CommandArcWidget> {
   double _sliderOffset = 0.0;
+  bool _isPanning = false;
+  bool _initializedOffset = false;
+
+  double _computeMaxTravel(double maxWidth) {
+    return math.max(1.0, (maxWidth - 12.0 - 54.0) / 2.0);
+  }
+
+  double _getNormalizedX(double maxWidth) {
+    final maxTravel = _computeMaxTravel(maxWidth);
+    return ((_sliderOffset + maxTravel) / (2.0 * maxTravel)).clamp(0.0, 1.0);
+  }
+
+  void _syncFromSelectedBay(double maxWidth) {
+    if (_isPanning) return;
+    final selected = widget.selectedBay;
+    if (selected != null && selected >= 8 && selected <= 15) {
+      final corridor = selected - 8;
+      final normX = (corridor + 0.5) / 8.0;
+      final maxTravel = _computeMaxTravel(maxWidth);
+      _sliderOffset = (normX * 2.0 - 1.0) * maxTravel;
+    }
+  }
+
+  @override
+  void didUpdateWidget(CommandArcWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedBay != oldWidget.selectedBay && !_isPanning) {
+      _initializedOffset = false;
+    }
+  }
 
   void _handlePanUpdate(DragUpdateDetails details, double maxWidth) {
+    final maxTravel = _computeMaxTravel(maxWidth);
     setState(() {
       _sliderOffset = (_sliderOffset + details.delta.dx).clamp(
-        -maxWidth / 3,
-        maxWidth / 3,
+        -maxTravel,
+        maxTravel,
       );
     });
-    final normalizedX = (0.5 + (_sliderOffset / maxWidth)).clamp(0.0, 1.0);
+    final normalizedX = ((_sliderOffset + maxTravel) / (2.0 * maxTravel)).clamp(
+      0.0,
+      1.0,
+    );
     widget.onSlidePosition(normalizedX);
     final corridor = (normalizedX * 8.0).floor().clamp(0, 7);
     final frontlineBay = corridor + 8;
+    if (widget.selectedBay != frontlineBay) {
+      widget.onBaySelected(frontlineBay);
+    }
+  }
+
+  void _jumpToCorridor(int corridor, double maxWidth) {
+    final clampedCorridor = corridor.clamp(0, 7);
+    final normX = (clampedCorridor + 0.5) / 8.0;
+    final maxTravel = _computeMaxTravel(maxWidth);
+    setState(() {
+      _sliderOffset = (normX * 2.0 - 1.0) * maxTravel;
+    });
+    widget.onSlidePosition(normX);
+    final frontlineBay = clampedCorridor + 8;
     if (widget.selectedBay != frontlineBay) {
       widget.onBaySelected(frontlineBay);
     }
@@ -68,6 +117,10 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (!_initializedOffset) {
+          _syncFromSelectedBay(constraints.maxWidth);
+          _initializedOffset = true;
+        }
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
           decoration: BoxDecoration(
@@ -153,16 +206,11 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
               Builder(
                 builder: (context) {
                   final selected = widget.selectedBay;
+                  final normX = _getNormalizedX(constraints.maxWidth);
                   final activeCorridor =
                       (selected != null && selected >= 8 && selected <= 15)
                       ? selected - 8
-                      : ((0.5 + (_sliderOffset / constraints.maxWidth)).clamp(
-                                  0.0,
-                                  1.0,
-                                ) *
-                                8.0)
-                            .floor()
-                            .clamp(0, 7);
+                      : (normX * 8.0).floor().clamp(0, 7);
                   final activeBay = selected ?? (activeCorridor + 8);
 
                   return Padding(
@@ -317,7 +365,19 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
               // Horizontal Lateral Orbital Platform Slider
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
+                onPanStart: (_) => _isPanning = true,
+                onPanEnd: (_) => _isPanning = false,
+                onPanCancel: () => _isPanning = false,
                 onPanUpdate: (d) => _handlePanUpdate(d, constraints.maxWidth),
+                onTapDown: (details) {
+                  final sliderWidth = constraints.maxWidth - 12.0;
+                  if (sliderWidth > 0) {
+                    final normX = (details.localPosition.dx / sliderWidth)
+                        .clamp(0.0, 1.0);
+                    final corridor = (normX * 8.0).floor().clamp(0, 7);
+                    _jumpToCorridor(corridor, constraints.maxWidth);
+                  }
+                },
                 child: Container(
                   height: 32.0,
                   decoration: BoxDecoration(
@@ -335,12 +395,25 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: List.generate(8, (i) {
-                          return Text(
-                            'C${i + 1}',
-                            style: TextStyle(
-                              color: VoidTheme.textMuted.withValues(alpha: 0.7),
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.bold,
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () =>
+                                _jumpToCorridor(i, constraints.maxWidth),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4.0,
+                                vertical: 6.0,
+                              ),
+                              child: Text(
+                                'C${i + 1}',
+                                style: TextStyle(
+                                  color: VoidTheme.textMuted.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           );
                         }),
