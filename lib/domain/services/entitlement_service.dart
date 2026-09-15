@@ -20,6 +20,8 @@ import 'ad_service.dart';
 import 'iap_service.dart';
 import 'persistence_service.dart';
 
+export 'iap_service.dart' show PurchaseOutcome, PurchaseOutcomeStatus;
+
 /// Central authority managing permanent Pro entitlements and temporary Rewarded Ad passes.
 class EntitlementService extends ChangeNotifier {
   EntitlementService._();
@@ -87,18 +89,22 @@ class EntitlementService extends ChangeNotifier {
   }
 
   /// Purchases the lifetime Pro license via Google Play Billing.
-  Future<bool> purchaseProLifetime() async {
-    final success = await IapService.instance.purchaseProLifetime();
-    if (success) {
-      await PersistenceService.instance.setProUnlocked(true);
+  Future<PurchaseOutcome> purchaseProLifetime() async {
+    final outcome = await IapService.instance.purchaseProLifetime();
+    if (outcome.isSuccess) {
       notifyListeners();
     }
-    return success;
+    return outcome;
   }
 
   /// Restores existing Google Play purchases.
   Future<void> restorePurchases() async {
     await IapService.instance.restorePurchases();
+    notifyListeners();
+  }
+
+  /// Explicitly notifies listeners when entitlement changes from external stream events.
+  void notifyEntitlementChanged() {
     notifyListeners();
   }
 

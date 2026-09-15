@@ -39,13 +39,12 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
     HapticService.instance.injectionClick();
     setState(() => _isProcessing = true);
 
-    final success = await EntitlementService.instance.purchaseProLifetime();
+    final outcome = await EntitlementService.instance.purchaseProLifetime();
 
     if (mounted) {
       setState(() => _isProcessing = false);
-      if (success) {
+      if (outcome.isSuccess) {
         widget.onUnlocked?.call();
-        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -56,6 +55,30 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
               ),
             ),
             backgroundColor: VoidTheme.solarGold,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        Navigator.of(context).pop();
+      } else if (outcome.isCanceled) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'TRANSMISSION CANCELLED: Purchase was not completed.',
+              style: TextStyle(fontFamily: 'monospace'),
+            ),
+            backgroundColor: VoidTheme.cardSurface,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else if (outcome.isError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'PURCHASE FAILED: ${outcome.errorMessage ?? 'Store transaction failed.'}',
+              style: const TextStyle(fontFamily: 'monospace'),
+            ),
+            backgroundColor: VoidTheme.crimsonFlare,
+            duration: const Duration(seconds: 2),
           ),
         );
       }

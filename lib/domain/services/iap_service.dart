@@ -18,13 +18,70 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
+import 'entitlement_service.dart';
 import 'persistence_service.dart';
+
+/// Status of an In-App Purchase flow attempt.
+enum PurchaseOutcomeStatus {
+  /// Purchase successfully completed and validated.
+  success,
+
+  /// Purchase was explicitly cancelled by the user.
+  canceled,
+
+  /// Purchase is pending external confirmation.
+  pending,
+
+  /// Purchase encountered an unrecoverable error.
+  error,
+}
+
+/// Detailed result of an In-App Purchase attempt.
+class PurchaseOutcome {
+  /// Creates a successful purchase outcome.
+  const PurchaseOutcome.success()
+    : status = PurchaseOutcomeStatus.success,
+      errorMessage = null;
+
+  /// Creates a cancelled purchase outcome.
+  const PurchaseOutcome.canceled()
+    : status = PurchaseOutcomeStatus.canceled,
+      errorMessage = null;
+
+  /// Creates a pending purchase outcome.
+  const PurchaseOutcome.pending()
+    : status = PurchaseOutcomeStatus.pending,
+      errorMessage = null;
+
+  /// Creates a failed purchase outcome with an [errorMessage].
+  const PurchaseOutcome.error(this.errorMessage)
+    : status = PurchaseOutcomeStatus.error;
+
+  /// The resulting status of the purchase operation.
+  final PurchaseOutcomeStatus status;
+
+  /// Optional error description if the status is [PurchaseOutcomeStatus.error].
+  final String? errorMessage;
+
+  /// Whether the purchase was successfully completed.
+  bool get isSuccess => status == PurchaseOutcomeStatus.success;
+
+  /// Whether the purchase was cancelled by the user.
+  bool get isCanceled => status == PurchaseOutcomeStatus.canceled;
+
+  /// Whether the purchase is currently pending.
+  bool get isPending => status == PurchaseOutcomeStatus.pending;
+
+  /// Whether the purchase encountered an error.
+  bool get isError => status == PurchaseOutcomeStatus.error;
+}
 
 /// Service managing In-App Purchases (Google Play Billing v7).
 class IapService {
   IapService._();
   static final IapService instance = IapService._();
 
+  /// SKU for permanent Pro Commander access.
   static const String kProLifetimeSku = 'void_sower_pro_lifetime';
 
   InAppPurchase? _iapOverride;
@@ -39,6 +96,7 @@ class IapService {
   StreamSubscription<List<PurchaseDetails>>? _subscription;
   bool _isAvailable = false;
   ProductDetails? _proProductDetails;
+  Completer<PurchaseOutcome>? _pendingPurchaseCompleter;
 
   /// Whether store billing service is connected and ready.
   bool get isAvailable => _isAvailable;
@@ -48,7 +106,7 @@ class IapService {
 
   /// Initializes purchase stream listener and queries product catalog.
   Future<void> initialize() async {
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (!Platform.isAndroid && !Platform.isIOS && _iapOverride == null) {
       _isAvailable = false;
       return;
     }
@@ -57,6 +115,7 @@ class IapService {
       _isAvailable = await _iap.isAvailable();
       if (!_isAvailable) return;
 
+      await _subscription?.cancel();
       _subscription = _iap.purchaseStream.listen(
         _onPurchaseUpdates,
         onDone: () => _subscription?.cancel(),
@@ -78,48 +137,139 @@ class IapService {
       final response = await _iap.queryProductDetails({kProLifetimeSku});
       if (response.productDetails.isNotEmpty) {
         _proProductDetails = response.productDetails.first;
+      } else {
+        _proProductDetails = null;
       }
     } catch (e) {
       debugPrint('[IapService] queryProducts error: $e');
     }
   }
 
-  void _onPurchaseUpdates(List<PurchaseDetails> purchaseDetailsList) {
+  Future<void> _onPurchaseUpdates(
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
     for (final purchase in purchaseDetailsList) {
       if (purchase.productID == kProLifetimeSku) {
-        if (purchase.status == PurchaseStatus.purchased ||
-            purchase.status == PurchaseStatus.restored) {
-          PersistenceService.instance.setProUnlocked(true);
-        }
+        switch (purchase.status) {
+          case PurchaseStatus.purchased:
+          case PurchaseStatus.restored:
+            await PersistenceService.instance.setProUnlocked(true);
+            EntitlementService.instance.notifyEntitlementChanged();
+            if (_pendingPurchaseCompleter != null &&
+                !_pendingPurchaseCompleter!.isCompleted) {
+              _pendingPurchaseCompleter!.complete(
+                const PurchaseOutcome.success(),
+              );
+            }
+            if (purchase.pendingCompletePurchase) {
+              await _iap.completePurchase(purchase);
+            }
+            break;
 
+          case PurchaseStatus.canceled:
+            if (purchase.pendingCompletePurchase) {
+              await _iap.completePurchase(purchase);
+            }
+            if (_pendingPurchaseCompleter != null &&
+                !_pendingPurchaseCompleter!.isCompleted) {
+              _pendingPurchaseCompleter!.complete(
+                const PurchaseOutcome.canceled(),
+              );
+            }
+            break;
+
+          case PurchaseStatus.error:
+            if (purchase.pendingCompletePurchase) {
+              await _iap.completePurchase(purchase);
+            }
+            final errorMsg =
+                purchase.error?.message ?? 'Purchase transaction failed.';
+            if (_pendingPurchaseCompleter != null &&
+                !_pendingPurchaseCompleter!.isCompleted) {
+              _pendingPurchaseCompleter!.complete(
+                PurchaseOutcome.error(errorMsg),
+              );
+            }
+            break;
+
+          case PurchaseStatus.pending:
+            debugPrint('[IapService] Purchase pending for $kProLifetimeSku');
+            break;
+        }
+      } else {
         if (purchase.pendingCompletePurchase) {
-          _iap.completePurchase(purchase);
+          await _iap.completePurchase(purchase);
         }
       }
     }
   }
 
-  /// Initiates buy flow for the Pro Lifetime license.
-  Future<bool> purchaseProLifetime() async {
-    if (!_isAvailable || _proProductDetails == null) {
-      // Fallback entitlement for offline test environments
-      await PersistenceService.instance.setProUnlocked(true);
-      return true;
+  /// Initiates buy flow for the Pro Lifetime license and awaits the user's transaction outcome.
+  Future<PurchaseOutcome> purchaseProLifetime() async {
+    if (!Platform.isAndroid && !Platform.isIOS && _iapOverride == null) {
+      debugPrint(
+        '[IapService] In-app purchases not supported on this platform.',
+      );
+      return const PurchaseOutcome.error(
+        'In-app purchases are not supported on this platform.',
+      );
     }
+
+    if (!_isAvailable) {
+      debugPrint('[IapService] Store billing service unavailable.');
+      return const PurchaseOutcome.error(
+        'Google Play Store billing is currently unavailable.',
+      );
+    }
+
+    if (_proProductDetails == null) {
+      await queryProducts();
+      if (_proProductDetails == null) {
+        debugPrint('[IapService] SKU $kProLifetimeSku details not found.');
+        return const PurchaseOutcome.error(
+          'Pro product details could not be loaded from the store.',
+        );
+      }
+    }
+
+    if (_pendingPurchaseCompleter != null &&
+        !_pendingPurchaseCompleter!.isCompleted) {
+      _pendingPurchaseCompleter!.complete(const PurchaseOutcome.canceled());
+    }
+    final completer = Completer<PurchaseOutcome>();
+    _pendingPurchaseCompleter = completer;
 
     try {
       final purchaseParam = PurchaseParam(productDetails: _proProductDetails!);
-      return await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      final launched = await _iap.buyNonConsumable(
+        purchaseParam: purchaseParam,
+      );
+      if (!launched) {
+        if (!completer.isCompleted) {
+          completer.complete(
+            const PurchaseOutcome.error(
+              'Failed to launch Google Play billing flow.',
+            ),
+          );
+        }
+        return completer.future;
+      }
+      return await completer.future;
     } catch (e) {
       debugPrint('[IapService] purchase error: $e');
-      return false;
+      if (!completer.isCompleted) {
+        completer.complete(PurchaseOutcome.error(e.toString()));
+      }
+      return completer.future;
     }
   }
 
   /// Restores previous purchases across devices.
   Future<void> restorePurchases() async {
+    if (!Platform.isAndroid && !Platform.isIOS && _iapOverride == null) {
+      return;
+    }
     if (!_isAvailable) {
-      await PersistenceService.instance.setProUnlocked(true);
       return;
     }
     try {
@@ -129,9 +279,29 @@ class IapService {
     }
   }
 
-  /// Disposes stream listener.
+  /// Disposes stream listener and cancels any pending purchase completers.
   void dispose() {
     _subscription?.cancel();
     _subscription = null;
+    if (_pendingPurchaseCompleter != null &&
+        !_pendingPurchaseCompleter!.isCompleted) {
+      _pendingPurchaseCompleter!.complete(const PurchaseOutcome.canceled());
+    }
+    _pendingPurchaseCompleter = null;
+  }
+
+  /// Resets internal state for unit testing.
+  @visibleForTesting
+  Future<void> resetForTesting() async {
+    await _subscription?.cancel();
+    _subscription = null;
+    _isAvailable = false;
+    _proProductDetails = null;
+    _iapOverride = null;
+    if (_pendingPurchaseCompleter != null &&
+        !_pendingPurchaseCompleter!.isCompleted) {
+      _pendingPurchaseCompleter!.complete(const PurchaseOutcome.canceled());
+    }
+    _pendingPurchaseCompleter = null;
   }
 }

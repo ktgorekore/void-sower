@@ -12,8 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:void_sower/config/ad_config.dart';
 import 'package:void_sower/domain/models/user_profile.dart';
@@ -164,17 +168,42 @@ void main() {
     });
 
     test('IapService purchases and restores Pro Lifetime', () async {
+      final fakeIap = _FakeInAppPurchase();
+      final iap = IapService.instance;
+      iap.setIapForTesting(fakeIap);
+      await iap.initialize();
+
       final p = PersistenceService.instance;
       await p.setProUnlocked(false);
       expect(p.isProUnlocked, isFalse);
 
-      final iap = IapService.instance;
-      await iap.purchaseProLifetime();
+      final purchaseFuture = iap.purchaseProLifetime();
+      fakeIap.emitPurchase(
+        PurchaseDetails(
+          purchaseID: 'tx_001',
+          productID: IapService.kProLifetimeSku,
+          verificationData: PurchaseVerificationData(
+            localVerificationData: 'test',
+            serverVerificationData: 'test',
+            source: 'test',
+          ),
+          transactionDate: '2026-09-14',
+          status: PurchaseStatus.purchased,
+        ),
+      );
+
+      final outcome = await purchaseFuture;
+      expect(outcome.isSuccess, isTrue);
       expect(p.isProUnlocked, isTrue);
 
       await p.setProUnlocked(false);
       await iap.restorePurchases();
+      // Allow stream event to process
+      await Future<void>.delayed(Duration.zero);
       expect(p.isProUnlocked, isTrue);
+
+      fakeIap.dispose();
+      await iap.resetForTesting();
     });
   });
 
@@ -284,4 +313,80 @@ void main() {
       },
     );
   });
+}
+
+class _FakeInAppPurchase implements InAppPurchase {
+  final StreamController<List<PurchaseDetails>> _controller =
+      StreamController<List<PurchaseDetails>>.broadcast();
+
+  @override
+  Stream<List<PurchaseDetails>> get purchaseStream => _controller.stream;
+
+  @override
+  Future<bool> isAvailable() async => true;
+
+  @override
+  Future<ProductDetailsResponse> queryProductDetails(
+    Set<String> identifiers,
+  ) async {
+    return ProductDetailsResponse(
+      productDetails: [
+        ProductDetails(
+          id: IapService.kProLifetimeSku,
+          title: 'Pro Lifetime',
+          description: 'Unlock all Pro features permanently',
+          price: r'$1.29',
+          rawPrice: 1.29,
+          currencyCode: 'USD',
+        ),
+      ],
+      notFoundIDs: const [],
+    );
+  }
+
+  @override
+  Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async =>
+      true;
+
+  @override
+  Future<bool> buyConsumable({
+    required PurchaseParam purchaseParam,
+    bool autoConsume = true,
+  }) async => false;
+
+  @override
+  Future<void> completePurchase(PurchaseDetails purchase) async {}
+
+  @override
+  Future<void> restorePurchases({String? applicationUserName}) async {
+    _controller.add([
+      PurchaseDetails(
+        purchaseID: 'restore_tx',
+        productID: IapService.kProLifetimeSku,
+        verificationData: PurchaseVerificationData(
+          localVerificationData: 'test',
+          serverVerificationData: 'test',
+          source: 'test',
+        ),
+        transactionDate: '2026-09-14',
+        status: PurchaseStatus.restored,
+      ),
+    ]);
+  }
+
+  @override
+  Future<String> countryCode() async => 'US';
+
+  @override
+  T getPlatformAddition<T extends InAppPurchasePlatformAddition?>() {
+    throw UnimplementedError();
+  }
+
+  void emitPurchase(PurchaseDetails purchase) {
+    _controller.add([purchase]);
+  }
+
+  void dispose() {
+    _controller.close();
+  }
 }
