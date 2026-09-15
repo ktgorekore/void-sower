@@ -37,13 +37,13 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
       dreadnought_entity_, DreadnoughtStateComponent{
                                .orbital_position_x = 0.5f,
                                .target_position_x = 0.5f,
-                               .reserve_cores = starting_cores,
                                .boundary_line_y = boundary_y,
-                               .is_cascading = 0,
+                               .reserve_cores = starting_cores,
                                .total_score = 0,
+                               .cores_used = 0,
+                               .is_cascading = 0,
                                .current_sim_state = static_cast<uint8_t>(
                                    SimulationState::OrbitalIdle),
-                               .cores_used = 0,
                            });
 
   for (uint8_t i = 0; i < kTotalBays; ++i) {
@@ -61,11 +61,11 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
     registry_.emplace_or_replace<BatteryComponent>(
         bay_entities_[i],
         BatteryComponent{
-            .bay_index = i,
-            .tier = tier,
-            .grid_column = grid_col,
             .charge_units = 0,
             .radial_position_rad = angle_rad,
+            .grid_column = grid_col,
+            .bay_index = i,
+            .tier = tier,
             .is_frontline = static_cast<uint8_t>(is_frontline ? 1 : 0),
             .is_nyumba = static_cast<uint8_t>(IsNyumbaBay(i) ? 1 : 0),
             .is_kichwa = static_cast<uint8_t>(IsKichwaBay(i) ? 1 : 0),
@@ -73,6 +73,7 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
         });
   }
 
+  discharge_system_.InitializePool(registry_);
   spatial_grid_.Clear();
 }
 

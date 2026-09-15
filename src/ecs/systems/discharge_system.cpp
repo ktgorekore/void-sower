@@ -51,19 +51,39 @@ void DischargeSystem::ExecuteCrossDischarge(
 
   const float damage = ComputeLanceDamage(mass);
 
-  // Spawn ParticleLance entity originating axially from dreadnought prow
-  auto lance_entity = registry.create();
-  registry.emplace<ParticleLanceComponent>(
-      lance_entity, ParticleLanceComponent{
-                        .firing_bay_index = firing_bay,
-                        .origin_x = lance_origin_x,
-                        .origin_y = lance_origin_y,
-                        .beam_width = 0.04f + 0.015f * static_cast<float>(mass),
-                        .sustained_duration = 0.35f,
-                        .remaining_duration = 0.35f,
-                        .total_damage = damage,
-                        .active = 1,
-                    });
+  // Acquire slot from pre-allocated ParticleLance pool
+  if (lance_pool_[0] == entt::null || !registry.valid(lance_pool_[0])) {
+    InitializePool(registry);
+  }
+
+  entt::entity target_slot = entt::null;
+  float min_remaining = 1e9f;
+  size_t overwrite_idx = 0;
+
+  for (size_t i = 0; i < kMaxConcurrentLances; ++i) {
+    const auto& l = registry.get<ParticleLanceComponent>(lance_pool_[i]);
+    if (l.active == 0) {
+      target_slot = lance_pool_[i];
+      break;
+    }
+    if (l.remaining_duration < min_remaining) {
+      min_remaining = l.remaining_duration;
+      overwrite_idx = i;
+    }
+  }
+  if (target_slot == entt::null) {
+    target_slot = lance_pool_[overwrite_idx];
+  }
+
+  auto& lance = registry.get<ParticleLanceComponent>(target_slot);
+  lance.firing_bay_index = firing_bay;
+  lance.origin_x = lance_origin_x;
+  lance.origin_y = lance_origin_y;
+  lance.beam_width = 0.04f + 0.015f * static_cast<float>(mass);
+  lance.sustained_duration = 0.35f;
+  lance.remaining_duration = 0.35f;
+  lance.total_damage = damage;
+  lance.active = 1;
 
   // Raycast through enemies in the Dreadnought's aligned active corridor
   auto occupants = spatial_grid.GetCorridorOccupants(target_corridor);
@@ -124,17 +144,38 @@ void DischargeSystem::ExecuteFlakDetonation(entt::registry& registry,
   const float area_damage = ComputeFlakDamage(mass);
   const float blast_radius = 0.15f + 0.02f * static_cast<float>(mass);
 
-  auto flak_entity = registry.create();
-  registry.emplace<FlakBurstComponent>(flak_entity,
-                                       FlakBurstComponent{
-                                           .world_pos_x = pos_x,
-                                           .world_pos_y = pos_y,
-                                           .blast_radius = blast_radius,
-                                           .area_damage = area_damage,
-                                           .lifetime = 0.25f,
-                                           .remaining_lifetime = 0.25f,
-                                           .active = 1,
-                                       });
+  // Acquire slot from pre-allocated FlakBurst pool
+  if (flak_pool_[0] == entt::null || !registry.valid(flak_pool_[0])) {
+    InitializePool(registry);
+  }
+
+  entt::entity target_slot = entt::null;
+  float min_remaining = 1e9f;
+  size_t overwrite_idx = 0;
+
+  for (size_t i = 0; i < kMaxConcurrentFlaks; ++i) {
+    const auto& f = registry.get<FlakBurstComponent>(flak_pool_[i]);
+    if (f.active == 0) {
+      target_slot = flak_pool_[i];
+      break;
+    }
+    if (f.remaining_lifetime < min_remaining) {
+      min_remaining = f.remaining_lifetime;
+      overwrite_idx = i;
+    }
+  }
+  if (target_slot == entt::null) {
+    target_slot = flak_pool_[overwrite_idx];
+  }
+
+  auto& flak = registry.get<FlakBurstComponent>(target_slot);
+  flak.world_pos_x = pos_x;
+  flak.world_pos_y = pos_y;
+  flak.blast_radius = blast_radius;
+  flak.area_damage = area_damage;
+  flak.lifetime = 0.25f;
+  flak.remaining_lifetime = 0.25f;
+  flak.active = 1;
 
   auto view = registry.view<EnemyVesselComponent>();
   for (auto entity : view) {
@@ -173,14 +214,16 @@ void DischargeSystem::ExecuteFlakDetonation(entt::registry& registry,
 
 void DischargeSystem::ProcessParticleLances(entt::registry& registry,
                                             float delta_time) {
-  auto view = registry.view<ParticleLanceComponent>();
-  for (auto entity : view) {
-    auto& lance = view.get<ParticleLanceComponent>(entity);
-    if (lance.active != 0) {
-      lance.remaining_duration -= delta_time;
-      if (lance.remaining_duration <= 0.0f) {
-        lance.active = 0;
-        registry.destroy(entity);
+  for (size_t i = 0; i < kMaxConcurrentLances; ++i) {
+    auto entity = lance_pool_[i];
+    if (entity != entt::null && registry.valid(entity)) {
+      auto& lance = registry.get<ParticleLanceComponent>(entity);
+      if (lance.active != 0) {
+        lance.remaining_duration -= delta_time;
+        if (lance.remaining_duration <= 0.0f) {
+          lance.active = 0;
+          lance.remaining_duration = 0.0f;
+        }
       }
     }
   }
@@ -188,24 +231,63 @@ void DischargeSystem::ProcessParticleLances(entt::registry& registry,
 
 void DischargeSystem::ProcessFlakBursts(entt::registry& registry,
                                         float delta_time) {
-  auto view = registry.view<FlakBurstComponent>();
-  for (auto entity : view) {
-    auto& flak = view.get<FlakBurstComponent>(entity);
-    if (flak.active != 0) {
-      flak.remaining_lifetime -= delta_time;
-      if (flak.remaining_lifetime <= 0.0f) {
-        flak.active = 0;
-        registry.destroy(entity);
+  for (size_t i = 0; i < kMaxConcurrentFlaks; ++i) {
+    auto entity = flak_pool_[i];
+    if (entity != entt::null && registry.valid(entity)) {
+      auto& flak = registry.get<FlakBurstComponent>(entity);
+      if (flak.active != 0) {
+        flak.remaining_lifetime -= delta_time;
+        if (flak.remaining_lifetime <= 0.0f) {
+          flak.active = 0;
+          flak.remaining_lifetime = 0.0f;
+        }
       }
     }
   }
 }
 
+void DischargeSystem::InitializePool(entt::registry& registry) {
+  for (size_t i = 0; i < kMaxConcurrentLances; ++i) {
+    if (lance_pool_[i] == entt::null || !registry.valid(lance_pool_[i])) {
+      lance_pool_[i] = registry.create();
+    }
+    registry.emplace_or_replace<ParticleLanceComponent>(
+        lance_pool_[i], ParticleLanceComponent{.active = 0});
+  }
+  for (size_t i = 0; i < kMaxConcurrentFlaks; ++i) {
+    if (flak_pool_[i] == entt::null || !registry.valid(flak_pool_[i])) {
+      flak_pool_[i] = registry.create();
+    }
+    registry.emplace_or_replace<FlakBurstComponent>(
+        flak_pool_[i], FlakBurstComponent{.active = 0});
+  }
+}
+
+void DischargeSystem::Reset(entt::registry& registry) {
+  for (size_t i = 0; i < kMaxConcurrentLances; ++i) {
+    if (lance_pool_[i] != entt::null && registry.valid(lance_pool_[i])) {
+      auto& lance = registry.get<ParticleLanceComponent>(lance_pool_[i]);
+      lance.active = 0;
+      lance.remaining_duration = 0.0f;
+    }
+  }
+  for (size_t i = 0; i < kMaxConcurrentFlaks; ++i) {
+    if (flak_pool_[i] != entt::null && registry.valid(flak_pool_[i])) {
+      auto& flak = registry.get<FlakBurstComponent>(flak_pool_[i]);
+      flak.active = 0;
+      flak.remaining_lifetime = 0.0f;
+    }
+  }
+}
+
 bool DischargeSystem::HasActiveLances(const entt::registry& registry) const {
-  auto view = registry.view<ParticleLanceComponent>();
-  for (auto entity : view) {
-    const auto& lance = view.get<ParticleLanceComponent>(entity);
-    if (lance.active != 0) return true;
+  for (size_t i = 0; i < kMaxConcurrentLances; ++i) {
+    auto entity = lance_pool_[i];
+    if (entity != entt::null && registry.valid(entity)) {
+      if (registry.get<ParticleLanceComponent>(entity).active != 0) {
+        return true;
+      }
+    }
   }
   return false;
 }

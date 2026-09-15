@@ -61,6 +61,25 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   late final ffi.Pointer<VoidSowerPredictionFFI> _cachedPredictionPtr;
   late final ffi.Pointer<VoidSowerWaveConfigFFI> _cachedWaveConfigPtr;
 
+  final List<BayState> _cachedBaysList = List<BayState>.generate(
+    kMaxBays,
+    (i) => BayState(
+      bayIndex: i,
+      tier: i >= 8 ? 1 : 0,
+      gridColumn: i >= 8 ? i - 8 : 0,
+      chargeUnits: 0,
+      radialPositionRad: 0.0,
+      isFrontline: i >= 8,
+      isNyumba: i == 3 || i == 4,
+      isKichwa: i == 8 || i == 15,
+      isKimbi: i == 9 || i == 14,
+    ),
+  );
+  final List<EnemyCraft> _cachedEnemiesList = [];
+  final List<LanceBeam> _cachedLancesList = [];
+  final List<FlakBurst> _cachedFlaksList = [];
+  DreadnoughtState? _cachedDreadnoughtState;
+
   bool _isDisposed = false;
 
   void _checkDisposed() {
@@ -171,25 +190,37 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   List<BayState> getBays() {
     _checkDisposed();
     _bindings.void_sower_get_bays(_cachedBaysPtr, kMaxBays);
-    final results = <BayState>[];
 
     for (var i = 0; i < kMaxBays; i++) {
       final bay = _cachedBaysPtr[i];
-      results.add(
-        BayState(
+      final current = _cachedBaysList[i];
+      final isFrontline = bay.is_frontline != 0;
+      final isNyumba = bay.is_nyumba != 0;
+      final isKichwa = bay.is_kichwa != 0;
+      final isKimbi = bay.is_kimbi != 0;
+
+      if (current.chargeUnits != bay.charge_units ||
+          current.isFrontline != isFrontline ||
+          current.tier != bay.tier ||
+          current.gridColumn != bay.grid_column ||
+          current.radialPositionRad != bay.radial_position_rad ||
+          current.isNyumba != isNyumba ||
+          current.isKichwa != isKichwa ||
+          current.isKimbi != isKimbi) {
+        _cachedBaysList[i] = BayState(
           bayIndex: bay.bay_index,
           tier: bay.tier,
           gridColumn: bay.grid_column,
           chargeUnits: bay.charge_units,
           radialPositionRad: bay.radial_position_rad,
-          isFrontline: bay.is_frontline != 0,
-          isNyumba: bay.is_nyumba != 0,
-          isKichwa: bay.is_kichwa != 0,
-          isKimbi: bay.is_kimbi != 0,
-        ),
-      );
+          isFrontline: isFrontline,
+          isNyumba: isNyumba,
+          isKichwa: isKichwa,
+          isKimbi: isKimbi,
+        );
+      }
     }
-    return results;
+    return _cachedBaysList;
   }
 
   @override
@@ -199,11 +230,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
       _cachedEnemiesPtr,
       kMaxEnemies,
     );
-    final results = <EnemyCraft>[];
+    _cachedEnemiesList.clear();
 
     for (var i = 0; i < count; i++) {
       final e = _cachedEnemiesPtr[i];
-      results.add(
+      _cachedEnemiesList.add(
         EnemyCraft(
           entityId: e.entity_id,
           assignedCorridor: e.assigned_corridor,
@@ -219,18 +250,18 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
         ),
       );
     }
-    return results;
+    return _cachedEnemiesList;
   }
 
   @override
   List<LanceBeam> getLances() {
     _checkDisposed();
     final count = _bindings.void_sower_get_lances(_cachedLancesPtr, kMaxLances);
-    final results = <LanceBeam>[];
+    _cachedLancesList.clear();
 
     for (var i = 0; i < count; i++) {
       final l = _cachedLancesPtr[i];
-      results.add(
+      _cachedLancesList.add(
         LanceBeam(
           firingBayIndex: l.firing_bay_index,
           originX: l.origin_x,
@@ -243,18 +274,18 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
         ),
       );
     }
-    return results;
+    return _cachedLancesList;
   }
 
   @override
   List<FlakBurst> getFlaks() {
     _checkDisposed();
     final count = _bindings.void_sower_get_flaks(_cachedFlaksPtr, kMaxFlaks);
-    final results = <FlakBurst>[];
+    _cachedFlaksList.clear();
 
     for (var i = 0; i < count; i++) {
       final f = _cachedFlaksPtr[i];
-      results.add(
+      _cachedFlaksList.add(
         FlakBurst(
           worldPosX: f.world_pos_x,
           worldPosY: f.world_pos_y,
@@ -266,7 +297,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
         ),
       );
     }
-    return results;
+    return _cachedFlaksList;
   }
 
   @override
@@ -274,29 +305,54 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     _checkDisposed();
     _bindings.void_sower_get_dreadnought_state(_cachedDreadnoughtPtr);
     final d = _cachedDreadnoughtPtr.ref;
+    final isCascading = d.is_cascading != 0;
 
-    return DreadnoughtState(
+    final cached = _cachedDreadnoughtState;
+    if (cached != null &&
+        cached.orbitalPositionX == d.orbital_position_x &&
+        cached.targetPositionX == d.target_position_x &&
+        cached.reserveCores == d.reserve_cores &&
+        cached.boundaryLineY == d.boundary_line_y &&
+        cached.isCascading == isCascading &&
+        cached.totalScore == d.total_score &&
+        cached.currentSimState == d.current_sim_state &&
+        cached.coresUsed == d.cores_used) {
+      return cached;
+    }
+
+    final newState = DreadnoughtState(
       orbitalPositionX: d.orbital_position_x,
       targetPositionX: d.target_position_x,
       reserveCores: d.reserve_cores,
       boundaryLineY: d.boundary_line_y,
-      isCascading: d.is_cascading != 0,
+      isCascading: isCascading,
       totalScore: d.total_score,
       currentSimState: d.current_sim_state,
       coresUsed: d.cores_used,
     );
+    _cachedDreadnoughtState = newState;
+    return newState;
   }
 
   @override
   void reset() {
     _checkDisposed();
     _bindings.void_sower_reset();
+    _cachedEnemiesList.clear();
+    _cachedLancesList.clear();
+    _cachedFlaksList.clear();
+    _cachedDreadnoughtState = null;
   }
 
   @override
   void dispose() {
     if (_isDisposed) return;
     _isDisposed = true;
+
+    _cachedEnemiesList.clear();
+    _cachedLancesList.clear();
+    _cachedFlaksList.clear();
+    _cachedDreadnoughtState = null;
 
     calloc.free(_cachedBaysPtr);
     calloc.free(_cachedEnemiesPtr);

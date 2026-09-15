@@ -382,7 +382,7 @@ class CombatCoordinator extends ChangeNotifier {
       audio.onSowStep(cascadeDepth: hopIndex ~/ 8);
       notifyListeners();
 
-      Future.delayed(const Duration(milliseconds: 65), step);
+      unawaited(Future.delayed(const Duration(milliseconds: 65), step));
     }
 
     step();

@@ -140,7 +140,7 @@ class TacticalSolverController {
     } else if (bestBay >= 8) {
       targetCorridor = bestBay - 8;
     } else {
-      targetCorridor = bestBay % 8;
+      targetCorridor = bestBay & 0x07;
     }
     final targetX = ((targetCorridor + 0.5) / 8.0).clamp(0.0, 1.0);
 

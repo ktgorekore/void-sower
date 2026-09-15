@@ -141,3 +141,49 @@ if (BUILD_TESTS)
   )
   add_test(NAME void_sower_tests COMMAND void_sower_tests)
 endif()
+
+# ==============================================================================
+# Google Benchmark Integration
+# ==============================================================================
+option(BUILD_BENCHMARKS "Build native C++ Google Benchmark suite" ON)
+if (BUILD_BENCHMARKS)
+  set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+  set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+  set(BENCHMARK_ENABLE_WERROR  OFF CACHE BOOL "" FORCE)
+
+  FetchContent_Declare(
+    googlebenchmark
+    GIT_REPOSITORY https://github.com/google/benchmark.git
+    GIT_TAG        v1.8.3
+  )
+  FetchContent_MakeAvailable(googlebenchmark)
+
+  set(VOID_SOWER_BENCHMARK_SOURCES
+    "benchmarks/main_benchmark.cpp"
+    "benchmarks/bao_cascade_benchmark.cpp"
+    "benchmarks/combat_system_benchmark.cpp"
+    "benchmarks/mcts_solver_benchmark.cpp"
+    "benchmarks/ffi_serialization_benchmark.cpp"
+    ${VOID_SOWER_CORE_SOURCES}
+  )
+
+  add_executable(void_sower_benchmarks ${VOID_SOWER_BENCHMARK_SOURCES})
+
+  target_include_directories(void_sower_benchmarks PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+  target_link_libraries(void_sower_benchmarks PRIVATE
+    benchmark::benchmark
+    EnTT::EnTT
+    Threads::Threads
+    absl::inlined_vector
+    absl::flat_hash_set
+    absl::flat_hash_map
+    absl::span
+    absl::log
+    absl::log_globals
+  )
+
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+    target_compile_options(void_sower_benchmarks PRIVATE -O3 -DNDEBUG)
+  endif()
+endif()
+

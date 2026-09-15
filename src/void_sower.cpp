@@ -29,24 +29,6 @@
 #include "ecs/components.h"
 #include "ecs/engine.h"
 
-// Static layout assertions guaranteeing zero-copy safety
-static_assert(sizeof(VoidSowerBayFFI) ==
-                  sizeof(void_sower::ecs::BatteryComponent),
-              "VoidSowerBayFFI and BatteryComponent size mismatch");
-static_assert(sizeof(VoidSowerEnemyFFI) ==
-                  sizeof(void_sower::ecs::EnemyVesselComponent),
-              "VoidSowerEnemyFFI and EnemyVesselComponent size mismatch");
-static_assert(sizeof(VoidSowerLanceFFI) ==
-                  sizeof(void_sower::ecs::ParticleLanceComponent),
-              "VoidSowerLanceFFI and ParticleLanceComponent size mismatch");
-static_assert(sizeof(VoidSowerFlakFFI) ==
-                  sizeof(void_sower::ecs::FlakBurstComponent),
-              "VoidSowerFlakFFI and FlakBurstComponent size mismatch");
-static_assert(
-    sizeof(VoidSowerDreadnoughtFFI) ==
-        sizeof(void_sower::ecs::DreadnoughtStateComponent),
-    "VoidSowerDreadnoughtFFI and DreadnoughtStateComponent size mismatch");
-
 namespace {
 
 std::unique_ptr<void_sower::ecs::Engine> g_engine = nullptr;
@@ -191,11 +173,26 @@ void void_sower_get_bays(VoidSowerBayFFI* out_bays,
   if (!out_bays || max_count == 0) return;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    const uint32_t count =
-        std::min(max_count, static_cast<uint32_t>(void_sower::ecs::kTotalBays));
-    auto span = absl::MakeSpan(
-        reinterpret_cast<void_sower::ecs::BatteryComponent*>(out_bays), count);
-    GetOrCreateEngine().GetBays(span);
+    const auto& reg = GetOrCreateEngine().GetRegistry();
+    auto view = reg.view<const void_sower::ecs::BatteryComponent>();
+    uint32_t written = 0;
+    for (auto entity : view) {
+      if (written >= max_count) break;
+      const auto& bay =
+          view.get<const void_sower::ecs::BatteryComponent>(entity);
+      if (bay.bay_index < max_count) {
+        out_bays[bay.bay_index].bay_index = bay.bay_index;
+        out_bays[bay.bay_index].tier = bay.tier;
+        out_bays[bay.bay_index].grid_column = bay.grid_column;
+        out_bays[bay.bay_index].charge_units = bay.charge_units;
+        out_bays[bay.bay_index].radial_position_rad = bay.radial_position_rad;
+        out_bays[bay.bay_index].is_frontline = bay.is_frontline;
+        out_bays[bay.bay_index].is_nyumba = bay.is_nyumba;
+        out_bays[bay.bay_index].is_kichwa = bay.is_kichwa;
+        out_bays[bay.bay_index].is_kimbi = bay.is_kimbi;
+        written++;
+      }
+    }
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_get_bays: " << e.what();
   } catch (...) {
@@ -208,10 +205,29 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI* out_enemies,
   if (!out_enemies || max_count == 0) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    auto span = absl::MakeSpan(
-        reinterpret_cast<void_sower::ecs::EnemyVesselComponent*>(out_enemies),
-        max_count);
-    return GetOrCreateEngine().GetEnemies(span);
+    const auto& reg = GetOrCreateEngine().GetRegistry();
+    auto view = reg.view<const void_sower::ecs::EnemyVesselComponent>();
+    uint32_t count = 0;
+    for (auto entity : view) {
+      if (count >= max_count) break;
+      const auto& enemy =
+          view.get<const void_sower::ecs::EnemyVesselComponent>(entity);
+      if (enemy.is_destroyed == 0) {
+        out_enemies[count].entity_id = enemy.entity_id;
+        out_enemies[count].assigned_corridor = enemy.assigned_corridor;
+        out_enemies[count].world_pos_x = enemy.world_pos_x;
+        out_enemies[count].world_pos_y = enemy.world_pos_y;
+        out_enemies[count].velocity_y = enemy.velocity_y;
+        out_enemies[count].current_shields = enemy.current_shields;
+        out_enemies[count].max_shields = enemy.max_shields;
+        out_enemies[count].current_hull = enemy.current_hull;
+        out_enemies[count].max_hull = enemy.max_hull;
+        out_enemies[count].vessel_type = enemy.vessel_type;
+        out_enemies[count].is_destroyed = enemy.is_destroyed;
+        count++;
+      }
+    }
+    return count;
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_get_enemies: " << e.what();
     return 0;
@@ -226,10 +242,26 @@ uint32_t void_sower_get_lances(VoidSowerLanceFFI* out_lances,
   if (!out_lances || max_count == 0) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    auto span = absl::MakeSpan(
-        reinterpret_cast<void_sower::ecs::ParticleLanceComponent*>(out_lances),
-        max_count);
-    return GetOrCreateEngine().GetParticleLances(span);
+    const auto& reg = GetOrCreateEngine().GetRegistry();
+    auto view = reg.view<const void_sower::ecs::ParticleLanceComponent>();
+    uint32_t count = 0;
+    for (auto entity : view) {
+      if (count >= max_count) break;
+      const auto& lance =
+          view.get<const void_sower::ecs::ParticleLanceComponent>(entity);
+      if (lance.active != 0) {
+        out_lances[count].firing_bay_index = lance.firing_bay_index;
+        out_lances[count].origin_x = lance.origin_x;
+        out_lances[count].origin_y = lance.origin_y;
+        out_lances[count].beam_width = lance.beam_width;
+        out_lances[count].sustained_duration = lance.sustained_duration;
+        out_lances[count].remaining_duration = lance.remaining_duration;
+        out_lances[count].total_damage = lance.total_damage;
+        out_lances[count].active = lance.active;
+        count++;
+      }
+    }
+    return count;
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_get_lances: " << e.what();
     return 0;
@@ -244,10 +276,25 @@ uint32_t void_sower_get_flaks(VoidSowerFlakFFI* out_flaks,
   if (!out_flaks || max_count == 0) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    auto span = absl::MakeSpan(
-        reinterpret_cast<void_sower::ecs::FlakBurstComponent*>(out_flaks),
-        max_count);
-    return GetOrCreateEngine().GetFlakBursts(span);
+    const auto& reg = GetOrCreateEngine().GetRegistry();
+    auto view = reg.view<const void_sower::ecs::FlakBurstComponent>();
+    uint32_t count = 0;
+    for (auto entity : view) {
+      if (count >= max_count) break;
+      const auto& flak =
+          view.get<const void_sower::ecs::FlakBurstComponent>(entity);
+      if (flak.active != 0) {
+        out_flaks[count].world_pos_x = flak.world_pos_x;
+        out_flaks[count].world_pos_y = flak.world_pos_y;
+        out_flaks[count].blast_radius = flak.blast_radius;
+        out_flaks[count].area_damage = flak.area_damage;
+        out_flaks[count].lifetime = flak.lifetime;
+        out_flaks[count].remaining_lifetime = flak.remaining_lifetime;
+        out_flaks[count].active = flak.active;
+        count++;
+      }
+    }
+    return count;
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_get_flaks: " << e.what();
     return 0;

@@ -43,6 +43,18 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   int _demoCorridor = 3; // 0..7 (C4)
   bool _bombDeflected = false;
 
+  Timer? _lanceTimer;
+  Timer? _bombTimer;
+
+  @override
+  void dispose() {
+    _lanceTimer?.cancel();
+    _lanceTimer = null;
+    _bombTimer?.cancel();
+    _bombTimer = null;
+    super.dispose();
+  }
+
   void _nextStep() {
     if (_currentStep < 4) {
       HapticService.instance.sowTick();
@@ -660,7 +672,8 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             onPressed: () {
               HapticService.instance.injectionClick();
               setState(() => _lanceFired = true);
-              Timer(const Duration(milliseconds: 900), () {
+              _lanceTimer?.cancel();
+              _lanceTimer = Timer(const Duration(milliseconds: 900), () {
                 if (mounted) setState(() => _lanceFired = false);
               });
             },
@@ -798,7 +811,8 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             onPressed: () {
               HapticService.instance.injectionClick();
               setState(() => _bombDeflected = true);
-              Timer(const Duration(milliseconds: 1200), () {
+              _bombTimer?.cancel();
+              _bombTimer = Timer(const Duration(milliseconds: 1200), () {
                 if (mounted) setState(() => _bombDeflected = false);
               });
             },

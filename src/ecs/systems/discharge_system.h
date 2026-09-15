@@ -67,9 +67,25 @@ class DischargeSystem {
   void ProcessFlakBursts(entt::registry& registry, float delta_time);
 
   /**
+   * @brief Pre-allocates static entity pools for particle lances and flak
+   * bursts.
+   */
+  void InitializePool(entt::registry& registry);
+
+  /**
+   * @brief Resets all lance and flak slots to inactive without destroying
+   * entity handles.
+   */
+  void Reset(entt::registry& registry);
+
+  /**
    * @brief Returns whether any particle lances are currently active.
    */
   bool HasActiveLances(const entt::registry& registry) const;
+
+ private:
+  std::array<entt::entity, kMaxConcurrentLances> lance_pool_{};
+  std::array<entt::entity, kMaxConcurrentFlaks> flak_pool_{};
 };
 
 }  // namespace void_sower::ecs
