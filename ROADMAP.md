@@ -32,6 +32,7 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 
 - **Core Toolchain & Architecture Foundation (Phase 0)**: Initialized Flutter 3.x / Dart FFI standalone application targeting Android 15 (API 35, minSdk 24). Integrated CMake via Android Gradle `externalNativeBuild` with EnTT v3.13.2 ECS and Abseil C++ via `FetchContent`. Enforced universal 16 KB Android page alignment (`-Wl,-z,max-page-size=16384`), compiler security hardening flags (`-fstack-protector-strong`, `-D_FORTIFY_SOURCE=2`), classic `#ifndef VOID_SOWER_...` header guards, C++17 single-line nested namespaces (`namespace void_sower::ecs`), and verbatim Apache 2.0 license headers across all codebases.
 - **Cognitas-Pattern High-Performance Ring Buffer (Phase 1)**: Integrated power-of-two ($N = 16 = 2^4$) circular buffer utilizing single-cycle bitwise masking (`& 0x0F`) and 64-byte cache-line alignment (`alignas(64)`), eliminating slow modulo division and false sharing on the 60 Hz simulation hot path.
+- **Pro Commander Tier & Storefront Architecture (Release v0.2.3 - Code 5)**: Delivered hybrid monetization engine (`EntitlementService`) supporting $1.29 USD lifetime IAP unlock and rewarded video temporary passes. Built glassmorphic `ProUpgradeModal`, full gating across AI solver and flagship chassis, and regenerated the entire Google Play Store video, animated GIF, and tablet/phone screenshot suite.
 
 ---
 
@@ -397,16 +398,16 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 
 ---
 
-## 👑 Phase 15: Pro Tier Architecture, Premium Feature Gatekeeping, Hybrid Monetization ($1.29 IAP & Rewarded Ads) & Deep MCTS Solver Upgrade (Pending [ ])
+## 👑 Phase 15: Pro Tier Architecture, Premium Feature Gatekeeping, Hybrid Monetization ($1.29 IAP & Rewarded Ads) & Deep MCTS Solver Upgrade (In Progress [/])
 
-- [ ] **Task 15.1: Pro Entitlement Engine & Hybrid Ad/IAP Access Control**
-  - [ ] Implement `ProFeature` enum in `lib/domain/models/pro_feature.dart` categorizing all gated capabilities:
+- [x] **Task 15.1: Pro Entitlement Engine & Hybrid Ad/IAP Access Control**
+  - [x] Implement `ProFeature` enum in `lib/domain/models/pro_feature.dart` categorizing all gated capabilities:
     - `aiTacticalSolver` (Autopilot), `aiMoveAdvisor` (Smart Hints), `mk3SingularityChassis` (Flagship), `goldenSovereignSkin` (Cosmetic), `deepSensorTelemetry` (Trajectory), `chronoAnchorRewind` (Undo), `orbitalSimulationLab` (Endless/Sandbox), and `adFreeEmergencyFlare`.
-  - [ ] Implement `EntitlementService` in `lib/domain/services/entitlement_service.dart`:
+  - [x] Implement `EntitlementService` in `lib/domain/services/entitlement_service.dart`:
     - Manage persistent lifetime ownership via `IapService` / `PersistenceService`.
     - Manage temporary in-memory / session access passes granted by `AdService` rewarded video ad completions.
     - Expose clean reactive stream and synchronous `isFeatureAccessible(ProFeature)` checks.
-  - [ ] Update `IapService` with production $1.29 USD pricing metadata for `void_sower_pro_lifetime`.
+  - [x] Update `IapService` with production $1.29 USD pricing metadata for `void_sower_pro_lifetime`.
 
 - [ ] **Task 15.2: Complete Multi-Ply C++ MCTS Tactical Solver & Flat C ABI**
   - [ ] Upgrade `MctsSolver` in `src/ecs/systems/mcts_solver.h` and `mcts_solver.cpp`:
@@ -453,14 +454,14 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
     - Endless Horde Skirmish mode with escalating difficulty and infinite wave survival.
   - [ ] Gate mode behind `ProFeature.orbitalSimulationLab` with a 1-run rewarded ad trial option.
 
-- [ ] **Task 15.8: Afrofuturistic Glassmorphic Pro Storefront & Purchase Hardening**
-  - [ ] Create `lib/presentation/widgets/pro_upgrade_modal.dart`:
+- [x] **Task 15.8: Afrofuturistic Glassmorphic Pro Storefront & Purchase Hardening**
+  - [x] Create `lib/presentation/widgets/pro_upgrade_modal.dart`:
     - Showcase 6 core Pro benefits with Afrofuturistic neon cyan/gold typography and icons.
     - One-tap purchase button: "UNLOCK PRO COMMANDER — $1.29 (ONE-TIME)".
     - "Restore Purchases" button with instant local entitlement verification.
     - Contextual "Watch Transmission for Temporary Pass" option.
-  - [ ] Wire modal launchers across `HudHeader` (AI Solver button), `FleetHangarDialog` (locked ships), `SettingsModal` (Pro banner), and `StatsDashboardScreen`.
-  - [ ] Author comprehensive unit tests in `test/entitlement_and_pro_features_test.dart` verifying gatekeeping, purchase restoration, and ad reward passes.
+  - [x] Wire modal launchers across `HudHeader` (AI Solver button), `FleetHangarDialog` (locked ships), `SettingsModal` (Pro banner), and `StatsDashboardScreen`.
+  - [x] Author comprehensive unit tests in `test/entitlement_and_pro_features_test.dart` verifying gatekeeping, purchase restoration, and ad reward passes.
 
 
 
