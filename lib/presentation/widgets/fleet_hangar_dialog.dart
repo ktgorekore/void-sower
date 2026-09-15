@@ -14,9 +14,12 @@
 
 import 'package:flutter/material.dart';
 
+import '../../domain/models/pro_feature.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/fleet_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
+import 'pro_upgrade_modal.dart';
 import 'tactile_button.dart';
 
 /// Interactive Fleet Hangar modal showcasing unlockable dreadnought chassis and stats.
@@ -239,14 +242,40 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
           ),
           const SizedBox(height: 12.0),
 
-          if (!isEquipped)
-            TactileButton(
-              label: 'EQUIP SHIP',
-              onPressed: () => _selectChassis(chassis.chassisId),
-              accentColor: VoidTheme.solarGold,
-              height: 38.0,
-            ),
+          if (!isEquipped) ...[
+            if (chassis.isUnlocked ||
+                EntitlementService.instance.isFeatureAccessible(
+                  ProFeature.mk3SingularityChassis,
+                ))
+              TactileButton(
+                label: 'EQUIP SHIP',
+                onPressed: () => _selectChassis(chassis.chassisId),
+                accentColor: VoidTheme.solarGold,
+                height: 38.0,
+              )
+            else
+              TactileButton(
+                label: 'LOCKED • UNLOCK PRO / AD PASS',
+                icon: Icons.lock_outline,
+                onPressed: () => _promptProChassis(chassis),
+                accentColor: VoidTheme.crimsonFlare,
+                height: 38.0,
+              ),
+          ],
         ],
+      ),
+    );
+  }
+
+  void _promptProChassis(FleetChassis chassis) {
+    showDialog<void>(
+      context: context,
+      builder: (context) => ProUpgradeModal(
+        highlightedFeature: ProFeature.mk3SingularityChassis,
+        onUnlocked: () {
+          setState(() {});
+          _selectChassis(chassis.chassisId);
+        },
       ),
     );
   }

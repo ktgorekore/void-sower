@@ -16,6 +16,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../domain/models/pro_feature.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
 import '../../domain/state/combat_match_state.dart';
@@ -27,6 +29,7 @@ import '../widgets/command_arc_widget.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/hud_header.dart';
 import '../widgets/profile_modal.dart';
+import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/projection_shelf.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
@@ -293,6 +296,37 @@ class _CombatScreenState extends State<CombatScreen>
     super.dispose();
   }
 
+  void _toggleAutoSolve() {
+    if (EntitlementService.instance.isFeatureAccessible(
+      ProFeature.aiTacticalSolver,
+    )) {
+      _coordinator.toggleAutoSolve();
+    } else {
+      final wasTicking = _ticker.isTicking;
+      if (wasTicking) _ticker.stop();
+
+      showDialog<void>(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.75),
+        builder: (context) => ProUpgradeModal(
+          highlightedFeature: ProFeature.aiTacticalSolver,
+          onUnlocked: () {
+            if (mounted) {
+              setState(() {});
+              _coordinator.toggleAutoSolve();
+            }
+          },
+        ),
+      ).then((_) {
+        if (mounted &&
+            wasTicking &&
+            _coordinator.state.status == CombatMatchStatus.activeCombat) {
+          _ticker.start();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final matchState = _coordinator.state;
@@ -317,7 +351,7 @@ class _CombatScreenState extends State<CombatScreen>
                   onTutorialTap: _coordinator.showTutorial,
                   onEmergencyFlareTap: _openEmergencyFlare,
                   isAutoSolving: matchState.isAutoSolving,
-                  onToggleAutoSolve: _coordinator.toggleAutoSolve,
+                  onToggleAutoSolve: _toggleAutoSolve,
                 ),
 
                 // Tactical Combat Corridor (Upper Viewport)

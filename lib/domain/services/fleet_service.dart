@@ -65,6 +65,15 @@ class FleetService {
         lanceAlphaBonus: 1.30,
         isUnlocked: false,
       ),
+      FleetChassis(
+        chassisId: 'mk4_golden_sovereign',
+        name: 'MK-IV Golden Sovereign',
+        description:
+            'Gilded solar lattice flagship with +40% lance alpha and radiant engine trails.',
+        coreCapacity: 44,
+        lanceAlphaBonus: 1.40,
+        isUnlocked: false,
+      ),
     ];
   }
 }

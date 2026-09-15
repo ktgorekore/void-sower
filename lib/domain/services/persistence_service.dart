@@ -14,6 +14,7 @@
 
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_profile.dart';
@@ -28,6 +29,13 @@ class PersistenceService {
   /// Initializes SharedPreferences instance.
   Future<void> initialize() async {
     _prefs ??= await SharedPreferences.getInstance();
+  }
+
+  /// Resets and clears preferences for unit tests.
+  @visibleForTesting
+  Future<void> resetForTesting() async {
+    _prefs = await SharedPreferences.getInstance();
+    await _prefs?.clear();
   }
 
   static const String _kHighScore = 'void_sower_high_score';

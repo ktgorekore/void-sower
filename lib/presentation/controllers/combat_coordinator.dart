@@ -24,6 +24,8 @@ import '../../domain/models/flak_burst.dart';
 import '../../domain/models/floating_damage_number.dart';
 import '../../domain/models/lance_beam.dart';
 import '../../domain/models/prediction_result.dart';
+import '../../domain/models/pro_feature.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
 import '../../domain/state/combat_match_state.dart';
@@ -301,6 +303,12 @@ class CombatCoordinator extends ChangeNotifier {
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, direction);
     sow(bayIndex, direction);
+    EntitlementService.instance.consumeAiSolverMove();
+    if (!EntitlementService.instance.isFeatureAccessible(
+      ProFeature.aiTacticalSolver,
+    )) {
+      toggleAutoSolve();
+    }
   }
 
   /// Selects a bay for aiming and forward prediction.
