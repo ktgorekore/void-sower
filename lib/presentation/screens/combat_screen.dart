@@ -166,7 +166,7 @@ class _CombatScreenState extends State<CombatScreen>
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _isModalOpen = false;
-          widget.onReturnToMap?.call();
+          _openMap();
         },
       ),
     );

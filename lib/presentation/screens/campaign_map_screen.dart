@@ -924,7 +924,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           ),
         ],
       );
-      subtitleWidget = Row(
+      subtitleWidget = Wrap(
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6.0,
+        runSpacing: 2.0,
         children: [
           Text(
             '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1}',
@@ -934,9 +937,9 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
               letterSpacing: 0.5,
             ),
           ),
-          if (sector.starsEarned > 0) ...[
-            const SizedBox(width: 6.0),
+          if (sector.starsEarned > 0)
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: List.generate(
                 sector.starsEarned,
                 (i) => const Icon(
@@ -946,9 +949,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                 ),
               ),
             ),
-          ],
-          if (sector.bestScore > 0) ...[
-            const SizedBox(width: 6.0),
+          if (sector.bestScore > 0)
             Text(
               'BEST: ${sector.bestScore}',
               style: const TextStyle(
@@ -957,7 +958,6 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ],
         ],
       );
       trailingWidget = ElevatedButton.icon(

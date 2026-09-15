@@ -40,20 +40,39 @@ def keyevent(code):
   adb_cmd(["shell", "input", "keyevent", str(code)])
 
 
-def record_60s_tutorial():
-  print("[Record 60s] Resetting app state to fresh cadet profile...")
+def reset_app_pro_state(completed_tutorial=False):
+  """Resets app state cleanly via pm clear and injects persistent SharedPreferences."""
   adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
+  adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
+  time.sleep(0.5)
   adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
   time.sleep(1.0)
+
+  pref_xml = (
+      '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>'
+      '<map>'
+      '<boolean name="flutter.void_sower_pro_unlocked" value="true" />'
+      f'<boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />'
+      '</map>'
+  )
+  import base64
+  b64_val = base64.b64encode(pref_xml.encode("utf-8")).decode("ascii")
   adb_cmd([
       "shell",
       "run-as",
       "com.voidsower.app",
       "sh",
       "-c",
-      "mkdir -p shared_prefs && echo '<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?><map><boolean name=\"flutter.void_sower_pro_unlocked\" value=\"true\" /></map>' > shared_prefs/FlutterSharedPreferences.xml",
+      f"mkdir -p shared_prefs && echo {b64_val} | base64 -d > shared_prefs/FlutterSharedPreferences.xml",
   ])
   time.sleep(0.5)
+
+
+def record_60s_tutorial():
+  print("[Record 60s] Resetting app state to fresh cadet profile with Pro unlocked...")
+  reset_app_pro_state(completed_tutorial=False)
+
+  print("[Record 60s] Starting Void Sower main activity...")
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.5)
 
@@ -72,95 +91,92 @@ def record_60s_tutorial():
     if rem > 0:
       time.sleep(rem)
 
-  # 1. Inspect Fleet Hangar
-  wait_until(2.0)
-  print("[Timeline 2.0s] Open Fleet Hangar")
-  tap(696, 243)
+  # 1. 0s..4s: Flight Academy Tutorial shown over combat arena
+  wait_until(4.0)
+  print("[Timeline 4.0s] Dismiss Flight Academy (tap SKIP at x=210, y=2060)")
+  tap(210, 2060)
 
-  wait_until(4.5)
-  print("[Timeline 4.5s] Close Fleet Hangar")
+  # 2. 5.5s: Navigate to Star Map
+  wait_until(5.5)
+  print("[Timeline 5.5s] Open Star Map (tap MAP at x=1260, y=365)")
+  tap(1260, 365)
+
+  # 3. 7.5s: Inspect Fleet Hangar
+  wait_until(7.5)
+  print("[Timeline 7.5s] Open Fleet Hangar (tap x=696, y=240)")
+  tap(696, 240)
+
+  wait_until(10.5)
+  print("[Timeline 10.5s] Close Fleet Hangar")
   keyevent(4)
 
-  # 2. Inspect Pilot Dossier
-  wait_until(5.8)
-  print("[Timeline 5.8s] Open Pilot Dossier")
-  tap(840, 243)
-
-  wait_until(8.2)
-  print("[Timeline 8.2s] Close Pilot Dossier")
-  keyevent(4)
-
-  # 3. Inspect Bao Codex
-  wait_until(9.5)
-  print("[Timeline 9.5s] Open Bao Codex")
-  tap(984, 243)
-
+  # 4. 12.0s: Inspect Pilot Dossier
   wait_until(12.0)
-  print("[Timeline 12.0s] Close Bao Codex")
+  print("[Timeline 12.0s] Open Pilot Dossier (tap x=840, y=240)")
+  tap(840, 240)
+
+  wait_until(14.5)
+  print("[Timeline 14.5s] Close Pilot Dossier")
   keyevent(4)
 
-  # 4. Engage Sector 1 (Zanzibar Reef Gate)
-  wait_until(13.2)
-  print("[Timeline 13.2s] Engage Sector 1")
-  tap(1105, 957)
+  # 5. 16.0s: Inspect Bao Codex
+  wait_until(16.0)
+  print("[Timeline 16.0s] Open Bao Codex (tap x=984, y=240)")
+  tap(984, 240)
 
-  # 5. Briefing overlay displayed (Combat paused)
-  wait_until(15.5)
-  print("[Timeline 15.5s] Briefing displayed, letting user review...")
+  wait_until(19.0)
+  print("[Timeline 19.0s] Close Bao Codex")
+  keyevent(4)
 
-  wait_until(18.0)
-  print("[Timeline 18.0s] Launch combat from briefing (SKIP/DISMISS)")
-  tap(293, 2130)
-
-  # 6. Active combat maneuvers
+  # 6. 20.5s: Return to Combat Arena
   wait_until(20.5)
-  print("[Timeline 20.5s] Slide dreadnought laterally")
-  swipe(400, 2000, 850, 2000, 250)
+  print("[Timeline 20.5s] Return to Combat Arena")
+  keyevent(4)
 
+  # 7. 22.5s: Slide flagship laterally
   wait_until(22.5)
-  print("[Timeline 22.5s] Double tap flagship to quick-fire axial prow lance")
-  tap(850, 2000)
-  time.sleep(0.08)
-  tap(850, 2000)
+  print("[Timeline 22.5s] Slide dreadnought laterally along bottom track")
+  swipe(400, 2900, 950, 2900, 350)
 
   wait_until(25.0)
-  print("[Timeline 25.0s] Tap Axial Discharge button")
-  tap(938, 2809)
+  print("[Timeline 25.0s] Slide back to center")
+  swipe(950, 2900, 672, 2900, 250)
 
-  wait_until(27.5)
-  print("[Timeline 27.5s] Sow bay sequentially")
-  swipe(590, 2565, 950, 2565, 200)
+  # 8. 27.0s: Discharge Axial Particle Lance
+  wait_until(27.0)
+  print("[Timeline 27.0s] Tap Axial Discharge (x=500, y=2770)")
+  tap(500, 2770)
 
-  # 7. Autonomous AI Tactical Solver demonstration
-  wait_until(30.0)
-  print("[Timeline 30.0s] Tap AI Tactical Solver")
-  tap(624, 332)
-  time.sleep(0.5)
-  print("[Timeline 30.5s] Unlock Pro Commander license")
-  tap(671, 2106)
-  time.sleep(0.6)
-  print("[Timeline 31.1s] Engage AI Tactical Solver")
-  tap(624, 332)
+  # 9. 29.5s: Sow bay sequentially
+  wait_until(29.5)
+  print("[Timeline 29.5s] Sow Frontline Bay (tap SOW RIGHT at x=850, y=2770)")
+  tap(850, 2770)
 
-  print("[Record 60s] AI Solver active, allowing autonomous tactical clearing...")
+  wait_until(32.0)
+  print("[Timeline 32.0s] Sow Frontline Bay again")
+  tap(850, 2770)
+
+  # 10. 35.0s: Engage Autonomous AI Tactical Solver
+  wait_until(35.0)
+  print("[Timeline 35.0s] Engage AI Tactical Solver (tap x=1127, y=370)")
+  tap(1127, 370)
+
+  print("[Record 60s] AI Solver active, autonomously clearing orbital corridors...")
   rec_proc.wait()
   print("[Record 60s] Screen recording completed successfully!")
 
 
 def record_30s_showcase():
   print("\n[Record 30s] Setting up Tactical Solver Showcase...")
-  adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
-  time.sleep(1.0)
+  reset_app_pro_state(completed_tutorial=True)
+
+  print("[Record 30s] Starting Void Sower main activity...")
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-  time.sleep(2.5)
-  # Tap Sector 1
-  tap(1105, 957)
-  time.sleep(1.2)
-  # Dismiss tutorial if open
-  tap(293, 2130)
-  time.sleep(0.5)
-  # Activate solver
-  tap(624, 332)
+  time.sleep(3.5)
+
+  # Activate solver immediately in Combat Arena
+  print("[Record 30s] Engaging AI Tactical Solver (tap x=1127, y=370)...")
+  tap(1127, 370)
   time.sleep(0.5)
 
   print("[Record 30s] Launching 30s showcase recording...")
