@@ -23,6 +23,7 @@ import '../../domain/services/persistence_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../controllers/combat_coordinator.dart';
 import '../theme/void_theme.dart';
+import 'campaign_map_screen.dart';
 import '../widgets/bao_codex_dialog.dart';
 import '../widgets/combat_painter.dart';
 import '../widgets/command_arc_widget.dart';
@@ -328,6 +329,59 @@ class _CombatScreenState extends State<CombatScreen>
     }
   }
 
+  void _openMap() {
+    if (widget.onReturnToMap != null) {
+      widget.onReturnToMap!();
+    } else {
+      final wasTicking = _ticker.isTicking;
+      if (wasTicking) _ticker.stop();
+      Navigator.of(context)
+          .push(
+            MaterialPageRoute<void>(
+              builder: (context) => CampaignMapScreen(engine: widget.engine),
+            ),
+          )
+          .then((_) {
+            if (mounted &&
+                wasTicking &&
+                _coordinator.state.status == CombatMatchStatus.activeCombat) {
+              _ticker.start();
+            }
+          });
+    }
+  }
+
+  void _toggleTacticalPause() {
+    if (EntitlementService.instance.isFeatureAccessible(
+      ProFeature.tacticalPause,
+    )) {
+      _coordinator.toggleTacticalPause();
+    } else {
+      final wasTicking = _ticker.isTicking;
+      if (wasTicking) _ticker.stop();
+
+      showDialog<void>(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: 0.75),
+        builder: (context) => ProUpgradeModal(
+          highlightedFeature: ProFeature.tacticalPause,
+          onUnlocked: () {
+            if (mounted) {
+              setState(() {});
+              _coordinator.toggleTacticalPause();
+            }
+          },
+        ),
+      ).then((_) {
+        if (mounted &&
+            wasTicking &&
+            _coordinator.state.status == CombatMatchStatus.activeCombat) {
+          _ticker.start();
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final matchState = _coordinator.state;
@@ -347,6 +401,12 @@ class _CombatScreenState extends State<CombatScreen>
                   reserveCores: dread.reserveCores,
                   score: dread.totalScore,
                   difficultyTier: _currentDifficultyTier,
+                  invadersRemaining: _coordinator.enemies
+                      .where((e) => !e.isDestroyed)
+                      .length,
+                  isPaused: matchState.status == CombatMatchStatus.paused,
+                  onTogglePause: _toggleTacticalPause,
+                  onMapTap: _openMap,
                   onSettingsTap: _openSettings,
                   onCodexTap: _openCodex,
                   onTutorialTap: _coordinator.showTutorial,
@@ -423,6 +483,58 @@ class _CombatScreenState extends State<CombatScreen>
                             ),
                           ),
                         ),
+                        if (matchState.status == CombatMatchStatus.paused)
+                          Positioned(
+                            top: 8.0,
+                            left: 16.0,
+                            right: 16.0,
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 4.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: VoidTheme.obsidianBlack.withValues(
+                                    alpha: 0.9,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  border: Border.all(
+                                    color: VoidTheme.solarGold,
+                                    width: 1.2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: VoidTheme.solarGold.withValues(
+                                        alpha: 0.35,
+                                      ),
+                                      blurRadius: 8.0,
+                                    ),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.pause_circle_filled,
+                                      color: VoidTheme.solarGold,
+                                      size: 14.0,
+                                    ),
+                                    SizedBox(width: 5.0),
+                                    Text(
+                                      'TACTICAL TIME DILATION • SLIDE TO AIM • TAP TO FIRE',
+                                      style: TextStyle(
+                                        color: VoidTheme.solarGold,
+                                        fontSize: 8.5,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         // Floating AI Tactical Solver Badge (Zero vertical footprint)
                         if (matchState.isAutoSolving)
                           Positioned(
@@ -504,7 +616,10 @@ class _CombatScreenState extends State<CombatScreen>
           // Flight Academy Onboarding Overlay
           if (matchState.status == CombatMatchStatus.briefing)
             Positioned.fill(
-              child: TutorialOverlay(onDismiss: _coordinator.dismissTutorial),
+              child: TutorialOverlay(
+                onDismiss: _coordinator.dismissTutorial,
+                onOpenCodex: _openCodex,
+              ),
             ),
         ],
       ),

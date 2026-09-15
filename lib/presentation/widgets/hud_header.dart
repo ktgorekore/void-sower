@@ -17,7 +17,7 @@ import 'package:flutter/material.dart';
 import '../../domain/models/user_profile.dart';
 import '../theme/void_theme.dart';
 
-/// Top Tactical HUD header displaying pilot profile, reserve cores, score, wave tier, and controls.
+/// Redesigned two-tier Tactical HUD header grouping Defense Grid and Fleet Command.
 class HudHeader extends StatelessWidget {
   const HudHeader({
     super.key,
@@ -32,6 +32,10 @@ class HudHeader extends StatelessWidget {
     this.onToggleAutoSolve,
     this.userProfile,
     this.onProfileTap,
+    this.invadersRemaining,
+    this.isPaused = false,
+    this.onTogglePause,
+    this.onMapTap,
   });
 
   final int reserveCores;
@@ -45,17 +49,21 @@ class HudHeader extends StatelessWidget {
   final VoidCallback? onToggleAutoSolve;
   final UserProfile? userProfile;
   final VoidCallback? onProfileTap;
+  final int? invadersRemaining;
+  final bool isPaused;
+  final VoidCallback? onTogglePause;
+  final VoidCallback? onMapTap;
 
   String get tierName {
     switch (difficultyTier) {
       case 0:
-        return 'SECTOR PATROL';
+        return 'PATROL';
       case 1:
-        return 'PLANETARY SIEGE';
+        return 'SIEGE';
       case 2:
-        return 'FLAGSHIP BASTION';
+        return 'BASTION';
       default:
-        return 'ORBITAL ENGAGEMENT';
+        return 'ORBITAL';
     }
   }
 
@@ -65,7 +73,7 @@ class HudHeader extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: VoidTheme.obsidianBlack.withValues(alpha: 0.92),
+        color: VoidTheme.obsidianBlack.withValues(alpha: 0.95),
         border: const Border(
           bottom: BorderSide(color: VoidTheme.cardSurface, width: 1.0),
         ),
@@ -75,16 +83,16 @@ class HudHeader extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // STRIP 1: Pilot Profile, Reactor Economy, Sector Tier & Mission Score
+            // ROW 1: DEFENSE GRID & MISSION INTEL
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 8.0,
-                vertical: 4.0,
+                vertical: 3.5,
               ),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: VoidTheme.cardSurface.withValues(alpha: 0.5),
+                    color: VoidTheme.cardSurface.withValues(alpha: 0.45),
                     width: 0.8,
                   ),
                 ),
@@ -92,159 +100,191 @@ class HudHeader extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // 1. Pilot Profile Pill (Avatar/Insignia, Callsign, Google indicator)
-                  GestureDetector(
-                    onTap: onProfileTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6.0,
-                        vertical: 2.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VoidTheme.cardSurface,
-                        borderRadius: BorderRadius.circular(5.0),
-                        border: Border.all(
-                          color: profile.isGoogleLinked
-                              ? VoidTheme.plasmaCyan
-                              : VoidTheme.solarGold.withValues(alpha: 0.5),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.account_circle,
-                            color: profile.isGoogleLinked
-                                ? VoidTheme.plasmaCyan
-                                : VoidTheme.solarGold,
-                            size: 14.0,
-                          ),
-                          const SizedBox(width: 4.0),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 125.0),
-                            child: Text(
-                              profile.callsign,
-                              style: const TextStyle(
-                                color: VoidTheme.starWhite,
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.4,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (profile.isGoogleLinked) ...[
-                            const SizedBox(width: 2.0),
-                            const Icon(
-                              Icons.g_mobiledata,
-                              color: VoidTheme.plasmaCyan,
-                              size: 14.0,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 2. Reactor Reserve Core Gauge (Namua Fuel Pool)
-                  GestureDetector(
-                    onTap: onEmergencyFlareTap,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6.0,
-                        vertical: 2.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VoidTheme.cardSurface,
-                        borderRadius: BorderRadius.circular(5.0),
-                        border: Border.all(
-                          color: reserveCores <= 5
-                              ? VoidTheme.crimsonFlare
-                              : VoidTheme.solarGold.withValues(alpha: 0.7),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.bolt,
-                            color: reserveCores <= 5
-                                ? VoidTheme.crimsonFlare
-                                : VoidTheme.solarGold,
-                            size: 13.0,
-                          ),
-                          const SizedBox(width: 2.0),
-                          Text(
-                            '$reserveCores CORES',
-                            style: TextStyle(
-                              color: reserveCores <= 5
-                                  ? VoidTheme.crimsonFlare
-                                  : VoidTheme.solarGold,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 3. Sector Threat Tier Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5.0,
-                      vertical: 2.5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: VoidTheme.cardSurface,
-                      borderRadius: BorderRadius.circular(4.0),
-                      border: Border.all(
-                        color: difficultyTier == 2
-                            ? VoidTheme.crimsonFlare
-                            : VoidTheme.plasmaCyan,
-                        width: 1.0,
-                      ),
-                    ),
-                    child: Text(
-                      'TIER ${difficultyTier + 1}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: difficultyTier == 2
-                            ? VoidTheme.crimsonFlare
-                            : VoidTheme.plasmaCyan,
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ),
-
-                  // 4. Mission Combat Score
+                  // Left Group: Sector Tier & Invaders Counter
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'SCORE: ',
-                        style: TextStyle(
-                          color: VoidTheme.textSecondary,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.4,
+                      // Sector Threat Tier Pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6.0,
+                          vertical: 2.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.cardSurface,
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(
+                            color: difficultyTier == 2
+                                ? VoidTheme.crimsonFlare
+                                : VoidTheme.plasmaCyan,
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Text(
+                          'T${difficultyTier + 1} • $tierName',
+                          style: TextStyle(
+                            color: difficultyTier == 2
+                                ? VoidTheme.crimsonFlare
+                                : VoidTheme.plasmaCyan,
+                            fontSize: 9.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.4,
+                          ),
                         ),
                       ),
-                      Text(
-                        '$score',
-                        style: const TextStyle(
-                          color: VoidTheme.plasmaCyanLight,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.6,
+                      const SizedBox(width: 5.0),
+                      // Invaders Remaining Pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6.0,
+                          vertical: 2.0,
                         ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.cardSurface.withValues(alpha: 0.8),
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(
+                            color:
+                                (invadersRemaining != null &&
+                                    invadersRemaining! <= 3)
+                                ? VoidTheme.solarGold
+                                : VoidTheme.textMuted.withValues(alpha: 0.4),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.shield_outlined,
+                              size: 11.0,
+                              color:
+                                  (invadersRemaining != null &&
+                                      invadersRemaining! <= 3)
+                                  ? VoidTheme.solarGold
+                                  : VoidTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 3.0),
+                            Text(
+                              invadersRemaining != null
+                                  ? '$invadersRemaining HOSTILES'
+                                  : 'DEFENSE GRID ACTIVE',
+                              style: TextStyle(
+                                color:
+                                    (invadersRemaining != null &&
+                                        invadersRemaining! <= 3)
+                                    ? VoidTheme.solarGold
+                                    : VoidTheme.textSecondary,
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Right Group: Prominent Bao Rules, Academy Tutorial, and Settings
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Prominent BAO RULES Button
+                      if (onCodexTap != null)
+                        GestureDetector(
+                          onTap: onCodexTap,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7.0,
+                              vertical: 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: VoidTheme.plasmaCyan.withValues(
+                                alpha: 0.15,
+                              ),
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: VoidTheme.plasmaCyan,
+                                width: 1.0,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.menu_book,
+                                  color: VoidTheme.plasmaCyan,
+                                  size: 12.0,
+                                ),
+                                SizedBox(width: 3.0),
+                                Text(
+                                  'RULES',
+                                  style: TextStyle(
+                                    color: VoidTheme.plasmaCyan,
+                                    fontSize: 9.0,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      if (onTutorialTap != null) ...[
+                        const SizedBox(width: 4.0),
+                        GestureDetector(
+                          onTap: onTutorialTap,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: VoidTheme.solarGold.withValues(
+                                alpha: 0.12,
+                              ),
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: VoidTheme.solarGold.withValues(
+                                  alpha: 0.7,
+                                ),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.school,
+                                  color: VoidTheme.solarGold,
+                                  size: 12.0,
+                                ),
+                                SizedBox(width: 2.5),
+                                Text(
+                                  'ACADEMY',
+                                  style: TextStyle(
+                                    color: VoidTheme.solarGold,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 2.0),
+                      IconButton(
+                        padding: const EdgeInsets.all(3.0),
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(
+                          Icons.settings,
+                          color: VoidTheme.textSecondary,
+                          size: 15.0,
+                        ),
+                        onPressed: onSettingsTap,
+                        tooltip: 'Settings',
                       ),
                     ],
                   ),
@@ -252,155 +292,287 @@ class HudHeader extends StatelessWidget {
               ),
             ),
 
-            // STRIP 2: Tactical Command & Auxiliary Controls
+            // ROW 2: TACTICAL FLEET & REACTOR ARSENAL
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 8.0,
-                vertical: 2.0,
+                vertical: 3.0,
               ),
-              color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
+              color: VoidTheme.obsidianBlack.withValues(alpha: 0.7),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Tactical Status Guidance Pill
-                  Expanded(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 6.0,
-                          height: 6.0,
+                  // Left Group: Pilot Profile, Reserve Cores & Mission Score
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Pilot Profile Pill
+                      GestureDetector(
+                        onTap: onProfileTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5.0,
+                            vertical: 2.0,
+                          ),
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isAutoSolving
-                                ? VoidTheme.crimsonFlare
-                                : VoidTheme.emeraldShield,
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    (isAutoSolving
-                                            ? VoidTheme.crimsonFlare
-                                            : VoidTheme.emeraldShield)
-                                        .withValues(alpha: 0.6),
-                                blurRadius: 4.0,
+                            color: VoidTheme.cardSurface,
+                            borderRadius: BorderRadius.circular(4.0),
+                            border: Border.all(
+                              color: profile.isGoogleLinked
+                                  ? VoidTheme.plasmaCyan
+                                  : VoidTheme.solarGold.withValues(alpha: 0.5),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.account_circle,
+                                color: profile.isGoogleLinked
+                                    ? VoidTheme.plasmaCyan
+                                    : VoidTheme.solarGold,
+                                size: 12.0,
+                              ),
+                              const SizedBox(width: 3.0),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 80.0,
+                                ),
+                                child: Text(
+                                  profile.callsign,
+                                  style: const TextStyle(
+                                    color: VoidTheme.starWhite,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.3,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 5.0),
-                        Expanded(
-                          child: Text(
-                            isAutoSolving
-                                ? 'AI TACTICAL SOLVER ACTIVE'
-                                : '8 CONDUITS ARMED • SOW TO DISCHARGE',
-                            style: TextStyle(
-                              color: isAutoSolving
+                      ),
+                      const SizedBox(width: 4.0),
+
+                      // Reactor Reserve Cores / Bombs Gauge
+                      GestureDetector(
+                        onTap: onEmergencyFlareTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5.0,
+                            vertical: 2.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: VoidTheme.cardSurface,
+                            borderRadius: BorderRadius.circular(4.0),
+                            border: Border.all(
+                              color: reserveCores <= 5
                                   ? VoidTheme.crimsonFlare
-                                  : VoidTheme.textSecondary,
-                              fontSize: 8.5,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.4,
+                                  : VoidTheme.solarGold.withValues(alpha: 0.7),
+                              width: 1.0,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.bolt,
+                                color: reserveCores <= 5
+                                    ? VoidTheme.crimsonFlare
+                                    : VoidTheme.solarGold,
+                                size: 12.0,
+                              ),
+                              const SizedBox(width: 1.5),
+                              Text(
+                                '$reserveCores CORES',
+                                style: TextStyle(
+                                  color: reserveCores <= 5
+                                      ? VoidTheme.crimsonFlare
+                                      : VoidTheme.solarGold,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 4.0),
+                      ),
+                      const SizedBox(width: 4.0),
 
-                  // Auxiliary Action Buttons
+                      // Score Pill
+                      Text(
+                        '$score',
+                        style: const TextStyle(
+                          color: VoidTheme.plasmaCyanLight,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Right Group: Tactical Controls (Pause/Resume, AI Solver, Sector Map)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (onToggleAutoSolve != null)
-                        IconButton(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 2.0,
+                      // Tactical Pause / Time Dilation Button
+                      if (onTogglePause != null)
+                        GestureDetector(
+                          onTap: onTogglePause,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isPaused
+                                  ? VoidTheme.solarGold
+                                  : VoidTheme.cardSurface,
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: isPaused
+                                    ? VoidTheme.solarGold
+                                    : VoidTheme.textMuted.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                width: 0.8,
+                              ),
+                              boxShadow: isPaused
+                                  ? [
+                                      BoxShadow(
+                                        color: VoidTheme.solarGold.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                        blurRadius: 4.0,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isPaused ? Icons.play_arrow : Icons.pause,
+                                  color: isPaused
+                                      ? VoidTheme.obsidianBlack
+                                      : VoidTheme.starWhite,
+                                  size: 11.0,
+                                ),
+                                const SizedBox(width: 2.0),
+                                Text(
+                                  isPaused ? 'RESUME' : 'PAUSE',
+                                  style: TextStyle(
+                                    color: isPaused
+                                        ? VoidTheme.obsidianBlack
+                                        : VoidTheme.starWhite,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.4,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          constraints: const BoxConstraints(),
-                          icon: Icon(
-                            isAutoSolving
-                                ? Icons.smart_toy
-                                : Icons.smart_toy_outlined,
-                            color: isAutoSolving
-                                ? VoidTheme.crimsonFlare
-                                : VoidTheme.plasmaCyanLight,
-                            size: 16.0,
-                          ),
-                          onPressed: onToggleAutoSolve,
-                          tooltip: isAutoSolving
-                              ? 'Stop AI Tactical Solver'
-                              : 'Launch AI Tactical Solver',
                         ),
-                      if (onProfileTap != null) ...[
+
+                      // AI Tactical Solver Button
+                      if (onToggleAutoSolve != null) ...[
                         const SizedBox(width: 4.0),
-                        IconButton(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 2.0,
+                        GestureDetector(
+                          onTap: onToggleAutoSolve,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5.0,
+                              vertical: 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isAutoSolving
+                                  ? VoidTheme.crimsonFlare
+                                  : VoidTheme.cardSurface,
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: isAutoSolving
+                                    ? VoidTheme.crimsonFlare
+                                    : VoidTheme.textMuted.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.smart_toy,
+                                  color: isAutoSolving
+                                      ? VoidTheme.obsidianBlack
+                                      : VoidTheme.plasmaCyanLight,
+                                  size: 11.0,
+                                ),
+                                const SizedBox(width: 2.0),
+                                Text(
+                                  'AI',
+                                  style: TextStyle(
+                                    color: isAutoSolving
+                                        ? VoidTheme.obsidianBlack
+                                        : VoidTheme.plasmaCyanLight,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(
-                            Icons.account_circle_outlined,
-                            color: VoidTheme.plasmaCyanLight,
-                            size: 16.0,
-                          ),
-                          onPressed: onProfileTap,
-                          tooltip: 'User Profile & Dossier',
                         ),
                       ],
-                      if (onTutorialTap != null) ...[
+
+                      // Sector Map Navigation Button
+                      if (onMapTap != null) ...[
                         const SizedBox(width: 4.0),
-                        IconButton(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 2.0,
+                        GestureDetector(
+                          onTap: onMapTap,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5.0,
+                              vertical: 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: VoidTheme.cardSurface,
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: VoidTheme.plasmaCyan.withValues(
+                                  alpha: 0.5,
+                                ),
+                                width: 0.8,
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.map_outlined,
+                                  color: VoidTheme.plasmaCyan,
+                                  size: 11.0,
+                                ),
+                                SizedBox(width: 2.0),
+                                Text(
+                                  'MAP',
+                                  style: TextStyle(
+                                    color: VoidTheme.plasmaCyan,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(
-                            Icons.school_outlined,
-                            color: VoidTheme.solarGold,
-                            size: 16.0,
-                          ),
-                          onPressed: onTutorialTap,
-                          tooltip: 'Flight Academy',
                         ),
                       ],
-                      if (onCodexTap != null) ...[
-                        const SizedBox(width: 4.0),
-                        IconButton(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 2.0,
-                          ),
-                          constraints: const BoxConstraints(),
-                          icon: const Icon(
-                            Icons.menu_book_outlined,
-                            color: VoidTheme.plasmaCyan,
-                            size: 16.0,
-                          ),
-                          onPressed: onCodexTap,
-                          tooltip: 'Bao Codex',
-                        ),
-                      ],
-                      const SizedBox(width: 4.0),
-                      IconButton(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4.0,
-                          vertical: 2.0,
-                        ),
-                        constraints: const BoxConstraints(),
-                        icon: const Icon(
-                          Icons.settings,
-                          color: VoidTheme.solarGold,
-                          size: 16.0,
-                        ),
-                        onPressed: onSettingsTap,
-                        tooltip: 'Fleet Settings',
-                      ),
                     ],
                   ),
                 ],
