@@ -106,14 +106,11 @@ def record_60s_tutorial():
 
   # 5. Briefing overlay displayed (Combat paused)
   wait_until(15.5)
-  print("[Timeline 15.5s] Step through briefing (NEXT)")
-  tap(1059, 2131)
+  print("[Timeline 15.5s] Briefing displayed, letting user review...")
 
   wait_until(18.0)
-  print("[Timeline 18.0s] Launch combat from briefing (LAUNCH)")
-  tap(1059, 2131)
-  time.sleep(0.3)
-  tap(294, 2131)  # Fallback to skip if still open
+  print("[Timeline 18.0s] Launch combat from briefing (SKIP/DISMISS)")
+  tap(293, 2130)
 
   # 6. Active combat maneuvers
   wait_until(20.5)
@@ -136,7 +133,13 @@ def record_60s_tutorial():
 
   # 7. Autonomous AI Tactical Solver demonstration
   wait_until(30.0)
-  print("[Timeline 30.0s] Launch AI Tactical Solver")
+  print("[Timeline 30.0s] Tap AI Tactical Solver")
+  tap(624, 332)
+  time.sleep(0.5)
+  print("[Timeline 30.5s] Unlock Pro Commander license")
+  tap(671, 2106)
+  time.sleep(0.6)
+  print("[Timeline 31.1s] Engage AI Tactical Solver")
   tap(624, 332)
 
   print("[Record 60s] AI Solver active, allowing autonomous tactical clearing...")
@@ -146,17 +149,15 @@ def record_60s_tutorial():
 
 def record_30s_showcase():
   print("\n[Record 30s] Setting up Tactical Solver Showcase...")
-  # If currently in combat or victory dialog, dismiss or restart to clean sector
-  keyevent(4)
-  time.sleep(0.5)
-  # Launch Sector 1 directly with solver
+  adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
+  time.sleep(1.0)
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-  time.sleep(2.0)
+  time.sleep(2.5)
   # Tap Sector 1
   tap(1105, 957)
-  time.sleep(1.0)
+  time.sleep(1.2)
   # Dismiss tutorial if open
-  tap(294, 2131)
+  tap(293, 2130)
   time.sleep(0.5)
   # Activate solver
   tap(624, 332)
