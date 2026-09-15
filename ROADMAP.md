@@ -395,5 +395,73 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Implement production `lib/domain/services/iap_service.dart` managing `void_sower_pro_lifetime` ($0.99) with transaction completion.
   - [x] Create `lib/presentation/widgets/rewarded_ad_modal.dart` providing "Emergency Reactor Charge (+8 Cores)" during tactical combat.
 
+---
+
+## 👑 Phase 15: Pro Tier Architecture, Premium Feature Gatekeeping, Hybrid Monetization ($1.29 IAP & Rewarded Ads) & Deep MCTS Solver Upgrade (Pending [ ])
+
+- [ ] **Task 15.1: Pro Entitlement Engine & Hybrid Ad/IAP Access Control**
+  - [ ] Implement `ProFeature` enum in `lib/domain/models/pro_feature.dart` categorizing all gated capabilities:
+    - `aiTacticalSolver` (Autopilot), `aiMoveAdvisor` (Smart Hints), `mk3SingularityChassis` (Flagship), `goldenSovereignSkin` (Cosmetic), `deepSensorTelemetry` (Trajectory), `chronoAnchorRewind` (Undo), `orbitalSimulationLab` (Endless/Sandbox), and `adFreeEmergencyFlare`.
+  - [ ] Implement `EntitlementService` in `lib/domain/services/entitlement_service.dart`:
+    - Manage persistent lifetime ownership via `IapService` / `PersistenceService`.
+    - Manage temporary in-memory / session access passes granted by `AdService` rewarded video ad completions.
+    - Expose clean reactive stream and synchronous `isFeatureAccessible(ProFeature)` checks.
+  - [ ] Update `IapService` with production $1.29 USD pricing metadata for `void_sower_pro_lifetime`.
+
+- [ ] **Task 15.2: Complete Multi-Ply C++ MCTS Tactical Solver & Flat C ABI**
+  - [ ] Upgrade `MctsSolver` in `src/ecs/systems/mcts_solver.h` and `mcts_solver.cpp`:
+    - Implement Upper Confidence Bound for Trees (UCT) with contiguous node memory pooling (zero runtime heap allocations on hot path).
+    - Multi-ply lookahead evaluating quadratic lance discharges, multi-lap cascade relays, threat proximity, and boundary distance.
+    - Return optimal step sequence, predicted damage, and search confidence.
+  - [ ] Expose flat C ABI endpoint `void_sower_solve_tactical_step` in `src/void_sower.h` and `src/void_sower.cpp`.
+  - [ ] Bind endpoint in `lib/engine/void_sower_bindings_generated.dart` and `lib/engine/ffi_void_sower_engine.dart`.
+  - [ ] Offload long-horizon solvability rollouts to background isolates via `IsolateRunner`.
+
+- [ ] **Task 15.3: Autonomous Autopilot & Holographic AI Move Advisor**
+  - [ ] Implement dual-mode AI controller in `lib/presentation/controllers/tactical_solver_controller.dart`:
+    - *Autonomous Autopilot Mode*: Plays combat turns automatically with observable cadence (e.g. 350ms) and learning visual cues.
+    - *Tactical Move Advisor (Smart Hints)*: Projects a pulsing holographic marker and directional swipe glyph on the recommended bay without taking player control.
+  - [ ] Gate both modes behind `ProFeature.aiTacticalSolver` and `ProFeature.aiMoveAdvisor`.
+  - [ ] Provide "Tactical Overclock" rewarded ad prompt: watch 1 ad to unlock 3 AI solver moves or 1 full wave of tactical advice.
+
+- [ ] **Task 15.4: Fleet Hangar Chassis Enforcement & Combat Stat Multipliers**
+  - [ ] Enforce chassis unlock rules in `lib/presentation/widgets/fleet_hangar_dialog.dart`:
+    - MK-I Bastion: Free default.
+    - MK-II Monsoon: Free progression unlock (liberate Sector 2).
+    - MK-III Singularity Sovereign: Pro exclusive (+30% lance alpha, 40 cores).
+    - MK-IV Golden Sovereign: Pro lifetime exclusive gilded hull shader & solar engine trails.
+  - [ ] Wire selected chassis parameters into `CombatCoordinator` and C++ `Engine` to actively apply core capacity and damage multipliers during combat.
+  - [ ] Provide "Flagship Rental" rewarded ad prompt: watch 1 ad to pilot MK-III Singularity for a single combat mission.
+
+- [ ] **Task 15.5: Deep Sensor Telemetry & Multi-Lap Cascade Projection**
+  - [ ] Partition `ProjectionShelf` telemetry into Basic vs. Deep:
+    - *Basic (Free)*: Immediate terminal corridor raycast and frontline bay impact.
+    - *Deep Sensor Telemetry (Pro)*: Full multi-lap cascade spline visualization, exact $\alpha \cdot M^2$ damage preview, shield fracture probabilities, and flak burst radius.
+  - [ ] Provide "Deep Scan Satellite" rewarded ad prompt: watch 1 ad to enable deep telemetry for the current sector.
+
+- [ ] **Task 15.6: Tactical Chrono-Anchor (In-Combat Rewind / Undo)**
+  - [ ] Implement deterministic circular snapshot ring buffer in `CombatCoordinator` storing the last 3 turns of match state (bay charge units, dreadnought cores, and enemy positions).
+  - [ ] Free tier: 0 rewinds (hardcore arcade permadeath).
+  - [ ] Pro tier: 3 Chrono-Anchor rewinds per sector run.
+  - [ ] Provide "Emergency Chrono-Rewind" rewarded ad prompt: watch 1 ad to undo a fatal mistake upon reactor depletion or boundary breach.
+
+- [ ] **Task 15.7: Orbital Simulation Lab & Endless Skirmish Arena**
+  - [ ] Build `SimulationLabScreen`:
+    - Custom wave formation editor (enemy count, speed, shields, descending corridors).
+    - Custom capacitor ring seed allocator for testing complex multi-lap cascade chains.
+    - Autonomous solver benchmark arena (watch the C++ MCTS solver solve arbitrary user-defined board states).
+    - Endless Horde Skirmish mode with escalating difficulty and infinite wave survival.
+  - [ ] Gate mode behind `ProFeature.orbitalSimulationLab` with a 1-run rewarded ad trial option.
+
+- [ ] **Task 15.8: Afrofuturistic Glassmorphic Pro Storefront & Purchase Hardening**
+  - [ ] Create `lib/presentation/widgets/pro_upgrade_modal.dart`:
+    - Showcase 6 core Pro benefits with Afrofuturistic neon cyan/gold typography and icons.
+    - One-tap purchase button: "UNLOCK PRO COMMANDER — $1.29 (ONE-TIME)".
+    - "Restore Purchases" button with instant local entitlement verification.
+    - Contextual "Watch Transmission for Temporary Pass" option.
+  - [ ] Wire modal launchers across `HudHeader` (AI Solver button), `FleetHangarDialog` (locked ships), `SettingsModal` (Pro banner), and `StatsDashboardScreen`.
+  - [ ] Author comprehensive unit tests in `test/entitlement_and_pro_features_test.dart` verifying gatekeeping, purchase restoration, and ad reward passes.
+
+
 
 
