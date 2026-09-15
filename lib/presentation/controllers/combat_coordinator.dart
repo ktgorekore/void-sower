@@ -249,7 +249,14 @@ class CombatCoordinator extends ChangeNotifier {
     }
 
     // 8. FSM Terminal State Evaluations
-    if (dreadnought.isGameOver && _state.status != CombatMatchStatus.defeat) {
+    final bool isAmmoExhausted =
+        dreadnought.reserveCores <= 0 &&
+        !dreadnought.isCascading &&
+        !lances.any((l) => l.active) &&
+        enemies.any((e) => !e.isDestroyed);
+
+    if ((dreadnought.isGameOver || isAmmoExhausted) &&
+        _state.status != CombatMatchStatus.defeat) {
       _state = _state.copyWith(status: CombatMatchStatus.defeat);
       audio.onDefeat();
       notifyListeners();

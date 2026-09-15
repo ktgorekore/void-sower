@@ -158,5 +158,14 @@ void main() {
       coordinator.quickFireActiveCorridor();
       expect(coordinator.dreadnought.reserveCores, equals(initialCores - 2));
     });
+
+    test('Triggers immediate defeat when reserve cores are exhausted', () {
+      coordinator.initialize(startingCores: 0, boundaryY: 0.15);
+      expect(coordinator.dreadnought.reserveCores, equals(0));
+      expect(coordinator.enemies.isNotEmpty, isTrue);
+
+      coordinator.update(0.016, const Size(800, 1000));
+      expect(coordinator.state.status, equals(CombatMatchStatus.defeat));
+    });
   });
 }

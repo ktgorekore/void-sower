@@ -148,6 +148,7 @@ class _CombatScreenState extends State<CombatScreen>
       barrierDismissible: false,
       builder: (dialogContext) => GameOverDialog(
         score: _coordinator.dreadnought.totalScore,
+        isAmmoDepleted: _coordinator.dreadnought.reserveCores <= 0,
         onRetry: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();

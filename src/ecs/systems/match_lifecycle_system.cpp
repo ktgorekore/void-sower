@@ -26,6 +26,7 @@ void MatchLifecycleSystem::CheckVictoryLossConditions(
   if (dreadnought_entity == entt::null || !registry.valid(dreadnought_entity)) {
     return;
   }
+  (void)bay_entities;
 
   auto& dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
   if (dread.current_sim_state ==
@@ -56,17 +57,18 @@ void MatchLifecycleSystem::CheckVictoryLossConditions(
     return;
   }
 
-  // 3. Defeat check: Core reserves exhausted and not currently cascading
+  // 3. Defeat check: Core reserves exhausted, no active lances, and not
+  // currently cascading
   if (dread.reserve_cores == 0 && dread.is_cascading == 0 && any_alive) {
-    bool any_bay_has_plasma = false;
-    for (uint8_t i = 0; i < kTotalBays; ++i) {
-      if (registry.valid(bay_entities[i]) &&
-          registry.get<BatteryComponent>(bay_entities[i]).charge_units > 0) {
-        any_bay_has_plasma = true;
+    bool has_active_lances = false;
+    auto lance_view = registry.view<ParticleLanceComponent>();
+    for (auto entity : lance_view) {
+      if (lance_view.get<ParticleLanceComponent>(entity).active != 0) {
+        has_active_lances = true;
         break;
       }
     }
-    if (!any_bay_has_plasma) {
+    if (!has_active_lances) {
       dread.current_sim_state = static_cast<uint8_t>(SimulationState::GameOver);
     }
   }

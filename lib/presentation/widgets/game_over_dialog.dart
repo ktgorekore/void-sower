@@ -23,11 +23,13 @@ class GameOverDialog extends StatelessWidget {
     required this.score,
     required this.onRetry,
     required this.onReturnToMap,
+    this.isAmmoDepleted = false,
   });
 
   final int score;
   final VoidCallback onRetry;
   final VoidCallback onReturnToMap;
+  final bool isAmmoDepleted;
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +41,19 @@ class GameOverDialog extends StatelessWidget {
         decoration: BoxDecoration(
           color: VoidTheme.obsidianBlack,
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: VoidTheme.crimsonFlare, width: 2.0),
+          border: Border.all(
+            color: isAmmoDepleted
+                ? VoidTheme.solarGold
+                : VoidTheme.crimsonFlare,
+            width: 2.0,
+          ),
           boxShadow: [
             BoxShadow(
-              color: VoidTheme.crimsonFlare.withValues(alpha: 0.3),
+              color:
+                  (isAmmoDepleted
+                          ? VoidTheme.solarGold
+                          : VoidTheme.crimsonFlare)
+                      .withValues(alpha: 0.3),
               blurRadius: 24.0,
             ),
           ],
@@ -50,26 +61,35 @@ class GameOverDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.warning_amber_rounded,
-              color: VoidTheme.crimsonFlare,
+            Icon(
+              isAmmoDepleted ? Icons.bolt : Icons.warning_amber_rounded,
+              color: isAmmoDepleted
+                  ? VoidTheme.solarGold
+                  : VoidTheme.crimsonFlare,
               size: 56.0,
             ),
             const SizedBox(height: 12.0),
-            const Text(
-              'ORBITAL BREACH',
+            Text(
+              isAmmoDepleted ? 'CORES EXHAUSTED' : 'ORBITAL BREACH',
               style: TextStyle(
-                color: VoidTheme.crimsonFlare,
+                color: isAmmoDepleted
+                    ? VoidTheme.solarGold
+                    : VoidTheme.crimsonFlare,
                 fontSize: 22.0,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2.0,
               ),
             ),
             const SizedBox(height: 8.0),
-            const Text(
-              'The atmospheric boundary was compromised by enemy assault craft.',
+            Text(
+              isAmmoDepleted
+                  ? 'Reserve plasma cores depleted with zero ordnance remaining to engage the enemy fleet.'
+                  : 'The atmospheric boundary was compromised by enemy assault craft.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: VoidTheme.textSecondary, fontSize: 13.0),
+              style: const TextStyle(
+                color: VoidTheme.textSecondary,
+                fontSize: 13.0,
+              ),
             ),
             const SizedBox(height: 14.0),
             Text(
@@ -92,18 +112,20 @@ class GameOverDialog extends StatelessWidget {
                   width: 1.0,
                 ),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.lightbulb_outline,
                     color: VoidTheme.solarGold,
                     size: 18.0,
                   ),
-                  SizedBox(width: 8.0),
+                  const SizedBox(width: 8.0),
                   Expanded(
                     child: Text(
-                      'TACTICAL TIP: Sowing into Nyumba (Bays 3 & 4) retains charges for a massive quadratic overload.',
-                      style: TextStyle(
+                      isAmmoDepleted
+                          ? 'TACTICAL TIP: Avoid single-core quick shots. Build high mass along the backline to unleash devastating quadratic cascades!'
+                          : 'TACTICAL TIP: Sowing into Nyumba (Bays 3 & 4) retains charges for a massive quadratic overload.',
+                      style: const TextStyle(
                         color: VoidTheme.textSecondary,
                         fontSize: 11.0,
                         height: 1.35,
