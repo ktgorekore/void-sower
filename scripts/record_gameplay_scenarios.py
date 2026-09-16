@@ -131,12 +131,12 @@ def record_60s_tutorial():
 
   # 7. 22.5s: Slide flagship laterally
   wait_until(22.5)
-  print("[Timeline 22.5s] Slide dreadnought laterally along bottom track")
-  swipe(400, 2900, 950, 2900, 350)
+  print("[Timeline 22.5s] Slide dreadnought laterally along corridor (y=2200)")
+  swipe(400, 2200, 950, 2200, 350)
 
   wait_until(25.0)
-  print("[Timeline 25.0s] Slide back to center")
-  swipe(950, 2900, 672, 2900, 250)
+  print("[Timeline 25.0s] Slide back to center (y=2200)")
+  swipe(950, 2200, 672, 2200, 250)
 
   # 8. 27.0s: Discharge Axial Particle Lance
   wait_until(27.0)
@@ -168,7 +168,12 @@ def record_30s_showcase():
 
   print("[Record 30s] Starting Void Sower main activity...")
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-  time.sleep(3.5)
+  time.sleep(4.0)
+
+  # Ensure combat arena is fresh
+  print("[Record 30s] Restarting fresh combat sortie (tap x=906, y=390)...")
+  tap(906, 390)
+  time.sleep(0.8)
 
   # Activate solver immediately in Combat Arena
   print("[Record 30s] Engaging AI Tactical Solver (tap x=1260, y=390 in Tier 3)...")

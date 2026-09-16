@@ -21,126 +21,136 @@ import subprocess
 import sys
 import time
 
-DEVICE = "emulator-5554"
 SCREENSHOTS_DIR = "/home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet"
 
 
-def adb_cmd(args):
-  cmd = ["adb", "-s", DEVICE] + args
+def get_device():
+  res = subprocess.run(["adb", "devices"], capture_output=True, text=True)
+  lines = res.stdout.strip().split("\n")[1:]
+  for line in lines:
+    parts = line.split()
+    if len(parts) >= 2 and parts[1] == "device":
+      return parts[0]
+  return "emulator-5554"
+
+
+def adb_cmd(args, device):
+  cmd = ["adb", "-s", device] + args
   return subprocess.run(cmd, capture_output=True, text=True)
 
 
-def tap(x, y):
-  adb_cmd(["shell", "input", "tap", str(x), str(y)])
+def tap(x, y, device):
+  adb_cmd(["shell", "input", "tap", str(x), str(y)], device)
 
 
-def keyevent(code):
-  adb_cmd(["shell", "input", "keyevent", str(code)])
+def keyevent(code, device):
+  adb_cmd(["shell", "input", "keyevent", str(code)], device)
 
 
-def capture(dest_name):
+def capture(dest_name, device):
   dest_path = os.path.join(SCREENSHOTS_DIR, dest_name)
   print(f"[Tablet Capture] Grabbing {dest_name}...")
   with open(dest_path, "wb") as f:
-    subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f)
+    subprocess.run(["adb", "-s", device, "exec-out", "screencap", "-p"], stdout=f)
   print(f"[Saved] -> {dest_path}")
   return dest_path
 
 
 def main():
   os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+  device = get_device()
+  print(f"[Init] Targeting device: {device}")
 
-  try:
-    print("[Display] Setting tablet display configuration (2560x1600 @ 320 dpi)...")
-    adb_cmd(["shell", "wm", "size", "2560x1600"])
-    adb_cmd(["shell", "wm", "density", "320"])
-    time.sleep(1.5)
+  adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"], device)
 
-    adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
+  # 1. Reset state: force-stop app, clear data, and seed persistent Pro unlock
+  print("[Init] Resetting app state & seeding Pro entitlement...")
+  adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"], device)
+  time.sleep(0.5)
+  adb_cmd(["shell", "pm", "clear", "com.voidsower.app"], device)
+  time.sleep(1.0)
 
-    # Reset state: force-stop app, clear data, and seed persistent Pro unlock
-    print("[Init] Resetting app state & seeding Pro entitlement...")
-    adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
+  pref_xml = (
+      '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
+      '<map>\n'
+      '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
+      '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
+      '</map>\n'
+  )
+  with open("/tmp/prefs.xml", "w") as f:
+    f.write(pref_xml)
+  subprocess.run(["adb", "-s", device, "push", "/tmp/prefs.xml", "/data/local/tmp/prefs.xml"], check=True)
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "mkdir", "-p", "shared_prefs"], device)
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "cp", "/data/local/tmp/prefs.xml", "shared_prefs/FlutterSharedPreferences.xml"], device)
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"], device)
+  time.sleep(0.5)
+
+  # Launch App directly into Combat Arena
+  print("[Launch] Clearing logcat and starting Void Sower main activity on tablet...")
+  adb_cmd(["logcat", "-c"], device)
+  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"], device)
+  
+  print("[Wait] Waiting for app first frame & simulation tick...")
+  app_ready = False
+  for _ in range(50):
     time.sleep(0.5)
-    adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
-    time.sleep(1.0)
-
-    pref_xml = (
-        '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>'
-        '<map>'
-        '<boolean name="flutter.void_sower_pro_unlocked" value="true" />'
-        '<boolean name="flutter.void_sower_completed_tutorial" value="false" />'
-        '</map>'
-    )
-    import base64
-    b64_val = base64.b64encode(pref_xml.encode("utf-8")).decode("ascii")
-    adb_cmd([
-        "shell",
-        "run-as",
-        "com.voidsower.app",
-        "sh",
-        "-c",
-        f"mkdir -p shared_prefs && echo {b64_val} | base64 -d > shared_prefs/FlutterSharedPreferences.xml",
-    ])
-    time.sleep(0.5)
-
-    # Launch App directly into Combat Arena
-    print("[Launch] Starting Void Sower main activity on tablet...")
-    adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-    time.sleep(4.0)
-
-    # 1. Screenshot 05: Flight Academy Onboarding on Tablet
-    print("[Tablet Academy] Capturing 05_tablet_flight_academy.png...")
-    capture("05_tablet_flight_academy.png")
-
-    # Dismiss tutorial overlay (tap SKIP near bottom of briefing card)
-    print("[Tablet Combat] Dismissing Flight Academy tutorial overlay...")
-    tap(1100, 1100)
-    time.sleep(1.5)
-
-    # 2. Screenshot 01: Tactical Combat Grid on Tablet (Centered 580 dp viewport)
-    print("[Tablet Combat] Capturing 01_tablet_tactical_combat.png...")
-    capture("01_tablet_tactical_combat.png")
-
-    # 3. Screenshot 02: Sowing Trajectory & Axial Lance
-    print("[Tablet Combat] Discharging Axial Particle Lance...")
-    tap(1060, 1480)
-    time.sleep(0.15)
-    capture("02_tablet_sowing_trajectory.png")
-    time.sleep(1.0)
-
-    # 4. Screenshot 06: Bao Codex on Tablet (Tap RULES button in Tier 1)
-    print("[Tablet Codex] Opening Bao Codex dialog...")
-    tap(1620, 90)
-    time.sleep(1.2)
-    capture("06_tablet_bao_codex.png")
-    keyevent(4)
-    time.sleep(0.8)
-
-    # 5. Navigate to Star Map: Tap MAP button in Tier 1
-    print("[Tablet Map] Navigating to Star Map...")
-    tap(750, 90)
+    res = adb_cmd(["logcat", "-d", "-s", "flutter:V"], device)
+    if "Tick 1" in res.stdout or "Tick 2" in res.stdout:
+      print("[Wait] App initialized successfully!")
+      app_ready = True
+      break
+  if not app_ready:
+    print("[Wait] Fallback wait...")
+    time.sleep(5.0)
+  else:
     time.sleep(2.0)
 
-    # Screenshot 03: Tablet Campaign Map
-    print("[Tablet Map] Capturing 03_tablet_campaign_map.png...")
-    capture("03_tablet_campaign_map.png")
+  # 1. Screenshot 05: Flight Academy Onboarding on Tablet (appears on launch over arena)
+  print("[Tablet Academy] Capturing 05_tablet_flight_academy.png...")
+  capture("05_tablet_flight_academy.png", device)
 
-    # 6. Screenshot 04: Tablet Fleet Hangar
-    print("[Tablet Hangar] Opening Fleet Hangar...")
-    tap(2100, 80)
-    time.sleep(1.2)
-    capture("04_tablet_fleet_hangar.png")
-    keyevent(4)
-    time.sleep(0.8)
+  # Dismiss tutorial overlay: tap SKIP at x=970, y=1175
+  print("[Tablet Combat] Dismissing Flight Academy tutorial overlay (tap SKIP at x=970, y=1175)...")
+  tap(970, 1175, device)
+  time.sleep(1.5)
 
-    print("\n[Complete] All 6 Play Store tablet screenshots captured successfully!")
+  # 2. Screenshot 01: Tactical Combat Grid on Tablet (Centered 580 dp viewport)
+  print("[Tablet Combat] Capturing 01_tablet_tactical_combat.png...")
+  capture("01_tablet_tactical_combat.png", device)
 
-  finally:
-    print("[Display] Restoring default display resolution and density...")
-    adb_cmd(["shell", "wm", "size", "reset"])
-    adb_cmd(["shell", "wm", "density", "reset"])
-    time.sleep(1.0)
+  # 3. Screenshot 02: Sowing Trajectory & Axial Lance
+  print("[Tablet Combat] Discharging Axial Particle Lance (tap x=1280, y=1435)...")
+  tap(1280, 1435, device)
+  time.sleep(0.20)
+  capture("02_tablet_sowing_trajectory.png", device)
+  time.sleep(1.0)
+
+  # 4. Screenshot 06: Bao Codex on Tablet (Tap RULES button in Tier 1 at x=1540, y=98)
+  print("[Tablet Codex] Opening Bao Codex dialog (tap RULES at x=1540, y=98)...")
+  tap(1540, 98, device)
+  time.sleep(1.5)
+  capture("06_tablet_bao_codex.png", device)
+  keyevent(4, device)
+  time.sleep(1.0)
+
+  # 5. Navigate to Star Map: Tap MAP button in Tier 1 at x=760, y=98
+  print("[Tablet Map] Navigating to Star Map (tap MAP at x=760, y=98)...")
+  tap(760, 98, device)
+  time.sleep(2.5)
+
+  # Screenshot 03: Tablet Campaign Map
+  print("[Tablet Map] Capturing 03_tablet_campaign_map.png...")
+  capture("03_tablet_campaign_map.png", device)
+
+  # 6. Screenshot 04: Tablet Fleet Hangar (tap Rocket icon at x=1430, y=80 in Map AppBar)
+  print("[Tablet Hangar] Opening Fleet Hangar (tap x=1430, y=80)...")
+  tap(1430, 80, device)
+  time.sleep(1.5)
+  capture("04_tablet_fleet_hangar.png", device)
+  keyevent(4, device)
+  time.sleep(0.8)
+
+  print("\n[Complete] All 6 Play Store tablet screenshots captured successfully!")
 
 
 if __name__ == "__main__":
