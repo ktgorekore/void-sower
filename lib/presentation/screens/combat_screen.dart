@@ -235,6 +235,12 @@ class _CombatScreenState extends State<CombatScreen>
           _isModalOpen = false;
           _openMap();
         },
+        onDismiss: () {
+          _autoAdvanceTimer?.cancel();
+          Navigator.of(dialogContext).pop();
+          _isModalOpen = false;
+          if (mounted) setState(() {});
+        },
       ),
     );
 
@@ -401,40 +407,18 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _toggleTacticalPause() {
-    if (EntitlementService.instance.isFeatureAccessible(
-      ProFeature.tacticalPause,
-    )) {
-      _coordinator.toggleTacticalPause();
-    } else {
-      final wasTicking = _ticker.isTicking;
-      if (wasTicking) _ticker.stop();
-
-      showDialog<void>(
-        context: context,
-        barrierColor: Colors.black.withValues(alpha: 0.75),
-        builder: (context) => ProUpgradeModal(
-          highlightedFeature: ProFeature.tacticalPause,
-          onUnlocked: () {
-            if (mounted) {
-              setState(() {});
-              _coordinator.toggleTacticalPause();
-            }
-          },
-        ),
-      ).then((_) {
-        if (mounted &&
-            wasTicking &&
-            _coordinator.state.status == CombatMatchStatus.activeCombat) {
-          _ticker.start();
-        }
-      });
-    }
+    _coordinator.toggleTacticalPause();
   }
 
   @override
   Widget build(BuildContext context) {
     final matchState = _coordinator.state;
     final dread = _coordinator.dreadnought;
+
+    final isSecured =
+        matchState.status == CombatMatchStatus.victory ||
+        (_coordinator.enemies.isNotEmpty &&
+            _coordinator.enemies.every((e) => e.isDestroyed));
 
     return Scaffold(
       backgroundColor: VoidTheme.obsidianBlack,
@@ -461,6 +445,10 @@ class _CombatScreenState extends State<CombatScreen>
                   isPaused: matchState.status == CombatMatchStatus.paused,
                   onTogglePause: _toggleTacticalPause,
                   onMapTap: _openMap,
+                  onRestartTap: _restartCombat,
+                  onStopTap: _openMap,
+                  onNextSectorTap: _advanceNextSector,
+                  isSecured: isSecured,
                   onSettingsTap: _openSettings,
                   onCodexTap: _openCodex,
                   onTutorialTap: _coordinator.showTutorial,
@@ -642,22 +630,21 @@ class _CombatScreenState extends State<CombatScreen>
                               ),
                             ),
                           ),
-                        // Sector Secured Banner when all hostiles are wiped
-                        if (_coordinator.enemies.isNotEmpty &&
-                            _coordinator.enemies.every((e) => e.isDestroyed))
+                        // Interactive Sector Secured Command Card when wave is eliminated
+                        if (isSecured)
                           Positioned(
-                            top: 36.0,
-                            left: 20.0,
-                            right: 20.0,
+                            top: 20.0,
+                            left: 16.0,
+                            right: 16.0,
                             child: Center(
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 14.0,
-                                  vertical: 6.0,
+                                  vertical: 10.0,
                                 ),
                                 decoration: BoxDecoration(
                                   color: VoidTheme.obsidianBlack.withValues(
-                                    alpha: 0.92,
+                                    alpha: 0.95,
                                   ),
                                   borderRadius: BorderRadius.circular(12.0),
                                   border: Border.all(
@@ -669,27 +656,165 @@ class _CombatScreenState extends State<CombatScreen>
                                       color: VoidTheme.emeraldShield.withValues(
                                         alpha: 0.4,
                                       ),
-                                      blurRadius: 10.0,
+                                      blurRadius: 14.0,
                                     ),
                                   ],
                                 ),
-                                child: Row(
+                                child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
-                                      Icons.verified,
-                                      color: VoidTheme.emeraldShield,
-                                      size: 16.0,
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.verified,
+                                          color: VoidTheme.emeraldShield,
+                                          size: 16.0,
+                                        ),
+                                        const SizedBox(width: 6.0),
+                                        Text(
+                                          'SECTOR $_currentSectorId SECURED • ALL HOSTILES ELIMINATED',
+                                          style: const TextStyle(
+                                            color: VoidTheme.emeraldShield,
+                                            fontSize: 10.0,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 6.0),
-                                    Text(
-                                      'SECTOR $_currentSectorId SECURED • ALL HOSTILES ELIMINATED',
-                                      style: const TextStyle(
-                                        color: VoidTheme.emeraldShield,
-                                        fontSize: 10.0,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.8,
-                                      ),
+                                    const SizedBox(height: 8.0),
+                                    Wrap(
+                                      alignment: WrapAlignment.center,
+                                      spacing: 8.0,
+                                      runSpacing: 6.0,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: _advanceNextSector,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12.0,
+                                              vertical: 5.0,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: VoidTheme.emeraldShield,
+                                              borderRadius:
+                                                  BorderRadius.circular(6.0),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: VoidTheme.emeraldShield
+                                                      .withValues(alpha: 0.4),
+                                                  blurRadius: 6.0,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  _currentSectorId < 9
+                                                      ? 'ADVANCE TO NEXT SECTOR'
+                                                      : 'REPLAY SECTOR',
+                                                  style: const TextStyle(
+                                                    color:
+                                                        VoidTheme.obsidianBlack,
+                                                    fontSize: 10.0,
+                                                    fontWeight: FontWeight.w900,
+                                                    letterSpacing: 0.5,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4.0),
+                                                const Icon(
+                                                  Icons.navigate_next,
+                                                  color:
+                                                      VoidTheme.obsidianBlack,
+                                                  size: 15.0,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: _restartCombat,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10.0,
+                                              vertical: 5.0,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: VoidTheme.cardSurface,
+                                              borderRadius:
+                                                  BorderRadius.circular(6.0),
+                                              border: Border.all(
+                                                color: VoidTheme.plasmaCyan
+                                                    .withValues(alpha: 0.8),
+                                                width: 1.0,
+                                              ),
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.replay,
+                                                  color: VoidTheme.plasmaCyan,
+                                                  size: 13.0,
+                                                ),
+                                                SizedBox(width: 4.0),
+                                                Text(
+                                                  'REPLAY',
+                                                  style: TextStyle(
+                                                    color: VoidTheme.plasmaCyan,
+                                                    fontSize: 10.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 0.4,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: _openMap,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10.0,
+                                              vertical: 5.0,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: VoidTheme.cardSurface,
+                                              borderRadius:
+                                                  BorderRadius.circular(6.0),
+                                              border: Border.all(
+                                                color: VoidTheme.textSecondary
+                                                    .withValues(alpha: 0.5),
+                                                width: 1.0,
+                                              ),
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.map_outlined,
+                                                  color:
+                                                      VoidTheme.textSecondary,
+                                                  size: 13.0,
+                                                ),
+                                                SizedBox(width: 4.0),
+                                                Text(
+                                                  'STAR MAP',
+                                                  style: TextStyle(
+                                                    color:
+                                                        VoidTheme.textSecondary,
+                                                    fontSize: 10.0,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 0.4,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
