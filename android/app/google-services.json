@@ -99,6 +99,14 @@
           }
         },
         {
+          "client_id": "368139306134-4obr706fal9592jcjjrmhl9vaq16qk92.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.voidsower.app",
+            "certificate_hash": "900d13e5446e3da802bf41a652859c60c405a859"
+          }
+        },
+        {
           "client_id": "368139306134-fb461j1nbmloospmbbav7e5ialfv2voc.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
