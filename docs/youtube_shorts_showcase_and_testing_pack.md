@@ -109,13 +109,14 @@ We are actively recruiting testers for our Google Play Closed Beta! Help us batt
 Follow these 2 simple steps to join the fleet and download the game:
 
 Step 1: Join our Google Testing Group (Required for access):
-👉 https://groups.google.com/g/void-sower-closed-testing
+👉 https://groups.google.com/g/oware-2048-closed-testing
+(Direct group roster / join: https://groups.google.com/g/oware-2048-closed-testing/members)
 
 Step 2: Opt-in on Google Play & Download Void Sower:
 👉 On Android: https://play.google.com/store/apps/details?id=com.voidsower.app
 👉 On the Web: https://play.google.com/apps/testing/com.voidsower.app
 
-⏳ Note: If the Google Play link displays "App not available" immediately after joining the group, please allow a short propagation window (up to a few hours) for Google Play authorization servers to sync your account.
+⏳ Note: If the Google Play link displays "App not available" immediately after joining the group, please allow a short propagation window (up to a few hours) for Google Play authorization servers to sync your account. Existing members of the Oware 2048 testing community are already authorized!
 
 💬 Share your feedback, corridor records, and high scores with our engineering team!
 
@@ -140,11 +141,12 @@ Step 2: Opt-in on Google Play & Download Void Sower:
 
 > [!IMPORTANT]
 > **Why do users need to join the Google Group first?**
-> When you configure closed testing in Google Play Console with an email list targeted to a **Google Group** (`void-sower-closed-testing@googlegroups.com`):
-> 1. **Google Group is the Gatekeeper:** Google Play only authorizes Google accounts that are recognized members of the specified Google Group.
-> 2. **Direct Link Without Group Membership:** If someone navigates directly to `https://play.google.com/apps/testing/com.voidsower.app` *without* joining the group first, Google Play will display:
+> When you configure closed testing in Google Play Console with an email list targeted to a **Google Group** (`oware-2048-closed-testing@googlegroups.com`):
+> 1. **Shared Testing Community:** We utilize the established testing group (`oware-2048-closed-testing@googlegroups.com`), allowing our existing cohort of testers to immediately participate in Void Sower testing without creating a fragmented group.
+> 2. **Google Group is the Gatekeeper:** Google Play only authorizes Google accounts that are recognized members of the specified Google Group.
+> 3. **Direct Link Without Group Membership:** If someone navigates directly to `https://play.google.com/apps/testing/com.voidsower.app` *without* joining the group first, Google Play will display:
 >    > *"A testing version of this app hasn't been published yet or isn't available for this account."*
-> 3. **Sync Delay:** Once a user clicks **"Join Group"** on Google Groups, it typically takes anywhere from a few minutes up to a few hours for Google Play's authorization servers to sync the updated group membership roster.
+> 4. **Sync Delay:** Once a user clicks **"Join Group"** on Google Groups (`https://groups.google.com/g/oware-2048-closed-testing`), it typically takes anywhere from a few minutes up to a few hours for Google Play's authorization servers to sync the updated group membership roster.
 > 
 > That is why the two-step sequence included in the YouTube description above is essential for a frictionless tester onboarding experience.
 
