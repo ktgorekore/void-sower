@@ -110,6 +110,7 @@ class CombatPainter extends CustomPainter {
   static final Path _scratchDreadHullPath = Path();
   static final Path _scratchLeftFlamePath = Path();
   static final Path _scratchRightFlamePath = Path();
+  static final Path _scratchProwChevronPath = Path();
 
   // ---------------------------------------------------------------------------
   // Pre-allocated Static Paint Pools (Eliminates Scudo HybridMutex Contention)
@@ -210,6 +211,14 @@ class CombatPainter extends CustomPainter {
     ..color = VoidTheme.emeraldShield.withValues(alpha: 0.6)
     ..strokeWidth = 2.2
     ..style = PaintingStyle.stroke;
+
+  static final Paint _portNavPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _starboardNavPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _prowChevronPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _coreOuterGlowPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.5
+    ..color = VoidTheme.solarGold.withValues(alpha: 0.6);
 
   // ---------------------------------------------------------------------------
   // Pre-computed Text Layout Pool (8 Tactical Conduits C1..C8)
@@ -471,11 +480,12 @@ class CombatPainter extends CustomPainter {
     final centerX = dreadNormX * size.width;
     final shipY = boundaryY + 12.0;
 
-    // Active corridor highlight under dreadnought
+    // Active corridor highlight under dreadnought (Energized Runway Track)
     final activeCorridor = (centerX / (size.width / 8.0)).floor().clamp(0, 7);
     final corridorWidth = size.width / 8.0;
     final targetCenterX = (activeCorridor + 0.5) * corridorWidth;
 
+    _highlightPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.14);
     canvas.drawRect(
       Rect.fromLTWH(
         activeCorridor * corridorWidth,
@@ -486,9 +496,10 @@ class CombatPainter extends CustomPainter {
       _highlightPaint,
     );
 
-    // Targeting Alignment Laser Beam
-    final aimPulse = 0.22 + 0.12 * math.sin(animationTime * 10.0);
+    // Targeting Alignment Laser Beam (Pulsing high-visibility beam)
+    final aimPulse = 0.40 + 0.25 * math.sin(animationTime * 10.0);
     _aimPaint.color = VoidTheme.plasmaCyan.withValues(alpha: aimPulse);
+    _aimPaint.strokeWidth = 2.0;
     canvas.drawLine(
       Offset(targetCenterX, boundaryY),
       Offset(targetCenterX, 0),
@@ -517,56 +528,62 @@ class CombatPainter extends CustomPainter {
       }
     }
 
-    // Animated Twin Plasma Thrusters
-    final flameHeight = 13.0 + math.sin(animationTime * 20.0) * 4.0;
-    final leftThrusterX = centerX - 14.0;
-    final rightThrusterX = centerX + 14.0;
-    final thrusterY = shipY + 10.0;
+    // Animated Twin Plasma Thrusters (Enlarged and spread to 18.0)
+    final flameHeight = 16.0 + math.sin(animationTime * 20.0) * 5.0;
+    final leftThrusterX = centerX - 18.0;
+    final rightThrusterX = centerX + 18.0;
+    final thrusterY = shipY + 12.0;
 
-    _flamePaint.shader = LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [
-        VoidTheme.plasmaCyan,
-        VoidTheme.solarGold.withValues(alpha: 0.7),
-        Colors.transparent,
-      ],
-    ).createShader(Rect.fromLTWH(leftThrusterX - 4, thrusterY, 8, flameHeight));
+    _flamePaint.shader =
+        LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            VoidTheme.plasmaCyan,
+            VoidTheme.solarGold.withValues(alpha: 0.75),
+            Colors.transparent,
+          ],
+        ).createShader(
+          Rect.fromLTWH(leftThrusterX - 5, thrusterY, 10, flameHeight),
+        );
 
     _scratchLeftFlamePath.reset();
-    _scratchLeftFlamePath.moveTo(leftThrusterX - 3.5, thrusterY);
+    _scratchLeftFlamePath.moveTo(leftThrusterX - 4.5, thrusterY);
     _scratchLeftFlamePath.lineTo(leftThrusterX, thrusterY + flameHeight);
-    _scratchLeftFlamePath.lineTo(leftThrusterX + 3.5, thrusterY);
+    _scratchLeftFlamePath.lineTo(leftThrusterX + 4.5, thrusterY);
     _scratchLeftFlamePath.close();
     canvas.drawPath(_scratchLeftFlamePath, _flamePaint);
 
     _scratchRightFlamePath.reset();
-    _scratchRightFlamePath.moveTo(rightThrusterX - 3.5, thrusterY);
+    _scratchRightFlamePath.moveTo(rightThrusterX - 4.5, thrusterY);
     _scratchRightFlamePath.lineTo(rightThrusterX, thrusterY + flameHeight);
-    _scratchRightFlamePath.lineTo(rightThrusterX + 3.5, thrusterY);
+    _scratchRightFlamePath.lineTo(rightThrusterX + 4.5, thrusterY);
     _scratchRightFlamePath.close();
     canvas.drawPath(_scratchRightFlamePath, _flamePaint);
 
-    // Dreadnought Flagship Hull
-    const shipW = 58.0;
-    const shipH = 28.0;
+    // Dreadnought Flagship Hull (Enlarged from 58x28 to 78x36 dp)
+    const shipW = 78.0;
+    const shipH = 36.0;
 
     _scratchDreadHullPath.reset();
-    _scratchDreadHullPath.moveTo(centerX, shipY - 14); // Nose pointing UP
-    _scratchDreadHullPath.lineTo(centerX + 11, shipY - 4);
+    _scratchDreadHullPath.moveTo(centerX, shipY - 17.0); // Nose pointing UP
+    _scratchDreadHullPath.lineTo(centerX + 14.0, shipY - 5.0);
     _scratchDreadHullPath.lineTo(
       centerX + shipW / 2,
-      shipY + 6,
+      shipY + 8.0,
     ); // Starboard wingtip
-    _scratchDreadHullPath.lineTo(centerX + 18, shipY + 11); // Starboard mount
-    _scratchDreadHullPath.lineTo(centerX + 8, shipY + 7);
-    _scratchDreadHullPath.lineTo(centerX - 8, shipY + 7);
-    _scratchDreadHullPath.lineTo(centerX - 18, shipY + 11); // Port mount
+    _scratchDreadHullPath.lineTo(
+      centerX + 24.0,
+      shipY + 14.0,
+    ); // Starboard mount
+    _scratchDreadHullPath.lineTo(centerX + 11.0, shipY + 9.0);
+    _scratchDreadHullPath.lineTo(centerX - 11.0, shipY + 9.0);
+    _scratchDreadHullPath.lineTo(centerX - 24.0, shipY + 14.0); // Port mount
     _scratchDreadHullPath.lineTo(
       centerX - shipW / 2,
-      shipY + 6,
+      shipY + 8.0,
     ); // Port wingtip
-    _scratchDreadHullPath.lineTo(centerX - 11, shipY - 4);
+    _scratchDreadHullPath.lineTo(centerX - 14.0, shipY - 5.0);
     _scratchDreadHullPath.close();
 
     // Hull obsidian base
@@ -578,44 +595,92 @@ class CombatPainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            VoidTheme.solarGold.withValues(alpha: 0.85),
+            VoidTheme.solarGold.withValues(alpha: 0.9),
             VoidTheme.cardSurface,
             VoidTheme.obsidianBlack,
           ],
         ).createShader(
-          Rect.fromLTWH(centerX - shipW / 2, shipY - 14, shipW, shipH),
+          Rect.fromLTWH(centerX - shipW / 2, shipY - 17.0, shipW, shipH),
         );
     canvas.drawPath(_scratchDreadHullPath, _dreadArmorPaint);
 
     // Hull cyan trim outline
+    _dreadOutlinePaint.strokeWidth = 2.2;
     canvas.drawPath(_scratchDreadHullPath, _dreadOutlinePaint);
 
-    // Forward Twin Particle Lance Turrets
+    // Forward Twin Particle Lance Turrets (Longer with emitter tips)
+    _turretPaint.strokeWidth = 2.8;
     canvas.drawLine(
-      Offset(centerX - 3.5, shipY - 8),
-      Offset(centerX - 3.5, shipY - 16),
+      Offset(centerX - 4.5, shipY - 9.0),
+      Offset(centerX - 4.5, shipY - 21.0),
       _turretPaint,
     );
     canvas.drawLine(
-      Offset(centerX + 3.5, shipY - 8),
-      Offset(centerX + 3.5, shipY - 16),
+      Offset(centerX + 4.5, shipY - 9.0),
+      Offset(centerX + 4.5, shipY - 21.0),
       _turretPaint,
+    );
+    canvas.drawCircle(
+      Offset(centerX - 4.5, shipY - 21.0),
+      2.0,
+      _coreCenterPaint,
+    );
+    canvas.drawCircle(
+      Offset(centerX + 4.5, shipY - 21.0),
+      2.0,
+      _coreCenterPaint,
     );
 
-    // Central Plasma Reactor Core
-    final coreGlow = 4.0 + math.sin(animationTime * 10.0) * 1.5;
-    canvas.drawCircle(Offset(centerX, shipY + 1), coreGlow + 2, _coreGlowPaint);
-    canvas.drawCircle(Offset(centerX, shipY + 1), 3.0, _coreCenterPaint);
+    // Prow Tactical Alignment Chevron / Beacon (Instant Centerline Recognition)
+    final chevronPulse = 0.65 + 0.35 * math.sin(animationTime * 12.0);
+    _prowChevronPaint.color = VoidTheme.solarGold.withValues(
+      alpha: chevronPulse,
+    );
+    _scratchProwChevronPath.reset();
+    _scratchProwChevronPath.moveTo(centerX, shipY - 27.0);
+    _scratchProwChevronPath.lineTo(centerX + 6.0, shipY - 21.0);
+    _scratchProwChevronPath.lineTo(centerX, shipY - 23.0);
+    _scratchProwChevronPath.lineTo(centerX - 6.0, shipY - 21.0);
+    _scratchProwChevronPath.close();
+    canvas.drawPath(_scratchProwChevronPath, _prowChevronPaint);
+
+    // Wingtip Port (Crimson) and Starboard (Emerald) Navigation Lights
+    final portStrobe = 0.5 + 0.5 * math.sin(animationTime * 15.0);
+    final stbdStrobe = 0.5 + 0.5 * math.cos(animationTime * 15.0);
+    _portNavPaint.color = VoidTheme.crimsonFlare.withValues(alpha: portStrobe);
+    _starboardNavPaint.color = VoidTheme.emeraldShield.withValues(
+      alpha: stbdStrobe,
+    );
+    canvas.drawCircle(
+      Offset(centerX - shipW / 2, shipY + 8.0),
+      3.0,
+      _portNavPaint,
+    );
+    canvas.drawCircle(
+      Offset(centerX + shipW / 2, shipY + 8.0),
+      3.0,
+      _starboardNavPaint,
+    );
+
+    // Central Plasma Reactor Core (Multi-Ring Energy Aura)
+    final coreGlow = 6.0 + math.sin(animationTime * 10.0) * 2.0;
+    canvas.drawCircle(
+      Offset(centerX, shipY + 2.0),
+      coreGlow + 4.0,
+      _coreGlowPaint,
+    );
+    canvas.drawCircle(Offset(centerX, shipY + 2.0), 11.0, _coreOuterGlowPaint);
+    canvas.drawCircle(Offset(centerX, shipY + 2.0), 4.0, _coreCenterPaint);
 
     // Forward Kinetic Energy Shield Arc
     const shieldRect = Rect.fromLTRB(
       -shipW * 1.15 / 2,
-      -14,
+      -18.0,
       shipW * 1.15 / 2,
-      14,
+      18.0,
     );
     canvas.save();
-    canvas.translate(centerX, shipY - 6);
+    canvas.translate(centerX, shipY - 8.0);
     canvas.drawArc(
       shieldRect,
       math.pi * 1.15,
@@ -631,7 +696,7 @@ class CombatPainter extends CustomPainter {
       8.0,
       size.width - labelPainter.width - 8.0,
     );
-    labelPainter.paint(canvas, Offset(labelX, shipY + 16.0));
+    labelPainter.paint(canvas, Offset(labelX, shipY + 18.0));
   }
 
   @override

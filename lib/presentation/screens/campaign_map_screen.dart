@@ -23,6 +23,7 @@ import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import '../widgets/bao_codex_dialog.dart';
 import '../widgets/fleet_hangar_dialog.dart';
+import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/profile_modal.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/tactile_button.dart';
@@ -442,142 +443,161 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           ),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Command Deck Status Row
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 8.0,
-                      height: 8.0,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: VoidTheme.emeraldShield,
-                        boxShadow: [
-                          BoxShadow(
-                            color: VoidTheme.emeraldShield,
-                            blurRadius: 6.0,
-                            spreadRadius: 1.0,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8.0),
-                    const Text(
-                      'ORBITAL COMMAND DECK',
-                      style: TextStyle(
-                        color: VoidTheme.emeraldShield,
-                        fontSize: 10.0,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-                Builder(
-                  builder: (context) {
-                    final liberatedCount = _sectors
-                        .where((s) => s.isLiberated)
-                        .length;
-                    final totalSectors = _sectors.length;
-                    final percent = totalSectors > 0
-                        ? liberatedCount / totalSectors
-                        : 0.0;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > constraints.maxHeight &&
+              constraints.maxHeight < 520.0) {
+            return const LandscapeOrientationShield();
+          }
+
+          return Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 640.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Command Deck Status Row
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
-                          style: const TextStyle(
-                            color: VoidTheme.solarGold,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 3.0),
-                        SizedBox(
-                          width: 100.0,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(2.0),
-                            child: LinearProgressIndicator(
-                              value: percent,
-                              backgroundColor: VoidTheme.cardSurface,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                VoidTheme.emeraldShield,
+                        Row(
+                          children: [
+                            Container(
+                              width: 8.0,
+                              height: 8.0,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: VoidTheme.emeraldShield,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: VoidTheme.emeraldShield,
+                                    blurRadius: 6.0,
+                                    spreadRadius: 1.0,
+                                  ),
+                                ],
                               ),
-                              minHeight: 3.5,
                             ),
+                            const SizedBox(width: 8.0),
+                            const Text(
+                              'ORBITAL COMMAND DECK',
+                              style: TextStyle(
+                                color: VoidTheme.emeraldShield,
+                                fontSize: 10.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Builder(
+                          builder: (context) {
+                            final liberatedCount = _sectors
+                                .where((s) => s.isLiberated)
+                                .length;
+                            final totalSectors = _sectors.length;
+                            final percent = totalSectors > 0
+                                ? liberatedCount / totalSectors
+                                : 0.0;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
+                                  style: const TextStyle(
+                                    color: VoidTheme.solarGold,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 3.0),
+                                SizedBox(
+                                  width: 100.0,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(2.0),
+                                    child: LinearProgressIndicator(
+                                      value: percent,
+                                      backgroundColor: VoidTheme.cardSurface,
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            VoidTheme.emeraldShield,
+                                          ),
+                                      minHeight: 3.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Pilot Profile & Active Flagship Cards Row
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 6.0,
+                    ),
+                    child: Row(
+                      children: [
+                        // 1. Prominent Pilot Profile Card
+                        Expanded(child: _buildPilotProfileCard(profile)),
+                        const SizedBox(width: 10.0),
+                        // 2. Prominent Active Flagship Card
+                        Expanded(child: _buildFlagshipCard()),
+                      ],
+                    ),
+                  ),
+
+                  // Campaign Sector List Header
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.radar,
+                          color: VoidTheme.solarGold,
+                          size: 14.0,
+                        ),
+                        SizedBox(width: 6.0),
+                        Text(
+                          'MISSION TARGETS • SELECT SECTOR',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
                           ),
                         ),
                       ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Pilot Profile & Active Flagship Cards Row
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 6.0,
-            ),
-            child: Row(
-              children: [
-                // 1. Prominent Pilot Profile Card
-                Expanded(child: _buildPilotProfileCard(profile)),
-                const SizedBox(width: 10.0),
-                // 2. Prominent Active Flagship Card
-                Expanded(child: _buildFlagshipCard()),
-              ],
-            ),
-          ),
-
-          // Campaign Sector List Header
-          const Padding(
-            padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
-            child: Row(
-              children: [
-                Icon(Icons.radar, color: VoidTheme.solarGold, size: 14.0),
-                SizedBox(width: 6.0),
-                Text(
-                  'MISSION TARGETS • SELECT SECTOR',
-                  style: TextStyle(
-                    color: VoidTheme.solarGold,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
 
-          // Sector List
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 6.0,
+                  // Sector List
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 6.0,
+                      ),
+                      itemCount: _sectors.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 10.0),
+                      itemBuilder: (context, index) {
+                        final s = _sectors[index];
+                        return _buildSectorCard(s);
+                      },
+                    ),
+                  ),
+                ],
               ),
-              itemCount: _sectors.length,
-              separatorBuilder: (context, index) =>
-                  const SizedBox(height: 10.0),
-              itemBuilder: (context, index) {
-                final s = _sectors[index];
-                return _buildSectorCard(s);
-              },
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

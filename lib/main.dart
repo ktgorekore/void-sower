@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'core/logging.dart';
 import 'domain/services/ad_service.dart';
@@ -38,6 +39,10 @@ const bool kAutoSolve = bool.fromEnvironment('AUTO_SOLVE', defaultValue: false);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   if (kVlogLevel > 0) {
     debugPrint(

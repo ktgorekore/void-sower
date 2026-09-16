@@ -38,56 +38,59 @@ class StatsDashboardScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildStatCard(
-              'HIGHEST COMBAT SCORE',
-              '${p.highScore}',
-              VoidTheme.solarGold,
-            ),
-            const SizedBox(height: 12.0),
-            _buildStatCard(
-              'LIBERATED SECTORS',
-              '${p.liberatedSectors} / 9',
-              VoidTheme.plasmaCyan,
-            ),
-            const SizedBox(height: 12.0),
-            _buildStatCard(
-              'LICENSE STATUS',
-              p.isProUnlocked ? 'PRO COMMANDER' : 'RECRUIT PILOT',
-              Colors.white,
-            ),
-            const Spacer(),
-            OutlinedButton.icon(
-              icon: const Icon(
-                Icons.delete_outline,
-                color: VoidTheme.crimsonFlare,
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 600.0),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildStatCard(
+                'HIGHEST COMBAT SCORE',
+                '${p.highScore}',
+                VoidTheme.solarGold,
               ),
-              label: const Text(
-                'ERASE GUEST DATA (GDPR)',
-                style: TextStyle(color: VoidTheme.crimsonFlare),
+              const SizedBox(height: 12.0),
+              _buildStatCard(
+                'LIBERATED SECTORS',
+                '${p.liberatedSectors} / 9',
+                VoidTheme.plasmaCyan,
               ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: VoidTheme.crimsonFlare),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 12.0,
+              const SizedBox(height: 12.0),
+              _buildStatCard(
+                'LICENSE STATUS',
+                p.isProUnlocked ? 'PRO COMMANDER' : 'RECRUIT PILOT',
+                Colors.white,
+              ),
+              const Spacer(),
+              OutlinedButton.icon(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: VoidTheme.crimsonFlare,
                 ),
+                label: const Text(
+                  'ERASE GUEST DATA (GDPR)',
+                  style: TextStyle(color: VoidTheme.crimsonFlare),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: VoidTheme.crimsonFlare),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 12.0,
+                  ),
+                ),
+                onPressed: () async {
+                  await p.wipeAllData();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('All local guest data erased.'),
+                      ),
+                    );
+                  }
+                },
               ),
-              onPressed: () async {
-                await p.wipeAllData();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('All local guest data erased.'),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

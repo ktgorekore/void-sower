@@ -295,16 +295,21 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                                   const Icon(
                                     Icons.bolt,
                                     color: VoidTheme.obsidianBlack,
-                                    size: 13.0,
+                                    size: 12.0,
                                   ),
                                   const SizedBox(width: 2.0),
-                                  Text(
-                                    'AXIAL DISCHARGE C${activeCorridor + 1}',
-                                    style: const TextStyle(
-                                      color: VoidTheme.obsidianBlack,
-                                      fontSize: 8.8,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.3,
+                                  Flexible(
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'AXIAL DISCHARGE C${activeCorridor + 1}',
+                                        style: const TextStyle(
+                                          color: VoidTheme.obsidianBlack,
+                                          fontSize: 8.5,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
