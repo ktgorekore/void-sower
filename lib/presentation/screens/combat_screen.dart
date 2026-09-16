@@ -153,11 +153,15 @@ class _CombatScreenState extends State<CombatScreen>
     _isModalOpen = true;
     _autoAdvanceTimer?.cancel();
 
+    final currentScore = _coordinator.dreadnought.totalScore;
+    unawaited(PersistenceService.instance.setHighScore(currentScore));
+
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => GameOverDialog(
-        score: _coordinator.dreadnought.totalScore,
+        score: currentScore,
+        highScore: _coordinator.highScore,
         isAmmoDepleted: _coordinator.dreadnought.reserveCores <= 0,
         onRetry: () {
           _autoAdvanceTimer?.cancel();
@@ -220,6 +224,7 @@ class _CombatScreenState extends State<CombatScreen>
       barrierDismissible: false,
       builder: (dialogContext) => VictoryDialog(
         score: score,
+        highScore: _coordinator.highScore,
         coresRemaining: cores,
         sectorId: _currentSectorId,
         sectorName: currentSector.name,
@@ -425,6 +430,7 @@ class _CombatScreenState extends State<CombatScreen>
         sectorName: CampaignService.instance.getSector(_currentSectorId).name,
         difficultyTier: _currentDifficultyTier,
         score: _coordinator.dreadnought.totalScore,
+        highScore: _coordinator.highScore,
         onResume: () {
           Navigator.of(dialogContext).pop();
         },
@@ -527,6 +533,7 @@ class _CombatScreenState extends State<CombatScreen>
                           onProfileTap: _openProfile,
                           reserveCores: dread.reserveCores,
                           score: dread.totalScore,
+                          highScore: _coordinator.highScore,
                           difficultyTier: _currentDifficultyTier,
                           sectorId: _currentSectorId,
                           sectorName: CampaignService.instance

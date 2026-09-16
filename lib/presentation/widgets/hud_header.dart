@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ class HudHeader extends StatelessWidget {
     super.key,
     required this.reserveCores,
     required this.score,
+    this.highScore = 0,
     required this.difficultyTier,
     this.sectorId = 1,
     this.sectorName = 'Zanzibar Reef Gate',
@@ -53,6 +55,7 @@ class HudHeader extends StatelessWidget {
 
   final int reserveCores;
   final int score;
+  final int highScore;
   final int difficultyTier;
   final int sectorId;
   final String sectorName;
@@ -124,18 +127,20 @@ class HudHeader extends StatelessWidget {
     );
   }
 
-  /// Builds the glassmorphic Top-Left Wing anchoring mission identity and score.
+  /// Builds the glassmorphic Top-Left Wing anchoring mission identity, current score & all-time high score.
   Widget _buildLeftWing(UserProfile profile, bool secured) {
     final callsignText = profile.callsign.isNotEmpty
         ? profile.callsign.toUpperCase()
         : 'VANGUARD-01';
+    final effectiveHighScore = math.max(score, highScore);
+    final isNewRecord = score >= highScore && score > 0;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.0),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 9.0, vertical: 5.5),
           decoration: BoxDecoration(
             color: VoidTheme.obsidianBlack.withValues(alpha: 0.65),
             borderRadius: BorderRadius.circular(10.0),
@@ -158,7 +163,7 @@ class HudHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Mission Micro-Badge (S1 • PATROL)
+              // Mission Micro-Badge & Pilot Callsign (S1 • PATROL • VANGUARD-01)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -189,42 +194,120 @@ class HudHeader extends StatelessWidget {
                       color: secured
                           ? VoidTheme.emeraldShield
                           : VoidTheme.plasmaCyan,
-                      fontSize: 9.5,
+                      fontSize: 8.5,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                  const SizedBox(width: 4.0),
+                  Text(
+                    '•',
+                    style: TextStyle(
+                      color: VoidTheme.textMuted.withValues(alpha: 0.4),
+                      fontSize: 7.5,
+                    ),
+                  ),
+                  const SizedBox(width: 4.0),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 68.0),
+                    child: GestureDetector(
+                      onTap: onProfileTap,
+                      child: Text(
+                        callsignText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: VoidTheme.textMuted.withValues(alpha: 0.75),
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 2.0),
 
-              // Prominent 6-Digit Score Typography (No redundant "SCORE" word)
-              Text(
-                formatScore(score),
-                style: const TextStyle(
-                  color: VoidTheme.starWhite,
-                  fontSize: 16.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                  shadows: [
-                    Shadow(color: VoidTheme.plasmaCyanLight, blurRadius: 6.0),
-                  ],
-                ),
+              // Primary Current Score Row: "SCORE" micro-label + 6-digit score
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  const Text(
+                    'SCORE',
+                    style: TextStyle(
+                      color: VoidTheme.plasmaCyanLight,
+                      fontSize: 7.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(width: 4.0),
+                  Text(
+                    formatScore(score),
+                    style: const TextStyle(
+                      color: VoidTheme.starWhite,
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                      shadows: [
+                        Shadow(
+                          color: VoidTheme.plasmaCyanLight,
+                          blurRadius: 6.0,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 1.0),
 
-              // Secondary Sub-Label: Pilot Callsign
-              GestureDetector(
-                onTap: onProfileTap,
-                child: Text(
-                  callsignText,
-                  style: TextStyle(
-                    color: VoidTheme.textMuted.withValues(alpha: 0.75),
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+              // All-Time High Score Sub-Row: Trophy + "HI-SCORE" + 6-digit high score
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.emoji_events,
+                    size: 8.5,
+                    color: isNewRecord
+                        ? VoidTheme.solarGold
+                        : VoidTheme.solarGold.withValues(alpha: 0.75),
                   ),
-                ),
+                  const SizedBox(width: 2.5),
+                  Text(
+                    isNewRecord ? 'HI-SCORE ★' : 'HI-SCORE',
+                    style: TextStyle(
+                      color: isNewRecord
+                          ? VoidTheme.solarGold
+                          : VoidTheme.solarGold.withValues(alpha: 0.85),
+                      fontSize: 7.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 3.5),
+                  Text(
+                    formatScore(effectiveHighScore),
+                    style: TextStyle(
+                      color: isNewRecord
+                          ? VoidTheme.solarGold
+                          : VoidTheme.solarGold.withValues(alpha: 0.9),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                      shadows: isNewRecord
+                          ? const [
+                              Shadow(
+                                color: VoidTheme.solarGold,
+                                blurRadius: 6.0,
+                              ),
+                            ]
+                          : null,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -371,8 +454,8 @@ class HudHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 8.0),
 
-                  // AI Tactical Auto-Solver Toggle Switch
-                  if (onToggleAutoSolve != null) ...[
+                  // AI Tactical Auto-Solver Toggle Switch (active combat only)
+                  if (!secured && onToggleAutoSolve != null) ...[
                     GestureDetector(
                       onTap: onToggleAutoSolve,
                       child: Container(

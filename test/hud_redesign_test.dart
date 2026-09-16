@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:void_sower/domain/models/user_profile.dart';
+import 'package:void_sower/presentation/widgets/game_over_dialog.dart';
 import 'package:void_sower/presentation/widgets/hud_header.dart';
 import 'package:void_sower/presentation/widgets/pause_menu_dialog.dart';
 import 'package:void_sower/presentation/widgets/victory_dialog.dart';
@@ -38,6 +39,7 @@ void main() {
               body: HudHeader(
                 reserveCores: 16,
                 score: 1420,
+                highScore: 5000,
                 difficultyTier: 1,
                 sectorId: 3,
                 sectorName: 'Kipumbwi Trench',
@@ -53,9 +55,12 @@ void main() {
           ),
         );
 
-        // Left Wing: Mission badge, 6-digit score, Callsign
+        // Left Wing: Mission badge, SCORE & HI-SCORE with 6-digit typography, Callsign
         expect(find.text('S3 • SIEGE'), findsOneWidget);
+        expect(find.text('SCORE'), findsOneWidget);
         expect(find.text('001,420'), findsOneWidget);
+        expect(find.text('HI-SCORE'), findsOneWidget);
+        expect(find.text('005,000'), findsOneWidget);
         expect(find.text('KILIMA_ONE'), findsOneWidget);
 
         // Right Wing: Cores micro-gauge, progress bar label, Hostiles, AI, PAUSE
@@ -102,6 +107,7 @@ void main() {
                 sectorName: 'Kipumbwi Trench',
                 difficultyTier: 1,
                 score: 1420,
+                highScore: 5000,
                 onResume: () => resumeTapped = true,
                 onRestart: () => restartTapped = true,
                 onAbort: () => abortTapped = true,
@@ -116,7 +122,10 @@ void main() {
 
         expect(find.text('TACTICAL PAUSE'), findsOneWidget);
         expect(find.text('SECTOR 3 • Kipumbwi Trench • SIEGE'), findsOneWidget);
+        expect(find.text('CURRENT SORTIE SCORE'), findsOneWidget);
         expect(find.text('1420'), findsOneWidget);
+        expect(find.text('ALL-TIME HIGH SCORE'), findsOneWidget);
+        expect(find.text('5000'), findsOneWidget);
 
         expect(find.text('RESUME SORTIE'), findsOneWidget);
         expect(find.text('RESTART'), findsOneWidget);
@@ -239,6 +248,78 @@ void main() {
       await tester.tap(closeFinder);
       await tester.pumpAndSettle();
       expect(dismissed, isTrue);
+    });
+
+    testWidgets('HudHeader reflects new record when score exceeds highScore', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: HudHeader(
+              reserveCores: 20,
+              score: 8500,
+              highScore: 4000,
+              difficultyTier: 2,
+              sectorId: 5,
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('SCORE'), findsOneWidget);
+      // Both score and effective high score show 008,500
+      expect(find.text('008,500'), findsNWidgets(2));
+      expect(find.text('HI-SCORE ★'), findsOneWidget);
+    });
+
+    testWidgets(
+      'VictoryDialog displays mission score, high score, and cores saved',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: VictoryDialog(
+                sectorId: 2,
+                sectorName: 'Pemba Shoals',
+                score: 5200,
+                highScore: 3000,
+                coresRemaining: 18,
+                onNextSector: () {},
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('MISSION SCORE'), findsOneWidget);
+        expect(
+          find.text('5200'),
+          findsNWidgets(2),
+        ); // Mission score & new high score
+        expect(find.text('★ NEW RECORD'), findsOneWidget);
+        expect(find.text('CORES SAVED'), findsOneWidget);
+        expect(find.text('18'), findsOneWidget);
+      },
+    );
+
+    testWidgets('GameOverDialog displays final score and all-time high score', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: GameOverDialog(
+              score: 1200,
+              highScore: 6000,
+              onRetry: () {},
+              onReturnToMap: () {},
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('FINAL SCORE: 1200'), findsOneWidget);
+      expect(find.text('ALL-TIME HIGH SCORE: 6000'), findsOneWidget);
     });
   });
 }

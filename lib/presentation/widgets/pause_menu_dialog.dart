@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../theme/void_theme.dart';
@@ -26,6 +28,7 @@ class PauseMenuDialog extends StatelessWidget {
     required this.sectorName,
     required this.difficultyTier,
     required this.score,
+    this.highScore = 0,
     required this.onResume,
     required this.onRestart,
     required this.onAbort,
@@ -39,6 +42,7 @@ class PauseMenuDialog extends StatelessWidget {
   final String sectorName;
   final int difficultyTier;
   final int score;
+  final int highScore;
   final VoidCallback onResume;
   final VoidCallback onRestart;
   final VoidCallback onAbort;
@@ -142,10 +146,10 @@ class PauseMenuDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 16.0),
 
-                // Score banner
+                // Score banner: Current Sortie Score + All-Time High Score
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
+                    horizontal: 10.0,
                     vertical: 8.0,
                   ),
                   decoration: BoxDecoration(
@@ -157,24 +161,82 @@ class PauseMenuDialog extends StatelessWidget {
                     ),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'CURRENT SORTIE SCORE',
-                        style: TextStyle(
-                          color: VoidTheme.textMuted,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'CURRENT SORTIE SCORE',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: VoidTheme.textMuted,
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                            const SizedBox(height: 2.0),
+                            Text(
+                              '$score',
+                              style: const TextStyle(
+                                color: VoidTheme.plasmaCyanLight,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        '$score',
-                        style: const TextStyle(
-                          color: VoidTheme.plasmaCyanLight,
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                        width: 1.0,
+                        height: 24.0,
+                        color: VoidTheme.cardSurface,
+                      ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(
+                                  Icons.emoji_events,
+                                  size: 10.0,
+                                  color: VoidTheme.solarGold,
+                                ),
+                                SizedBox(width: 3.0),
+                                Flexible(
+                                  child: Text(
+                                    'ALL-TIME HIGH SCORE',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: VoidTheme.solarGold,
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2.0),
+                            Text(
+                              '${math.max(score, highScore)}',
+                              style: const TextStyle(
+                                color: VoidTheme.solarGold,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

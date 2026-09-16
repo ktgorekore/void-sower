@@ -88,6 +88,9 @@ class CombatCoordinator extends ChangeNotifier {
   int _currentDifficulty = 0;
   int get currentDifficulty => _currentDifficulty;
 
+  int _highScore = 0;
+  int get highScore => math.max(_highScore, dreadnought.totalScore);
+
   /// Initializes engine entities, procedurally generates the solvable combat wave,
   /// and primes the FSM.
   void initialize({
@@ -96,6 +99,7 @@ class CombatCoordinator extends ChangeNotifier {
     double boundaryY = 0.15,
     bool autoStartSolver = false,
   }) {
+    _highScore = PersistenceService.instance.highScore;
     _currentDifficulty = difficulty ?? difficultyTier;
     vlog(
       6,
@@ -144,6 +148,11 @@ class CombatCoordinator extends ChangeNotifier {
     enemies = engine.getEnemies();
     lances = engine.getLances();
     flaks = engine.getFlaks();
+
+    if (dreadnought.totalScore > _highScore) {
+      _highScore = dreadnought.totalScore;
+      unawaited(PersistenceService.instance.setHighScore(_highScore));
+    }
   }
 
   /// Grants emergency auxiliary plasma cores (e.g. from a rewarded ad transmission).

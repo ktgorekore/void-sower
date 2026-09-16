@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
@@ -23,6 +26,7 @@ class VictoryDialog extends StatelessWidget {
     this.sectorId = 1,
     this.sectorName = 'Zanzibar Reef Gate',
     required this.score,
+    this.highScore = 0,
     required this.coresRemaining,
     this.starsEarned = 3,
     this.isNewUnlock = false,
@@ -36,6 +40,7 @@ class VictoryDialog extends StatelessWidget {
   final int sectorId;
   final String sectorName;
   final int score;
+  final int highScore;
   final int coresRemaining;
   final int starsEarned;
   final bool isNewUnlock;
@@ -268,24 +273,42 @@ class VictoryDialog extends StatelessWidget {
                   const SizedBox(height: 12.0),
                 ],
 
-                // Score & Cores Stats Row
+                // Score & Cores Stats Row: Mission Score + High Score + Cores Saved
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildStatColumn(
-                      'MISSION SCORE',
-                      '$score',
-                      VoidTheme.textPrimary,
+                    Expanded(
+                      child: _buildStatColumn(
+                        'MISSION SCORE',
+                        '$score',
+                        VoidTheme.textPrimary,
+                      ),
                     ),
                     Container(
                       width: 1.0,
                       height: 32.0,
                       color: VoidTheme.cardSurface,
                     ),
-                    _buildStatColumn(
-                      'CORES SAVED',
-                      '$coresRemaining',
-                      VoidTheme.plasmaCyan,
+                    Expanded(
+                      child: _buildStatColumn(
+                        (score >= highScore && score > 0)
+                            ? '★ NEW RECORD'
+                            : 'HIGH SCORE',
+                        '${math.max(score, highScore)}',
+                        VoidTheme.solarGold,
+                      ),
+                    ),
+                    Container(
+                      width: 1.0,
+                      height: 32.0,
+                      color: VoidTheme.cardSurface,
+                    ),
+                    Expanded(
+                      child: _buildStatColumn(
+                        'CORES SAVED',
+                        '$coresRemaining',
+                        VoidTheme.plasmaCyan,
+                      ),
                     ),
                   ],
                 ),
@@ -353,18 +376,24 @@ class VictoryDialog extends StatelessWidget {
 
   Widget _buildStatColumn(String label, String value, Color valueColor) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: VoidTheme.textMuted,
-            fontSize: 9.5,
-            letterSpacing: 0.8,
+            fontSize: 9.0,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
         const SizedBox(height: 2.0),
         Text(
           value,
+          textAlign: TextAlign.center,
           style: TextStyle(
             color: valueColor,
             fontSize: 18.0,

@@ -137,7 +137,7 @@ void main() {
         expect(find.text('★★★ FLAWLESS DEFENSE'), findsOneWidget);
         expect(find.text('NEW SECTOR UNLOCKED!'), findsOneWidget);
         expect(find.text('Sector 2: PEMBA CHANNEL RELAY'), findsOneWidget);
-        expect(find.text('4200'), findsOneWidget);
+        expect(find.text('4200'), findsNWidgets(2));
         expect(find.text('18'), findsOneWidget);
 
         await tester.tap(find.text('ADVANCE TO NEXT SECTOR'));

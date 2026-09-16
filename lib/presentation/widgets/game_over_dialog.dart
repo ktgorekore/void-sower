@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
@@ -21,12 +24,14 @@ class GameOverDialog extends StatelessWidget {
   const GameOverDialog({
     super.key,
     required this.score,
+    this.highScore = 0,
     required this.onRetry,
     required this.onReturnToMap,
     this.isAmmoDepleted = false,
   });
 
   final int score;
+  final int highScore;
   final VoidCallback onRetry;
   final VoidCallback onReturnToMap;
   final bool isAmmoDepleted;
@@ -92,14 +97,46 @@ class GameOverDialog extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 14.0),
-            Text(
-              'FINAL SCORE: $score',
-              style: const TextStyle(
-                color: VoidTheme.solarGold,
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-              ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'FINAL SCORE: $score',
+                  style: const TextStyle(
+                    color: VoidTheme.solarGold,
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                const SizedBox(height: 4.0),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.emoji_events,
+                      size: 13.0,
+                      color: (score >= highScore && score > 0)
+                          ? VoidTheme.solarGold
+                          : VoidTheme.textMuted,
+                    ),
+                    const SizedBox(width: 4.0),
+                    Text(
+                      (score >= highScore && score > 0)
+                          ? '🏆 NEW ALL-TIME HIGH SCORE!'
+                          : 'ALL-TIME HIGH SCORE: ${math.max(score, highScore)}',
+                      style: TextStyle(
+                        color: (score >= highScore && score > 0)
+                            ? VoidTheme.solarGold
+                            : VoidTheme.textSecondary,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 16.0),
             Container(
