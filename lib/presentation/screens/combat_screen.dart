@@ -31,6 +31,7 @@ import '../widgets/command_arc_widget.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/hud_header.dart';
 import '../widgets/landscape_orientation_shield.dart';
+import '../widgets/pause_menu_dialog.dart';
 import '../widgets/profile_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/projection_shelf.dart';
@@ -73,6 +74,7 @@ class _CombatScreenState extends State<CombatScreen>
   int _currentDifficultyTier = 0;
   int _currentSectorId = 1;
   bool _isModalOpen = false;
+  bool _victoryDialogDismissed = false;
   Timer? _autoAdvanceTimer;
 
   @override
@@ -240,6 +242,7 @@ class _CombatScreenState extends State<CombatScreen>
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _isModalOpen = false;
+          _victoryDialogDismissed = true;
           if (mounted) setState(() {});
         },
       ),
@@ -257,15 +260,22 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _restartCombat() {
+    _victoryDialogDismissed = false;
     final sector = CampaignService.instance.getSector(_currentSectorId);
     _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
+    if (!_ticker.isTicking) {
+      _lastElapsed = Duration.zero;
+      _ticker.start();
+    }
+    if (mounted) setState(() {});
   }
 
   void _advanceNextSector() {
+    _victoryDialogDismissed = false;
     if (_currentSectorId < 9) {
       _currentSectorId++;
     }
@@ -275,6 +285,11 @@ class _CombatScreenState extends State<CombatScreen>
       difficulty: _currentDifficultyTier,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
+    if (!_ticker.isTicking) {
+      _lastElapsed = Duration.zero;
+      _ticker.start();
+    }
+    if (mounted) setState(() {});
   }
 
   void _openCodex() {
@@ -296,9 +311,7 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
-      if (mounted &&
-          wasTicking &&
-          _coordinator.state.status == CombatMatchStatus.activeCombat) {
+      if (mounted && wasTicking) {
         _ticker.start();
       }
     });
@@ -316,9 +329,7 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
-      if (mounted &&
-          wasTicking &&
-          _coordinator.state.status == CombatMatchStatus.activeCombat) {
+      if (mounted && wasTicking) {
         _ticker.start();
       }
     });
@@ -337,9 +348,7 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
-      if (mounted &&
-          wasTicking &&
-          _coordinator.state.status == CombatMatchStatus.activeCombat) {
+      if (mounted && wasTicking) {
         _ticker.start();
       }
     });
@@ -376,9 +385,7 @@ class _CombatScreenState extends State<CombatScreen>
           },
         ),
       ).then((_) {
-        if (mounted &&
-            wasTicking &&
-            _coordinator.state.status == CombatMatchStatus.activeCombat) {
+        if (mounted && wasTicking) {
           _ticker.start();
         }
       });
@@ -398,17 +405,73 @@ class _CombatScreenState extends State<CombatScreen>
             ),
           )
           .then((_) {
-            if (mounted &&
-                wasTicking &&
-                _coordinator.state.status == CombatMatchStatus.activeCombat) {
+            if (mounted && wasTicking) {
               _ticker.start();
             }
           });
     }
   }
 
+  void _openPauseMenu() {
+    _coordinator.pauseCombat();
+    _isModalOpen = true;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (dialogContext) => PauseMenuDialog(
+        sectorId: _currentSectorId,
+        sectorName: CampaignService.instance.getSector(_currentSectorId).name,
+        difficultyTier: _currentDifficultyTier,
+        score: _coordinator.dreadnought.totalScore,
+        onResume: () {
+          Navigator.of(dialogContext).pop();
+        },
+        onRestart: () {
+          Navigator.of(dialogContext).pop();
+          _restartCombat();
+        },
+        onAbort: () {
+          Navigator.of(dialogContext).pop();
+          _openMap();
+        },
+        onMap: () {
+          Navigator.of(dialogContext).pop();
+          _openMap();
+        },
+        onCodex: () {
+          Navigator.of(dialogContext).pop();
+          _openCodex();
+        },
+        onAcademy: () {
+          Navigator.of(dialogContext).pop();
+          _coordinator.showTutorial();
+        },
+        onSettings: () {
+          Navigator.of(dialogContext).pop();
+          _openSettings();
+        },
+      ),
+    ).then((_) {
+      _isModalOpen = false;
+      if (mounted) {
+        _resumeCombat();
+      }
+    });
+  }
+
+  void _resumeCombat() {
+    if (!_ticker.isTicking) {
+      _lastElapsed = Duration.zero;
+      _ticker.start();
+    }
+    _coordinator.resumeCombat();
+    if (mounted) setState(() {});
+  }
+
   void _toggleTacticalPause() {
-    _coordinator.toggleTacticalPause();
+    _openPauseMenu();
   }
 
   @override
@@ -561,7 +624,8 @@ class _CombatScreenState extends State<CombatScreen>
                                   ),
                                 ),
                                 if (matchState.status ==
-                                    CombatMatchStatus.paused)
+                                        CombatMatchStatus.paused &&
+                                    !_isModalOpen)
                                   Positioned(
                                     top: 8.0,
                                     left: 16.0,
@@ -667,7 +731,9 @@ class _CombatScreenState extends State<CombatScreen>
                                     ),
                                   ),
                                 // Interactive Sector Secured Command Card when wave is eliminated
-                                if (isSecured)
+                                if (isSecured &&
+                                    _victoryDialogDismissed &&
+                                    !_isModalOpen)
                                   Positioned(
                                     top: 20.0,
                                     left: 16.0,

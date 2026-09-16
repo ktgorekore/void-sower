@@ -456,15 +456,19 @@ class CombatCoordinator extends ChangeNotifier {
 
   /// Sets the dreadnought's target horizontal position.
   void slidePosition(double targetX) {
-    engine.slideDreadnought(targetX);
-    final corridor = (targetX * 8.0).floor().clamp(0, 7);
+    final clampedX = targetX.clamp(0.0, 1.0);
+    engine.slideDreadnought(clampedX);
+    if (_state.status == CombatMatchStatus.paused) {
+      dreadnought = dreadnought.copyWith(orbitalPositionX: clampedX);
+    }
+    final corridor = (clampedX * 8.0).floor().clamp(0, 7);
     final frontlineBay = corridor + 8;
     if (_state.selectedBay != frontlineBay &&
         _state.status != CombatMatchStatus.sowingSequence) {
       _state = _state.copyWith(selectedBay: frontlineBay);
       prediction = engine.predictSow(frontlineBay, 1);
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   /// Opens tactical tutorial overlay (pausing combat).
@@ -497,7 +501,8 @@ class CombatCoordinator extends ChangeNotifier {
 
   /// Toggles tactical pause (time-dilation) allowing commanders to plan shots.
   void toggleTacticalPause() {
-    if (_state.status == CombatMatchStatus.activeCombat) {
+    if (_state.status == CombatMatchStatus.activeCombat ||
+        _state.status == CombatMatchStatus.sowingSequence) {
       _state = _state.copyWith(status: CombatMatchStatus.paused);
       notifyListeners();
     } else if (_state.status == CombatMatchStatus.paused) {
@@ -508,7 +513,8 @@ class CombatCoordinator extends ChangeNotifier {
 
   /// Pauses the combat simulation.
   void pauseCombat() {
-    if (_state.status == CombatMatchStatus.activeCombat) {
+    if (_state.status == CombatMatchStatus.activeCombat ||
+        _state.status == CombatMatchStatus.sowingSequence) {
       _state = _state.copyWith(status: CombatMatchStatus.paused);
       notifyListeners();
     }

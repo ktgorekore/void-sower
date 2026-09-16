@@ -87,6 +87,10 @@ void CombatSystem::SetTargetPositionX(float target_x) {
       registry_.valid(dreadnought_entity_)) {
     auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.target_position_x = std::clamp(target_x, 0.0f, 1.0f);
+    if (dread.current_sim_state ==
+        static_cast<uint8_t>(SimulationState::OrbitalIdle)) {
+      dread.orbital_position_x = dread.target_position_x;
+    }
   }
 }
 

@@ -29,6 +29,7 @@ class TactileButton extends StatefulWidget {
     this.height = 48.0,
     this.isPrimary = true,
     this.padding = const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+    this.fontSize = 13.0,
   });
 
   final String label;
@@ -39,6 +40,7 @@ class TactileButton extends StatefulWidget {
   final double height;
   final bool isPrimary;
   final EdgeInsetsGeometry padding;
+  final double fontSize;
 
   @override
   State<TactileButton> createState() => _TactileButtonState();
@@ -142,7 +144,7 @@ class _TactileButtonState extends State<TactileButton>
                     color: isEnabled
                         ? VoidTheme.textPrimary
                         : VoidTheme.textMuted,
-                    fontSize: 13.0,
+                    fontSize: widget.fontSize,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.0,
                   ),

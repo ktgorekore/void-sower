@@ -32,11 +32,18 @@ void main() {
   testWidgets('VoidSowerApp launches directly into combat arena by default', (
     WidgetTester tester,
   ) async {
+    await PersistenceService.instance.setCompletedTutorial(true);
     final mockEngine = MockVoidSowerEngine();
     await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
     await tester.pump();
 
     expect(find.byType(CombatScreen), findsOneWidget);
+    expect(find.text('PAUSE'), findsOneWidget);
+
+    // Opening pause menu reveals meta actions (RULES, MAP, etc.)
+    await tester.tap(find.text('PAUSE'));
+    await tester.pump(const Duration(milliseconds: 300));
+
     expect(find.text('RULES'), findsOneWidget);
     expect(find.text('MAP'), findsOneWidget);
   });

@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../domain/models/user_profile.dart';
 import '../theme/void_theme.dart';
 
-/// 3-Tier Tactical HUD Header organizing Campaign Navigation, Combat Telemetry,
-/// and Universal Simulation Controls.
+/// Streamlined "Split-Wing" Tactical HUD Header.
+///
+/// Anchors mission identity & score to the Top-Left Wing, survival telemetry &
+/// single-point simulation controls to the Top-Right Wing, leaving the critical
+/// center combat corridor 100% unobstructed for incoming hostile craft.
 class HudHeader extends StatelessWidget {
   const HudHeader({
     super.key,
@@ -27,23 +32,23 @@ class HudHeader extends StatelessWidget {
     required this.difficultyTier,
     this.sectorId = 1,
     this.sectorName = 'Zanzibar Reef Gate',
-    required this.onSettingsTap,
-    this.onCodexTap,
-    this.onTutorialTap,
-    this.onEmergencyFlareTap,
-    this.isAutoSolving = false,
-    this.onToggleAutoSolve,
     this.userProfile,
     this.onProfileTap,
     this.invadersRemaining,
     this.totalInvaders,
     this.isPaused = false,
     this.onTogglePause,
+    this.isAutoSolving = false,
+    this.onToggleAutoSolve,
+    this.isSecured = false,
+    this.onNextSectorTap,
+    this.onSettingsTap,
     this.onMapTap,
     this.onRestartTap,
     this.onStopTap,
-    this.onNextSectorTap,
-    this.isSecured = false,
+    this.onCodexTap,
+    this.onTutorialTap,
+    this.onEmergencyFlareTap,
   });
 
   final int reserveCores;
@@ -51,23 +56,25 @@ class HudHeader extends StatelessWidget {
   final int difficultyTier;
   final int sectorId;
   final String sectorName;
-  final VoidCallback onSettingsTap;
-  final VoidCallback? onCodexTap;
-  final VoidCallback? onTutorialTap;
-  final VoidCallback? onEmergencyFlareTap;
-  final bool isAutoSolving;
-  final VoidCallback? onToggleAutoSolve;
   final UserProfile? userProfile;
   final VoidCallback? onProfileTap;
   final int? invadersRemaining;
   final int? totalInvaders;
   final bool isPaused;
   final VoidCallback? onTogglePause;
+  final bool isAutoSolving;
+  final VoidCallback? onToggleAutoSolve;
+  final bool isSecured;
+  final VoidCallback? onNextSectorTap;
+
+  // Additional/legacy meta action delegates (can be triggered via Pause Menu)
+  final VoidCallback? onSettingsTap;
   final VoidCallback? onMapTap;
   final VoidCallback? onRestartTap;
   final VoidCallback? onStopTap;
-  final VoidCallback? onNextSectorTap;
-  final bool isSecured;
+  final VoidCallback? onCodexTap;
+  final VoidCallback? onTutorialTap;
+  final VoidCallback? onEmergencyFlareTap;
 
   String get tierName {
     switch (difficultyTier) {
@@ -82,922 +89,456 @@ class HudHeader extends StatelessWidget {
     }
   }
 
+  /// Formats raw score into prominent 6-digit grouped typography (e.g. 004,820).
+  static String formatScore(int score) {
+    final clamped = score.clamp(0, 999999);
+    final str = clamped.toString().padLeft(6, '0');
+    return '${str.substring(0, 3)},${str.substring(3)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final profile = userProfile ?? const UserProfile();
     final bool secured =
         isSecured || (invadersRemaining != null && invadersRemaining == 0);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: VoidTheme.obsidianBlack.withValues(alpha: 0.96),
-        border: const Border(
-          bottom: BorderSide(color: VoidTheme.cardSurface, width: 1.0),
+    return SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // 1. TOP LEFT WING: Mission Micro-Badge, Prominent Score & Pilot Callsign
+            _buildLeftWing(profile, secured),
+
+            // 2. OPEN CENTER CHANNEL: 100% unobstructed spawn sightline for incoming hostiles
+            const Spacer(),
+
+            // 3. TOP RIGHT WING: Cores Micro-Gauge, Hostiles & One-Button Pause/AI Controls
+            _buildRightWing(secured),
+          ],
         ),
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // BAR 1: SYSTEM NAVIGATION & PROTOCOLS
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 4.0,
-              ),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: VoidTheme.cardSurface.withValues(alpha: 0.5),
-                    width: 0.8,
-                  ),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Left: Map Navigation & Sector Threat Tier
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (onMapTap != null) ...[
-                        GestureDetector(
-                          onTap: onMapTap,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7.0,
-                              vertical: 3.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.cardSurface,
-                              borderRadius: BorderRadius.circular(4.0),
-                              border: Border.all(
-                                color: VoidTheme.plasmaCyan.withValues(
-                                  alpha: 0.7,
-                                ),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.map_outlined,
-                                  color: VoidTheme.plasmaCyan,
-                                  size: 13.0,
-                                ),
-                                SizedBox(width: 3.0),
-                                Text(
-                                  'MAP',
-                                  style: TextStyle(
-                                    color: VoidTheme.plasmaCyan,
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 5.0),
-                      ],
-                      // Sector Threat Tier Pill
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7.0,
-                          vertical: 3.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: VoidTheme.cardSurface,
-                          borderRadius: BorderRadius.circular(4.0),
-                          border: Border.all(
-                            color: difficultyTier == 2
-                                ? VoidTheme.crimsonFlare
-                                : VoidTheme.plasmaCyan,
-                            width: 1.0,
-                          ),
-                        ),
-                        child: Text(
-                          'S$sectorId • $tierName',
-                          style: TextStyle(
-                            color: difficultyTier == 2
-                                ? VoidTheme.crimsonFlare
-                                : VoidTheme.plasmaCyan,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+    );
+  }
 
-                  // Right: Rules, Academy & Aligned Settings
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (onCodexTap != null)
-                        GestureDetector(
-                          onTap: onCodexTap,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7.0,
-                              vertical: 3.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.plasmaCyan.withValues(
-                                alpha: 0.15,
-                              ),
-                              borderRadius: BorderRadius.circular(4.0),
-                              border: Border.all(
-                                color: VoidTheme.plasmaCyan,
-                                width: 1.0,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.menu_book,
-                                  color: VoidTheme.plasmaCyan,
-                                  size: 13.0,
-                                ),
-                                SizedBox(width: 3.0),
-                                Text(
-                                  'RULES',
-                                  style: TextStyle(
-                                    color: VoidTheme.plasmaCyan,
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      if (onTutorialTap != null) ...[
-                        const SizedBox(width: 5.0),
-                        GestureDetector(
-                          onTap: onTutorialTap,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7.0,
-                              vertical: 3.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.solarGold.withValues(
-                                alpha: 0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(4.0),
-                              border: Border.all(
-                                color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.7,
-                                ),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.school,
-                                  color: VoidTheme.solarGold,
-                                  size: 13.0,
-                                ),
-                                SizedBox(width: 2.5),
-                                Text(
-                                  'ACADEMY',
-                                  style: TextStyle(
-                                    color: VoidTheme.solarGold,
-                                    fontSize: 9.0,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+  /// Builds the glassmorphic Top-Left Wing anchoring mission identity and score.
+  Widget _buildLeftWing(UserProfile profile, bool secured) {
+    final callsignText = profile.callsign.isNotEmpty
+        ? profile.callsign.toUpperCase()
+        : 'VANGUARD-01';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.0),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+          decoration: BoxDecoration(
+            color: VoidTheme.obsidianBlack.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(
+              color: secured
+                  ? VoidTheme.emeraldShield.withValues(alpha: 0.4)
+                  : VoidTheme.plasmaCyan.withValues(alpha: 0.25),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color:
+                    (secured ? VoidTheme.emeraldShield : VoidTheme.plasmaCyan)
+                        .withValues(alpha: 0.12),
+                blurRadius: 10.0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Mission Micro-Badge (S1 • PATROL)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 5.0,
+                    height: 5.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: secured
+                          ? VoidTheme.emeraldShield
+                          : VoidTheme.plasmaCyan,
+                      boxShadow: [
+                        BoxShadow(
+                          color:
+                              (secured
+                                      ? VoidTheme.emeraldShield
+                                      : VoidTheme.plasmaCyan)
+                                  .withValues(alpha: 0.8),
+                          blurRadius: 4.0,
                         ),
                       ],
-                      const SizedBox(width: 5.0),
-                      // Pixel-perfect Aligned Settings Button
-                      GestureDetector(
-                        onTap: onSettingsTap,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6.0,
-                            vertical: 3.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: VoidTheme.cardSurface,
-                            borderRadius: BorderRadius.circular(4.0),
-                            border: Border.all(
-                              color: VoidTheme.textSecondary.withValues(
-                                alpha: 0.5,
-                              ),
-                              width: 1.0,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.settings,
-                            color: VoidTheme.starWhite,
-                            size: 18.0,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                  ),
+                  const SizedBox(width: 4.0),
+                  Text(
+                    'S$sectorId • $tierName',
+                    style: TextStyle(
+                      color: secured
+                          ? VoidTheme.emeraldShield
+                          : VoidTheme.plasmaCyan,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 2.0),
 
-            // BAR 2: LIVE COMBAT TELEMETRY & REACTOR ARSENAL
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 3.5,
+              // Prominent 6-Digit Score Typography (No redundant "SCORE" word)
+              Text(
+                formatScore(score),
+                style: const TextStyle(
+                  color: VoidTheme.starWhite,
+                  fontSize: 16.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                  shadows: [
+                    Shadow(color: VoidTheme.plasmaCyanLight, blurRadius: 6.0),
+                  ],
+                ),
               ),
-              decoration: BoxDecoration(
-                color: VoidTheme.obsidianBlack.withValues(alpha: 0.8),
-                border: Border(
-                  bottom: BorderSide(
-                    color: VoidTheme.cardSurface.withValues(alpha: 0.4),
-                    width: 0.8,
+              const SizedBox(height: 1.0),
+
+              // Secondary Sub-Label: Pilot Callsign
+              GestureDetector(
+                onTap: onProfileTap,
+                child: Text(
+                  callsignText,
+                  style: TextStyle(
+                    color: VoidTheme.textMuted.withValues(alpha: 0.75),
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Left: Pilot Callsign & Score
-                  Flexible(
-                    flex: 5,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          GestureDetector(
-                            onTap: onProfileTap,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6.0,
-                                vertical: 2.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: VoidTheme.cardSurface,
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(
-                                  color: profile.isGoogleLinked
-                                      ? VoidTheme.plasmaCyan
-                                      : VoidTheme.solarGold.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.account_circle,
-                                    color: profile.isGoogleLinked
-                                        ? VoidTheme.plasmaCyan
-                                        : VoidTheme.solarGold,
-                                    size: 13.0,
-                                  ),
-                                  const SizedBox(width: 3.0),
-                                  ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 85.0,
-                                    ),
-                                    child: Text(
-                                      profile.callsign,
-                                      style: const TextStyle(
-                                        color: VoidTheme.starWhite,
-                                        fontSize: 10.0,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.3,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the glassmorphic Top-Right Wing anchoring survival telemetry and controls.
+  Widget _buildRightWing(bool secured) {
+    final remaining = invadersRemaining ?? 0;
+    final total = totalInvaders ?? 0;
+    final eliminated = total > remaining ? total - remaining : 0;
+    final coreFill = (reserveCores / 50.0).clamp(0.0, 1.0);
+    final coreColor = reserveCores <= 5
+        ? VoidTheme.crimsonFlare
+        : VoidTheme.solarGold;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.0),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+          decoration: BoxDecoration(
+            color: VoidTheme.obsidianBlack.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(
+              color: secured
+                  ? VoidTheme.emeraldShield.withValues(alpha: 0.4)
+                  : VoidTheme.solarGold.withValues(alpha: 0.25),
+              width: 1.0,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: (secured ? VoidTheme.emeraldShield : VoidTheme.solarGold)
+                    .withValues(alpha: 0.12),
+                blurRadius: 10.0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Energy Cores Micro-Gauge with 4px Progress Bar
+              GestureDetector(
+                onTap: onEmergencyFlareTap,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.bolt, size: 13.0, color: coreColor),
+                        const SizedBox(width: 1.0),
+                        Text(
+                          '$reserveCores/50',
+                          style: TextStyle(
+                            color: coreColor,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
                           ),
-                          const SizedBox(width: 6.0),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'SCORE: ',
-                                style: TextStyle(
-                                  color: VoidTheme.textMuted,
-                                  fontSize: 9.0,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.4,
-                                ),
-                              ),
-                              Text(
-                                '$score',
-                                style: const TextStyle(
-                                  color: VoidTheme.plasmaCyanLight,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.4,
-                                ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2.0),
+                    // 4px-high progress bar
+                    Container(
+                      width: 86.0,
+                      height: 3.5,
+                      decoration: BoxDecoration(
+                        color: VoidTheme.cardSurface,
+                        borderRadius: BorderRadius.circular(2.0),
+                      ),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: coreFill,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: coreColor,
+                            borderRadius: BorderRadius.circular(2.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: coreColor.withValues(alpha: 0.5),
+                                blurRadius: 4.0,
                               ),
                             ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-
-                  // Right: Cores Gauge & Hostiles Tracker
-                  Flexible(
-                    flex: 5,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerRight,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          GestureDetector(
-                            onTap: onEmergencyFlareTap,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6.0,
-                                vertical: 2.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: VoidTheme.cardSurface,
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(
-                                  color: reserveCores <= 5
-                                      ? VoidTheme.crimsonFlare
-                                      : VoidTheme.solarGold.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.bolt,
-                                    color: reserveCores <= 5
-                                        ? VoidTheme.crimsonFlare
-                                        : VoidTheme.solarGold,
-                                    size: 13.0,
-                                  ),
-                                  const SizedBox(width: 2.0),
-                                  Text(
-                                    '$reserveCores CORES',
-                                    style: TextStyle(
-                                      color: reserveCores <= 5
-                                          ? VoidTheme.crimsonFlare
-                                          : VoidTheme.solarGold,
-                                      fontSize: 10.0,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.4,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 5.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 2.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.cardSurface.withValues(
-                                alpha: 0.8,
-                              ),
-                              borderRadius: BorderRadius.circular(4.0),
-                              border: Border.all(
-                                color: secured
-                                    ? VoidTheme.emeraldShield
-                                    : ((invadersRemaining != null &&
-                                              invadersRemaining! <= 2)
-                                          ? VoidTheme.solarGold
-                                          : VoidTheme.textMuted.withValues(
-                                              alpha: 0.4,
-                                            )),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  secured
-                                      ? Icons.check_circle
-                                      : Icons.shield_outlined,
-                                  size: 12.0,
-                                  color: secured
-                                      ? VoidTheme.emeraldShield
-                                      : ((invadersRemaining != null &&
-                                                invadersRemaining! <= 2)
-                                            ? VoidTheme.solarGold
-                                            : VoidTheme.textSecondary),
-                                ),
-                                const SizedBox(width: 3.0),
-                                Text(
-                                  secured
-                                      ? 'SECURED'
-                                      : (invadersRemaining != null
-                                            ? (totalInvaders != null
-                                                  ? '${totalInvaders! - invadersRemaining!}/$totalInvaders HOSTILES'
-                                                  : '$invadersRemaining HOSTILES')
-                                            : 'DEFENSE GRID'),
-                                  style: TextStyle(
-                                    color: secured
-                                        ? VoidTheme.emeraldShield
-                                        : ((invadersRemaining != null &&
-                                                  invadersRemaining! <= 2)
-                                              ? VoidTheme.solarGold
-                                              : VoidTheme.textSecondary),
-                                    fontSize: 9.0,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 1.0),
+                    Text(
+                      'ENERGY CORES',
+                      style: TextStyle(
+                        color: VoidTheme.textMuted.withValues(alpha: 0.8),
+                        fontSize: 7.0,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
+              const SizedBox(height: 5.0),
 
-            // BAR 3: TACTICAL SIMULATION CONTROLS (UNIVERSAL ACCESS)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 3.5,
-              ),
-              color: VoidTheme.obsidianBlack.withValues(alpha: 0.95),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Bottom Row: Hostiles & Controls (AI + Pause)
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Left: Mission Status Indicator
-                  Flexible(
-                    flex: 3,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (secured)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7.0,
-                                vertical: 2.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: VoidTheme.emeraldShield.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(
-                                  color: VoidTheme.emeraldShield,
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.verified,
-                                    color: VoidTheme.emeraldShield,
-                                    size: 12.0,
-                                  ),
-                                  SizedBox(width: 3.0),
-                                  Text(
-                                    'SECTOR SECURED',
-                                    style: TextStyle(
-                                      color: VoidTheme.emeraldShield,
-                                      fontSize: 9.0,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
+                  // Hostiles Micro-Indicator
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        secured ? Icons.check_circle : Icons.shield_outlined,
+                        size: 12.0,
+                        color: secured
+                            ? VoidTheme.emeraldShield
+                            : (remaining <= 2
+                                  ? VoidTheme.solarGold
+                                  : VoidTheme.crimsonFlare),
+                      ),
+                      const SizedBox(width: 3.0),
+                      Text(
+                        secured
+                            ? 'SECURED'
+                            : (total > 0 ? '$eliminated/$total' : '$remaining'),
+                        style: TextStyle(
+                          color: secured
+                              ? VoidTheme.emeraldShield
+                              : (remaining <= 2
+                                    ? VoidTheme.solarGold
+                                    : VoidTheme.starWhite),
+                          fontSize: 10.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 8.0),
+
+                  // AI Tactical Auto-Solver Toggle Switch
+                  if (onToggleAutoSolve != null) ...[
+                    GestureDetector(
+                      onTap: onToggleAutoSolve,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5.5,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isAutoSolving
+                              ? VoidTheme.crimsonFlare
+                              : VoidTheme.cardSurface.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(
+                            color: isAutoSolving
+                                ? VoidTheme.crimsonFlare
+                                : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                            width: 1.0,
+                          ),
+                          boxShadow: isAutoSolving
+                              ? [
+                                  BoxShadow(
+                                    color: VoidTheme.crimsonFlare.withValues(
+                                      alpha: 0.4,
                                     ),
+                                    blurRadius: 4.0,
                                   ),
-                                ],
-                              ),
-                            )
-                          else if (isPaused)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7.0,
-                                vertical: 2.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(
-                                  color: VoidTheme.solarGold,
-                                  width: 1.0,
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.pause_circle_filled,
-                                    color: VoidTheme.solarGold,
-                                    size: 12.0,
-                                  ),
-                                  SizedBox(width: 3.0),
-                                  Text(
-                                    'TIME DILATED',
-                                    style: TextStyle(
-                                      color: VoidTheme.solarGold,
-                                      fontSize: 9.0,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.4,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          else
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7.0,
-                                vertical: 2.5,
-                              ),
-                              decoration: BoxDecoration(
-                                color: VoidTheme.cardSurface,
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(
-                                  color: VoidTheme.plasmaCyan.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 6.0,
-                                    height: 6.0,
-                                    decoration: const BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: VoidTheme.plasmaCyan,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4.0),
-                                  const Text(
-                                    'SORTIE ACTIVE',
-                                    style: TextStyle(
-                                      color: VoidTheme.plasmaCyan,
-                                      fontSize: 9.0,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.4,
-                                    ),
-                                  ),
-                                ],
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.smart_toy,
+                              size: 11.0,
+                              color: isAutoSolving
+                                  ? VoidTheme.obsidianBlack
+                                  : VoidTheme.plasmaCyanLight,
+                            ),
+                            const SizedBox(width: 2.0),
+                            Text(
+                              'AI',
+                              style: TextStyle(
+                                color: isAutoSolving
+                                    ? VoidTheme.obsidianBlack
+                                    : VoidTheme.plasmaCyanLight,
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 6.0),
+                  ],
 
-                  // Right: Dynamic Action Controls
-                  Flexible(
-                    flex: 7,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerRight,
-                      child: secured
-                          ? Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (onNextSectorTap != null)
-                                  GestureDetector(
-                                    onTap: onNextSectorTap,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 9.0,
-                                        vertical: 3.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: VoidTheme.emeraldShield,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: VoidTheme.emeraldShield
-                                                .withValues(alpha: 0.4),
-                                            blurRadius: 6.0,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            sectorId < 9
-                                                ? 'NEXT SECTOR'
-                                                : 'REPLAY SECTOR',
-                                            style: const TextStyle(
-                                              color: VoidTheme.obsidianBlack,
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 3.0),
-                                          const Icon(
-                                            Icons.arrow_forward,
-                                            color: VoidTheme.obsidianBlack,
-                                            size: 13.0,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                  // Single Pause Button [ ⏸ ]
+                  if (onTogglePause != null)
+                    GestureDetector(
+                      onTap: onTogglePause,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6.0,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isPaused
+                              ? VoidTheme.solarGold
+                              : VoidTheme.cardSurface.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(
+                            color: isPaused
+                                ? VoidTheme.solarGold
+                                : VoidTheme.textSecondary.withValues(
+                                    alpha: 0.5,
                                   ),
-                                if (onRestartTap != null) ...[
-                                  const SizedBox(width: 5.0),
-                                  GestureDetector(
-                                    onTap: onRestartTap,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 7.0,
-                                        vertical: 3.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: VoidTheme.cardSurface,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
-                                        border: Border.all(
-                                          color: VoidTheme.plasmaCyan,
-                                          width: 1.0,
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.replay,
-                                            color: VoidTheme.plasmaCyan,
-                                            size: 12.0,
-                                          ),
-                                          SizedBox(width: 2.5),
-                                          Text(
-                                            'REPLAY',
-                                            style: TextStyle(
-                                              color: VoidTheme.plasmaCyan,
-                                              fontSize: 9.0,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 0.4,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                            width: 1.0,
+                          ),
+                          boxShadow: isPaused
+                              ? [
+                                  BoxShadow(
+                                    color: VoidTheme.solarGold.withValues(
+                                      alpha: 0.4,
                                     ),
+                                    blurRadius: 4.0,
                                   ),
-                                ],
-                              ],
-                            )
-                          : Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Universal Pause / Resume (Available to Everyone)
-                                if (onTogglePause != null)
-                                  GestureDetector(
-                                    onTap: onTogglePause,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 7.0,
-                                        vertical: 3.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isPaused
-                                            ? VoidTheme.solarGold
-                                            : VoidTheme.cardSurface,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
-                                        border: Border.all(
-                                          color: isPaused
-                                              ? VoidTheme.solarGold
-                                              : VoidTheme.textMuted.withValues(
-                                                  alpha: 0.6,
-                                                ),
-                                          width: 1.0,
-                                        ),
-                                        boxShadow: isPaused
-                                            ? [
-                                                BoxShadow(
-                                                  color: VoidTheme.solarGold
-                                                      .withValues(alpha: 0.4),
-                                                  blurRadius: 4.0,
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            isPaused
-                                                ? Icons.play_arrow
-                                                : Icons.pause,
-                                            color: isPaused
-                                                ? VoidTheme.obsidianBlack
-                                                : VoidTheme.starWhite,
-                                            size: 12.0,
-                                          ),
-                                          const SizedBox(width: 2.5),
-                                          Text(
-                                            isPaused ? 'RESUME' : 'PAUSE',
-                                            style: TextStyle(
-                                              color: isPaused
-                                                  ? VoidTheme.obsidianBlack
-                                                  : VoidTheme.starWhite,
-                                              fontSize: 9.0,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 0.4,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-
-                                // Universal Restart Sortie
-                                if (onRestartTap != null) ...[
-                                  const SizedBox(width: 4.0),
-                                  GestureDetector(
-                                    onTap: onRestartTap,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6.0,
-                                        vertical: 3.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: VoidTheme.cardSurface,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
-                                        border: Border.all(
-                                          color: VoidTheme.textMuted.withValues(
-                                            alpha: 0.6,
-                                          ),
-                                          width: 1.0,
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.replay,
-                                            color: VoidTheme.starWhite,
-                                            size: 12.0,
-                                          ),
-                                          SizedBox(width: 2.0),
-                                          Text(
-                                            'RESTART',
-                                            style: TextStyle(
-                                              color: VoidTheme.starWhite,
-                                              fontSize: 9.0,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 0.3,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-
-                                // Universal Stop / Abort Sortie
-                                if (onStopTap != null) ...[
-                                  const SizedBox(width: 4.0),
-                                  GestureDetector(
-                                    onTap: onStopTap,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6.0,
-                                        vertical: 3.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: VoidTheme.cardSurface,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
-                                        border: Border.all(
-                                          color: VoidTheme.crimsonFlare
-                                              .withValues(alpha: 0.6),
-                                          width: 1.0,
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.stop_circle_outlined,
-                                            color: VoidTheme.crimsonFlare,
-                                            size: 12.0,
-                                          ),
-                                          SizedBox(width: 2.0),
-                                          Text(
-                                            'ABORT',
-                                            style: TextStyle(
-                                              color: VoidTheme.crimsonFlare,
-                                              fontSize: 9.0,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 0.3,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-
-                                // Tactical AI Solver
-                                if (onToggleAutoSolve != null) ...[
-                                  const SizedBox(width: 4.0),
-                                  GestureDetector(
-                                    onTap: onToggleAutoSolve,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6.0,
-                                        vertical: 3.0,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isAutoSolving
-                                            ? VoidTheme.crimsonFlare
-                                            : VoidTheme.cardSurface,
-                                        borderRadius: BorderRadius.circular(
-                                          4.0,
-                                        ),
-                                        border: Border.all(
-                                          color: isAutoSolving
-                                              ? VoidTheme.crimsonFlare
-                                              : VoidTheme.plasmaCyan.withValues(
-                                                  alpha: 0.5,
-                                                ),
-                                          width: 1.0,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.smart_toy,
-                                            color: isAutoSolving
-                                                ? VoidTheme.obsidianBlack
-                                                : VoidTheme.plasmaCyanLight,
-                                            size: 12.0,
-                                          ),
-                                          const SizedBox(width: 2.0),
-                                          Text(
-                                            'AI',
-                                            style: TextStyle(
-                                              color: isAutoSolving
-                                                  ? VoidTheme.obsidianBlack
-                                                  : VoidTheme.plasmaCyanLight,
-                                              fontSize: 9.0,
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isPaused ? Icons.play_arrow : Icons.pause,
+                              size: 12.0,
+                              color: isPaused
+                                  ? VoidTheme.obsidianBlack
+                                  : VoidTheme.starWhite,
                             ),
+                            const SizedBox(width: 2.0),
+                            Text(
+                              isPaused ? 'RESUME' : 'PAUSE',
+                              style: TextStyle(
+                                color: isPaused
+                                    ? VoidTheme.obsidianBlack
+                                    : VoidTheme.starWhite,
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+
+                  // Optional Emerald Next Sector Action when secured
+                  if (secured && onNextSectorTap != null) ...[
+                    const SizedBox(width: 5.0),
+                    GestureDetector(
+                      onTap: onNextSectorTap,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7.0,
+                          vertical: 2.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.emeraldShield,
+                          borderRadius: BorderRadius.circular(4.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: VoidTheme.emeraldShield.withValues(
+                                alpha: 0.4,
+                              ),
+                              blurRadius: 6.0,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              sectorId < 9 ? 'NEXT' : 'REPLAY',
+                              style: const TextStyle(
+                                color: VoidTheme.obsidianBlack,
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                            const SizedBox(width: 1.5),
+                            const Icon(
+                              Icons.navigate_next,
+                              size: 12.0,
+                              color: VoidTheme.obsidianBlack,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

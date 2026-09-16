@@ -173,7 +173,7 @@ void main() {
       );
 
       expect(find.text('S1 • PATROL'), findsOneWidget);
-      expect(find.text('2/4 HOSTILES'), findsOneWidget);
+      expect(find.text('2/4'), findsOneWidget);
     });
 
     testWidgets('Displays SECURED in emerald when 0 invaders remain', (
