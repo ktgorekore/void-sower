@@ -62,20 +62,18 @@ def main():
   time.sleep(1.0)
 
   pref_xml = (
-      '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>'
-      '<map>'
-      '<boolean name="flutter.void_sower_pro_unlocked" value="true" />'
-      '<boolean name="flutter.void_sower_completed_tutorial" value="false" />'
-      '</map>'
+      '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
+      '<map>\n'
+      '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
+      '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
+      '</map>\n'
   )
-  adb_cmd([
-      "shell",
-      "run-as",
-      "com.voidsower.app",
-      "sh",
-      "-c",
-      f"mkdir -p shared_prefs && echo '{pref_xml}' > shared_prefs/FlutterSharedPreferences.xml",
-  ])
+  with open("/tmp/prefs.xml", "w") as f:
+    f.write(pref_xml)
+  subprocess.run(["adb", "-s", DEVICE, "push", "/tmp/prefs.xml", "/data/local/tmp/prefs.xml"], check=True)
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "mkdir", "-p", "shared_prefs"])
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "cp", "/data/local/tmp/prefs.xml", "shared_prefs/FlutterSharedPreferences.xml"])
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"])
   time.sleep(0.5)
 
   # Launch App directly into Combat Arena
@@ -104,9 +102,9 @@ def main():
       os.path.join(ASSETS_DIR, "phone_01_tactical_combat_grid.png"),
   )
 
-  # Screenshot 07: Bao Orbital Codex (Tap RULES button at x=860, y=241)
+  # Screenshot 07: Bao Orbital Codex (Tap RULES button at x=883, y=210 in Tier 1)
   print("[Codex] Opening Bao Codex dialog...")
-  tap(860, 241)
+  tap(883, 210)
   time.sleep(1.2)
   capture("07_bao_orbital_codex.png")
   shutil.copyfile(
@@ -117,9 +115,9 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Screenshot 08: Pilot Telemetry Dashboard (Tap Pilot Profile pill at x=150, y=365)
+  # Screenshot 08: Pilot Telemetry Dashboard (Tap Pilot Callsign pill at x=130, y=305 in Tier 2)
   print("[Profile] Opening Pilot Dossier modal...")
-  tap(150, 365)
+  tap(130, 305)
   time.sleep(1.2)
   capture("08_pilot_telemetry_dashboard.png")
   shutil.copyfile(
@@ -130,18 +128,18 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Navigate to Star Map: Tap [ MAP ] button in top HUD (x=1260, y=365)
+  # Navigate to Star Map: Tap [ MAP ] button in Tier 1 (x=75, y=210)
   print("[Map] Navigating to Kilwa Basin Campaign Star Map...")
-  tap(1260, 365)
+  tap(75, 210)
   time.sleep(1.8)
 
   # Screenshot 05: Kilwa Basin Campaign Map
   print("[Map] Capturing 05_kilwa_basin_campaign_map.png...")
   capture("05_kilwa_basin_campaign_map.png")
 
-  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=696, y=240)
+  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=696, y=220 in Map AppBar)
   print("[Hangar] Opening Fleet Hangar dialog...")
-  tap(696, 240)
+  tap(696, 220)
   time.sleep(1.2)
   capture("04_orbital_fleet_hangar.png")
   shutil.copyfile(
@@ -152,9 +150,9 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Return to CombatScreen: Back keyevent (or tap back arrow at x=60, y=240)
+  # Return to CombatScreen: Tap back arrow at x=84, y=220
   print("[Combat] Returning to Combat Arena...")
-  keyevent(4)
+  tap(84, 220)
   time.sleep(1.2)
 
   # Screenshot 02: Quadratic Lance Discharge (Discharge particle lance up corridor)
@@ -166,19 +164,49 @@ def main():
       os.path.join(SCREENSHOTS_DIR, "02_quadratic_lance_discharge.png"),
       os.path.join(ASSETS_DIR, "phone_02_quadratic_lances.png"),
   )
-  time.sleep(1.0)
+  time.sleep(0.5)
 
-  # Activate AI Solver to eliminate invaders and achieve Victory
+  # Restart combat fresh before activating AI solver
+  print("[Combat] Restarting combat for clean AI victory sequence...")
+  tap(906, 390)  # RESTART button in Tier 3
+  time.sleep(0.8)
+
+  # Activate AI Solver in Tier 3 (x=1260, y=390) to eliminate invaders and achieve Victory
   print("[Solver] Activating AI Tactical Solver to clear sector...")
-  tap(1127, 370)
+  tap(1260, 390)
 
-  # Wait for victory dialog (~4.0s)
-  print("[Victory] Waiting for Sector Liberation...")
-  time.sleep(4.0)
+  # Poll every 0.25s for victory modal
+  print("[Victory] Waiting for Sector Liberation modal...")
+  import numpy as np
+  from PIL import Image
 
-  # Screenshot 06: Sector Liberation Victory Modal
-  print("[Victory] Capturing 06_sector_liberation_victory.png...")
-  capture("06_sector_liberation_victory.png")
+  modal_captured = False
+  for attempt in range(160):
+    time.sleep(0.25)
+    dest_path = os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png")
+    with open(dest_path, "wb") as f:
+      subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f)
+    if attempt < 12:
+      # Victory takes at least 3-5 seconds of solver execution
+      continue
+    try:
+      im = Image.open(dest_path)
+      arr = np.array(im)
+      # Check for gold/amber victory modal card around center (y: 800..1800, x: 200..1100)
+      gold_mask = (
+          (arr[800:1800, 200:1100, 0] > 200)
+          & (arr[800:1800, 200:1100, 1] > 160)
+          & (arr[800:1800, 200:1100, 2] < 60)
+      )
+      if np.sum(gold_mask) > 300:
+        print(f"[Victory] Captured 06_sector_liberation_victory.png (attempt {attempt + 1})!")
+        modal_captured = True
+        break
+    except Exception as e:
+      pass
+
+  if not modal_captured:
+    print("[Victory] Reached timeout, keeping latest frame for 06_sector_liberation_victory.png")
 
   print("\n[Complete] All 8 Play Store phone screenshots recaptured successfully!")
 

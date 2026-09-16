@@ -49,22 +49,18 @@ def reset_app_pro_state(completed_tutorial=False):
   time.sleep(1.0)
 
   pref_xml = (
-      '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>'
-      '<map>'
-      '<boolean name="flutter.void_sower_pro_unlocked" value="true" />'
-      f'<boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />'
-      '</map>'
+      '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
+      '<map>\n'
+      '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
+      f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
+      '</map>\n'
   )
-  import base64
-  b64_val = base64.b64encode(pref_xml.encode("utf-8")).decode("ascii")
-  adb_cmd([
-      "shell",
-      "run-as",
-      "com.voidsower.app",
-      "sh",
-      "-c",
-      f"mkdir -p shared_prefs && echo {b64_val} | base64 -d > shared_prefs/FlutterSharedPreferences.xml",
-  ])
+  with open("/tmp/prefs.xml", "w") as f:
+    f.write(pref_xml)
+  subprocess.run(["adb", "-s", DEVICE, "push", "/tmp/prefs.xml", "/data/local/tmp/prefs.xml"], check=True)
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "mkdir", "-p", "shared_prefs"])
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "cp", "/data/local/tmp/prefs.xml", "shared_prefs/FlutterSharedPreferences.xml"])
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"])
   time.sleep(0.5)
 
 
@@ -96,15 +92,15 @@ def record_60s_tutorial():
   print("[Timeline 4.0s] Dismiss Flight Academy (tap SKIP at x=210, y=2060)")
   tap(210, 2060)
 
-  # 2. 5.5s: Navigate to Star Map
+  # 2. 5.5s: Navigate to Star Map (tap MAP at x=75, y=210 in Tier 1)
   wait_until(5.5)
-  print("[Timeline 5.5s] Open Star Map (tap MAP at x=1260, y=365)")
-  tap(1260, 365)
+  print("[Timeline 5.5s] Open Star Map (tap MAP at x=75, y=210 in Tier 1)")
+  tap(75, 210)
 
   # 3. 7.5s: Inspect Fleet Hangar
   wait_until(7.5)
-  print("[Timeline 7.5s] Open Fleet Hangar (tap x=696, y=240)")
-  tap(696, 240)
+  print("[Timeline 7.5s] Open Fleet Hangar (tap x=696, y=220)")
+  tap(696, 220)
 
   wait_until(10.5)
   print("[Timeline 10.5s] Close Fleet Hangar")
@@ -112,8 +108,8 @@ def record_60s_tutorial():
 
   # 4. 12.0s: Inspect Pilot Dossier
   wait_until(12.0)
-  print("[Timeline 12.0s] Open Pilot Dossier (tap x=840, y=240)")
-  tap(840, 240)
+  print("[Timeline 12.0s] Open Pilot Dossier (tap x=840, y=220)")
+  tap(840, 220)
 
   wait_until(14.5)
   print("[Timeline 14.5s] Close Pilot Dossier")
@@ -121,8 +117,8 @@ def record_60s_tutorial():
 
   # 5. 16.0s: Inspect Bao Codex
   wait_until(16.0)
-  print("[Timeline 16.0s] Open Bao Codex (tap x=984, y=240)")
-  tap(984, 240)
+  print("[Timeline 16.0s] Open Bao Codex (tap x=984, y=220)")
+  tap(984, 220)
 
   wait_until(19.0)
   print("[Timeline 19.0s] Close Bao Codex")
@@ -158,8 +154,8 @@ def record_60s_tutorial():
 
   # 10. 35.0s: Engage Autonomous AI Tactical Solver
   wait_until(35.0)
-  print("[Timeline 35.0s] Engage AI Tactical Solver (tap x=1127, y=370)")
-  tap(1127, 370)
+  print("[Timeline 35.0s] Engage AI Tactical Solver (tap x=1260, y=390 in Tier 3)")
+  tap(1260, 390)
 
   print("[Record 60s] AI Solver active, autonomously clearing orbital corridors...")
   rec_proc.wait()
@@ -175,8 +171,8 @@ def record_30s_showcase():
   time.sleep(3.5)
 
   # Activate solver immediately in Combat Arena
-  print("[Record 30s] Engaging AI Tactical Solver (tap x=1127, y=370)...")
-  tap(1127, 370)
+  print("[Record 30s] Engaging AI Tactical Solver (tap x=1260, y=390 in Tier 3)...")
+  tap(1260, 390)
   time.sleep(0.5)
 
   print("[Record 30s] Launching 30s showcase recording...")
