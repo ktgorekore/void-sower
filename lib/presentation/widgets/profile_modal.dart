@@ -504,6 +504,51 @@ class _ProfileModalState extends State<ProfileModal> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
+                                          if (PersistenceService
+                                              .instance
+                                              .isProUnlocked) ...[
+                                            const SizedBox(width: 8.0),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6.0,
+                                                    vertical: 2.0,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: VoidTheme.solarGold
+                                                    .withValues(alpha: 0.22),
+                                                borderRadius:
+                                                    BorderRadius.circular(4.0),
+                                                border: Border.all(
+                                                  color: VoidTheme.solarGold
+                                                      .withValues(alpha: 0.85),
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.workspace_premium,
+                                                    color: VoidTheme.solarGold,
+                                                    size: 11.0,
+                                                  ),
+                                                  SizedBox(width: 3.0),
+                                                  Text(
+                                                    'PRO',
+                                                    style: TextStyle(
+                                                      color:
+                                                          VoidTheme.solarGold,
+                                                      fontSize: 8.5,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      letterSpacing: 0.8,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                           IconButton(
                                             icon: const Icon(
                                               Icons.edit,
@@ -1103,15 +1148,59 @@ class _ProfileModalState extends State<ProfileModal> {
                         size: 16.0,
                       ),
                     ),
-                    title: Text(
-                      p.callsign,
-                      style: TextStyle(
-                        color: isActive
-                            ? VoidTheme.solarGold
-                            : VoidTheme.starWhite,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    title: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 13.0,
+                          color: isActive
+                              ? VoidTheme.solarGold
+                              : VoidTheme.textMuted,
+                        ),
+                        const SizedBox(width: 4.0),
+                        Flexible(
+                          child: Text(
+                            p.callsign,
+                            style: TextStyle(
+                              color: isActive
+                                  ? VoidTheme.solarGold
+                                  : VoidTheme.starWhite,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (PersistenceService.instance.isProUnlocked) ...[
+                          const SizedBox(width: 6.0),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                              vertical: 0.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: VoidTheme.solarGold.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(3.0),
+                              border: Border.all(
+                                color: VoidTheme.solarGold.withValues(
+                                  alpha: 0.8,
+                                ),
+                                width: 0.6,
+                              ),
+                            ),
+                            child: const Text(
+                              'PRO',
+                              style: TextStyle(
+                                color: VoidTheme.solarGold,
+                                fontSize: 7.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     subtitle: Text(
                       '${p.rank.title} • Score: ${p.lifetimeScore}',

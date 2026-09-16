@@ -18,6 +18,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/user_profile.dart';
+import '../../domain/services/persistence_service.dart';
 import '../theme/void_theme.dart';
 
 /// Streamlined "Split-Wing" Tactical HUD Header.
@@ -31,6 +32,7 @@ class HudHeader extends StatelessWidget {
     required this.reserveCores,
     required this.score,
     this.highScore = 0,
+    this.isPro = false,
     required this.difficultyTier,
     this.sectorId = 1,
     this.sectorName = 'Zanzibar Reef Gate',
@@ -56,6 +58,7 @@ class HudHeader extends StatelessWidget {
   final int reserveCores;
   final int score;
   final int highScore;
+  final bool isPro;
   final int difficultyTier;
   final int sectorId;
   final String sectorName;
@@ -108,7 +111,7 @@ class HudHeader extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -129,6 +132,7 @@ class HudHeader extends StatelessWidget {
 
   /// Builds the glassmorphic Top-Left Wing anchoring mission identity, current score & all-time high score.
   Widget _buildLeftWing(UserProfile profile, bool secured) {
+    final effectiveIsPro = isPro || PersistenceService.instance.isProUnlocked;
     final callsignText = profile.callsign.isNotEmpty
         ? profile.callsign.toUpperCase()
         : 'VANGUARD-01';
@@ -140,7 +144,7 @@ class HudHeader extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 9.0, vertical: 5.5),
+          padding: const EdgeInsets.symmetric(horizontal: 7.5, vertical: 5.0),
           decoration: BoxDecoration(
             color: VoidTheme.obsidianBlack.withValues(alpha: 0.65),
             borderRadius: BorderRadius.circular(10.0),
@@ -163,7 +167,7 @@ class HudHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Mission Micro-Badge & Pilot Callsign (S1 • PATROL • VANGUARD-01)
+              // Mission Micro-Badge & Pilot Callsign with Person Icon & PRO Badge
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -194,35 +198,82 @@ class HudHeader extends StatelessWidget {
                       color: secured
                           ? VoidTheme.emeraldShield
                           : VoidTheme.plasmaCyan,
-                      fontSize: 8.5,
+                      fontSize: 8.0,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 0.4,
+                      letterSpacing: 0.3,
                     ),
                   ),
-                  const SizedBox(width: 4.0),
+                  const SizedBox(width: 3.0),
                   Text(
                     '•',
                     style: TextStyle(
                       color: VoidTheme.textMuted.withValues(alpha: 0.4),
-                      fontSize: 7.5,
+                      fontSize: 7.0,
                     ),
                   ),
-                  const SizedBox(width: 4.0),
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 68.0),
-                    child: GestureDetector(
-                      onTap: onProfileTap,
-                      child: Text(
-                        callsignText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: VoidTheme.textMuted.withValues(alpha: 0.75),
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
+                  const SizedBox(width: 3.0),
+                  GestureDetector(
+                    onTap: onProfileTap,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.person,
+                          size: 8.5,
+                          color: effectiveIsPro
+                              ? VoidTheme.solarGold
+                              : VoidTheme.plasmaCyan.withValues(alpha: 0.8),
                         ),
-                      ),
+                        const SizedBox(width: 2.0),
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: effectiveIsPro ? 44.0 : 54.0,
+                          ),
+                          child: Text(
+                            callsignText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: effectiveIsPro
+                                  ? VoidTheme.starWhite
+                                  : VoidTheme.textMuted.withValues(alpha: 0.85),
+                              fontSize: 7.0,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        if (effectiveIsPro) ...[
+                          const SizedBox(width: 3.0),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 3.0,
+                              vertical: 0.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: VoidTheme.solarGold.withValues(
+                                alpha: 0.22,
+                              ),
+                              borderRadius: BorderRadius.circular(3.0),
+                              border: Border.all(
+                                color: VoidTheme.solarGold.withValues(
+                                  alpha: 0.85,
+                                ),
+                                width: 0.6,
+                              ),
+                            ),
+                            child: const Text(
+                              'PRO',
+                              style: TextStyle(
+                                color: VoidTheme.solarGold,
+                                fontSize: 6.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
@@ -331,7 +382,7 @@ class HudHeader extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 5.5),
           decoration: BoxDecoration(
             color: VoidTheme.obsidianBlack.withValues(alpha: 0.65),
             borderRadius: BorderRadius.circular(10.0),

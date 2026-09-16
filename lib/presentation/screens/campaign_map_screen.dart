@@ -705,20 +705,68 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          profile.callsign,
-                          style: const TextStyle(
-                            color: VoidTheme.starWhite,
-                            fontSize: 12.0,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.4,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                profile.callsign,
+                                style: const TextStyle(
+                                  color: VoidTheme.starWhite,
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.4,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (PersistenceService.instance.isProUnlocked) ...[
+                              const SizedBox(width: 5.0),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4.0,
+                                  vertical: 1.0,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: VoidTheme.solarGold.withValues(
+                                    alpha: 0.22,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4.0),
+                                  border: Border.all(
+                                    color: VoidTheme.solarGold.withValues(
+                                      alpha: 0.85,
+                                    ),
+                                    width: 0.8,
+                                  ),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.workspace_premium,
+                                      color: VoidTheme.solarGold,
+                                      size: 9.0,
+                                    ),
+                                    SizedBox(width: 2.0),
+                                    Text(
+                                      'PRO',
+                                      style: TextStyle(
+                                        color: VoidTheme.solarGold,
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                         const SizedBox(height: 1.0),
                         Text(
-                          '${profile.rank.title.toUpperCase()} • ${profile.isGoogleLinked ? "GOOGLE" : "GUEST"}',
+                          '${profile.rank.title.toUpperCase()} • ${profile.isGoogleLinked ? "GOOGLE" : "GUEST"}${PersistenceService.instance.isProUnlocked ? " • PRO" : ""}',
                           style: TextStyle(
                             color: profile.isGoogleLinked
                                 ? VoidTheme.plasmaCyan

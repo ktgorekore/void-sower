@@ -534,6 +534,7 @@ class _CombatScreenState extends State<CombatScreen>
                           reserveCores: dread.reserveCores,
                           score: dread.totalScore,
                           highScore: _coordinator.highScore,
+                          isPro: EntitlementService.instance.isProUnlocked,
                           difficultyTier: _currentDifficultyTier,
                           sectorId: _currentSectorId,
                           sectorName: CampaignService.instance

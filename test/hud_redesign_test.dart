@@ -321,5 +321,55 @@ void main() {
       expect(find.text('FINAL SCORE: 1200'), findsOneWidget);
       expect(find.text('ALL-TIME HIGH SCORE: 6000'), findsOneWidget);
     });
+
+    testWidgets(
+      'HudHeader displays person icon and PRO badge when isPro is true',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 20,
+                score: 1500,
+                highScore: 5000,
+                isPro: true,
+                difficultyTier: 1,
+                sectorId: 2,
+                userProfile: UserProfile(callsign: 'COMMANDER_Z'),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('COMMANDER_Z'), findsOneWidget);
+        expect(find.byIcon(Icons.person), findsOneWidget);
+        expect(find.text('PRO'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'HudHeader displays person icon and no PRO badge when isPro is false',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 20,
+                score: 1500,
+                highScore: 5000,
+                isPro: false,
+                difficultyTier: 1,
+                sectorId: 2,
+                userProfile: UserProfile(callsign: 'RECRUIT_X'),
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('RECRUIT_X'), findsOneWidget);
+        expect(find.byIcon(Icons.person), findsOneWidget);
+        expect(find.text('PRO'), findsNothing);
+      },
+    );
   });
 }

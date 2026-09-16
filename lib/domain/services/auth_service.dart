@@ -32,7 +32,12 @@ abstract class IAuthClient {
 class GoogleAuthClient implements IAuthClient {
   GoogleAuthClient({GoogleSignIn? googleSignIn})
     : _googleSignIn =
-          googleSignIn ?? GoogleSignIn(scopes: ['email', 'profile']);
+          googleSignIn ??
+          GoogleSignIn(
+            scopes: ['email', 'profile'],
+            serverClientId:
+                '368139306134-keehurh5eivlpr4t641q68drrg0qjktg.apps.googleusercontent.com',
+          );
 
   final GoogleSignIn _googleSignIn;
   AuthAccount? _currentAccount;
@@ -201,7 +206,7 @@ class AuthService extends ChangeNotifier {
         } else if (e.code == 'sign_in_failed' ||
             e.message?.contains('10') == true) {
           _lastError =
-              'Google Sign-In configuration notice (ApiException: 10). Device signing key SHA-1 needs registration in Firebase Console.';
+              'Google Sign-In configuration notice (ApiException: 10). Ensure Play App Signing SHA-1, project support email, and Google provider are configured in Firebase Console.';
         } else {
           _lastError = e.message ?? e.code;
         }
