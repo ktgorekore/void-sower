@@ -41,6 +41,25 @@ class AudioService {
   int _poolIndex = 0;
   bool _initialized = false;
 
+  /// Game audio context configured to request exclusive audio focus across
+  /// Android (gain focus, usage game, music content) and iOS (soloAmbient session).
+  ///
+  /// This guarantees background media players (Spotify, YouTube, Podcasts) pause
+  /// immediately upon game audio initialization and playback, eliminating audio contention.
+  static final AudioContext gameAudioContext = AudioContext(
+    android: const AudioContextAndroid(
+      isSpeakerphoneOn: false,
+      stayAwake: false,
+      contentType: AndroidContentType.music,
+      usageType: AndroidUsageType.game,
+      audioFocus: AndroidAudioFocus.gain,
+    ),
+    iOS: AudioContextIOS(
+      category: AVAudioSessionCategory.soloAmbient,
+      options: const {},
+    ),
+  );
+
   /// Initializes BGM player and pre-allocates SFX player pool.
   Future<void> initialize() async {
     if (_initialized) return;
@@ -51,18 +70,54 @@ class AudioService {
       isSfxMuted = p.isSfxMuted;
       isBgmMuted = p.isBgmMuted;
 
+      // Configure exclusive audio focus globally and across all player instances
+      // to ensure background media (e.g. YouTube, Spotify) pauses immediately.
+      try {
+        await AudioPlayer.global.setAudioContext(gameAudioContext);
+      } catch (e) {
+        debugPrint('[AudioService] Global audio context setup fallback: $e');
+      }
+
       _bgmPlayer = AudioPlayer();
+      try {
+        await _bgmPlayer!.setAudioContext(gameAudioContext);
+      } catch (e) {
+        debugPrint('[AudioService] BGM audio context setup fallback: $e');
+      }
       await _bgmPlayer!.setReleaseMode(ReleaseMode.loop);
       await _bgmPlayer!.setVolume(isBgmMuted ? 0.0 : bgmVolume);
 
       for (var i = 0; i < _kPoolSize; i++) {
         final player = AudioPlayer();
+        try {
+          await player.setAudioContext(gameAudioContext);
+        } catch (e) {
+          debugPrint(
+            '[AudioService] SFX player audio context setup fallback: $e',
+          );
+        }
         await player.setVolume(isSfxMuted ? 0.0 : sfxVolume);
         _sfxPool.add(player);
       }
       _initialized = true;
     } catch (e) {
       debugPrint('[AudioService] Initialization error: $e');
+    }
+  }
+
+  /// Explicitly requests exclusive audio focus across both Android and iOS,
+  /// causing background media apps (YouTube, Spotify, etc.) to pause immediately.
+  Future<void> requestExclusiveAudioFocus() async {
+    try {
+      await AudioPlayer.global.setAudioContext(gameAudioContext);
+      if (_bgmPlayer != null) {
+        await _bgmPlayer!.setAudioContext(gameAudioContext);
+      }
+      for (final player in _sfxPool) {
+        await player.setAudioContext(gameAudioContext);
+      }
+    } catch (e) {
+      debugPrint('[AudioService] requestExclusiveAudioFocus fallback: $e');
     }
   }
 

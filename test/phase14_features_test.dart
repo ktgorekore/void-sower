@@ -14,6 +14,7 @@
 
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -147,6 +148,34 @@ void main() {
 
       await audio.setSfxMuted(false);
       expect(audio.isSfxMuted, isFalse);
+    });
+
+    test(
+      'Configures exclusive audio focus with AndroidAudioFocus.gain and iOS soloAmbient',
+      () {
+        final ctx = AudioService.gameAudioContext;
+
+        // Android verification: requests exclusive focus with game usage & music content
+        expect(ctx.android.audioFocus, equals(AndroidAudioFocus.gain));
+        expect(ctx.android.usageType, equals(AndroidUsageType.game));
+        expect(ctx.android.contentType, equals(AndroidContentType.music));
+        expect(ctx.android.isSpeakerphoneOn, isFalse);
+        expect(ctx.android.stayAwake, isFalse);
+
+        // iOS verification: soloAmbient category without mixing/ducking options
+        expect(ctx.iOS.category, equals(AVAudioSessionCategory.soloAmbient));
+        expect(ctx.iOS.options, isEmpty);
+      },
+    );
+
+    test('Requests exclusive audio focus and initializes gracefully', () async {
+      final audio = AudioService.instance;
+      await audio.initialize();
+      await audio.requestExclusiveAudioFocus();
+      expect(
+        AudioService.gameAudioContext.android.audioFocus,
+        equals(AndroidAudioFocus.gain),
+      );
     });
   });
 
