@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
 /// Modal overlay presented upon neutralizing all assault craft in a sector wave.
-class VictoryDialog extends StatelessWidget {
+class VictoryDialog extends StatefulWidget {
   const VictoryDialog({
     super.key,
     this.sectorId = 1,
@@ -32,6 +34,7 @@ class VictoryDialog extends StatelessWidget {
     this.isNewUnlock = false,
     this.unlockedSectorName,
     this.campaignProgressText,
+    this.armDuration = Duration.zero,
     required this.onNextSector,
     this.onReturnToMap,
     this.onDismiss,
@@ -46,12 +49,45 @@ class VictoryDialog extends StatelessWidget {
   final bool isNewUnlock;
   final String? unlockedSectorName;
   final String? campaignProgressText;
+
+  /// Safety debounce duration before action buttons accept taps.
+  final Duration armDuration;
+
   final VoidCallback onNextSector;
   final VoidCallback? onReturnToMap;
   final VoidCallback? onDismiss;
 
+  @override
+  State<VictoryDialog> createState() => _VictoryDialogState();
+}
+
+class _VictoryDialogState extends State<VictoryDialog> {
+  bool _isArmed = false;
+  Timer? _armTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.armDuration == Duration.zero) {
+      _isArmed = true;
+    } else {
+      // 500ms safety arming delay to prevent accidental button clicks from shooting taps
+      _armTimer = Timer(widget.armDuration, () {
+        if (mounted) {
+          setState(() => _isArmed = true);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _armTimer?.cancel();
+    super.dispose();
+  }
+
   String get _starRatingLabel {
-    switch (starsEarned) {
+    switch (widget.starsEarned) {
       case 3:
         return '★★★ FLAWLESS DEFENSE';
       case 2:
@@ -65,6 +101,7 @@ class VictoryDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
+      alignment: const Alignment(0.0, -0.32),
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Stack(
@@ -117,7 +154,7 @@ class VictoryDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 12.0),
                 Text(
-                  'SECTOR $sectorId LIBERATED!',
+                  'SECTOR ${widget.sectorId} LIBERATED!',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: VoidTheme.solarGold,
@@ -128,7 +165,7 @@ class VictoryDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 2.0),
                 Text(
-                  sectorName.toUpperCase(),
+                  widget.sectorName.toUpperCase(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: VoidTheme.plasmaCyan,
@@ -159,7 +196,7 @@ class VictoryDialog extends StatelessWidget {
                       children: [
                         Row(
                           children: List.generate(3, (i) {
-                            final earned = i < starsEarned;
+                            final earned = i < widget.starsEarned;
                             return Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 2.0,
@@ -189,7 +226,8 @@ class VictoryDialog extends StatelessWidget {
                 const SizedBox(height: 14.0),
 
                 // Progress Banner: New Unlock or Campaign Summary
-                if (isNewUnlock && unlockedSectorName != null) ...[
+                if (widget.isNewUnlock &&
+                    widget.unlockedSectorName != null) ...[
                   Container(
                     padding: const EdgeInsets.all(10.0),
                     decoration: BoxDecoration(
@@ -230,7 +268,7 @@ class VictoryDialog extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                'Sector ${sectorId + 1}: ${unlockedSectorName!.toUpperCase()}',
+                                'Sector ${widget.sectorId + 1}: ${widget.unlockedSectorName!.toUpperCase()}',
                                 style: const TextStyle(
                                   color: VoidTheme.starWhite,
                                   fontSize: 11.5,
@@ -244,7 +282,7 @@ class VictoryDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12.0),
-                ] else if (campaignProgressText != null) ...[
+                ] else if (widget.campaignProgressText != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10.0,
@@ -260,7 +298,7 @@ class VictoryDialog extends StatelessWidget {
                     ),
                     child: Center(
                       child: Text(
-                        'CAMPAIGN PROGRESS: $campaignProgressText',
+                        'CAMPAIGN PROGRESS: ${widget.campaignProgressText}',
                         style: const TextStyle(
                           color: VoidTheme.textSecondary,
                           fontSize: 10.5,
@@ -280,7 +318,7 @@ class VictoryDialog extends StatelessWidget {
                     Expanded(
                       child: _buildStatColumn(
                         'MISSION SCORE',
-                        '$score',
+                        '${widget.score}',
                         VoidTheme.textPrimary,
                       ),
                     ),
@@ -291,10 +329,10 @@ class VictoryDialog extends StatelessWidget {
                     ),
                     Expanded(
                       child: _buildStatColumn(
-                        (score >= highScore && score > 0)
+                        (widget.score >= widget.highScore && widget.score > 0)
                             ? '★ NEW RECORD'
                             : 'HIGH SCORE',
-                        '${math.max(score, highScore)}',
+                        '${math.max(widget.score, widget.highScore)}',
                         VoidTheme.solarGold,
                       ),
                     ),
@@ -306,7 +344,7 @@ class VictoryDialog extends StatelessWidget {
                     Expanded(
                       child: _buildStatColumn(
                         'CORES SAVED',
-                        '$coresRemaining',
+                        '${widget.coresRemaining}',
                         VoidTheme.plasmaCyan,
                       ),
                     ),
@@ -316,22 +354,26 @@ class VictoryDialog extends StatelessWidget {
 
                 // Action Buttons
                 TactileButton(
-                  label: sectorId < 9
+                  label: widget.sectorId < 9
                       ? 'ADVANCE TO NEXT SECTOR'
                       : 'REPLAY SECTOR',
                   icon: Icons.navigate_next,
-                  onPressed: onNextSector,
-                  accentColor: VoidTheme.solarGold,
+                  onPressed: _isArmed ? widget.onNextSector : null,
+                  accentColor: _isArmed
+                      ? VoidTheme.solarGold
+                      : VoidTheme.solarGold.withValues(alpha: 0.45),
                   minWidth: double.infinity,
                   height: 46.0,
                 ),
-                if (onReturnToMap != null) ...[
+                if (widget.onReturnToMap != null) ...[
                   const SizedBox(height: 8.0),
                   TactileButton(
                     label: 'RETURN TO STAR MAP',
                     icon: Icons.map_outlined,
-                    onPressed: onReturnToMap,
-                    accentColor: VoidTheme.plasmaCyan,
+                    onPressed: _isArmed ? widget.onReturnToMap! : null,
+                    accentColor: _isArmed
+                        ? VoidTheme.plasmaCyan
+                        : VoidTheme.plasmaCyan.withValues(alpha: 0.45),
                     isPrimary: false,
                     minWidth: double.infinity,
                     height: 42.0,
@@ -341,17 +383,10 @@ class VictoryDialog extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 10.0,
-            right: 10.0,
-            child: GestureDetector(
-              onTap: () {
-                if (onDismiss != null) {
-                  onDismiss!();
-                } else {
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Container(
+            top: 4.0,
+            right: 4.0,
+            child: IconButton(
+              icon: Container(
                 padding: const EdgeInsets.all(6.0),
                 decoration: BoxDecoration(
                   color: VoidTheme.cardSurface,
@@ -367,6 +402,19 @@ class VictoryDialog extends StatelessWidget {
                   size: 16.0,
                 ),
               ),
+              constraints: const BoxConstraints(
+                minWidth: 48.0,
+                minHeight: 48.0,
+              ),
+              tooltip: 'Dismiss',
+              onPressed: () {
+                HapticService.instance.sowTick();
+                if (widget.onDismiss != null) {
+                  widget.onDismiss!();
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
             ),
           ),
         ],

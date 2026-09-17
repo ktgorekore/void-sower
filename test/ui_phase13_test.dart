@@ -22,6 +22,7 @@ import 'package:void_sower/presentation/widgets/fleet_hangar_dialog.dart';
 import 'package:void_sower/presentation/widgets/projection_shelf.dart';
 import 'package:void_sower/presentation/widgets/tactile_button.dart';
 import 'package:void_sower/presentation/widgets/tutorial_overlay.dart';
+import 'package:void_sower/presentation/widgets/tutorial_video_dialog.dart';
 
 void main() {
   group('Phase 13 UI Polish Tests', () {
@@ -88,7 +89,52 @@ void main() {
       expect(dismissed, isTrue);
     });
 
-    testWidgets('BaoCodexDialog displays rules and lore', (tester) async {
+    testWidgets(
+      'TutorialOverlay close X button dismisses overlay immediately',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        bool dismissed = false;
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: TutorialOverlay(onDismiss: () => dismissed = true),
+            ),
+          ),
+        );
+
+        // Verify Flight Academy and close button are visible
+        expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
+        expect(find.text('WATCH VIDEO (60s)'), findsOneWidget);
+
+        final closeFinder = find.byTooltip('Dismiss Flight Academy');
+        expect(closeFinder, findsOneWidget);
+
+        await tester.tap(closeFinder);
+        await tester.pumpAndSettle();
+        expect(dismissed, isTrue);
+      },
+    );
+
+    testWidgets('TutorialVideoDialog renders title and fallback cleanly', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: TutorialVideoDialog())),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('FLIGHT ACADEMY • VIDEO BRIEFING'), findsOneWidget);
+      expect(find.byTooltip('Close Video'), findsOneWidget);
+      expect(find.text('BACK TO ACADEMY'), findsOneWidget);
+    });
+
+    testWidgets('BaoCodexDialog displays rules and lore and video option', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(home: Scaffold(body: BaoCodexDialog())),
       );
@@ -101,6 +147,7 @@ void main() {
         find.text('3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)'),
         findsOneWidget,
       );
+      expect(find.text('WATCH VIDEO TUTORIAL (60s)'), findsOneWidget);
       expect(find.text('DISMISS CODEX'), findsOneWidget);
     });
 

@@ -149,6 +149,39 @@ void main() {
         expect(returnedToMap, isTrue);
       },
     );
+
+    testWidgets(
+      'VictoryDialog debounces premature taps until armDuration elapses',
+      (tester) async {
+        bool advanced = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: VictoryDialog(
+                sectorId: 2,
+                sectorName: 'Pemba Channel Relay',
+                score: 5500,
+                coresRemaining: 20,
+                armDuration: const Duration(milliseconds: 500),
+                onNextSector: () => advanced = true,
+              ),
+            ),
+          ),
+        );
+
+        // Immediate tap during shooting cooldown should be ignored
+        await tester.tap(find.text('ADVANCE TO NEXT SECTOR'));
+        await tester.pump();
+        expect(advanced, isFalse);
+
+        // After 500ms safety cooldown, button arms and tap succeeds
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.tap(find.text('ADVANCE TO NEXT SECTOR'));
+        await tester.pumpAndSettle();
+        expect(advanced, isTrue);
+      },
+    );
   });
 
   group('HudHeader Progress Tracking Tests', () {

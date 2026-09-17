@@ -19,6 +19,7 @@ import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'bao_codex_dialog.dart';
 import 'tactile_button.dart';
+import 'tutorial_video_dialog.dart';
 
 /// Interactive hands-on Flight Academy onboarding overlay teaching Bao orbital mechanics.
 class TutorialOverlay extends StatefulWidget {
@@ -83,6 +84,14 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     }
   }
 
+  void _openVideoTutorial() {
+    HapticService.instance.injectionClick();
+    showDialog<void>(
+      context: context,
+      builder: (context) => const TutorialVideoDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -109,13 +118,14 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header: Title & Step Counter
+              // Header: Title & Step Counter with Close 'X'
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(_getStepIcon(), color: _getStepAccent(), size: 20.0),
+                      Icon(_getStepIcon(), color: _getStepAccent(), size: 18.0),
                       const SizedBox(width: 8.0),
                       Text(
                         'FLIGHT ACADEMY',
@@ -123,60 +133,127 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                           color: _getStepAccent(),
                           fontSize: 12.0,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ],
                   ),
-                  Text(
-                    '${_currentStep + 1} / 5',
-                    style: const TextStyle(
-                      color: VoidTheme.textSecondary,
-                      fontSize: 12.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${_currentStep + 1} / 5',
+                        style: const TextStyle(
+                          color: VoidTheme.textSecondary,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 4.0),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: VoidTheme.textSecondary,
+                          size: 20.0,
+                        ),
+                        tooltip: 'Dismiss Flight Academy',
+                        padding: const EdgeInsets.all(8.0),
+                        constraints: const BoxConstraints(
+                          minWidth: 40.0,
+                          minHeight: 40.0,
+                        ),
+                        onPressed: () {
+                          HapticService.instance.sowTick();
+                          widget.onDismiss();
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
               const SizedBox(height: 6.0),
 
-              // Tactical Briefing Badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8.0,
-                  vertical: 3.0,
-                ),
-                decoration: BoxDecoration(
-                  color: VoidTheme.emeraldShield.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4.0),
-                  border: Border.all(
-                    color: VoidTheme.emeraldShield.withValues(alpha: 0.4),
-                    width: 0.8,
-                  ),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.touch_app,
-                      color: VoidTheme.emeraldShield,
-                      size: 13.0,
-                    ),
-                    SizedBox(width: 5.0),
-                    Flexible(
-                      child: Text(
-                        'INTERACTIVE TUTORIAL • TAP CONTROLS TO PRACTICE',
-                        style: TextStyle(
-                          color: VoidTheme.emeraldShield,
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.4,
+              // Tactical Briefing Badge & Video Option
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VoidTheme.emeraldShield.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4.0),
+                        border: Border.all(
+                          color: VoidTheme.emeraldShield.withValues(alpha: 0.4),
+                          width: 0.8,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.touch_app,
+                            color: VoidTheme.emeraldShield,
+                            size: 13.0,
+                          ),
+                          SizedBox(width: 5.0),
+                          Flexible(
+                            child: Text(
+                              'INTERACTIVE LESSON',
+                              style: TextStyle(
+                                color: VoidTheme.emeraldShield,
+                                fontSize: 9.0,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.4,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  GestureDetector(
+                    onTap: _openVideoTutorial,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VoidTheme.solarGold.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(4.0),
+                        border: Border.all(
+                          color: VoidTheme.solarGold.withValues(alpha: 0.6),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.play_circle_filled,
+                            color: VoidTheme.solarGold,
+                            size: 14.0,
+                          ),
+                          SizedBox(width: 4.0),
+                          Text(
+                            'WATCH VIDEO (60s)',
+                            style: TextStyle(
+                              color: VoidTheme.solarGold,
+                              fontSize: 9.0,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const Divider(color: VoidTheme.cardSurface, height: 16.0),
 

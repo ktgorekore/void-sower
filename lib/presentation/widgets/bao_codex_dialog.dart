@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
+import 'tutorial_video_dialog.dart';
 
 /// In-game Bao Codex and Tactical Rules Guide detailing orbital battery principles.
 class BaoCodexDialog extends StatelessWidget {
@@ -137,11 +138,28 @@ class BaoCodexDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16.0),
 
+            // Video Briefing Button
+            TactileButton(
+              label: 'WATCH VIDEO TUTORIAL (60s)',
+              icon: Icons.play_circle_filled,
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  builder: (context) => const TutorialVideoDialog(),
+                );
+              },
+              accentColor: VoidTheme.solarGold,
+              isPrimary: false,
+              height: 42.0,
+            ),
+            const SizedBox(height: 8.0),
+
             // Close Button
             TactileButton(
               label: 'DISMISS CODEX',
               onPressed: () => Navigator.of(context).pop(),
-              accentColor: VoidTheme.solarGold,
+              accentColor: VoidTheme.plasmaCyan,
+              height: 40.0,
             ),
           ],
         ),

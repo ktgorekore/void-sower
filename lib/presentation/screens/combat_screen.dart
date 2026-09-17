@@ -74,6 +74,7 @@ class _CombatScreenState extends State<CombatScreen>
   int _currentDifficultyTier = 0;
   int _currentSectorId = 1;
   bool _isModalOpen = false;
+  bool _isVictoryModalShowing = false;
   bool _victoryDialogDismissed = false;
   Timer? _autoAdvanceTimer;
 
@@ -118,7 +119,10 @@ class _CombatScreenState extends State<CombatScreen>
       final matchStatus = _coordinator.state.status;
       if (matchStatus == CombatMatchStatus.defeat && !_isModalOpen) {
         _showGameOverModal();
-      } else if (matchStatus == CombatMatchStatus.victory && !_isModalOpen) {
+      } else if (matchStatus == CombatMatchStatus.victory &&
+          !_isModalOpen &&
+          !_isVictoryModalShowing &&
+          !_victoryDialogDismissed) {
         _showVictoryModal();
       }
       if (_tickCount++ % 60 == 0) {
@@ -142,7 +146,10 @@ class _CombatScreenState extends State<CombatScreen>
 
     if (matchStatus == CombatMatchStatus.defeat && !_isModalOpen) {
       _showGameOverModal();
-    } else if (matchStatus == CombatMatchStatus.victory && !_isModalOpen) {
+    } else if (matchStatus == CombatMatchStatus.victory &&
+        !_isModalOpen &&
+        !_isVictoryModalShowing &&
+        !_victoryDialogDismissed) {
       _showVictoryModal();
     }
 
@@ -190,8 +197,21 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   Future<void> _showVictoryModal() async {
+    if (_isVictoryModalShowing || _isModalOpen || _victoryDialogDismissed) {
+      return;
+    }
+    _isVictoryModalShowing = true;
     _isModalOpen = true;
     _autoAdvanceTimer?.cancel();
+
+    // 600ms grace period so in-flight shooting taps clear, animations finish,
+    // and victory fanfare plays before modal interrupts.
+    await Future.delayed(const Duration(milliseconds: 600));
+    if (!mounted || _victoryDialogDismissed) {
+      _isVictoryModalShowing = false;
+      _isModalOpen = false;
+      return;
+    }
 
     final score = _coordinator.dreadnought.totalScore;
     final cores = _coordinator.dreadnought.reserveCores;
@@ -207,7 +227,11 @@ class _CombatScreenState extends State<CombatScreen>
       enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
     );
 
-    if (!mounted) return;
+    if (!mounted || _victoryDialogDismissed) {
+      _isVictoryModalShowing = false;
+      _isModalOpen = false;
+      return;
+    }
 
     final newLiberated = PersistenceService.instance.liberatedSectors;
     final isNewUnlock =
@@ -231,22 +255,26 @@ class _CombatScreenState extends State<CombatScreen>
         isNewUnlock: isNewUnlock,
         unlockedSectorName: nextSector?.name,
         campaignProgressText: '$liberatedCount / 9 LIBERATED',
+        armDuration: const Duration(milliseconds: 500),
         onNextSector: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _isModalOpen = false;
+          _isVictoryModalShowing = false;
           _advanceNextSector();
         },
         onReturnToMap: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _isModalOpen = false;
+          _isVictoryModalShowing = false;
           _openMap();
         },
         onDismiss: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _isModalOpen = false;
+          _isVictoryModalShowing = false;
           _victoryDialogDismissed = true;
           if (mounted) setState(() {});
         },
@@ -258,6 +286,7 @@ class _CombatScreenState extends State<CombatScreen>
         if (mounted && _isModalOpen) {
           Navigator.of(context, rootNavigator: true).pop();
           _isModalOpen = false;
+          _isVictoryModalShowing = false;
           _advanceNextSector();
         }
       });
@@ -266,6 +295,8 @@ class _CombatScreenState extends State<CombatScreen>
 
   void _restartCombat() {
     _victoryDialogDismissed = false;
+    _isVictoryModalShowing = false;
+    _isModalOpen = false;
     final sector = CampaignService.instance.getSector(_currentSectorId);
     _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
@@ -281,6 +312,8 @@ class _CombatScreenState extends State<CombatScreen>
 
   void _advanceNextSector() {
     _victoryDialogDismissed = false;
+    _isVictoryModalShowing = false;
+    _isModalOpen = false;
     if (_currentSectorId < 9) {
       _currentSectorId++;
     }

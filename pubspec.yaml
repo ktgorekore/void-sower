@@ -31,6 +31,7 @@ dependencies:
   google_sign_in: ^6.2.2
   in_app_purchase: ^3.3.0
   shared_preferences: ^2.5.5
+  video_player: ^2.14.0
 
 dev_dependencies:
   ffigen: ^20.1.1
@@ -47,6 +48,7 @@ flutter:
   assets:
     - assets/audio/
     - assets/icons/
+    - assets/video/
   shaders:
     - shaders/particle_lance.frag
     - shaders/flak_burst.frag
