@@ -66,6 +66,7 @@ def main():
       '<map>\n'
       '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
       '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
+      '    <int name="flutter.void_sower_high_score" value="12480" />\n'
       '</map>\n'
   )
   with open("/tmp/prefs.xml", "w") as f:
@@ -102,44 +103,37 @@ def main():
       os.path.join(ASSETS_DIR, "phone_01_tactical_combat_grid.png"),
   )
 
-  # Screenshot 07: Bao Orbital Codex (Tap RULES button at x=883, y=210 in Tier 1)
+  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=1215, y=335, then RULES at x=672, y=1820)
+  print("[Codex] Opening Tactical Pause menu...")
+  tap(1215, 335)
+  time.sleep(0.8)
   print("[Codex] Opening Bao Codex dialog...")
-  tap(883, 210)
+  tap(672, 1820)
   time.sleep(1.2)
   capture("07_bao_orbital_codex.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "07_bao_orbital_codex.png"),
       os.path.join(ASSETS_DIR, "phone_03_bao_codex.png"),
   )
-  # Close Bao Codex dialog via Back keyevent
+  # Close Bao Codex dialog via Back keyevent (single pop returns directly to CombatScreen)
+  print("[Codex] Dismissing Bao Codex...")
   keyevent(4)
   time.sleep(0.8)
 
-  # Screenshot 08: Pilot Telemetry Dashboard (Tap Pilot Callsign pill at x=130, y=305 in Tier 2)
-  print("[Profile] Opening Pilot Dossier modal...")
-  tap(130, 305)
-  time.sleep(1.2)
-  capture("08_pilot_telemetry_dashboard.png")
-  shutil.copyfile(
-      os.path.join(SCREENSHOTS_DIR, "08_pilot_telemetry_dashboard.png"),
-      os.path.join(ASSETS_DIR, "phone_04_pilot_dossier.png"),
-  )
-  # Close Pilot Dossier modal via Back keyevent
-  keyevent(4)
+  # Navigate to Star Map: Tap PAUSE at x=1215, y=335, then MAP at x=320, y=1820
+  print("[Map] Opening Tactical Pause to navigate to Star Map...")
+  tap(1215, 335)
   time.sleep(0.8)
-
-  # Navigate to Star Map: Tap [ MAP ] button in Tier 1 (x=75, y=210)
-  print("[Map] Navigating to Kilwa Basin Campaign Star Map...")
-  tap(75, 210)
-  time.sleep(1.8)
+  tap(320, 1820)
+  time.sleep(2.0)
 
   # Screenshot 05: Kilwa Basin Campaign Map
   print("[Map] Capturing 05_kilwa_basin_campaign_map.png...")
   capture("05_kilwa_basin_campaign_map.png")
 
-  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=696, y=220 in Map AppBar)
+  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=700, y=240 in Map AppBar)
   print("[Hangar] Opening Fleet Hangar dialog...")
-  tap(696, 220)
+  tap(700, 240)
   time.sleep(1.2)
   capture("04_orbital_fleet_hangar.png")
   shutil.copyfile(
@@ -150,10 +144,23 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Return to CombatScreen: Tap back arrow at x=84, y=220
-  print("[Combat] Returning to Combat Arena...")
-  tap(84, 220)
+  # Screenshot 08: Pilot Telemetry Dashboard (Tap Profile icon at x=830, y=240 in Map AppBar)
+  print("[Profile] Opening Pilot Dossier modal...")
+  tap(830, 240)
   time.sleep(1.2)
+  capture("08_pilot_telemetry_dashboard.png")
+  shutil.copyfile(
+      os.path.join(SCREENSHOTS_DIR, "08_pilot_telemetry_dashboard.png"),
+      os.path.join(ASSETS_DIR, "phone_04_pilot_dossier.png"),
+  )
+  # Close Pilot Dossier modal via Back keyevent
+  keyevent(4)
+  time.sleep(0.8)
+
+  # Return to CombatScreen: Back keyevent on Campaign Map
+  print("[Combat] Returning to Combat Arena...")
+  keyevent(4)
+  time.sleep(1.5)
 
   # Screenshot 02: Quadratic Lance Discharge (Discharge particle lance up corridor)
   print("[Combat] Discharging Axial Particle Lance...")
@@ -166,14 +173,16 @@ def main():
   )
   time.sleep(0.5)
 
-  # Restart combat fresh before activating AI solver
+  # Restart combat fresh before activating AI solver: Pause -> Restart
   print("[Combat] Restarting combat for clean AI victory sequence...")
-  tap(906, 390)  # RESTART button in Tier 3
+  tap(1215, 335)  # PAUSE
   time.sleep(0.8)
+  tap(350, 1670)  # RESTART
+  time.sleep(1.2)
 
-  # Activate AI Solver in Tier 3 (x=1260, y=390) to eliminate invaders and achieve Victory
+  # Activate AI Solver in Right Wing (x=1050, y=335) to eliminate invaders and achieve Victory
   print("[Solver] Activating AI Tactical Solver to clear sector...")
-  tap(1260, 390)
+  tap(1050, 335)
 
   # Poll every 0.25s for victory modal
   print("[Victory] Waiting for Sector Liberation modal...")
@@ -207,6 +216,11 @@ def main():
 
   if not modal_captured:
     print("[Victory] Reached timeout, keeping latest frame for 06_sector_liberation_victory.png")
+
+  shutil.copyfile(
+      os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png"),
+      os.path.join(ASSETS_DIR, "phone_05_sector_liberation.png"),
+  )
 
   print("\n[Complete] All 8 Play Store phone screenshots recaptured successfully!")
 

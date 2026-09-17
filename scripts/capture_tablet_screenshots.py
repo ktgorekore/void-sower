@@ -30,8 +30,11 @@ def get_device():
   for line in lines:
     parts = line.split()
     if len(parts) >= 2 and parts[1] == "device":
-      return parts[0]
-  return "emulator-5554"
+      dev = parts[0]
+      size_res = subprocess.run(["adb", "-s", dev, "shell", "wm", "size"], capture_output=True, text=True)
+      if "2560x1600" in size_res.stdout or "1600x2560" in size_res.stdout:
+        return dev
+  return "emulator-5556"
 
 
 def adb_cmd(args, device):
@@ -75,6 +78,7 @@ def main():
       '<map>\n'
       '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
       '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
+      '    <int name="flutter.void_sower_high_score" value="12480" />\n'
       '</map>\n'
   )
   with open("/tmp/prefs.xml", "w") as f:
@@ -125,30 +129,38 @@ def main():
   capture("02_tablet_sowing_trajectory.png", device)
   time.sleep(1.0)
 
-  # 4. Screenshot 06: Bao Codex on Tablet (Tap RULES button in Tier 1 at x=1540, y=98)
-  print("[Tablet Codex] Opening Bao Codex dialog (tap RULES at x=1540, y=98)...")
-  tap(1540, 98, device)
-  time.sleep(1.5)
+  # 4. Screenshot 06: Bao Codex on Tablet (Tap PAUSE at x=1768, y=190, then RULES at x=1270, y=995)
+  print("[Tablet Codex] Opening Tactical Pause menu...")
+  tap(1768, 190, device)
+  time.sleep(1.0)
+  print("[Tablet Codex] Opening Bao Codex dialog (tap RULES at x=1270, y=995)...")
+  tap(1270, 995, device)
+  time.sleep(1.8)
   capture("06_tablet_bao_codex.png", device)
+  # Close Bao Codex dialog via Back keyevent (returns directly to CombatScreen)
+  print("[Tablet Codex] Dismissing Bao Codex...")
   keyevent(4, device)
   time.sleep(1.0)
 
-  # 5. Navigate to Star Map: Tap MAP button in Tier 1 at x=760, y=98
-  print("[Tablet Map] Navigating to Star Map (tap MAP at x=760, y=98)...")
-  tap(760, 98, device)
+  # 5. Navigate to Star Map: Tap PAUSE at x=1768, y=190, then MAP at x=1015, y=995
+  print("[Tablet Map] Opening Tactical Pause to navigate to Star Map...")
+  tap(1768, 190, device)
+  time.sleep(1.0)
+  print("[Tablet Map] Tapping MAP button at x=1015, y=995...")
+  tap(1015, 995, device)
   time.sleep(2.5)
 
   # Screenshot 03: Tablet Campaign Map
   print("[Tablet Map] Capturing 03_tablet_campaign_map.png...")
   capture("03_tablet_campaign_map.png", device)
 
-  # 6. Screenshot 04: Tablet Fleet Hangar (tap Rocket icon at x=1430, y=80 in Map AppBar)
-  print("[Tablet Hangar] Opening Fleet Hangar (tap x=1430, y=80)...")
-  tap(1430, 80, device)
-  time.sleep(1.5)
+  # 6. Screenshot 04: Tablet Fleet Hangar (tap Rocket icon at x=1462, y=109 in Map AppBar)
+  print("[Tablet Hangar] Opening Fleet Hangar (tap Rocket at x=1462, y=109)...")
+  tap(1462, 109, device)
+  time.sleep(1.8)
   capture("04_tablet_fleet_hangar.png", device)
   keyevent(4, device)
-  time.sleep(0.8)
+  time.sleep(1.0)
 
   print("\n[Complete] All 6 Play Store tablet screenshots captured successfully!")
 
