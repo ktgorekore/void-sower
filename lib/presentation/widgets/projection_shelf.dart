@@ -39,21 +39,25 @@ class ProjectionShelf extends StatelessWidget {
             horizontal: BorderSide(color: VoidTheme.cardSurface, width: 0.8),
           ),
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.radar, size: 11.0, color: VoidTheme.plasmaCyan),
-            SizedBox(width: 5.0),
-            Text(
-              'SELECT BAY TO PREVIEW LANCE & SOWING TRAJECTORY',
-              style: TextStyle(
-                color: VoidTheme.textSecondary,
-                fontSize: 8.5,
-                letterSpacing: 0.6,
-                fontWeight: FontWeight.w600,
+        child: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.radar, size: 11.0, color: VoidTheme.plasmaCyan),
+              SizedBox(width: 5.0),
+              Text(
+                'SELECT BAY TO PREVIEW LANCE & SOWING TRAJECTORY',
+                style: TextStyle(
+                  color: VoidTheme.textSecondary,
+                  fontSize: 8.5,
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       );
     }

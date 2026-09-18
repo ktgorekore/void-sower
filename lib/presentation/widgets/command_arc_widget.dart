@@ -12,14 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../domain/models/bay_state.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 
-/// Lower 30% Primary Thumb Command Arc managing the 16 capacitor bays and dreadnought slider.
-class CommandArcWidget extends StatefulWidget {
+/// Primary thumb command arc managing the 16 capacitor bays and axial discharge.
+///
+/// Features enlarged touch-friendly bays (48 dp) adhering to ergonomic mobile standards,
+/// C1–C8 corridor alignment badges, and direct gesture sowing (tap/double-tap/flick/swipe).
+class CommandArcWidget extends StatelessWidget {
   const CommandArcWidget({
     super.key,
     required this.bays,
@@ -28,7 +30,7 @@ class CommandArcWidget extends StatefulWidget {
     required this.onBaySelected,
     required this.onSowAction,
     required this.onInjectCore,
-    required this.onSlidePosition,
+    this.onSlidePosition,
   });
 
   final List<BayState> bays;
@@ -37,440 +39,206 @@ class CommandArcWidget extends StatefulWidget {
   final ValueChanged<int> onBaySelected;
   final void Function(int bayIndex, int direction) onSowAction;
   final void Function(int bayIndex, int direction) onInjectCore;
-  final ValueChanged<double> onSlidePosition;
-
-  @override
-  State<CommandArcWidget> createState() => _CommandArcWidgetState();
-}
-
-class _CommandArcWidgetState extends State<CommandArcWidget> {
-  double _sliderOffset = 0.0;
-  bool _isPanning = false;
-  bool _initializedOffset = false;
-
-  double _computeMaxTravel(double maxWidth) {
-    return math.max(1.0, (maxWidth - 12.0 - 54.0) / 2.0);
-  }
-
-  double _getNormalizedX(double maxWidth) {
-    final maxTravel = _computeMaxTravel(maxWidth);
-    return ((_sliderOffset + maxTravel) / (2.0 * maxTravel)).clamp(0.0, 1.0);
-  }
-
-  void _syncFromSelectedBay(double maxWidth) {
-    if (_isPanning) return;
-    final selected = widget.selectedBay;
-    if (selected != null && selected >= 8 && selected <= 15) {
-      final corridor = selected - 8;
-      final normX = (corridor + 0.5) / 8.0;
-      final maxTravel = _computeMaxTravel(maxWidth);
-      _sliderOffset = (normX * 2.0 - 1.0) * maxTravel;
-    }
-  }
-
-  @override
-  void didUpdateWidget(CommandArcWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.selectedBay != oldWidget.selectedBay && !_isPanning) {
-      _initializedOffset = false;
-    }
-  }
-
-  void _handlePanUpdate(DragUpdateDetails details, double maxWidth) {
-    final maxTravel = _computeMaxTravel(maxWidth);
-    setState(() {
-      _sliderOffset = (_sliderOffset + details.delta.dx).clamp(
-        -maxTravel,
-        maxTravel,
-      );
-    });
-    final normalizedX = ((_sliderOffset + maxTravel) / (2.0 * maxTravel)).clamp(
-      0.0,
-      1.0,
-    );
-    widget.onSlidePosition(normalizedX);
-    final corridor = (normalizedX * 8.0).floor().clamp(0, 7);
-    final frontlineBay = corridor + 8;
-    if (widget.selectedBay != frontlineBay) {
-      widget.onBaySelected(frontlineBay);
-    }
-  }
-
-  void _jumpToCorridor(int corridor, double maxWidth) {
-    final clampedCorridor = corridor.clamp(0, 7);
-    final normX = (clampedCorridor + 0.5) / 8.0;
-    final maxTravel = _computeMaxTravel(maxWidth);
-    setState(() {
-      _sliderOffset = (normX * 2.0 - 1.0) * maxTravel;
-    });
-    widget.onSlidePosition(normX);
-    final frontlineBay = clampedCorridor + 8;
-    if (widget.selectedBay != frontlineBay) {
-      widget.onBaySelected(frontlineBay);
-    }
-  }
+  final ValueChanged<double>? onSlidePosition;
 
   @override
   Widget build(BuildContext context) {
-    final frontlineBays = widget.bays.where((b) => b.isFrontline).toList();
-    final backlineBays = widget.bays.where((b) => !b.isFrontline).toList();
+    final frontlineBays = bays.where((b) => b.isFrontline).toList();
+    final backlineBays = bays.where((b) => !b.isFrontline).toList();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (!_initializedOffset) {
-          _syncFromSelectedBay(constraints.maxWidth);
-          _initializedOffset = true;
-        }
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 2.5),
-          decoration: BoxDecoration(
-            color: VoidTheme.obsidianBlack,
-            border: const Border(
-              top: BorderSide(color: VoidTheme.cardSurface, width: 1.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
+      decoration: const BoxDecoration(
+        color: VoidTheme.obsidianBlack,
+        border: Border(
+          top: BorderSide(color: VoidTheme.cardSurface, width: 1.0),
+        ),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Frontline Tier Header
+          Padding(
+            padding: const EdgeInsets.only(bottom: 1.5, left: 2.0, right: 2.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '▲ BAYS 8–15 (FRONTLINE)',
+                  style: TextStyle(
+                    color: VoidTheme.plasmaCyan.withValues(alpha: 0.9),
+                    fontSize: 7.0,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
+                ),
+                Text(
+                  'C1–C8 ──► LANCE',
+                  style: TextStyle(
+                    color: VoidTheme.textSecondary.withValues(alpha: 0.75),
+                    fontSize: 6.8,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Frontline Tier Header
-              Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 1.0,
-                  left: 2.0,
-                  right: 2.0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '▲ BAYS 8–15 (FRONTLINE)',
-                      style: TextStyle(
-                        color: VoidTheme.plasmaCyan.withValues(alpha: 0.9),
-                        fontSize: 7.0,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
+
+          // Corridor Alignment Badges C1–C8
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2.5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: List.generate(8, (i) {
+                final corridor = i;
+                final frontlineBay = 8 + corridor;
+                final isSelected = selectedBay == frontlineBay;
+
+                return Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      HapticService.instance.sowTick();
+                      onBaySelected(frontlineBay);
+                      final normX = (corridor + 0.5) / 8.0;
+                      onSlidePosition?.call(normX);
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 1.0),
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? VoidTheme.plasmaCyan.withValues(alpha: 0.25)
+                            : VoidTheme.cardSurface.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(3.0),
+                        border: Border.all(
+                          color: isSelected
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.textMuted.withValues(alpha: 0.3),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'C${i + 1}',
+                          style: TextStyle(
+                            color: isSelected
+                                ? VoidTheme.plasmaCyan
+                                : VoidTheme.textSecondary,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
                     ),
-                    Text(
-                      'C1–C8 ──► LANCE',
-                      style: TextStyle(
-                        color: VoidTheme.textSecondary.withValues(alpha: 0.75),
-                        fontSize: 6.8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                  ),
+                );
+              }),
+            ),
+          ),
+
+          // Frontline Tier (Bays 8 to 15) - Enlarged to 48 dp height
+          _buildBayRow(frontlineBays, isFrontline: true),
+          const SizedBox(height: 3.0),
+
+          // Backline Tier Header
+          Padding(
+            padding: const EdgeInsets.only(bottom: 1.5, left: 2.0, right: 2.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '▼ BAYS 0–7 (RESERVOIR)',
+                  style: TextStyle(
+                    color: VoidTheme.solarGold.withValues(alpha: 0.9),
+                    fontSize: 7.0,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.4,
+                  ),
                 ),
-              ),
-
-              // Frontline Tier (Bays 8 to 15)
-              _buildBayRow(frontlineBays, isFrontline: true),
-              const SizedBox(height: 2.0),
-
-              // Backline Tier Header
-              Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 1.0,
-                  left: 2.0,
-                  right: 2.0,
+                Text(
+                  'STORAGE ──► RELAY',
+                  style: TextStyle(
+                    color: VoidTheme.textSecondary.withValues(alpha: 0.75),
+                    fontSize: 6.8,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      '▼ BAYS 0–7 (RESERVOIR)',
-                      style: TextStyle(
-                        color: VoidTheme.solarGold.withValues(alpha: 0.9),
-                        fontSize: 7.0,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
+              ],
+            ),
+          ),
+
+          // Backline Tier (Bays 0 to 7) - Enlarged to 48 dp height
+          _buildBayRow(backlineBays, isFrontline: false),
+          const SizedBox(height: 3.5),
+
+          // Tactical Flagship Axial Discharge Action Deck
+          Builder(
+            builder: (context) {
+              final selected = selectedBay;
+              final activeCorridor =
+                  (selected != null && selected >= 8 && selected <= 15)
+                  ? selected - 8
+                  : (selected != null && selected < 8 ? selected : 0);
+              final activeBay = selected ?? (activeCorridor + 8);
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 2.0),
+                child: GestureDetector(
+                  onTap: () {
+                    HapticService.instance.injectionClick();
+                    final dir = (activeCorridor >= 4) ? -1 : 1;
+                    onInjectCore(activeBay, dir);
+                  },
+                  child: Container(
+                    height: 34.0,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          VoidTheme.plasmaCyan,
+                          VoidTheme.plasmaCyanLight,
+                        ],
                       ),
+                      borderRadius: BorderRadius.circular(6.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.35),
+                          blurRadius: 6.0,
+                        ),
+                      ],
                     ),
-                    Text(
-                      'STORAGE ──► RELAY',
-                      style: TextStyle(
-                        color: VoidTheme.textSecondary.withValues(alpha: 0.75),
-                        fontSize: 6.8,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Backline Tier (Bays 0 to 7)
-              _buildBayRow(backlineBays, isFrontline: false),
-              const SizedBox(height: 2.5),
-
-              // Tactical Flagship Conduit Action Deck (Option 1)
-              Builder(
-                builder: (context) {
-                  final selected = widget.selectedBay;
-                  final normX = _getNormalizedX(constraints.maxWidth);
-                  final activeCorridor =
-                      (selected != null && selected >= 8 && selected <= 15)
-                      ? selected - 8
-                      : (normX * 8.0).floor().clamp(0, 7);
-                  final activeBay = selected ?? (activeCorridor + 8);
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 3.5),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // SOW CCW (-1) Button
-                        Expanded(
-                          flex: 2,
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticService.instance.sowTick();
-                              widget.onSowAction(activeBay, -1);
-                            },
-                            child: Container(
-                              height: 26.0,
-                              decoration: BoxDecoration(
-                                color: VoidTheme.cardSurface,
-                                borderRadius: BorderRadius.circular(5.0),
-                                border: Border.all(
-                                  color: VoidTheme.solarGold.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.arrow_back,
-                                    color: VoidTheme.solarGold,
-                                    size: 11.0,
-                                  ),
-                                  SizedBox(width: 2.0),
-                                  Text(
-                                    '◄ SOW',
-                                    style: TextStyle(
-                                      color: VoidTheme.solarGold,
-                                      fontSize: 9.0,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                        const Icon(
+                          Icons.bolt,
+                          color: VoidTheme.obsidianBlack,
+                          size: 14.0,
                         ),
                         const SizedBox(width: 4.0),
-                        // Primary AXIAL DISCHARGE LANCE Button
-                        Expanded(
-                          flex: 3,
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticService.instance.injectionClick();
-                              final dir = (activeCorridor >= 4) ? -1 : 1;
-                              widget.onInjectCore(activeBay, dir);
-                            },
-                            child: Container(
-                              height: 26.0,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    VoidTheme.plasmaCyan,
-                                    VoidTheme.plasmaCyanLight,
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(5.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: VoidTheme.plasmaCyan.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    blurRadius: 4.0,
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.bolt,
-                                    color: VoidTheme.obsidianBlack,
-                                    size: 12.0,
-                                  ),
-                                  const SizedBox(width: 2.0),
-                                  Flexible(
-                                    child: FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        'AXIAL DISCHARGE C${activeCorridor + 1}',
-                                        style: const TextStyle(
-                                          color: VoidTheme.obsidianBlack,
-                                          fontSize: 8.5,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 0.3,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 4.0),
-                        // SOW CW (+1) Button
-                        Expanded(
-                          flex: 2,
-                          child: GestureDetector(
-                            onTap: () {
-                              HapticService.instance.sowTick();
-                              widget.onSowAction(activeBay, 1);
-                            },
-                            child: Container(
-                              height: 26.0,
-                              decoration: BoxDecoration(
-                                color: VoidTheme.cardSurface,
-                                borderRadius: BorderRadius.circular(5.0),
-                                border: Border.all(
-                                  color: VoidTheme.plasmaCyan.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'SOW ►',
-                                    style: TextStyle(
-                                      color: VoidTheme.plasmaCyan,
-                                      fontSize: 9.0,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                  SizedBox(width: 2.0),
-                                  Icon(
-                                    Icons.arrow_forward,
-                                    color: VoidTheme.plasmaCyan,
-                                    size: 11.0,
-                                  ),
-                                ],
+                        Flexible(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'AXIAL DISCHARGE C${activeCorridor + 1} (INJECT CORE • BAY $activeBay)',
+                              style: const TextStyle(
+                                color: VoidTheme.obsidianBlack,
+                                fontSize: 10.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.4,
                               ),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  );
-                },
-              ),
-
-              // Horizontal Lateral Orbital Platform Slider
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onPanStart: (_) => _isPanning = true,
-                onPanEnd: (_) => _isPanning = false,
-                onPanCancel: () => _isPanning = false,
-                onPanUpdate: (d) => _handlePanUpdate(d, constraints.maxWidth),
-                onTapDown: (details) {
-                  final sliderWidth = constraints.maxWidth - 12.0;
-                  if (sliderWidth > 0) {
-                    final normX = (details.localPosition.dx / sliderWidth)
-                        .clamp(0.0, 1.0);
-                    final corridor = (normX * 8.0).floor().clamp(0, 7);
-                    _jumpToCorridor(corridor, constraints.maxWidth);
-                  }
-                },
-                child: Container(
-                  height: 32.0,
-                  decoration: BoxDecoration(
-                    color: VoidTheme.cardSurface,
-                    borderRadius: BorderRadius.circular(16.0),
-                    border: Border.all(
-                      color: VoidTheme.textMuted.withValues(alpha: 0.45),
-                      width: 1.0,
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Corridor Grid Notches
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: List.generate(8, (i) {
-                          return GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () =>
-                                _jumpToCorridor(i, constraints.maxWidth),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4.0,
-                                vertical: 6.0,
-                              ),
-                              child: Text(
-                                'C${i + 1}',
-                                style: TextStyle(
-                                  color: VoidTheme.textMuted.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                      Transform.translate(
-                        offset: Offset(_sliderOffset, 0),
-                        child: Container(
-                          width: 54.0,
-                          height: 24.0,
-                          decoration: BoxDecoration(
-                            color: VoidTheme.solarGold,
-                            borderRadius: BorderRadius.circular(12.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.45,
-                                ),
-                                blurRadius: 6.0,
-                                spreadRadius: 0.5,
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.chevron_left,
-                                color: VoidTheme.obsidianBlack,
-                                size: 13.0,
-                              ),
-                              Icon(
-                                Icons.rocket,
-                                color: VoidTheme.obsidianBlack,
-                                size: 12.0,
-                              ),
-                              Icon(
-                                Icons.chevron_right,
-                                color: VoidTheme.obsidianBlack,
-                                size: 13.0,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -482,8 +250,8 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
   }
 
   Widget _buildBayCell(BayState bay, bool isFrontline) {
-    final isSelected = widget.selectedBay == bay.bayIndex;
-    final isSowHop = widget.activeSowBay == bay.bayIndex;
+    final isSelected = selectedBay == bay.bayIndex;
+    final isSowHop = activeSowBay == bay.bayIndex;
 
     Color borderColor = VoidTheme.textMuted.withValues(alpha: 0.4);
     Color bayGlow = Colors.transparent;
@@ -509,16 +277,21 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           HapticService.instance.sowTick();
-          if (widget.selectedBay == bay.bayIndex) {
+          if (selectedBay == bay.bayIndex) {
             HapticService.instance.injectionClick();
-            widget.onInjectCore(bay.bayIndex, 1);
+            onInjectCore(bay.bayIndex, 1);
           } else {
-            widget.onBaySelected(bay.bayIndex);
+            onBaySelected(bay.bayIndex);
+            if (bay.bayIndex >= 8) {
+              final corridor = bay.bayIndex - 8;
+              final normX = (corridor + 0.5) / 8.0;
+              onSlidePosition?.call(normX);
+            }
           }
         },
         onDoubleTap: () {
           HapticService.instance.injectionClick();
-          widget.onInjectCore(bay.bayIndex, 1);
+          onInjectCore(bay.bayIndex, 1);
         },
         onPanEnd: (details) {
           final vx = details.velocity.pixelsPerSecond.dx;
@@ -526,22 +299,22 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
           if (vy < -120 && vy.abs() > vx.abs()) {
             // Upward flick = Core Injection (namua)
             HapticService.instance.injectionClick();
-            widget.onInjectCore(bay.bayIndex, 1);
+            onInjectCore(bay.bayIndex, 1);
           } else if (vx > 100) {
             // Swipe right = Clockwise (+1)
             HapticService.instance.sowTick();
-            widget.onSowAction(bay.bayIndex, 1);
+            onSowAction(bay.bayIndex, 1);
           } else if (vx < -100) {
             // Swipe left = Counter-Clockwise (-1)
             HapticService.instance.sowTick();
-            widget.onSowAction(bay.bayIndex, -1);
+            onSowAction(bay.bayIndex, -1);
           }
         },
         child: AnimatedScale(
-          scale: isSowHop ? 1.15 : 1.0,
+          scale: isSowHop ? 1.12 : 1.0,
           duration: const Duration(milliseconds: 140),
           child: Container(
-            height: 36.0,
+            height: 48.0,
             margin: const EdgeInsets.symmetric(horizontal: 1.0),
             decoration: BoxDecoration(
               color: isSelected
@@ -549,7 +322,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                   : (bayGlow != Colors.transparent
                         ? bayGlow
                         : VoidTheme.cardSurface),
-              borderRadius: BorderRadius.circular(5.0),
+              borderRadius: BorderRadius.circular(6.0),
               border: Border.all(
                 color: borderColor,
                 width: isSelected || bay.isNyumba ? 1.5 : 0.9,
@@ -568,7 +341,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         color: isSelected
                             ? VoidTheme.plasmaCyan
                             : VoidTheme.textSecondary,
-                        fontSize: 8.5,
+                        fontSize: 9.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -577,7 +350,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         '★',
                         style: TextStyle(
                           color: VoidTheme.solarGold,
-                          fontSize: 7.0,
+                          fontSize: 8.0,
                         ),
                       ),
                     if (bay.isKichwa)
@@ -585,7 +358,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         '♦',
                         style: TextStyle(
                           color: VoidTheme.nebulaAmethyst,
-                          fontSize: 7.0,
+                          fontSize: 8.0,
                         ),
                       ),
                     if (bay.isKimbi)
@@ -593,7 +366,7 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                         '▲',
                         style: TextStyle(
                           color: VoidTheme.emeraldShield,
-                          fontSize: 7.0,
+                          fontSize: 8.0,
                         ),
                       ),
                   ],
@@ -608,24 +381,24 @@ class _CommandArcWidgetState extends State<CommandArcWidget> {
                               ? VoidTheme.plasmaCyan
                               : VoidTheme.solarGold)
                         : VoidTheme.textPrimary,
-                    fontSize: 11.5,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.bold,
-                    height: 1.0,
+                    height: 1.05,
                   ),
                 ),
 
                 // Concentric Charge Pips (Up to 4 pips)
                 if (bay.chargeUnits > 0)
                   Padding(
-                    padding: const EdgeInsets.only(top: 0.8),
+                    padding: const EdgeInsets.only(top: 1.2),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         bay.chargeUnits.clamp(1, 4),
                         (i) => Container(
-                          width: 2.6,
-                          height: 2.6,
-                          margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                          width: 3.2,
+                          height: 3.2,
+                          margin: const EdgeInsets.symmetric(horizontal: 0.6),
                           decoration: BoxDecoration(
                             color: bay.chargeUnits >= 4
                                 ? VoidTheme.plasmaCyan

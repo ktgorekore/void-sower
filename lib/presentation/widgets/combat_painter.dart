@@ -528,11 +528,11 @@ class CombatPainter extends CustomPainter {
       }
     }
 
-    // Animated Twin Plasma Thrusters (Enlarged and spread to 18.0)
-    final flameHeight = 16.0 + math.sin(animationTime * 20.0) * 5.0;
-    final leftThrusterX = centerX - 18.0;
-    final rightThrusterX = centerX + 18.0;
-    final thrusterY = shipY + 12.0;
+    // Animated Twin Plasma Thrusters (Enlarged and spread to 24.0)
+    final flameHeight = 22.0 + math.sin(animationTime * 20.0) * 6.0;
+    final leftThrusterX = centerX - 24.0;
+    final rightThrusterX = centerX + 24.0;
+    final thrusterY = shipY + 16.0;
 
     _flamePaint.shader =
         LinearGradient(
@@ -544,46 +544,46 @@ class CombatPainter extends CustomPainter {
             Colors.transparent,
           ],
         ).createShader(
-          Rect.fromLTWH(leftThrusterX - 5, thrusterY, 10, flameHeight),
+          Rect.fromLTWH(leftThrusterX - 7, thrusterY, 14, flameHeight),
         );
 
     _scratchLeftFlamePath.reset();
-    _scratchLeftFlamePath.moveTo(leftThrusterX - 4.5, thrusterY);
+    _scratchLeftFlamePath.moveTo(leftThrusterX - 6.0, thrusterY);
     _scratchLeftFlamePath.lineTo(leftThrusterX, thrusterY + flameHeight);
-    _scratchLeftFlamePath.lineTo(leftThrusterX + 4.5, thrusterY);
+    _scratchLeftFlamePath.lineTo(leftThrusterX + 6.0, thrusterY);
     _scratchLeftFlamePath.close();
     canvas.drawPath(_scratchLeftFlamePath, _flamePaint);
 
     _scratchRightFlamePath.reset();
-    _scratchRightFlamePath.moveTo(rightThrusterX - 4.5, thrusterY);
+    _scratchRightFlamePath.moveTo(rightThrusterX - 6.0, thrusterY);
     _scratchRightFlamePath.lineTo(rightThrusterX, thrusterY + flameHeight);
-    _scratchRightFlamePath.lineTo(rightThrusterX + 4.5, thrusterY);
+    _scratchRightFlamePath.lineTo(rightThrusterX + 6.0, thrusterY);
     _scratchRightFlamePath.close();
     canvas.drawPath(_scratchRightFlamePath, _flamePaint);
 
-    // Dreadnought Flagship Hull (Enlarged from 58x28 to 78x36 dp)
-    const shipW = 78.0;
-    const shipH = 36.0;
+    // Dreadnought Flagship Hull (Enlarged to 104x48 dp for commanding presence)
+    const shipW = 104.0;
+    const shipH = 48.0;
 
     _scratchDreadHullPath.reset();
-    _scratchDreadHullPath.moveTo(centerX, shipY - 17.0); // Nose pointing UP
-    _scratchDreadHullPath.lineTo(centerX + 14.0, shipY - 5.0);
+    _scratchDreadHullPath.moveTo(centerX, shipY - 23.0); // Nose pointing UP
+    _scratchDreadHullPath.lineTo(centerX + 18.0, shipY - 7.0);
     _scratchDreadHullPath.lineTo(
       centerX + shipW / 2,
-      shipY + 8.0,
+      shipY + 11.0,
     ); // Starboard wingtip
     _scratchDreadHullPath.lineTo(
-      centerX + 24.0,
-      shipY + 14.0,
+      centerX + 32.0,
+      shipY + 19.0,
     ); // Starboard mount
-    _scratchDreadHullPath.lineTo(centerX + 11.0, shipY + 9.0);
-    _scratchDreadHullPath.lineTo(centerX - 11.0, shipY + 9.0);
-    _scratchDreadHullPath.lineTo(centerX - 24.0, shipY + 14.0); // Port mount
+    _scratchDreadHullPath.lineTo(centerX + 15.0, shipY + 12.0);
+    _scratchDreadHullPath.lineTo(centerX - 15.0, shipY + 12.0);
+    _scratchDreadHullPath.lineTo(centerX - 32.0, shipY + 19.0); // Port mount
     _scratchDreadHullPath.lineTo(
       centerX - shipW / 2,
-      shipY + 8.0,
+      shipY + 11.0,
     ); // Port wingtip
-    _scratchDreadHullPath.lineTo(centerX - 14.0, shipY - 5.0);
+    _scratchDreadHullPath.lineTo(centerX - 18.0, shipY - 7.0);
     _scratchDreadHullPath.close();
 
     // Hull obsidian base
@@ -600,34 +600,34 @@ class CombatPainter extends CustomPainter {
             VoidTheme.obsidianBlack,
           ],
         ).createShader(
-          Rect.fromLTWH(centerX - shipW / 2, shipY - 17.0, shipW, shipH),
+          Rect.fromLTWH(centerX - shipW / 2, shipY - 23.0, shipW, shipH),
         );
     canvas.drawPath(_scratchDreadHullPath, _dreadArmorPaint);
 
     // Hull cyan trim outline
-    _dreadOutlinePaint.strokeWidth = 2.2;
+    _dreadOutlinePaint.strokeWidth = 2.4;
     canvas.drawPath(_scratchDreadHullPath, _dreadOutlinePaint);
 
     // Forward Twin Particle Lance Turrets (Longer with emitter tips)
-    _turretPaint.strokeWidth = 2.8;
+    _turretPaint.strokeWidth = 3.2;
     canvas.drawLine(
-      Offset(centerX - 4.5, shipY - 9.0),
-      Offset(centerX - 4.5, shipY - 21.0),
+      Offset(centerX - 6.5, shipY - 12.0),
+      Offset(centerX - 6.5, shipY - 28.0),
       _turretPaint,
     );
     canvas.drawLine(
-      Offset(centerX + 4.5, shipY - 9.0),
-      Offset(centerX + 4.5, shipY - 21.0),
+      Offset(centerX + 6.5, shipY - 12.0),
+      Offset(centerX + 6.5, shipY - 28.0),
       _turretPaint,
     );
     canvas.drawCircle(
-      Offset(centerX - 4.5, shipY - 21.0),
-      2.0,
+      Offset(centerX - 6.5, shipY - 28.0),
+      2.5,
       _coreCenterPaint,
     );
     canvas.drawCircle(
-      Offset(centerX + 4.5, shipY - 21.0),
-      2.0,
+      Offset(centerX + 6.5, shipY - 28.0),
+      2.5,
       _coreCenterPaint,
     );
 
@@ -637,10 +637,10 @@ class CombatPainter extends CustomPainter {
       alpha: chevronPulse,
     );
     _scratchProwChevronPath.reset();
-    _scratchProwChevronPath.moveTo(centerX, shipY - 27.0);
-    _scratchProwChevronPath.lineTo(centerX + 6.0, shipY - 21.0);
-    _scratchProwChevronPath.lineTo(centerX, shipY - 23.0);
-    _scratchProwChevronPath.lineTo(centerX - 6.0, shipY - 21.0);
+    _scratchProwChevronPath.moveTo(centerX, shipY - 36.0);
+    _scratchProwChevronPath.lineTo(centerX + 8.0, shipY - 28.0);
+    _scratchProwChevronPath.lineTo(centerX, shipY - 30.0);
+    _scratchProwChevronPath.lineTo(centerX - 8.0, shipY - 28.0);
     _scratchProwChevronPath.close();
     canvas.drawPath(_scratchProwChevronPath, _prowChevronPaint);
 
@@ -652,35 +652,35 @@ class CombatPainter extends CustomPainter {
       alpha: stbdStrobe,
     );
     canvas.drawCircle(
-      Offset(centerX - shipW / 2, shipY + 8.0),
-      3.0,
+      Offset(centerX - shipW / 2, shipY + 11.0),
+      3.5,
       _portNavPaint,
     );
     canvas.drawCircle(
-      Offset(centerX + shipW / 2, shipY + 8.0),
-      3.0,
+      Offset(centerX + shipW / 2, shipY + 11.0),
+      3.5,
       _starboardNavPaint,
     );
 
     // Central Plasma Reactor Core (Multi-Ring Energy Aura)
-    final coreGlow = 6.0 + math.sin(animationTime * 10.0) * 2.0;
+    final coreGlow = 8.0 + math.sin(animationTime * 10.0) * 2.5;
     canvas.drawCircle(
-      Offset(centerX, shipY + 2.0),
-      coreGlow + 4.0,
+      Offset(centerX, shipY + 3.0),
+      coreGlow + 5.0,
       _coreGlowPaint,
     );
-    canvas.drawCircle(Offset(centerX, shipY + 2.0), 11.0, _coreOuterGlowPaint);
-    canvas.drawCircle(Offset(centerX, shipY + 2.0), 4.0, _coreCenterPaint);
+    canvas.drawCircle(Offset(centerX, shipY + 3.0), 14.0, _coreOuterGlowPaint);
+    canvas.drawCircle(Offset(centerX, shipY + 3.0), 5.0, _coreCenterPaint);
 
     // Forward Kinetic Energy Shield Arc
     const shieldRect = Rect.fromLTRB(
       -shipW * 1.15 / 2,
-      -18.0,
+      -24.0,
       shipW * 1.15 / 2,
-      18.0,
+      24.0,
     );
     canvas.save();
-    canvas.translate(centerX, shipY - 8.0);
+    canvas.translate(centerX, shipY - 10.0);
     canvas.drawArc(
       shieldRect,
       math.pi * 1.15,
@@ -696,7 +696,7 @@ class CombatPainter extends CustomPainter {
       8.0,
       size.width - labelPainter.width - 8.0,
     );
-    labelPainter.paint(canvas, Offset(labelX, shipY + 18.0));
+    labelPainter.paint(canvas, Offset(labelX, shipY + 23.0));
   }
 
   @override

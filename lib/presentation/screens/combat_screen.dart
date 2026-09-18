@@ -837,192 +837,207 @@ class _CombatScreenState extends State<CombatScreen>
                                             ),
                                           ],
                                         ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Star Map Button
-                                            GestureDetector(
-                                              onTap: _openMap,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 10.0,
-                                                      vertical: 6.0,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: VoidTheme.cardSurface,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        6.0,
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              // Star Map Button
+                                              GestureDetector(
+                                                onTap: _openMap,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10.0,
+                                                        vertical: 6.0,
                                                       ),
-                                                  border: Border.all(
-                                                    color: VoidTheme
-                                                        .textSecondary
-                                                        .withValues(alpha: 0.5),
-                                                    width: 1.0,
-                                                  ),
-                                                ),
-                                                child: const Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.map_outlined,
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        VoidTheme.cardSurface,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6.0,
+                                                        ),
+                                                    border: Border.all(
                                                       color: VoidTheme
-                                                          .textSecondary,
-                                                      size: 13.0,
+                                                          .textSecondary
+                                                          .withValues(
+                                                            alpha: 0.5,
+                                                          ),
+                                                      width: 1.0,
                                                     ),
-                                                    SizedBox(width: 4.0),
-                                                    Text(
-                                                      'STAR MAP',
-                                                      style: TextStyle(
+                                                  ),
+                                                  child: const Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.map_outlined,
                                                         color: VoidTheme
                                                             .textSecondary,
-                                                        fontSize: 10.0,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        letterSpacing: 0.4,
+                                                        size: 13.0,
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8.0),
-                                            // Replay Button
-                                            GestureDetector(
-                                              onTap: _restartCombat,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 10.0,
-                                                      vertical: 6.0,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: VoidTheme.cardSurface,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        6.0,
+                                                      SizedBox(width: 4.0),
+                                                      Text(
+                                                        'MAP',
+                                                        style: TextStyle(
+                                                          color: VoidTheme
+                                                              .textSecondary,
+                                                          fontSize: 10.0,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          letterSpacing: 0.4,
+                                                        ),
                                                       ),
-                                                  border: Border.all(
-                                                    color: VoidTheme.plasmaCyan
-                                                        .withValues(alpha: 0.8),
-                                                    width: 1.0,
+                                                    ],
                                                   ),
                                                 ),
-                                                child: const Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.replay,
-                                                      color:
-                                                          VoidTheme.plasmaCyan,
-                                                      size: 13.0,
+                                              ),
+                                              const SizedBox(width: 8.0),
+                                              // Replay Button
+                                              GestureDetector(
+                                                onTap: _restartCombat,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10.0,
+                                                        vertical: 6.0,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        VoidTheme.cardSurface,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6.0,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: VoidTheme
+                                                          .plasmaCyan
+                                                          .withValues(
+                                                            alpha: 0.8,
+                                                          ),
+                                                      width: 1.0,
                                                     ),
-                                                    SizedBox(width: 4.0),
-                                                    Text(
-                                                      'REPLAY',
-                                                      style: TextStyle(
+                                                  ),
+                                                  child: const Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                        Icons.replay,
                                                         color: VoidTheme
                                                             .plasmaCyan,
-                                                        fontSize: 10.0,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        letterSpacing: 0.4,
+                                                        size: 13.0,
                                                       ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8.0),
-                                            // Advance to Next Sector Button
-                                            GestureDetector(
-                                              onTap: _advanceNextSector,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 12.0,
-                                                      vertical: 6.0,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      VoidTheme.emeraldShield,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        6.0,
+                                                      SizedBox(width: 4.0),
+                                                      Text(
+                                                        'REPLAY',
+                                                        style: TextStyle(
+                                                          color: VoidTheme
+                                                              .plasmaCyan,
+                                                          fontSize: 10.0,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          letterSpacing: 0.4,
+                                                        ),
                                                       ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: VoidTheme
-                                                          .emeraldShield
-                                                          .withValues(
-                                                            alpha: 0.4,
-                                                          ),
-                                                      blurRadius: 6.0,
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Text(
-                                                      _currentSectorId < 9
-                                                          ? 'ADVANCE TO NEXT SECTOR'
-                                                          : 'REPLAY SECTOR',
-                                                      style: const TextStyle(
-                                                        color: VoidTheme
-                                                            .obsidianBlack,
-                                                        fontSize: 10.0,
-                                                        fontWeight:
-                                                            FontWeight.w900,
-                                                        letterSpacing: 0.5,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 4.0),
-                                                    const Icon(
-                                                      Icons.navigate_next,
-                                                      color: VoidTheme
-                                                          .obsidianBlack,
-                                                      size: 15.0,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 6.0),
-                                            // Quick Recap Button to reopen victory dialog
-                                            GestureDetector(
-                                              onTap: () {
-                                                setState(() {
-                                                  _victoryDialogDismissed =
-                                                      false;
-                                                });
-                                                _showVictoryModal();
-                                              },
-                                              child: Container(
-                                                padding: const EdgeInsets.all(
-                                                  5.0,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: VoidTheme.cardSurface,
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                    color: VoidTheme.solarGold
-                                                        .withValues(alpha: 0.5),
-                                                    width: 1.0,
+                                                    ],
                                                   ),
                                                 ),
-                                                child: const Icon(
-                                                  Icons.military_tech,
-                                                  color: VoidTheme.solarGold,
-                                                  size: 15.0,
+                                              ),
+                                              const SizedBox(width: 8.0),
+                                              // Advance to Next Sector Button
+                                              GestureDetector(
+                                                onTap: _advanceNextSector,
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 12.0,
+                                                        vertical: 6.0,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        VoidTheme.emeraldShield,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6.0,
+                                                        ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: VoidTheme
+                                                            .emeraldShield
+                                                            .withValues(
+                                                              alpha: 0.4,
+                                                            ),
+                                                        blurRadius: 6.0,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Text(
+                                                        _currentSectorId < 9
+                                                            ? 'NEXT SECTOR'
+                                                            : 'REPLAY SECTOR',
+                                                        style: const TextStyle(
+                                                          color: VoidTheme
+                                                              .obsidianBlack,
+                                                          fontSize: 10.0,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          letterSpacing: 0.5,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 4.0,
+                                                      ),
+                                                      const Icon(
+                                                        Icons.navigate_next,
+                                                        color: VoidTheme
+                                                            .obsidianBlack,
+                                                        size: 15.0,
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                              const SizedBox(width: 6.0),
+                                              // Quick Recap Button to reopen victory dialog
+                                              GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    _victoryDialogDismissed =
+                                                        false;
+                                                  });
+                                                  _showVictoryModal();
+                                                },
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(
+                                                    5.0,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        VoidTheme.cardSurface,
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                      color: VoidTheme.solarGold
+                                                          .withValues(
+                                                            alpha: 0.5,
+                                                          ),
+                                                      width: 1.0,
+                                                    ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.military_tech,
+                                                    color: VoidTheme.solarGold,
+                                                    size: 15.0,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),

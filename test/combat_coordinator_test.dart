@@ -166,6 +166,33 @@ void main() {
 
       coordinator.update(0.016, const Size(800, 1000));
       expect(coordinator.state.status, equals(CombatMatchStatus.defeat));
+      expect(coordinator.bulletManager.bullets, isEmpty);
     });
+
+    test(
+      'When orbital boundary is breached, simulation halts and invader bullets stop shooting',
+      () {
+        // Step time enough to trigger enemy fire cooldown (35 steps of 0.04s = 1.4s > 1.0s cooldown)
+        for (var i = 0; i < 35; i++) {
+          coordinator.update(0.04, const Size(800, 1000));
+        }
+        expect(coordinator.bulletManager.bullets, isNotEmpty);
+
+        // Fast forward / trigger defeat (startingCores: 0)
+        coordinator.initialize(startingCores: 0, boundaryY: 0.15);
+        coordinator.update(0.04, const Size(800, 1000));
+
+        // Game over / defeat triggered: match status is defeat, active bullets are cleared
+        expect(coordinator.state.status, equals(CombatMatchStatus.defeat));
+        expect(coordinator.bulletManager.bullets, isEmpty);
+
+        // Subsequent update steps must freeze: no new bullets fired, simulation frozen
+        for (var i = 0; i < 50; i++) {
+          coordinator.update(0.04, const Size(800, 1000));
+        }
+        expect(coordinator.bulletManager.bullets, isEmpty);
+        expect(coordinator.state.status, equals(CombatMatchStatus.defeat));
+      },
+    );
   });
 }

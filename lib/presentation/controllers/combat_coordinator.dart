@@ -169,10 +169,14 @@ class CombatCoordinator extends ChangeNotifier {
     if (_isDisposed) return;
     final clampedDt = dt.clamp(0.001, 0.05);
 
-    // If game is in tactical tutorial briefing or paused, freeze combat simulation!
-    // This guarantees the player can read instructions without enemies advancing or firing.
+    // If game is in tactical tutorial briefing, paused, defeated, or victorious, freeze combat simulation!
+    // This guarantees enemies stop moving and shooting when the match reaches a terminal state.
     if (_state.status == CombatMatchStatus.briefing ||
-        _state.status == CombatMatchStatus.paused) {
+        _state.status == CombatMatchStatus.paused ||
+        _state.status == CombatMatchStatus.defeat ||
+        _state.status == CombatMatchStatus.victory ||
+        dreadnought.isGameOver ||
+        dreadnought.isVictory) {
       particleService.update(clampedDt * 0.2);
       return;
     }
@@ -180,6 +184,33 @@ class CombatCoordinator extends ChangeNotifier {
     // 1. Advance native C++ simulation
     engine.stepSimulation(clampedDt);
     _syncDomainState();
+
+    // Check if orbital was breached, ammo exhausted, or victory achieved during simulation step
+    final bool isAmmoExhausted =
+        dreadnought.reserveCores <= 0 &&
+        !dreadnought.isCascading &&
+        !lances.any((l) => l.active) &&
+        enemies.any((e) => !e.isDestroyed);
+
+    if (dreadnought.isGameOver || isAmmoExhausted) {
+      if (_state.status != CombatMatchStatus.defeat) {
+        _state = _state.copyWith(status: CombatMatchStatus.defeat);
+        audio.onDefeat();
+        notifyListeners();
+      }
+      bulletManager.clear();
+      particleService.update(clampedDt * 0.2);
+      return;
+    } else if (dreadnought.isVictory) {
+      if (_state.status != CombatMatchStatus.victory) {
+        _state = _state.copyWith(status: CombatMatchStatus.victory);
+        audio.onVictory();
+        notifyListeners();
+      }
+      bulletManager.clear();
+      particleService.update(clampedDt * 0.2);
+      return;
+    }
 
     // 2. Decay screen shake
     if (_state.screenShake != Offset.zero) {
@@ -257,26 +288,7 @@ class CombatCoordinator extends ChangeNotifier {
       }
     }
 
-    // 8. FSM Terminal State Evaluations
-    final bool isAmmoExhausted =
-        dreadnought.reserveCores <= 0 &&
-        !dreadnought.isCascading &&
-        !lances.any((l) => l.active) &&
-        enemies.any((e) => !e.isDestroyed);
-
-    if ((dreadnought.isGameOver || isAmmoExhausted) &&
-        _state.status != CombatMatchStatus.defeat) {
-      _state = _state.copyWith(status: CombatMatchStatus.defeat);
-      audio.onDefeat();
-      notifyListeners();
-    } else if (dreadnought.isVictory &&
-        _state.status != CombatMatchStatus.victory) {
-      _state = _state.copyWith(status: CombatMatchStatus.victory);
-      audio.onVictory();
-      notifyListeners();
-    }
-
-    // 9. Autonomous AI Tactical Solver step
+    // 8. Autonomous AI Tactical Solver step
     if (_state.isAutoSolving &&
         _state.status == CombatMatchStatus.activeCombat) {
       solverController.update(

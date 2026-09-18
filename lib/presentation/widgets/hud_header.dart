@@ -110,22 +110,42 @@ class HudHeader extends StatelessWidget {
 
     return SafeArea(
       bottom: false,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // 1. TOP LEFT WING: Mission Micro-Badge, Prominent Score & Pilot Callsign
-            _buildLeftWing(profile, secured),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final row = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 1. TOP LEFT WING: Mission Micro-Badge, Prominent Score & Pilot Callsign
+              _buildLeftWing(profile, secured),
 
-            // 2. OPEN CENTER CHANNEL: 100% unobstructed spawn sightline for incoming hostiles
-            const Spacer(),
+              // 2. OPEN CENTER CHANNEL: 100% unobstructed spawn sightline for incoming hostiles
+              const Spacer(),
 
-            // 3. TOP RIGHT WING: Cores Micro-Gauge, Hostiles & One-Button Pause/AI Controls
-            _buildRightWing(secured),
-          ],
-        ),
+              // 3. TOP RIGHT WING: Cores Micro-Gauge, Hostiles & One-Button Pause/AI Controls
+              _buildRightWing(secured),
+            ],
+          );
+
+          if (constraints.maxWidth < 400.0) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4.0,
+                vertical: 4.0,
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topCenter,
+                child: SizedBox(width: 400.0, child: row),
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: row,
+          );
+        },
       ),
     );
   }

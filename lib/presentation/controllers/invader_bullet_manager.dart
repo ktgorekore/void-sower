@@ -204,7 +204,7 @@ class InvaderBulletManager {
 
       // C. Reached Atmospheric Boundary / Dreadnought Flagship
       if (bullet.y >= boundaryY) {
-        final hitDread = (bullet.x - dreadX).abs() < 34.0;
+        final hitDread = (bullet.x - dreadX).abs() < 46.0;
         if (hitDread) {
           final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
           particleService.spawnFlakBurst(
