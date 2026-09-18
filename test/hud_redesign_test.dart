@@ -192,7 +192,7 @@ void main() {
     });
 
     testWidgets(
-      'HudHeader in secured state offers NEXT action and SECURED indicator',
+      'HudHeader in secured state displays clean SECURED indicator without pause or button clutter',
       (tester) async {
         bool nextSectorTapped = false;
 
@@ -207,6 +207,7 @@ void main() {
                 isSecured: true,
                 invadersRemaining: 0,
                 totalInvaders: 4,
+                onTogglePause: () {},
                 onNextSectorTap: () => nextSectorTapped = true,
               ),
             ),
@@ -214,9 +215,11 @@ void main() {
         );
 
         expect(find.text('SECURED'), findsOneWidget);
-        expect(find.text('NEXT'), findsOneWidget);
+        // Clean HUD: PAUSE and cluttered NEXT buttons are eliminated
+        expect(find.text('PAUSE'), findsNothing);
+        expect(find.text('NEXT'), findsNothing);
 
-        await tester.tap(find.text('NEXT'));
+        await tester.tap(find.text('SECURED'));
         await tester.pumpAndSettle();
         expect(nextSectorTapped, isTrue);
       },
@@ -249,6 +252,29 @@ void main() {
       await tester.pumpAndSettle();
       expect(dismissed, isTrue);
     });
+
+    testWidgets(
+      'VictoryDialog is anchored to upper viewport with compact alignment',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: VictoryDialog(
+                sectorId: 1,
+                score: 4000,
+                coresRemaining: 15,
+                onNextSector: () {},
+              ),
+            ),
+          ),
+        );
+
+        final dialogFinder = find.byType(Dialog);
+        expect(dialogFinder, findsOneWidget);
+        final dialog = tester.widget<Dialog>(dialogFinder);
+        expect(dialog.alignment, const Alignment(0.0, -0.28));
+      },
+    );
 
     testWidgets('HudHeader reflects new record when score exceeds highScore', (
       tester,
@@ -321,6 +347,66 @@ void main() {
       expect(find.text('FINAL SCORE: 1200'), findsOneWidget);
       expect(find.text('ALL-TIME HIGH SCORE: 6000'), findsOneWidget);
     });
+
+    testWidgets(
+      'GameOverDialog debounces premature taps during armDuration to prevent accidental clicks while shooting',
+      (tester) async {
+        bool retried = false;
+        bool returnedToMap = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: GameOverDialog(
+                score: 800,
+                highScore: 2000,
+                armDuration: const Duration(milliseconds: 500),
+                onRetry: () => retried = true,
+                onReturnToMap: () => returnedToMap = true,
+              ),
+            ),
+          ),
+        );
+
+        // Immediate taps during desperate shooting cooldown should be ignored
+        await tester.tap(find.text('TRY AGAIN'));
+        await tester.pump();
+        expect(retried, isFalse);
+
+        await tester.tap(find.text('SECTOR MAP'));
+        await tester.pump();
+        expect(returnedToMap, isFalse);
+
+        // After 500ms safety cooldown, buttons arm and taps succeed
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.tap(find.text('TRY AGAIN'));
+        await tester.pumpAndSettle();
+        expect(retried, isTrue);
+      },
+    );
+
+    testWidgets(
+      'GameOverDialog is anchored to upper viewport to avoid overlapping defender',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: GameOverDialog(
+                score: 500,
+                highScore: 1000,
+                onRetry: () {},
+                onReturnToMap: () {},
+              ),
+            ),
+          ),
+        );
+
+        final dialogFinder = find.byType(Dialog);
+        expect(dialogFinder, findsOneWidget);
+        final dialog = tester.widget<Dialog>(dialogFinder);
+        expect(dialog.alignment, const Alignment(0.0, -0.32));
+      },
+    );
 
     testWidgets(
       'HudHeader displays person icon and PRO badge when isPro is true',

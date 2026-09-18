@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -19,8 +20,13 @@ import 'package:flutter/material.dart';
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
-/// Modal overlay presented when enemy vessels breach the orbital boundary.
-class GameOverDialog extends StatelessWidget {
+/// Modal overlay presented when enemy vessels breach the orbital boundary or
+/// plasma ammunition is exhausted.
+///
+/// Anchored to the upper-middle viewport (`Alignment(0.0, -0.32)`) with a 500ms
+/// safety debounce delay to prevent in-flight shooting taps from triggering
+/// accidental retries or navigation.
+class GameOverDialog extends StatefulWidget {
   const GameOverDialog({
     super.key,
     required this.score,
@@ -28,38 +34,78 @@ class GameOverDialog extends StatelessWidget {
     required this.onRetry,
     required this.onReturnToMap,
     this.isAmmoDepleted = false,
+    this.armDuration = const Duration(milliseconds: 500),
   });
 
+  /// Mission score attained prior to defeat.
   final int score;
+
+  /// All-time high score recorded in persistent storage.
   final int highScore;
+
+  /// Callback to retry the current sector wave.
   final VoidCallback onRetry;
+
+  /// Callback to navigate back to the Campaign Star Map.
   final VoidCallback onReturnToMap;
+
+  /// Whether defeat was triggered by ammunition exhaustion rather than breach.
   final bool isAmmoDepleted;
+
+  /// Safety debounce duration before action buttons accept taps.
+  final Duration armDuration;
+
+  @override
+  State<GameOverDialog> createState() => _GameOverDialogState();
+}
+
+class _GameOverDialogState extends State<GameOverDialog> {
+  bool _isArmed = false;
+  Timer? _armTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.armDuration == Duration.zero) {
+      _isArmed = true;
+    } else {
+      _armTimer = Timer(widget.armDuration, () {
+        if (mounted) {
+          setState(() => _isArmed = true);
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _armTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isNewRecord = widget.score >= widget.highScore && widget.score > 0;
+    final effectiveHighScore = math.max(widget.score, widget.highScore);
+    final accentColor = widget.isAmmoDepleted
+        ? VoidTheme.solarGold
+        : VoidTheme.crimsonFlare;
+
     return Dialog(
+      alignment: const Alignment(0.0, -0.32),
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24.0),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Container(
-        padding: const EdgeInsets.all(24.0),
+        constraints: const BoxConstraints(maxWidth: 340.0),
+        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
         decoration: BoxDecoration(
           color: VoidTheme.obsidianBlack,
           borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(
-            color: isAmmoDepleted
-                ? VoidTheme.solarGold
-                : VoidTheme.crimsonFlare,
-            width: 2.0,
-          ),
+          border: Border.all(color: accentColor, width: 1.5),
           boxShadow: [
             BoxShadow(
-              color:
-                  (isAmmoDepleted
-                          ? VoidTheme.solarGold
-                          : VoidTheme.crimsonFlare)
-                      .withValues(alpha: 0.3),
-              blurRadius: 24.0,
+              color: accentColor.withValues(alpha: 0.3),
+              blurRadius: 20.0,
             ),
           ],
         ),
@@ -67,131 +113,124 @@ class GameOverDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isAmmoDepleted ? Icons.bolt : Icons.warning_amber_rounded,
-              color: isAmmoDepleted
-                  ? VoidTheme.solarGold
-                  : VoidTheme.crimsonFlare,
-              size: 56.0,
-            ),
-            const SizedBox(height: 12.0),
-            Text(
-              isAmmoDepleted ? 'CORES EXHAUSTED' : 'ORBITAL BREACH',
-              style: TextStyle(
-                color: isAmmoDepleted
-                    ? VoidTheme.solarGold
-                    : VoidTheme.crimsonFlare,
-                fontSize: 22.0,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2.0,
-              ),
+              widget.isAmmoDepleted ? Icons.bolt : Icons.warning_amber_rounded,
+              color: accentColor,
+              size: 38.0,
             ),
             const SizedBox(height: 8.0),
             Text(
-              isAmmoDepleted
-                  ? 'Reserve plasma cores depleted with zero ordnance remaining to engage the enemy fleet.'
-                  : 'The atmospheric boundary was compromised by enemy assault craft.',
+              widget.isAmmoDepleted ? 'CORES EXHAUSTED' : 'ORBITAL BREACH',
+              style: TextStyle(
+                color: accentColor,
+                fontSize: 17.0,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: 4.0),
+            Text(
+              widget.isAmmoDepleted
+                  ? 'Reserve plasma cores depleted with zero ordnance remaining.'
+                  : 'Atmospheric boundary compromised by enemy assault craft.',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: VoidTheme.textSecondary,
-                fontSize: 13.0,
+                fontSize: 11.5,
               ),
             ),
-            const SizedBox(height: 14.0),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'FINAL SCORE: $score',
-                  style: const TextStyle(
-                    color: VoidTheme.solarGold,
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-                const SizedBox(height: 4.0),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.emoji_events,
-                      size: 13.0,
-                      color: (score >= highScore && score > 0)
-                          ? VoidTheme.solarGold
-                          : VoidTheme.textMuted,
-                    ),
-                    const SizedBox(width: 4.0),
-                    Text(
-                      (score >= highScore && score > 0)
-                          ? '🏆 NEW ALL-TIME HIGH SCORE!'
-                          : 'ALL-TIME HIGH SCORE: ${math.max(score, highScore)}',
-                      style: TextStyle(
-                        color: (score >= highScore && score > 0)
-                            ? VoidTheme.solarGold
-                            : VoidTheme.textSecondary,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 12.0),
             Container(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 8.0,
+              ),
               decoration: BoxDecoration(
                 color: VoidTheme.cardSurface.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(
-                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.3),
-                  width: 1.0,
-                ),
+                border: Border.all(color: VoidTheme.cardSurface, width: 1.0),
               ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
-                    Icons.lightbulb_outline,
-                    color: VoidTheme.solarGold,
-                    size: 18.0,
-                  ),
-                  const SizedBox(width: 8.0),
-                  Expanded(
-                    child: Text(
-                      isAmmoDepleted
-                          ? 'TACTICAL TIP: Avoid single-core quick shots. Build high mass along the backline to unleash devastating quadratic cascades!'
-                          : 'TACTICAL TIP: Sowing into Nyumba (Bays 3 & 4) retains charges for a massive quadratic overload.',
-                      style: const TextStyle(
-                        color: VoidTheme.textSecondary,
-                        fontSize: 11.0,
-                        height: 1.35,
-                      ),
+                  Text(
+                    'FINAL SCORE: ${widget.score}',
+                    style: const TextStyle(
+                      color: VoidTheme.solarGold,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.8,
                     ),
+                  ),
+                  const SizedBox(height: 2.0),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.emoji_events,
+                        size: 12.0,
+                        color: isNewRecord
+                            ? VoidTheme.solarGold
+                            : VoidTheme.textMuted,
+                      ),
+                      const SizedBox(width: 4.0),
+                      Flexible(
+                        child: Text(
+                          isNewRecord
+                              ? '🏆 NEW ALL-TIME HIGH SCORE!'
+                              : 'ALL-TIME HIGH SCORE: $effectiveHighScore',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isNewRecord
+                                ? VoidTheme.solarGold
+                                : VoidTheme.textSecondary,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 22.0),
+            const SizedBox(height: 10.0),
+            Text(
+              widget.isAmmoDepleted
+                  ? 'TIP: Build mass along backline for quadratic cascades.'
+                  : 'TIP: Sowing into Nyumba (Bays 3 & 4) stores massive charges.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: VoidTheme.textMuted,
+                fontSize: 10.0,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 16.0),
             Row(
               children: [
                 Expanded(
                   child: TactileButton(
                     label: 'SECTOR MAP',
-                    onPressed: onReturnToMap,
-                    accentColor: VoidTheme.textSecondary,
+                    onPressed: _isArmed ? widget.onReturnToMap : null,
+                    accentColor: _isArmed
+                        ? VoidTheme.textSecondary
+                        : VoidTheme.textSecondary.withValues(alpha: 0.35),
                     isPrimary: false,
-                    height: 44.0,
+                    height: 40.0,
                   ),
                 ),
-                const SizedBox(width: 12.0),
+                const SizedBox(width: 10.0),
                 Expanded(
                   child: TactileButton(
                     label: 'TRY AGAIN',
                     icon: Icons.refresh,
-                    onPressed: onRetry,
-                    accentColor: VoidTheme.crimsonFlare,
-                    height: 44.0,
+                    onPressed: _isArmed ? widget.onRetry : null,
+                    accentColor: _isArmed
+                        ? VoidTheme.crimsonFlare
+                        : VoidTheme.crimsonFlare.withValues(alpha: 0.35),
+                    height: 40.0,
                   ),
                 ),
               ],

@@ -472,41 +472,70 @@ class HudHeader extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Hostiles Micro-Indicator
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        secured ? Icons.check_circle : Icons.shield_outlined,
-                        size: 12.0,
-                        color: secured
-                            ? VoidTheme.emeraldShield
-                            : (remaining <= 2
-                                  ? VoidTheme.solarGold
-                                  : VoidTheme.crimsonFlare),
+                  // Hostiles Micro-Indicator / Clean SECURED Status
+                  GestureDetector(
+                    onTap: secured ? onNextSectorTap : null,
+                    child: Container(
+                      padding: secured
+                          ? const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 2.0,
+                            )
+                          : EdgeInsets.zero,
+                      decoration: secured
+                          ? BoxDecoration(
+                              color: VoidTheme.emeraldShield.withValues(
+                                alpha: 0.18,
+                              ),
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: VoidTheme.emeraldShield.withValues(
+                                  alpha: 0.6,
+                                ),
+                                width: 0.8,
+                              ),
+                            )
+                          : null,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            secured
+                                ? Icons.check_circle
+                                : Icons.shield_outlined,
+                            size: 12.0,
+                            color: secured
+                                ? VoidTheme.emeraldShield
+                                : (remaining <= 2
+                                      ? VoidTheme.solarGold
+                                      : VoidTheme.crimsonFlare),
+                          ),
+                          const SizedBox(width: 3.0),
+                          Text(
+                            secured
+                                ? 'SECURED'
+                                : (total > 0
+                                      ? '$eliminated/$total'
+                                      : '$remaining'),
+                            style: TextStyle(
+                              color: secured
+                                  ? VoidTheme.emeraldShield
+                                  : (remaining <= 2
+                                        ? VoidTheme.solarGold
+                                        : VoidTheme.starWhite),
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 3.0),
-                      Text(
-                        secured
-                            ? 'SECURED'
-                            : (total > 0 ? '$eliminated/$total' : '$remaining'),
-                        style: TextStyle(
-                          color: secured
-                              ? VoidTheme.emeraldShield
-                              : (remaining <= 2
-                                    ? VoidTheme.solarGold
-                                    : VoidTheme.starWhite),
-                          fontSize: 10.0,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(width: 8.0),
 
                   // AI Tactical Auto-Solver Toggle Switch (active combat only)
                   if (!secured && onToggleAutoSolve != null) ...[
+                    const SizedBox(width: 8.0),
                     GestureDetector(
                       onTap: onToggleAutoSolve,
                       child: Container(
@@ -561,11 +590,11 @@ class HudHeader extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6.0),
                   ],
 
-                  // Single Pause Button [ ⏸ ]
-                  if (onTogglePause != null)
+                  // Single Pause Button [ ⏸ ] (active combat only)
+                  if (!secured && onTogglePause != null) ...[
+                    const SizedBox(width: 6.0),
                     GestureDetector(
                       onTap: onTogglePause,
                       child: Container(
@@ -618,51 +647,6 @@ class HudHeader extends StatelessWidget {
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 0.3,
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                  // Optional Emerald Next Sector Action when secured
-                  if (secured && onNextSectorTap != null) ...[
-                    const SizedBox(width: 5.0),
-                    GestureDetector(
-                      onTap: onNextSectorTap,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 7.0,
-                          vertical: 2.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: VoidTheme.emeraldShield,
-                          borderRadius: BorderRadius.circular(4.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: VoidTheme.emeraldShield.withValues(
-                                alpha: 0.4,
-                              ),
-                              blurRadius: 6.0,
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              sectorId < 9 ? 'NEXT' : 'REPLAY',
-                              style: const TextStyle(
-                                color: VoidTheme.obsidianBlack,
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                            const SizedBox(width: 1.5),
-                            const Icon(
-                              Icons.navigate_next,
-                              size: 12.0,
-                              color: VoidTheme.obsidianBlack,
                             ),
                           ],
                         ),

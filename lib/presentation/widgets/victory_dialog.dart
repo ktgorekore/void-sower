@@ -22,6 +22,10 @@ import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
 /// Modal overlay presented upon neutralizing all assault craft in a sector wave.
+///
+/// Designed with a compact high-tech profile (`maxWidth: 340.0`) anchored to
+/// the upper-middle screen (`Alignment(0.0, -0.28)`) and armed with a 500ms
+/// safety delay to prevent misclicks while firing.
 class VictoryDialog extends StatefulWidget {
   const VictoryDialog({
     super.key,
@@ -40,21 +44,43 @@ class VictoryDialog extends StatefulWidget {
     this.onDismiss,
   });
 
+  /// 1-based index of the liberated sector.
   final int sectorId;
+
+  /// Human-readable identity of the sector.
   final String sectorName;
+
+  /// Final score accumulated during the mission.
   final int score;
+
+  /// All-time high score recorded in persistent storage.
   final int highScore;
+
+  /// Surplus energy cores retained at wave conclusion.
   final int coresRemaining;
+
+  /// Calculated star performance rating (1 to 3).
   final int starsEarned;
+
+  /// True if completing this wave unlocked a new sector.
   final bool isNewUnlock;
+
+  /// Name of the newly unlocked sector, if applicable.
   final String? unlockedSectorName;
+
+  /// Campaign summary text, e.g. "3 / 9 LIBERATED".
   final String? campaignProgressText;
 
   /// Safety debounce duration before action buttons accept taps.
   final Duration armDuration;
 
+  /// Callback to advance to the next sector or replay.
   final VoidCallback onNextSector;
+
+  /// Callback to navigate to the Campaign Star Map.
   final VoidCallback? onReturnToMap;
+
+  /// Optional callback when modal is closed to view the battlefield.
   final VoidCallback? onDismiss;
 
   @override
@@ -71,7 +97,6 @@ class _VictoryDialogState extends State<VictoryDialog> {
     if (widget.armDuration == Duration.zero) {
       _isArmed = true;
     } else {
-      // 500ms safety arming delay to prevent accidental button clicks from shooting taps
       _armTimer = Timer(widget.armDuration, () {
         if (mounted) {
           setState(() => _isArmed = true);
@@ -101,23 +126,26 @@ class _VictoryDialogState extends State<VictoryDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      alignment: const Alignment(0.0, -0.32),
+      alignment: const Alignment(0.0, -0.28),
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Container(
-            constraints: const BoxConstraints(maxWidth: 420.0),
-            padding: const EdgeInsets.all(22.0),
+            constraints: const BoxConstraints(maxWidth: 340.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 18.0,
+              vertical: 16.0,
+            ),
             decoration: BoxDecoration(
               color: VoidTheme.obsidianBlack,
               borderRadius: BorderRadius.circular(16.0),
-              border: Border.all(color: VoidTheme.solarGold, width: 2.0),
+              border: Border.all(color: VoidTheme.solarGold, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: VoidTheme.solarGold.withValues(alpha: 0.35),
-                  blurRadius: 24.0,
+                  color: VoidTheme.solarGold.withValues(alpha: 0.3),
+                  blurRadius: 20.0,
                 ),
               ],
             ),
@@ -128,39 +156,39 @@ class _VictoryDialogState extends State<VictoryDialog> {
                 // Top Victory Crest & Title
                 Center(
                   child: Container(
-                    width: 64.0,
-                    height: 64.0,
+                    width: 44.0,
+                    height: 44.0,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: VoidTheme.solarGold.withValues(alpha: 0.15),
                       border: Border.all(
                         color: VoidTheme.solarGold,
-                        width: 2.0,
+                        width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: VoidTheme.solarGold.withValues(alpha: 0.4),
-                          blurRadius: 16.0,
-                          spreadRadius: 2.0,
+                          color: VoidTheme.solarGold.withValues(alpha: 0.35),
+                          blurRadius: 12.0,
+                          spreadRadius: 1.0,
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.military_tech,
                       color: VoidTheme.solarGold,
-                      size: 40.0,
+                      size: 26.0,
                     ),
                   ),
                 ),
-                const SizedBox(height: 12.0),
+                const SizedBox(height: 8.0),
                 Text(
                   'SECTOR ${widget.sectorId} LIBERATED!',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: VoidTheme.solarGold,
-                    fontSize: 20.0,
+                    fontSize: 17.0,
                     fontWeight: FontWeight.w900,
-                    letterSpacing: 1.5,
+                    letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 2.0),
@@ -169,25 +197,25 @@ class _VictoryDialogState extends State<VictoryDialog> {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: VoidTheme.plasmaCyan,
-                    fontSize: 12.0,
+                    fontSize: 11.0,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+                    letterSpacing: 0.8,
                   ),
                 ),
-                const SizedBox(height: 12.0),
+                const SizedBox(height: 8.0),
 
                 // Stars Rating Badge
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14.0,
-                      vertical: 6.0,
+                      horizontal: 10.0,
+                      vertical: 4.0,
                     ),
                     decoration: BoxDecoration(
                       color: VoidTheme.cardSurface,
-                      borderRadius: BorderRadius.circular(20.0),
+                      borderRadius: BorderRadius.circular(16.0),
                       border: Border.all(
-                        color: VoidTheme.solarGold.withValues(alpha: 0.5),
+                        color: VoidTheme.solarGold.withValues(alpha: 0.4),
                         width: 1.0,
                       ),
                     ),
@@ -199,61 +227,56 @@ class _VictoryDialogState extends State<VictoryDialog> {
                             final earned = i < widget.starsEarned;
                             return Padding(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 2.0,
+                                horizontal: 1.5,
                               ),
                               child: Icon(
                                 earned ? Icons.star : Icons.star_border,
                                 color: VoidTheme.solarGold,
-                                size: 18.0,
+                                size: 15.0,
                               ),
                             );
                           }),
                         ),
-                        const SizedBox(width: 8.0),
+                        const SizedBox(width: 6.0),
                         Text(
                           _starRatingLabel,
                           style: const TextStyle(
                             color: VoidTheme.solarGoldLight,
-                            fontSize: 10.5,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
+                            letterSpacing: 0.4,
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 14.0),
+                const SizedBox(height: 10.0),
 
                 // Progress Banner: New Unlock or Campaign Summary
                 if (widget.isNewUnlock &&
                     widget.unlockedSectorName != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10.0,
+                      vertical: 6.0,
+                    ),
                     decoration: BoxDecoration(
-                      color: VoidTheme.emeraldShield.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10.0),
+                      color: VoidTheme.emeraldShield.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8.0),
                       border: Border.all(
                         color: VoidTheme.emeraldShield,
-                        width: 1.2,
+                        width: 1.0,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: VoidTheme.emeraldShield.withValues(
-                            alpha: 0.25,
-                          ),
-                          blurRadius: 10.0,
-                        ),
-                      ],
                     ),
                     child: Row(
                       children: [
                         const Icon(
                           Icons.lock_open,
                           color: VoidTheme.emeraldShield,
-                          size: 20.0,
+                          size: 16.0,
                         ),
-                        const SizedBox(width: 8.0),
+                        const SizedBox(width: 6.0),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -262,16 +285,16 @@ class _VictoryDialogState extends State<VictoryDialog> {
                                 'NEW SECTOR UNLOCKED!',
                                 style: TextStyle(
                                   color: VoidTheme.emeraldShield,
-                                  fontSize: 10.0,
+                                  fontSize: 9.0,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.8,
+                                  letterSpacing: 0.6,
                                 ),
                               ),
                               Text(
                                 'Sector ${widget.sectorId + 1}: ${widget.unlockedSectorName!.toUpperCase()}',
                                 style: const TextStyle(
                                   color: VoidTheme.starWhite,
-                                  fontSize: 11.5,
+                                  fontSize: 10.5,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -281,18 +304,18 @@ class _VictoryDialogState extends State<VictoryDialog> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12.0),
+                  const SizedBox(height: 10.0),
                 ] else if (widget.campaignProgressText != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0,
-                      vertical: 6.0,
+                      horizontal: 8.0,
+                      vertical: 4.0,
                     ),
                     decoration: BoxDecoration(
                       color: VoidTheme.cardSurface.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(6.0),
                       border: Border.all(
-                        color: VoidTheme.textMuted.withValues(alpha: 0.4),
+                        color: VoidTheme.textMuted.withValues(alpha: 0.3),
                         width: 0.8,
                       ),
                     ),
@@ -301,14 +324,14 @@ class _VictoryDialogState extends State<VictoryDialog> {
                         'CAMPAIGN PROGRESS: ${widget.campaignProgressText}',
                         style: const TextStyle(
                           color: VoidTheme.textSecondary,
-                          fontSize: 10.5,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.4,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12.0),
+                  const SizedBox(height: 10.0),
                 ],
 
                 // Score & Cores Stats Row: Mission Score + High Score + Cores Saved
@@ -324,7 +347,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     ),
                     Container(
                       width: 1.0,
-                      height: 32.0,
+                      height: 26.0,
                       color: VoidTheme.cardSurface,
                     ),
                     Expanded(
@@ -338,7 +361,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     ),
                     Container(
                       width: 1.0,
-                      height: 32.0,
+                      height: 26.0,
                       color: VoidTheme.cardSurface,
                     ),
                     Expanded(
@@ -350,7 +373,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20.0),
+                const SizedBox(height: 14.0),
 
                 // Action Buttons
                 TactileButton(
@@ -361,22 +384,22 @@ class _VictoryDialogState extends State<VictoryDialog> {
                   onPressed: _isArmed ? widget.onNextSector : null,
                   accentColor: _isArmed
                       ? VoidTheme.solarGold
-                      : VoidTheme.solarGold.withValues(alpha: 0.45),
+                      : VoidTheme.solarGold.withValues(alpha: 0.4),
                   minWidth: double.infinity,
-                  height: 46.0,
+                  height: 42.0,
                 ),
                 if (widget.onReturnToMap != null) ...[
-                  const SizedBox(height: 8.0),
+                  const SizedBox(height: 6.0),
                   TactileButton(
                     label: 'RETURN TO STAR MAP',
                     icon: Icons.map_outlined,
                     onPressed: _isArmed ? widget.onReturnToMap! : null,
                     accentColor: _isArmed
                         ? VoidTheme.plasmaCyan
-                        : VoidTheme.plasmaCyan.withValues(alpha: 0.45),
+                        : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
                     isPrimary: false,
                     minWidth: double.infinity,
-                    height: 42.0,
+                    height: 38.0,
                   ),
                 ],
               ],
@@ -387,24 +410,24 @@ class _VictoryDialogState extends State<VictoryDialog> {
             right: 4.0,
             child: IconButton(
               icon: Container(
-                padding: const EdgeInsets.all(6.0),
+                padding: const EdgeInsets.all(5.0),
                 decoration: BoxDecoration(
                   color: VoidTheme.cardSurface,
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: VoidTheme.textMuted.withValues(alpha: 0.6),
+                    color: VoidTheme.textMuted.withValues(alpha: 0.5),
                     width: 1.0,
                   ),
                 ),
                 child: const Icon(
                   Icons.close,
                   color: VoidTheme.textSecondary,
-                  size: 16.0,
+                  size: 14.0,
                 ),
               ),
               constraints: const BoxConstraints(
-                minWidth: 48.0,
-                minHeight: 48.0,
+                minWidth: 44.0,
+                minHeight: 44.0,
               ),
               tooltip: 'Dismiss',
               onPressed: () {
@@ -433,18 +456,18 @@ class _VictoryDialogState extends State<VictoryDialog> {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: VoidTheme.textMuted,
-            fontSize: 9.0,
+            fontSize: 8.5,
             fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
+            letterSpacing: 0.4,
           ),
         ),
-        const SizedBox(height: 2.0),
+        const SizedBox(height: 1.0),
         Text(
           value,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: valueColor,
-            fontSize: 18.0,
+            fontSize: 16.0,
             fontWeight: FontWeight.w900,
           ),
         ),
