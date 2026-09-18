@@ -607,6 +607,8 @@ class _CombatScreenState extends State<CombatScreen>
                           isPaused:
                               matchState.status == CombatMatchStatus.paused,
                           onTogglePause: _toggleTacticalPause,
+                          onRestartTap: _restartCombat,
+                          onStopTap: _openMap,
                           onMapTap: _openMap,
                           onNextSectorTap: () {
                             if (_victoryDialogDismissed) {

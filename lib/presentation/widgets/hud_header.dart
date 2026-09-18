@@ -127,7 +127,7 @@ class HudHeader extends StatelessWidget {
             ],
           );
 
-          if (constraints.maxWidth < 400.0) {
+          if (constraints.maxWidth < 420.0) {
             return Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 4.0,
@@ -136,7 +136,7 @@ class HudHeader extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.topCenter,
-                child: SizedBox(width: 400.0, child: row),
+                child: SizedBox(width: 420.0, child: row),
               ),
             );
           }
@@ -612,66 +612,128 @@ class HudHeader extends StatelessWidget {
                     ),
                   ],
 
-                  // Single Pause Button [ ⏸ ] (active combat only)
-                  if (!secured && onTogglePause != null) ...[
-                    const SizedBox(width: 6.0),
-                    GestureDetector(
-                      onTap: onTogglePause,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6.0,
-                          vertical: 2.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isPaused
-                              ? VoidTheme.solarGold
-                              : VoidTheme.cardSurface.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(4.0),
-                          border: Border.all(
-                            color: isPaused
-                                ? VoidTheme.solarGold
-                                : VoidTheme.textSecondary.withValues(
-                                    alpha: 0.5,
-                                  ),
-                            width: 1.0,
-                          ),
-                          boxShadow: isPaused
-                              ? [
-                                  BoxShadow(
-                                    color: VoidTheme.solarGold.withValues(
-                                      alpha: 0.4,
+                  // Simulation Controls: Pause/Play, Restart, Stop/Abort (Active combat only, Icon-Only)
+                  if (!secured) ...[
+                    // 1. Pause or Play Button [ ⏸ / ▶ ]
+                    if (onTogglePause != null) ...[
+                      const SizedBox(width: 5.0),
+                      Tooltip(
+                        message: isPaused ? 'Resume Sortie' : 'Pause Sortie',
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onTogglePause,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isPaused
+                                  ? VoidTheme.solarGold
+                                  : VoidTheme.cardSurface.withValues(
+                                      alpha: 0.7,
                                     ),
-                                    blurRadius: 4.0,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: isPaused
+                                    ? VoidTheme.solarGold
+                                    : VoidTheme.textSecondary.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                width: 1.0,
+                              ),
+                              boxShadow: isPaused
+                                  ? [
+                                      BoxShadow(
+                                        color: VoidTheme.solarGold.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                        blurRadius: 4.0,
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Icon(
                               isPaused ? Icons.play_arrow : Icons.pause,
-                              size: 12.0,
+                              size: 13.0,
                               color: isPaused
                                   ? VoidTheme.obsidianBlack
                                   : VoidTheme.starWhite,
                             ),
-                            const SizedBox(width: 2.0),
-                            Text(
-                              isPaused ? 'RESUME' : 'PAUSE',
-                              style: TextStyle(
-                                color: isPaused
-                                    ? VoidTheme.obsidianBlack
-                                    : VoidTheme.starWhite,
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    ),
+                    ],
+
+                    // 2. Restart Sortie Button [ 🔄 ]
+                    if (onRestartTap != null) ...[
+                      const SizedBox(width: 4.0),
+                      Tooltip(
+                        message: 'Restart Sector',
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onRestartTap,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: VoidTheme.cardSurface.withValues(
+                                alpha: 0.7,
+                              ),
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: VoidTheme.plasmaCyan.withValues(
+                                  alpha: 0.5,
+                                ),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.replay,
+                              size: 13.0,
+                              color: VoidTheme.plasmaCyanLight,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+
+                    // 3. Stop / Abort Sortie Button [ ⏹ ]
+                    if (onStopTap != null) ...[
+                      const SizedBox(width: 4.0),
+                      Tooltip(
+                        message: 'Abort to Map',
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: onStopTap,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6.0,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: VoidTheme.cardSurface.withValues(
+                                alpha: 0.7,
+                              ),
+                              borderRadius: BorderRadius.circular(4.0),
+                              border: Border.all(
+                                color: VoidTheme.crimsonFlare.withValues(
+                                  alpha: 0.5,
+                                ),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.stop_circle_outlined,
+                              size: 13.0,
+                              color: VoidTheme.crimsonFlare,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ],
               ),

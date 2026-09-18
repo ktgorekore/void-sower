@@ -63,12 +63,13 @@ void main() {
         expect(find.text('005,000'), findsOneWidget);
         expect(find.text('KILIMA_ONE'), findsOneWidget);
 
-        // Right Wing: Cores micro-gauge, progress bar label, Hostiles, AI, PAUSE
+        // Right Wing: Cores micro-gauge, progress bar label, Hostiles, AI, and icon controls
         expect(find.text('16/50'), findsOneWidget);
         expect(find.text('ENERGY CORES'), findsOneWidget);
         expect(find.text('2/6'), findsOneWidget);
         expect(find.text('AI'), findsOneWidget);
-        expect(find.text('PAUSE'), findsOneWidget);
+        expect(find.byIcon(Icons.pause), findsOneWidget);
+        expect(find.text('PAUSE'), findsNothing);
 
         // Meta buttons are cleanly shifted off live screen to preserve center sightline
         expect(find.text('MAP'), findsNothing);
@@ -76,8 +77,8 @@ void main() {
         expect(find.text('SETTINGS'), findsNothing);
         expect(find.text('ABORT'), findsNothing);
 
-        // Tap PAUSE
-        await tester.tap(find.text('PAUSE'));
+        // Tap PAUSE icon
+        await tester.tap(find.byIcon(Icons.pause));
         await tester.pumpAndSettle();
         expect(pauseTapped, isTrue);
 
@@ -127,23 +128,26 @@ void main() {
         expect(find.text('ALL-TIME HIGH SCORE'), findsOneWidget);
         expect(find.text('5000'), findsOneWidget);
 
-        expect(find.text('RESUME SORTIE'), findsOneWidget);
-        expect(find.text('RESTART'), findsOneWidget);
-        expect(find.text('ABORT'), findsOneWidget);
+        expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+        expect(find.byIcon(Icons.replay), findsOneWidget);
+        expect(find.byIcon(Icons.stop_circle_outlined), findsOneWidget);
+        expect(find.text('RESUME SORTIE'), findsNothing);
+        expect(find.text('RESTART'), findsNothing);
+        expect(find.text('ABORT'), findsNothing);
         expect(find.text('MAP'), findsOneWidget);
         expect(find.text('RULES'), findsOneWidget);
         expect(find.text('ACADEMY'), findsOneWidget);
         expect(find.text('SYSTEM & AUDIO SETTINGS'), findsOneWidget);
 
-        await tester.tap(find.text('RESUME SORTIE'));
+        await tester.tap(find.byIcon(Icons.play_arrow));
         await tester.pumpAndSettle();
         expect(resumeTapped, isTrue);
 
-        await tester.tap(find.text('RESTART'));
+        await tester.tap(find.byIcon(Icons.replay));
         await tester.pumpAndSettle();
         expect(restartTapped, isTrue);
 
-        await tester.tap(find.text('ABORT'));
+        await tester.tap(find.byIcon(Icons.stop_circle_outlined));
         await tester.pumpAndSettle();
         expect(abortTapped, isTrue);
 
@@ -165,31 +169,34 @@ void main() {
       },
     );
 
-    testWidgets('HudHeader reflects paused state with RESUME on pause button', (
-      tester,
-    ) async {
-      bool resumeTapped = false;
+    testWidgets(
+      'HudHeader reflects paused state with play arrow icon on pause button',
+      (tester) async {
+        bool resumeTapped = false;
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: HudHeader(
-              reserveCores: 8,
-              score: 500,
-              difficultyTier: 0,
-              isPaused: true,
-              onTogglePause: () => resumeTapped = true,
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 8,
+                score: 500,
+                difficultyTier: 0,
+                isPaused: true,
+                onTogglePause: () => resumeTapped = true,
+              ),
             ),
           ),
-        ),
-      );
+        );
 
-      expect(find.text('RESUME'), findsOneWidget);
+        expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+        expect(find.text('RESUME'), findsNothing);
+        expect(find.text('PAUSE'), findsNothing);
 
-      await tester.tap(find.text('RESUME'));
-      await tester.pumpAndSettle();
-      expect(resumeTapped, isTrue);
-    });
+        await tester.tap(find.byIcon(Icons.play_arrow));
+        await tester.pumpAndSettle();
+        expect(resumeTapped, isTrue);
+      },
+    );
 
     testWidgets(
       'HudHeader in secured state displays clean SECURED indicator without pause or button clutter',
@@ -455,6 +462,61 @@ void main() {
         expect(find.text('RECRUIT_X'), findsOneWidget);
         expect(find.byIcon(Icons.person), findsOneWidget);
         expect(find.text('PRO'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'HudHeader renders icon-only simulation controls for pause, restart, and abort with no text',
+      (tester) async {
+        bool pauseTapped = false;
+        bool restartTapped = false;
+        bool stopTapped = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 20,
+                score: 1500,
+                highScore: 5000,
+                difficultyTier: 1,
+                sectorId: 2,
+                totalInvaders: 6,
+                invadersRemaining: 3,
+                isPaused: false,
+                onTogglePause: () => pauseTapped = true,
+                onRestartTap: () => restartTapped = true,
+                onStopTap: () => stopTapped = true,
+              ),
+            ),
+          ),
+        );
+
+        // Verify icon-only simulation controls exist
+        expect(find.byIcon(Icons.pause), findsOneWidget);
+        expect(find.byIcon(Icons.replay), findsOneWidget);
+        expect(find.byIcon(Icons.stop_circle_outlined), findsOneWidget);
+
+        // Verify NO text labels are used for simulation controls
+        expect(find.text('PAUSE'), findsNothing);
+        expect(find.text('RESUME'), findsNothing);
+        expect(find.text('RESTART'), findsNothing);
+        expect(find.text('ABORT'), findsNothing);
+
+        // Tap Pause icon
+        await tester.tap(find.byIcon(Icons.pause));
+        await tester.pumpAndSettle();
+        expect(pauseTapped, isTrue);
+
+        // Tap Restart icon
+        await tester.tap(find.byIcon(Icons.replay));
+        await tester.pumpAndSettle();
+        expect(restartTapped, isTrue);
+
+        // Tap Stop/Abort icon
+        await tester.tap(find.byIcon(Icons.stop_circle_outlined));
+        await tester.pumpAndSettle();
+        expect(stopTapped, isTrue);
       },
     );
   });

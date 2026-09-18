@@ -244,39 +244,53 @@ class PauseMenuDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 18.0),
 
-                // Primary: Resume Sortie
-                TactileButton(
-                  label: 'RESUME SORTIE',
-                  icon: Icons.play_arrow,
-                  accentColor: VoidTheme.emeraldShield,
-                  onPressed: onResume,
-                  minWidth: double.infinity,
-                  height: 46.0,
-                ),
-                const SizedBox(height: 10.0),
-
-                // Secondary Row: Restart / Abort
+                // Primary Simulation Controls: Resume (Play), Restart, Stop (Abort) - Icon-Only
                 Row(
                   children: [
+                    // Resume Sortie (Play)
                     Expanded(
-                      child: TactileButton(
-                        label: 'RESTART',
-                        icon: Icons.replay,
-                        accentColor: VoidTheme.plasmaCyan,
-                        isPrimary: false,
-                        onPressed: onRestart,
-                        height: 42.0,
+                      child: Tooltip(
+                        message: 'RESUME SORTIE',
+                        child: TactileButton(
+                          label: '',
+                          icon: Icons.play_arrow,
+                          accentColor: VoidTheme.emeraldShield,
+                          onPressed: onResume,
+                          minWidth: 0.0,
+                          height: 46.0,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10.0),
+                    // Restart Sortie
                     Expanded(
-                      child: TactileButton(
-                        label: 'ABORT',
-                        icon: Icons.stop_circle_outlined,
-                        accentColor: VoidTheme.crimsonFlare,
-                        isPrimary: false,
-                        onPressed: onAbort,
-                        height: 42.0,
+                      child: Tooltip(
+                        message: 'RESTART SORTIE',
+                        child: TactileButton(
+                          label: '',
+                          icon: Icons.replay,
+                          accentColor: VoidTheme.plasmaCyan,
+                          isPrimary: false,
+                          onPressed: onRestart,
+                          minWidth: 0.0,
+                          height: 46.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10.0),
+                    // Abort Sortie (Stop)
+                    Expanded(
+                      child: Tooltip(
+                        message: 'ABORT SORTIE',
+                        child: TactileButton(
+                          label: '',
+                          icon: Icons.stop_circle_outlined,
+                          accentColor: VoidTheme.crimsonFlare,
+                          isPrimary: false,
+                          onPressed: onAbort,
+                          minWidth: 0.0,
+                          height: 46.0,
+                        ),
                       ),
                     ),
                   ],

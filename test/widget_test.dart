@@ -38,10 +38,11 @@ void main() {
     await tester.pump();
 
     expect(find.byType(CombatScreen), findsOneWidget);
-    expect(find.text('PAUSE'), findsOneWidget);
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+    expect(find.text('PAUSE'), findsNothing);
 
     // Opening pause menu reveals meta actions (RULES, MAP, etc.)
-    await tester.tap(find.text('PAUSE'));
+    await tester.tap(find.byIcon(Icons.pause));
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('RULES'), findsOneWidget);

@@ -131,25 +131,30 @@ class _TactileButtonState extends State<TactileButton>
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (widget.icon != null) ...[
-                Icon(widget.icon, color: color, size: 18.0),
+              if (widget.icon != null)
+                Icon(
+                  widget.icon,
+                  color: color,
+                  size: widget.label.isEmpty ? 22.0 : 18.0,
+                ),
+              if (widget.icon != null && widget.label.isNotEmpty)
                 const SizedBox(width: 8.0),
-              ],
-              Flexible(
-                child: Text(
-                  widget.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: isEnabled
-                        ? VoidTheme.textPrimary
-                        : VoidTheme.textMuted,
-                    fontSize: widget.fontSize,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
+              if (widget.label.isNotEmpty)
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isEnabled
+                          ? VoidTheme.textPrimary
+                          : VoidTheme.textMuted,
+                      fontSize: widget.fontSize,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
