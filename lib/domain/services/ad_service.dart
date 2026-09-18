@@ -38,14 +38,22 @@ class AdService {
     _lastAdShownTime = null;
   }
 
-  /// Initializes AdMob SDK and pre-loads the initial rewarded ad.
-  Future<void> initialize() async {
+  /// Initializes AdMob SDK and pre-loads the initial rewarded ad with timeout protection.
+  Future<void> initialize({
+    Duration timeoutDuration = const Duration(seconds: 3),
+  }) async {
     if (_initialized) return;
     _initialized = true;
 
     if (Platform.isAndroid || Platform.isIOS) {
       try {
-        await MobileAds.instance.initialize();
+        await MobileAds.instance.initialize().timeout(
+          timeoutDuration,
+          onTimeout: () {
+            debugPrint('[AdService] MobileAds initialization timed out.');
+            return InitializationStatus({});
+          },
+        );
         loadRewardedAd();
       } catch (e) {
         debugPrint('[AdService] MobileAds init error: $e');

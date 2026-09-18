@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -50,11 +52,11 @@ void main() async {
     );
   }
 
-  await PersistenceService.instance.initialize();
-  await AudioService.instance.initialize();
-  await ShaderService.instance.initialize();
-  await AdService.instance.initialize();
-  await IapService.instance.initialize();
+  try {
+    await PersistenceService.instance.initialize();
+  } catch (e) {
+    debugPrint('[PersistenceService] Startup init error: $e');
+  }
 
   IVoidSowerEngine engine;
   try {
@@ -66,7 +68,15 @@ void main() async {
     engine = MockVoidSowerEngine();
   }
 
+  // Render game UI immediately so the OS dismisses the native splash screen instantly
+  // and the app avoids hanging on wedged IPC/network service bindings during app upgrades.
   runApp(VoidSowerApp(engine: engine));
+
+  // Asynchronously initialize auxiliary services without blocking frame presentation.
+  unawaited(AudioService.instance.initialize());
+  unawaited(ShaderService.instance.initialize());
+  unawaited(AdService.instance.initialize());
+  unawaited(IapService.instance.initialize());
 }
 
 /// Root widget for the Void Sower application.

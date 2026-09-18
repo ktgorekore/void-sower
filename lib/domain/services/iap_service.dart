@@ -104,15 +104,25 @@ class IapService {
   /// Cached product details for the Pro Lifetime SKU.
   ProductDetails? get proProductDetails => _proProductDetails;
 
-  /// Initializes purchase stream listener and queries product catalog.
-  Future<void> initialize() async {
+  /// Initializes purchase stream listener and queries product catalog with timeout protection.
+  Future<void> initialize({
+    Duration timeoutDuration = const Duration(seconds: 3),
+  }) async {
     if (!Platform.isAndroid && !Platform.isIOS && _iapOverride == null) {
       _isAvailable = false;
       return;
     }
 
     try {
-      _isAvailable = await _iap.isAvailable();
+      _isAvailable = await _iap.isAvailable().timeout(
+        timeoutDuration,
+        onTimeout: () {
+          debugPrint(
+            '[IapService] Store billing availability check timed out.',
+          );
+          return false;
+        },
+      );
       if (!_isAvailable) return;
 
       await _subscription?.cancel();
@@ -124,17 +134,30 @@ class IapService {
         },
       );
 
-      await queryProducts();
+      await queryProducts(timeoutDuration: timeoutDuration);
     } catch (e) {
       debugPrint('[IapService] Init error: $e');
     }
   }
 
-  /// Queries the Play Store catalog for the Pro Lifetime SKU.
-  Future<void> queryProducts() async {
+  /// Queries the Play Store catalog for the Pro Lifetime SKU with timeout protection.
+  Future<void> queryProducts({
+    Duration timeoutDuration = const Duration(seconds: 3),
+  }) async {
     if (!_isAvailable) return;
     try {
-      final response = await _iap.queryProductDetails({kProLifetimeSku});
+      final response = await _iap
+          .queryProductDetails({kProLifetimeSku})
+          .timeout(
+            timeoutDuration,
+            onTimeout: () {
+              debugPrint('[IapService] Product details query timed out.');
+              return ProductDetailsResponse(
+                productDetails: [],
+                notFoundIDs: [kProLifetimeSku],
+              );
+            },
+          );
       if (response.productDetails.isNotEmpty) {
         _proProductDetails = response.productDetails.first;
       } else {

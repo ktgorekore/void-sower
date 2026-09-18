@@ -33,17 +33,27 @@ class _MockInAppPurchase implements InAppPurchase {
   bool buySuccess = true;
   bool returnProductDetails = true;
   final List<PurchaseDetails> completedPurchases = [];
+  Completer<bool>? hangIsAvailableCompleter;
+  Completer<ProductDetailsResponse>? hangQueryProductDetailsCompleter;
 
   @override
   Stream<List<PurchaseDetails>> get purchaseStream => controller.stream;
 
   @override
-  Future<bool> isAvailable() async => available;
+  Future<bool> isAvailable() async {
+    if (hangIsAvailableCompleter != null) {
+      return hangIsAvailableCompleter!.future;
+    }
+    return available;
+  }
 
   @override
   Future<ProductDetailsResponse> queryProductDetails(
     Set<String> identifiers,
   ) async {
+    if (hangQueryProductDetailsCompleter != null) {
+      return hangQueryProductDetailsCompleter!.future;
+    }
     if (!returnProductDetails) {
       return ProductDetailsResponse(
         productDetails: const [],
@@ -441,6 +451,32 @@ void main() {
           ),
           findsOneWidget,
         );
+      },
+    );
+
+    test(
+      'IapService initialize completes gracefully when isAvailable hangs (times out)',
+      () async {
+        mockIap.hangIsAvailableCompleter = Completer<bool>();
+        await IapService.instance.initialize(
+          timeoutDuration: const Duration(milliseconds: 50),
+        );
+        expect(IapService.instance.isAvailable, isFalse);
+      },
+    );
+
+    test(
+      'IapService queryProducts completes gracefully when queryProductDetails hangs (times out)',
+      () async {
+        mockIap.available = true;
+        mockIap.hangIsAvailableCompleter = null;
+        mockIap.hangQueryProductDetailsCompleter =
+            Completer<ProductDetailsResponse>();
+        await IapService.instance.initialize(
+          timeoutDuration: const Duration(milliseconds: 50),
+        );
+        expect(IapService.instance.isAvailable, isTrue);
+        expect(IapService.instance.proProductDetails, isNull);
       },
     );
   });

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -26,9 +27,21 @@ class PersistenceService {
 
   SharedPreferences? _prefs;
 
-  /// Initializes SharedPreferences instance.
-  Future<void> initialize() async {
-    _prefs ??= await SharedPreferences.getInstance();
+  /// Initializes SharedPreferences instance with resilience against storage locks.
+  Future<void> initialize({
+    Duration timeoutDuration = const Duration(seconds: 2),
+  }) async {
+    try {
+      _prefs ??= await SharedPreferences.getInstance().timeout(
+        timeoutDuration,
+        onTimeout: () {
+          debugPrint('[PersistenceService] SharedPreferences init timed out');
+          throw TimeoutException('SharedPreferences init timed out');
+        },
+      );
+    } catch (e) {
+      debugPrint('[PersistenceService] SharedPreferences init error: $e');
+    }
   }
 
   /// Resets and clears preferences for unit tests.
