@@ -23,14 +23,14 @@
 ### Copy-Paste Release Notes for Play Console (`en-US`)
 ```text
 <en-US>
-🚀 Void Sower v0.2.12 — Instant Breach Freeze, Streamlined Deck & Bigger Ships!
-• Orbital Breach Freeze: Hostiles cease fire and simulation halts instantly upon defeat or breach.
-• Streamlined Command Deck: Removed clutter buttons & slider; added C1-C8 direct corridor targeting.
-• Larger Flagship & Bays: Flagship hull expanded by +33% and capacitor bays enlarged to 48dp.
-• Text Overflow Protection: Fixed victory dock and HUD horizontal clipping on narrow viewports.
+🚀 Void Sower v0.2.12 — Breach Freeze, Bigger Ships & Icon Controls!
+• Breach Freeze: Hostiles cease fire and simulation halts instantly upon defeat.
+• Icon Controls: Text pause button replaced with sleek icons for pause/play, restart & abort.
+• Streamlined Deck: Removed clutter buttons & slider; added C1-C8 corridor targeting.
+• Larger Flagship & Bays: Flagship hull expanded by +33% and bays enlarged to 48dp.
 </en-US>
 ```
-*Character Count:* **476 / 500 max characters** (Google Play compliant).
+*Character Count:* **430 / 500 max characters** (Google Play compliant).
 
 ---
 
@@ -39,23 +39,23 @@
 #### 🇹🇿 Swahili (`sw`)
 ```text
 <sw>
-🚀 Void Sower v0.2.12 — Kusitisha Shambulio, Amri Rahisi & Meli Kubwa!
-• Kusitisha Papo Hapo: Maadui wanaacha kufyatua risasi mara tu kizuizi kinapovunjwa au unaposimama.
-• Amri Zilizorahisishwa: Vifungo visivyotumika vimeondolewa; njia C1-C8 zimewekwa kwa ulengaji wa moja kwa moja.
-• Meli na Ghala Kubwa: Chombo kimeongezwa kwa +33% na milango ya capacitor imefanywa mikubwa (48dp).
-• Marekebisho ya Maneno: Hakuna tena maandishi yanayopitiliza skrini kwenye vifaa vyembamba.
+🚀 Void Sower v0.2.12 — Kusitisha Shambulio, Meli Kubwa & Alama za Amri!
+• Kusitisha Papo Hapo: Maadui wanaacha kufyatua risasi mara tu kizuizi kinapovunjwa.
+• Alama za Amri: Kitufe cha maandishi kimebadilishwa na alama za kusitisha, kurudia na kutoka.
+• Amri Zilizorahisishwa: Njia C1-C8 zimewekwa kwa ulengaji wa moja kwa moja.
+• Meli na Ghala Kubwa: Chombo kimeongezwa kwa +33% na milango ya capacitor kufanywa 48dp.
 </sw>
 ```
-*Character Count:* **466 / 500 max characters**.
+*Character Count:* **422 / 500 max characters**.
 
 #### 🇫🇷 French (`fr-FR`)
 ```text
 <fr-FR>
-🚀 Void Sower v0.2.12 — Arrêt Immédiat, Pont Épuré & Vaisseaux Plus Grands !
-• Arrêt Immédiat en Brèche : Fin des tirs ennemis et gel du combat lors d'une brèche ou défaite.
-• Pont de Commande Épuré : Boutons superflus retirés ; ciblage direct par couloirs C1-C8 ajouté.
-• Vaisseau & Baies Agrandis : Coque agrandie de +33% et baies de condensateurs étendues à 48dp.
-• Correction d'Affichage : Fin des débordements de texte sur les écrans étroits dans le dock de victoire.
+🚀 Void Sower v0.2.12 — Arrêt en Brèche, Vaisseaux Agrandis & Icônes !
+• Arrêt Immédiat en Brèche : Fin des tirs ennemis et gel du combat lors d'une défaite.
+• Contrôles par Icônes : Remplacement du texte pause par des icônes pause/lecture, rejouer et quitter.
+• Pont Épuré : Ciblage direct par couloirs C1-C8 et retrait des boutons superflus.
+• Vaisseau & Baies Agrandis : Coque agrandie de +33% et baies étendues à 48dp.
 </fr-FR>
 ```
-*Character Count:* **482 / 500 max characters**.
+*Character Count:* **445 / 500 max characters**.
