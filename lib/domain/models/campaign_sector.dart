@@ -33,6 +33,7 @@ class CampaignSector {
     this.doctrine = SectorCombatDoctrine.standardOrbital,
     this.reinforcementQuota = 0,
     this.coreSiphonPerKill = 1,
+    this.isProRequired = false,
   }) : _explicitUnlocked = isUnlocked,
        _explicitLiberated = isLiberated;
 
@@ -90,9 +91,20 @@ class CampaignSector {
   /// For Void Swarm: baseline cores siphoned back on enemy destruction.
   final int coreSiphonPerKill;
 
+  /// Whether this sector strictly requires Pro Commander clearance to deploy.
+  final bool isProRequired;
+
   /// Human-readable unlock requirement text.
   String get unlockRequirement {
     if (isUnlocked) return 'Sector secured for orbital transit.';
+    if (isProRequired) {
+      final theater = campaignId == 'phantom_drift'
+          ? 'Phantom Drift'
+          : campaignId == 'void_swarm'
+          ? 'Void Swarm'
+          : 'advanced';
+      return 'Unlock Pro Commander clearance to deploy to $theater sectors.';
+    }
     if (requiredSectorName != null && requiredSectorId != null) {
       return 'Liberate Sector $requiredSectorId: $requiredSectorName to break imperial blockade.';
     }

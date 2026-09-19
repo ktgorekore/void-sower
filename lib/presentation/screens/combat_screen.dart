@@ -303,10 +303,14 @@ class _CombatScreenState extends State<CombatScreen>
     final isPro = EntitlementService.instance.isProUnlocked;
     final maxSectorInOperation =
         operation.baseSectorId + operation.sectors.length - 1;
-    final isNewUnlock = !isPro && _currentSectorId < maxSectorInOperation;
-    final nextSector = isNewUnlock
+    final nextSectorCandidate = _currentSectorId < maxSectorInOperation
         ? CampaignService.instance.getSector(_currentSectorId + 1)
         : null;
+    final canAdvance =
+        nextSectorCandidate != null &&
+        (isPro || nextSectorCandidate.isUnlocked);
+    final isNewUnlock = !isPro && canAdvance;
+    final nextSector = isNewUnlock ? nextSectorCandidate : null;
     final liberatedInCampaign = PersistenceService.instance
         .getLiberatedSectorsForCampaign(currentSector.campaignId);
 
@@ -324,10 +328,30 @@ class _CombatScreenState extends State<CombatScreen>
         campaignProgressText:
             '$liberatedInCampaign / ${operation.sectors.length} LIBERATED',
         armDuration: const Duration(milliseconds: 500),
+        canAdvance: canAdvance,
+        onUpgradePro: !isPro
+            ? () {
+                _autoAdvanceTimer?.cancel();
+                Navigator.of(dialogContext).pop();
+                showDialog<void>(
+                  context: context,
+                  builder: (context) => ProUpgradeModal(
+                    highlightedFeature: ProFeature.proCampaignTheaters,
+                    onUnlocked: () {
+                      if (mounted) setState(() {});
+                    },
+                  ),
+                );
+              }
+            : null,
         onNextSector: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
-          _advanceNextSector();
+          if (canAdvance) {
+            _advanceNextSector();
+          } else {
+            _restartCombat();
+          }
         },
         onReturnToMap: () {
           _autoAdvanceTimer?.cancel();
@@ -344,7 +368,7 @@ class _CombatScreenState extends State<CombatScreen>
       ),
     );
 
-    if (_coordinator.state.isAutoSolving) {
+    if (_coordinator.state.isAutoSolving && canAdvance) {
       _autoAdvanceTimer = Timer(const Duration(milliseconds: 1800), () {
         if (mounted && _overlayState == CombatOverlayState.victoryModal) {
           Navigator.of(context, rootNavigator: true).pop();

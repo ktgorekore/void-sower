@@ -64,7 +64,7 @@ void main() {
     );
 
     test(
-      'Non-Pro user progression: Kilwa Basin unlocked sequentially, Pro campaigns locked',
+      'Non-Pro user progression: Introductory teaser sector unlocked for all campaigns, further Pro sectors locked',
       () {
         final kilwaSectors = CampaignService.instance.getSectorsForCampaign(
           'kilwa_basin',
@@ -77,17 +77,43 @@ void main() {
         final driftSectors = CampaignService.instance.getSectorsForCampaign(
           'phantom_drift',
         );
-        for (final s in driftSectors) {
+        // Sector 10 (teaser) is unlocked for all users!
+        expect(driftSectors[0].sectorId, 10);
+        expect(driftSectors[0].isUnlocked, true);
+        expect(driftSectors[0].status, SectorProgressionStatus.accessible);
+        expect(driftSectors[0].isProRequired, false);
+
+        // Sectors 11-18 require Pro Commander clearance
+        for (int i = 1; i < driftSectors.length; i++) {
+          final s = driftSectors[i];
           expect(s.isUnlocked, false);
           expect(s.status, SectorProgressionStatus.locked);
+          expect(s.isProRequired, true);
+          expect(
+            s.unlockRequirement,
+            'Unlock Pro Commander clearance to deploy to Phantom Drift sectors.',
+          );
         }
 
         final swarmSectors = CampaignService.instance.getSectorsForCampaign(
           'void_swarm',
         );
-        for (final s in swarmSectors) {
+        // Sector 19 (teaser) is unlocked for all users!
+        expect(swarmSectors[0].sectorId, 19);
+        expect(swarmSectors[0].isUnlocked, true);
+        expect(swarmSectors[0].status, SectorProgressionStatus.accessible);
+        expect(swarmSectors[0].isProRequired, false);
+
+        // Sectors 20-27 require Pro Commander clearance
+        for (int i = 1; i < swarmSectors.length; i++) {
+          final s = swarmSectors[i];
           expect(s.isUnlocked, false);
           expect(s.status, SectorProgressionStatus.locked);
+          expect(s.isProRequired, true);
+          expect(
+            s.unlockRequirement,
+            'Unlock Pro Commander clearance to deploy to Void Swarm sectors.',
+          );
         }
       },
     );
@@ -182,7 +208,7 @@ void main() {
     );
 
     testWidgets(
-      'Tapping locked Pro theater triggers ProUpgradeModal for non-Pro users',
+      'Free users can switch to Pro theaters, view teaser sector, and tap locked sector to open ProUpgradeModal',
       (tester) async {
         final mockEngine = MockVoidSowerEngine();
         await tester.pumpWidget(
@@ -192,6 +218,30 @@ void main() {
 
         // Tap on PHANTOM DRIFT tab
         await tester.tap(find.text('PHANTOM DRIFT'));
+        await tester.pumpAndSettle();
+
+        // Theater switches and displays Sector 10 unlocked
+        expect(find.text('Aldabra Shimmer Rift'), findsOneWidget);
+        expect(find.text('PHANTOM DRIFT • LATERAL EVASION'), findsOneWidget);
+        expect(find.text('ENGAGE'), findsOneWidget);
+
+        // Sector 11 is locked
+        expect(find.text('Cosmoledo Mirage Shoals'), findsOneWidget);
+        await tester.tap(find.text('Cosmoledo Mirage Shoals'));
+        await tester.pumpAndSettle();
+
+        // Locked dialog opens with Pro upgrade option
+        expect(find.text('IMPERIAL ORBITAL BLOCKADE DETECTED'), findsOneWidget);
+        expect(
+          find.text(
+            'Unlock Pro Commander clearance to deploy to Phantom Drift sectors.',
+          ),
+          findsOneWidget,
+        );
+        expect(find.text('INSTANTLY UNLOCK ALL SECTORS • PRO'), findsOneWidget);
+
+        // Tap Pro upgrade button
+        await tester.tap(find.text('INSTANTLY UNLOCK ALL SECTORS • PRO'));
         await tester.pumpAndSettle();
 
         // Modal should open
@@ -259,6 +309,47 @@ void main() {
         expect(find.byType(CombatScreen), findsOneWidget);
         // Doctrine badge should show DRIFT • S10
         expect(find.text('DRIFT • S10'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Free users can directly launch Sector 10 and Sector 19 teaser sectors',
+      (tester) async {
+        final mockEngine = MockVoidSowerEngine();
+        await tester.pumpWidget(
+          MaterialApp(home: CampaignMapScreen(engine: mockEngine)),
+        );
+        await tester.pumpAndSettle();
+
+        // 1. Switch to PHANTOM DRIFT as a free user
+        await tester.tap(find.text('PHANTOM DRIFT'));
+        await tester.pumpAndSettle();
+
+        // Engage Sector 10
+        await tester.tap(find.text('ENGAGE').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Enters CombatScreen with Phantom Drift doctrine badge
+        expect(find.byType(CombatScreen), findsOneWidget);
+        expect(find.text('DRIFT • S10'), findsOneWidget);
+
+        // Return to map
+        Navigator.of(tester.element(find.byType(CombatScreen))).pop();
+        await tester.pumpAndSettle();
+
+        // 2. Switch to VOID SWARM as a free user
+        await tester.tap(find.text('VOID SWARM'));
+        await tester.pumpAndSettle();
+
+        // Engage Sector 19
+        await tester.tap(find.text('ENGAGE').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Enters CombatScreen with Void Swarm doctrine badge
+        expect(find.byType(CombatScreen), findsOneWidget);
+        expect(find.text('SWARM • S19'), findsOneWidget);
       },
     );
   });

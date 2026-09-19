@@ -111,48 +111,48 @@ class CampaignService {
     final hasPass = EntitlementService.instance.isFeatureAccessible(
       ProFeature.proCampaignTheaters,
     );
-    final isOperationUnlocked = campaignId == 'kilwa_basin' || isPro || hasPass;
+    final hasProAccess = isPro || hasPass;
     final liberatedInCampaign = persistence.getLiberatedSectorsForCampaign(
       campaignId,
     );
 
     if (campaignId == 'phantom_drift') {
       return _buildPhantomDriftSectors(
-        isOperationUnlocked: isOperationUnlocked,
-        isPro: isPro,
+        isPro: hasProAccess,
         liberated: liberatedInCampaign,
         persistence: persistence,
       );
     } else if (campaignId == 'void_swarm') {
       return _buildVoidSwarmSectors(
-        isOperationUnlocked: isOperationUnlocked,
-        isPro: isPro,
+        isPro: hasProAccess,
         liberated: liberatedInCampaign,
         persistence: persistence,
       );
     }
 
     return _buildKilwaBasinSectors(
-      isPro: isPro,
+      isPro: hasProAccess,
       liberated: persistence.liberatedSectors,
       persistence: persistence,
     );
   }
 
   SectorProgressionStatus _evaluateStatus({
-    required bool isOperationUnlocked,
     required bool isPro,
     required bool isFirstInOperation,
     required bool isLiberated,
     required bool isPrerequisiteMet,
+    required bool isProCampaign,
   }) {
-    if (!isOperationUnlocked) return SectorProgressionStatus.locked;
     if (isLiberated) return SectorProgressionStatus.liberated;
-    // With Pro, all sectors start unlocked!
+    // With Pro (or temporary pass), all sectors start unlocked!
     if (isPro) return SectorProgressionStatus.accessible;
-    if (isFirstInOperation || isPrerequisiteMet) {
-      return SectorProgressionStatus.accessible;
-    }
+    // Introductory teaser sector is accessible for all commanders!
+    if (isFirstInOperation) return SectorProgressionStatus.accessible;
+    // For Pro campaigns, sectors beyond the introductory teaser require Pro Commander!
+    if (isProCampaign) return SectorProgressionStatus.locked;
+    // For Kilwa Basin (standard campaign), sequential unlocking applies:
+    if (isPrerequisiteMet) return SectorProgressionStatus.accessible;
     return SectorProgressionStatus.locked;
   }
 
@@ -252,11 +252,11 @@ class CampaignService {
       final isPrereq = liberated >= id;
 
       final status = _evaluateStatus(
-        isOperationUnlocked: true,
         isPro: isPro,
         isFirstInOperation: id == 1,
         isLiberated: isLib,
         isPrerequisiteMet: isPrereq,
+        isProCampaign: false,
       );
 
       return CampaignSector(
@@ -271,12 +271,12 @@ class CampaignService {
         requiredSectorName: reqName,
         campaignId: 'kilwa_basin',
         doctrine: SectorCombatDoctrine.standardOrbital,
+        isProRequired: false,
       );
     }).toList();
   }
 
   List<CampaignSector> _buildPhantomDriftSectors({
-    required bool isOperationUnlocked,
     required bool isPro,
     required int liberated,
     required PersistenceService persistence,
@@ -371,13 +371,15 @@ class CampaignService {
       final score = persistence.getSectorScore(id);
       final isLib = liberated > relIndex || stars > 0;
       final isPrereq = liberated >= relIndex;
+      final isFirst = relIndex == 1;
+      final sectorNeedsPro = !isFirst && !isPro;
 
       final status = _evaluateStatus(
-        isOperationUnlocked: isOperationUnlocked,
         isPro: isPro,
-        isFirstInOperation: relIndex == 1,
+        isFirstInOperation: isFirst,
         isLiberated: isLib,
         isPrerequisiteMet: isPrereq,
+        isProCampaign: true,
       );
 
       return CampaignSector(
@@ -392,12 +394,12 @@ class CampaignService {
         requiredSectorName: reqName,
         campaignId: 'phantom_drift',
         doctrine: SectorCombatDoctrine.phantomDrift,
+        isProRequired: sectorNeedsPro,
       );
     }).toList();
   }
 
   List<CampaignSector> _buildVoidSwarmSectors({
-    required bool isOperationUnlocked,
     required bool isPro,
     required int liberated,
     required PersistenceService persistence,
@@ -501,13 +503,15 @@ class CampaignService {
       final score = persistence.getSectorScore(id);
       final isLib = liberated > relIndex || stars > 0;
       final isPrereq = liberated >= relIndex;
+      final isFirst = relIndex == 1;
+      final sectorNeedsPro = !isFirst && !isPro;
 
       final status = _evaluateStatus(
-        isOperationUnlocked: isOperationUnlocked,
         isPro: isPro,
-        isFirstInOperation: relIndex == 1,
+        isFirstInOperation: isFirst,
         isLiberated: isLib,
         isPrerequisiteMet: isPrereq,
+        isProCampaign: true,
       );
 
       return CampaignSector(
@@ -524,6 +528,7 @@ class CampaignService {
         doctrine: SectorCombatDoctrine.voidSwarm,
         reinforcementQuota: quota,
         coreSiphonPerKill: 1,
+        isProRequired: sectorNeedsPro,
       );
     }).toList();
   }

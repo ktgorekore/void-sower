@@ -58,11 +58,6 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   }
 
   void _switchCampaign(String campaignId) {
-    final op = CampaignService.instance.getOperation(campaignId);
-    if (op.isProRequired && !EntitlementService.instance.isProUnlocked) {
-      _openProUpgrade();
-      return;
-    }
     HapticService.instance.injectionClick();
     setState(() {
       _activeCampaignId = campaignId;
@@ -376,7 +371,8 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                           height: 1.4,
                         ),
                       ),
-                      if (sector.requiredSectorName != null) ...[
+                      if (sector.requiredSectorName != null &&
+                          !sector.isProRequired) ...[
                         const SizedBox(height: 6.0),
                         Text(
                           'Target Hyperlane: Sector ${sector.requiredSectorId} (${sector.requiredSectorName})',
@@ -392,7 +388,28 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                 ),
                 const SizedBox(height: 18.0),
                 // Action Buttons
-                if (requiredSector != null && requiredSector.isUnlocked) ...[
+                if (sector.isProRequired) ...[
+                  TactileButton(
+                    label: 'INSTANTLY UNLOCK ALL SECTORS • PRO',
+                    icon: Icons.workspace_premium,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _openProUpgrade();
+                    },
+                    accentColor: VoidTheme.solarGold,
+                    height: 46.0,
+                  ),
+                  const SizedBox(height: 8.0),
+                  TactileButton(
+                    label: 'DISMISS INTEL',
+                    icon: Icons.close,
+                    onPressed: () => Navigator.of(context).pop(),
+                    accentColor: VoidTheme.textMuted,
+                    isPrimary: false,
+                    height: 40.0,
+                  ),
+                ] else if (requiredSector != null &&
+                    requiredSector.isUnlocked) ...[
                   TactileButton(
                     label: 'DEPLOY TO SECTOR ${sector.requiredSectorId}',
                     icon: Icons.rocket_launch,
@@ -412,7 +429,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                     isPrimary: false,
                     height: 40.0,
                   ),
-                ] else
+                ] else ...[
                   TactileButton(
                     label: 'DISMISS INTEL',
                     icon: Icons.close,
@@ -421,7 +438,9 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                     isPrimary: false,
                     height: 44.0,
                   ),
-                if (!EntitlementService.instance.isProUnlocked) ...[
+                ],
+                if (!sector.isProRequired &&
+                    !EntitlementService.instance.isProUnlocked) ...[
                   const SizedBox(height: 8.0),
                   TactileButton(
                     label: 'INSTANTLY UNLOCK ALL SECTORS • PRO',

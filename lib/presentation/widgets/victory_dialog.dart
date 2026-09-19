@@ -42,6 +42,8 @@ class VictoryDialog extends StatefulWidget {
     required this.onNextSector,
     this.onReturnToMap,
     this.onDismiss,
+    this.canAdvance,
+    this.onUpgradePro,
   });
 
   /// 1-based index of the liberated sector.
@@ -82,6 +84,12 @@ class VictoryDialog extends StatefulWidget {
 
   /// Optional callback when modal is closed to view the battlefield.
   final VoidCallback? onDismiss;
+
+  /// Whether advancing to the next sector is possible (unlocked or Pro).
+  final bool? canAdvance;
+
+  /// Optional callback to trigger Pro Commander upgrade flow.
+  final VoidCallback? onUpgradePro;
 
   @override
   State<VictoryDialog> createState() => _VictoryDialogState();
@@ -376,17 +384,23 @@ class _VictoryDialogState extends State<VictoryDialog> {
                 const SizedBox(height: 14.0),
 
                 // Action Buttons
-                TactileButton(
-                  label: widget.sectorId < 9
-                      ? 'ADVANCE TO NEXT SECTOR'
-                      : 'REPLAY SECTOR',
-                  icon: Icons.navigate_next,
-                  onPressed: _isArmed ? widget.onNextSector : null,
-                  accentColor: _isArmed
-                      ? VoidTheme.solarGold
-                      : VoidTheme.solarGold.withValues(alpha: 0.4),
-                  minWidth: double.infinity,
-                  height: 42.0,
+                Builder(
+                  builder: (context) {
+                    final canAdvance =
+                        widget.canAdvance ?? (widget.sectorId < 9);
+                    return TactileButton(
+                      label: canAdvance
+                          ? 'ADVANCE TO NEXT SECTOR'
+                          : 'REPLAY SECTOR',
+                      icon: canAdvance ? Icons.navigate_next : Icons.replay,
+                      onPressed: _isArmed ? widget.onNextSector : null,
+                      accentColor: _isArmed
+                          ? VoidTheme.solarGold
+                          : VoidTheme.solarGold.withValues(alpha: 0.4),
+                      minWidth: double.infinity,
+                      height: 42.0,
+                    );
+                  },
                 ),
                 if (widget.onReturnToMap != null) ...[
                   const SizedBox(height: 6.0),
@@ -398,6 +412,19 @@ class _VictoryDialogState extends State<VictoryDialog> {
                         ? VoidTheme.plasmaCyan
                         : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
                     isPrimary: false,
+                    minWidth: double.infinity,
+                    height: 38.0,
+                  ),
+                ],
+                if (widget.onUpgradePro != null) ...[
+                  const SizedBox(height: 6.0),
+                  TactileButton(
+                    label: 'UNLOCK ALL SECTORS • PRO',
+                    icon: Icons.workspace_premium,
+                    onPressed: _isArmed ? widget.onUpgradePro! : null,
+                    accentColor: _isArmed
+                        ? VoidTheme.solarGold
+                        : VoidTheme.solarGold.withValues(alpha: 0.4),
                     minWidth: double.infinity,
                     height: 38.0,
                   ),
