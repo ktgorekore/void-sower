@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Sector node on the Kilwa Nebula campaign star map.
+import 'sector_combat_doctrine.dart';
+import 'sector_progression_status.dart';
+
+/// Sector node on the orbital campaign star map.
 class CampaignSector {
   const CampaignSector({
     required this.sectorId,
@@ -20,20 +23,26 @@ class CampaignSector {
     required this.region,
     required this.difficultyTier,
     required this.starsEarned,
-    required this.isUnlocked,
-    this.isLiberated = false,
+    this.status = SectorProgressionStatus.accessible,
+    bool? isUnlocked,
+    bool isLiberated = false,
     required this.bestScore,
     this.requiredSectorId,
     this.requiredSectorName,
-  });
+    this.campaignId = 'kilwa_basin',
+    this.doctrine = SectorCombatDoctrine.standardOrbital,
+    this.reinforcementQuota = 0,
+    this.coreSiphonPerKill = 1,
+  }) : _explicitUnlocked = isUnlocked,
+       _explicitLiberated = isLiberated;
 
-  /// 1-based index of the sector across the 9-sector campaign.
+  /// 1-based index of the sector across all campaign theaters (1..27).
   final int sectorId;
 
   /// Lore designation of the orbital sector.
   final String name;
 
-  /// Campaign region ('Outer Bastions', 'Monsoon Straits', 'Core Siphon').
+  /// Campaign region ('Outer Bastions', 'Monsoon Straits', 'Core Siphon', etc.).
   final String region;
 
   /// Threat tier (0 = Patrol, 1 = Monsoon, 2 = Singularity).
@@ -42,11 +51,23 @@ class CampaignSector {
   /// Stars earned in this sector (0 to 3).
   final int starsEarned;
 
+  /// Progression and security status of this sector.
+  final SectorProgressionStatus status;
+
+  final bool? _explicitUnlocked;
+  final bool _explicitLiberated;
+
   /// Whether this sector is unlocked and accessible to the commander.
-  final bool isUnlocked;
+  bool get isUnlocked {
+    if (_explicitUnlocked != null) return _explicitUnlocked;
+    return status != SectorProgressionStatus.locked;
+  }
 
   /// Whether this sector has been liberated (hostiles defeated at least once).
-  final bool isLiberated;
+  bool get isLiberated {
+    if (_explicitLiberated) return true;
+    return status == SectorProgressionStatus.liberated || starsEarned > 0;
+  }
 
   /// High score achieved in this sector.
   final int bestScore;
@@ -57,12 +78,24 @@ class CampaignSector {
   /// Designation of the required sector (if locked).
   final String? requiredSectorName;
 
+  /// Machine identifier of the campaign operation containing this sector.
+  final String campaignId;
+
+  /// Combat rules doctrine governing this sector.
+  final SectorCombatDoctrine doctrine;
+
+  /// For Void Swarm: total replacement invaders queued to drop during combat.
+  final int reinforcementQuota;
+
+  /// For Void Swarm: baseline cores siphoned back on enemy destruction.
+  final int coreSiphonPerKill;
+
   /// Human-readable unlock requirement text.
   String get unlockRequirement {
     if (isUnlocked) return 'Sector secured for orbital transit.';
     if (requiredSectorName != null && requiredSectorId != null) {
       return 'Liberate Sector $requiredSectorId: $requiredSectorName to break imperial blockade.';
     }
-    return 'Liberate the preceding sector to establish sensor lock.';
+    return 'Liberate the preceding sector or unlock Pro Commander clearance.';
   }
 }

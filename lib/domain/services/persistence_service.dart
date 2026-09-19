@@ -97,6 +97,39 @@ class PersistenceService {
     }
   }
 
+  static const String _kActiveCampaignId = 'void_sower_active_campaign_id';
+  static const String _kCampaignLiberatedPrefix =
+      'void_sower_campaign_liberated_';
+
+  /// Currently selected campaign operation ('kilwa_basin', 'phantom_drift', 'void_swarm').
+  String get activeCampaignId =>
+      _prefs?.getString(_kActiveCampaignId) ?? 'kilwa_basin';
+
+  Future<void> setActiveCampaignId(String campaignId) async {
+    await _prefs?.setString(_kActiveCampaignId, campaignId);
+  }
+
+  /// Retrieves number of liberated sectors for a specific campaign operation.
+  int getLiberatedSectorsForCampaign(String campaignId) {
+    if (campaignId == 'kilwa_basin') return liberatedSectors;
+    return _prefs?.getInt('$_kCampaignLiberatedPrefix$campaignId') ?? 1;
+  }
+
+  /// Sets number of liberated sectors for a specific campaign operation.
+  Future<void> setLiberatedSectorsForCampaign(
+    String campaignId,
+    int count,
+  ) async {
+    if (campaignId == 'kilwa_basin') {
+      await setLiberatedSectors(count);
+      return;
+    }
+    final current = getLiberatedSectorsForCampaign(campaignId);
+    if (count > current) {
+      await _prefs?.setInt('$_kCampaignLiberatedPrefix$campaignId', count);
+    }
+  }
+
   static const String _kSectorStarsPrefix = 'void_sower_sector_stars_';
   static const String _kSectorScorePrefix = 'void_sower_sector_score_';
 
@@ -133,10 +166,28 @@ class PersistenceService {
     }
 
     // Advance campaign frontier if this was the current vanguard sector
-    if (sectorId >= liberatedSectors && sectorId < 9) {
-      await setLiberatedSectors(sectorId + 1);
-    } else if (sectorId == 9) {
-      await setLiberatedSectors(10);
+    if (sectorId <= 9) {
+      if (sectorId >= liberatedSectors && sectorId < 9) {
+        await setLiberatedSectors(sectorId + 1);
+      } else if (sectorId == 9) {
+        await setLiberatedSectors(10);
+      }
+    } else if (sectorId <= 18) {
+      final rel = sectorId - 9; // 1..9
+      final cur = getLiberatedSectorsForCampaign('phantom_drift');
+      if (rel >= cur && rel < 9) {
+        await setLiberatedSectorsForCampaign('phantom_drift', rel + 1);
+      } else if (rel == 9) {
+        await setLiberatedSectorsForCampaign('phantom_drift', 10);
+      }
+    } else if (sectorId <= 27) {
+      final rel = sectorId - 18; // 1..9
+      final cur = getLiberatedSectorsForCampaign('void_swarm');
+      if (rel >= cur && rel < 9) {
+        await setLiberatedSectorsForCampaign('void_swarm', rel + 1);
+      } else if (rel == 9) {
+        await setLiberatedSectorsForCampaign('void_swarm', 10);
+      }
     }
 
     // Update global high score

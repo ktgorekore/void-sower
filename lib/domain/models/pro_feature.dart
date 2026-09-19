@@ -42,6 +42,9 @@ enum ProFeature {
 
   /// Tactical time dilation & combat pause to inspect invader lanes and plan axial strikes.
   tacticalPause,
+
+  /// Unlocks all 27 sectors across Kilwa Basin, Phantom Drift, and Void Swarm theaters.
+  proCampaignTheaters,
 }
 
 /// Metadata and descriptive copy for a [ProFeature].
@@ -59,6 +62,13 @@ class ProFeatureMeta {
   final IconData icon;
 
   static const Map<ProFeature, ProFeatureMeta> registry = {
+    ProFeature.proCampaignTheaters: ProFeatureMeta(
+      feature: ProFeature.proCampaignTheaters,
+      title: 'EXPANDED PRO CAMPAIGN THEATERS',
+      shortDescription:
+          'All 27 campaign sectors start unlocked. Unlocks Phantom Drift (evasive invaders) and Void Swarm (respawning horde & core siphon).',
+      icon: Icons.public,
+    ),
     ProFeature.aiTacticalSolver: ProFeatureMeta(
       feature: ProFeature.aiTacticalSolver,
       title: 'AUTONOMOUS AI TACTICAL SOLVER',
