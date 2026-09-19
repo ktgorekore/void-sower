@@ -194,5 +194,65 @@ void main() {
         expect(coordinator.state.status, equals(CombatMatchStatus.defeat));
       },
     );
+
+    test(
+      'Pausing combat during active sowing sequence finalizes injection and preserves paused state',
+      () async {
+        coordinator.selectBay(11);
+        coordinator.sow(11, 1);
+        expect(
+          coordinator.state.status,
+          equals(CombatMatchStatus.sowingSequence),
+        );
+
+        // Pause combat immediately while sowing traversal is in flight
+        coordinator.pauseCombat();
+        expect(coordinator.state.status, equals(CombatMatchStatus.paused));
+        expect(coordinator.state.activeSowBay, isNull);
+
+        // Await enough wall-clock time for delayed animation timers to fire
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+
+        // Status MUST strictly remain paused and NOT revert to activeCombat
+        expect(coordinator.state.status, equals(CombatMatchStatus.paused));
+
+        // Repeated update steps must NOT advance simulation
+        final initialEnemyY = coordinator.enemies.first.worldPosY;
+        for (var i = 0; i < 30; i++) {
+          coordinator.update(0.016, const Size(800, 1000));
+        }
+        expect(coordinator.enemies.first.worldPosY, equals(initialEnemyY));
+        expect(coordinator.state.status, equals(CombatMatchStatus.paused));
+
+        // Resuming combat transitions cleanly to activeCombat
+        coordinator.resumeCombat();
+        expect(
+          coordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+      },
+    );
+
+    test(
+      'AI tactical solver does not execute moves when combat is paused',
+      () async {
+        coordinator.toggleAutoSolve();
+        expect(coordinator.state.isAutoSolving, isTrue);
+
+        coordinator.pauseCombat();
+        expect(coordinator.state.status, equals(CombatMatchStatus.paused));
+
+        // Simulate multiple seconds while paused
+        for (var i = 0; i < 60; i++) {
+          coordinator.update(0.05, const Size(800, 1000));
+        }
+
+        // Wait to catch any rogue asynchronous timer callbacks
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+
+        expect(coordinator.state.status, equals(CombatMatchStatus.paused));
+        expect(coordinator.state.activeSowBay, isNull);
+      },
+    );
   });
 }

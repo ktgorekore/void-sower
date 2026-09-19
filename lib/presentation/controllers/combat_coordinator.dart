@@ -84,6 +84,9 @@ class CombatCoordinator extends ChangeNotifier {
   bool _hasActiveFlak = false;
   bool _isDisposed = false;
   Completer<void>? _sowAnimationCompleter;
+  int _sowAnimationGeneration = 0;
+  int? _pendingSowBay;
+  int? _pendingSowDirection;
 
   int _currentDifficulty = 0;
   int get currentDifficulty => _currentDifficulty;
@@ -100,6 +103,7 @@ class CombatCoordinator extends ChangeNotifier {
     bool autoStartSolver = false,
     bool startWithTutorial = false,
   }) {
+    _finalizePendingSow();
     _highScore = PersistenceService.instance.highScore;
     _currentDifficulty = difficulty ?? difficultyTier;
     vlog(
@@ -349,10 +353,42 @@ class CombatCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Finalizes any active sowing sequence immediately into the native engine
+  /// and invalidates pending animation steps. This guarantees the simulation
+  /// domain state is fully synchronized before pausing, resetting, or disposing.
+  void _finalizePendingSow() {
+    _sowAnimationGeneration++;
+    if (_pendingSowBay != null && _pendingSowDirection != null) {
+      final bay = _pendingSowBay!;
+      final dir = _pendingSowDirection!;
+      _pendingSowBay = null;
+      _pendingSowDirection = null;
+
+      HapticService.instance.sowTick();
+      audio.onSowStep(cascadeDepth: 0);
+      engine.injectCore(bay, dir);
+      vlog(
+        6,
+        'CombatCoordinator: Finalized pending sow for bay $bay dir $dir on pause/reset',
+      );
+      _syncDomainState();
+      prediction = engine.predictSow(bay, dir);
+    }
+    if (_sowAnimationCompleter != null &&
+        !_sowAnimationCompleter!.isCompleted) {
+      _sowAnimationCompleter!.complete();
+    }
+  }
+
   /// Triggers a sequential pit-to-pit sowing traversal animation then executes on native engine.
   void sow(int bayIndex, int direction) {
-    if (_state.status == CombatMatchStatus.sowingSequence) return;
+    if (_state.status != CombatMatchStatus.activeCombat) return;
     final mass = (bayIndex < bays.length) ? bays[bayIndex].chargeUnits : 1;
+
+    _sowAnimationGeneration++;
+    final generation = _sowAnimationGeneration;
+    _pendingSowBay = bayIndex;
+    _pendingSowDirection = direction;
 
     _state = _state.copyWith(
       status: CombatMatchStatus.sowingSequence,
@@ -371,24 +407,34 @@ class CombatCoordinator extends ChangeNotifier {
     int hopIndex = 0;
 
     void step() {
-      if (_isDisposed || remainingHops <= 0) {
-        if (!_isDisposed) {
-          HapticService.instance.sowTick();
-          audio.onSowStep(cascadeDepth: 0);
-          engine.injectCore(bayIndex, direction);
-          vlog(
-            6,
-            'CombatCoordinator: Sow completed for bay $bayIndex dir $direction',
-          );
-          _syncDomainState();
-          _state = _state.copyWith(
-            status: CombatMatchStatus.activeCombat,
-            clearActiveSowBay: true,
-            selectedBay: bayIndex,
-          );
-          prediction = engine.predictSow(bayIndex, direction);
-          notifyListeners();
-        }
+      if (_isDisposed || generation != _sowAnimationGeneration) {
+        return;
+      }
+
+      if (remainingHops <= 0) {
+        HapticService.instance.sowTick();
+        audio.onSowStep(cascadeDepth: 0);
+        engine.injectCore(bayIndex, direction);
+        vlog(
+          6,
+          'CombatCoordinator: Sow completed for bay $bayIndex dir $direction',
+        );
+        _syncDomainState();
+        _pendingSowBay = null;
+        _pendingSowDirection = null;
+
+        final nextStatus = (_state.status == CombatMatchStatus.paused)
+            ? CombatMatchStatus.paused
+            : CombatMatchStatus.activeCombat;
+
+        _state = _state.copyWith(
+          status: nextStatus,
+          clearActiveSowBay: true,
+          selectedBay: bayIndex,
+        );
+        prediction = engine.predictSow(bayIndex, direction);
+        notifyListeners();
+
         if (_sowAnimationCompleter != null &&
             !_sowAnimationCompleter!.isCompleted) {
           _sowAnimationCompleter!.complete();
@@ -526,7 +572,11 @@ class CombatCoordinator extends ChangeNotifier {
   void toggleTacticalPause() {
     if (_state.status == CombatMatchStatus.activeCombat ||
         _state.status == CombatMatchStatus.sowingSequence) {
-      _state = _state.copyWith(status: CombatMatchStatus.paused);
+      _finalizePendingSow();
+      _state = _state.copyWith(
+        status: CombatMatchStatus.paused,
+        clearActiveSowBay: true,
+      );
       notifyListeners();
     } else if (_state.status == CombatMatchStatus.paused) {
       _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
@@ -538,7 +588,11 @@ class CombatCoordinator extends ChangeNotifier {
   void pauseCombat() {
     if (_state.status == CombatMatchStatus.activeCombat ||
         _state.status == CombatMatchStatus.sowingSequence) {
-      _state = _state.copyWith(status: CombatMatchStatus.paused);
+      _finalizePendingSow();
+      _state = _state.copyWith(
+        status: CombatMatchStatus.paused,
+        clearActiveSowBay: true,
+      );
       notifyListeners();
     }
   }
@@ -554,10 +608,7 @@ class CombatCoordinator extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
-    if (_sowAnimationCompleter != null &&
-        !_sowAnimationCompleter!.isCompleted) {
-      _sowAnimationCompleter!.complete();
-    }
+    _finalizePendingSow();
     damageNumbers.clear();
     bulletManager.clear();
     _state = _state.copyWith(status: CombatMatchStatus.disposed);

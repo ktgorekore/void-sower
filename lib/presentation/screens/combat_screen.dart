@@ -551,8 +551,11 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openPauseMenu() {
+    if (_isModalOpen) return;
     _coordinator.pauseCombat();
     _isModalOpen = true;
+
+    bool shouldResumeOnClose = true;
 
     showDialog<void>(
       context: context,
@@ -568,33 +571,41 @@ class _CombatScreenState extends State<CombatScreen>
           Navigator.of(dialogContext).pop();
         },
         onRestart: () {
+          shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _restartCombat();
         },
         onAbort: () {
+          shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _openMap();
         },
         onMap: () {
+          shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _openMap();
         },
         onCodex: () {
+          shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _openCodex();
         },
         onAcademy: () {
+          shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _coordinator.showTutorial();
         },
         onSettings: () {
+          shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _openSettings();
         },
       ),
     ).then((_) {
       _isModalOpen = false;
-      if (mounted) {
+      if (mounted &&
+          shouldResumeOnClose &&
+          _coordinator.state.status == CombatMatchStatus.paused) {
         _resumeCombat();
       }
     });
