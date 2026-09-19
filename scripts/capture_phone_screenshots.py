@@ -50,12 +50,25 @@ def capture(dest_name):
   return dest_path
 
 
-def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=12480):
+def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6):
   adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
   adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
   time.sleep(0.5)
   adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
   time.sleep(1.0)
+
+  profile_json = (
+      '{"id":"pilot_default","callsign":"Vanguard-01","insignia":"shonaStar",'
+      '"lifetimeScore":34820,"enemiesDestroyed":142,"lancesFired":86,"maxCascadeLaps":4,'
+      '"missionsPlayed":28,"victories":22,"defeats":6,"flawlessVictories":14,"totalSeedsSown":340,'
+      '"flakBurstsTriggered":24,"totalCoresSaved":184,"currentStreak":5,"longestStreak":12,'
+      '"lastPlayedDate":"2026-09-19","totalFlightTimeSeconds":4820,'
+      '"chassisSorties":{"mk1_bastion":16,"mk2_monsoon":12},'
+      '"campaignSorties":{"kilwa_basin":18,"phantom_drift":10},'
+      '"unlockedAchievements":["first_sortie","flawless_defense","cascade_master","iron_hull"],'
+      '"isGoogleLinked":false}'
+  )
+  escaped_profile = profile_json.replace('"', '&quot;')
 
   pref_xml = (
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
@@ -63,6 +76,14 @@ def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=12480):
       f'    <boolean name="flutter.void_sower_pro_unlocked" value="{"true" if pro_unlocked else "false"}" />\n'
       f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
       f'    <int name="flutter.void_sower_high_score" value="{high_score}" />\n'
+      f'    <int name="flutter.void_sower_liberated_sectors" value="{liberated_sectors}" />\n'
+      '    <int name="flutter.void_sower_sector_stars_1" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_2" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_3" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_4" value="2" />\n'
+      '    <int name="flutter.void_sower_sector_stars_5" value="2" />\n'
+      f'    <string name="flutter.void_sower_user_profile">{escaped_profile}</string>\n'
+      '    <string name="flutter.void_sower_active_profile_id">pilot_default</string>\n'
       '</map>\n'
   )
   with open("/tmp/prefs.xml", "w") as f:
@@ -82,7 +103,7 @@ def main():
   # Phase 1: Pro Unlocked Suite
   # =========================================================================
   print("\n[Phase 1] Seeding Pro Entitlement & Initializing App...")
-  seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=12480)
+  seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6)
 
   print("[Launch] Starting Void Sower main activity...")
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
@@ -109,9 +130,9 @@ def main():
       os.path.join(ASSETS_DIR, "phone_01_tactical_combat_grid.png"),
   )
 
-  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=889, y=330, then RULES at x=671, y=1740)
+  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=889, y=350, then RULES at x=671, y=1740)
   print("[Codex] Opening Tactical Pause menu...")
-  tap(889, 330)
+  tap(889, 350)
   time.sleep(1.0)
   print("[Codex] Opening Bao Codex dialog...")
   tap(671, 1740)
@@ -125,20 +146,20 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Navigate to Star Map: Tap PAUSE at x=889, y=330, then MAP at x=310, y=1740
+  # Navigate to Star Map: Tap PAUSE at x=889, y=350, then MAP at x=313, y=1740
   print("[Map] Opening Tactical Pause to navigate to Star Map...")
-  tap(889, 330)
+  tap(889, 350)
   time.sleep(1.0)
-  tap(310, 1740)
+  tap(313, 1740)
   time.sleep(2.0)
 
   # Screenshot 05: Multi-Theater Campaign Map (Kilwa Basin, Phantom Drift, Void Swarm)
   print("[Map] Capturing 05_kilwa_basin_campaign_map.png...")
   capture("05_kilwa_basin_campaign_map.png")
 
-  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=690, y=240 in Map AppBar)
+  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=683, y=240 in Map AppBar)
   print("[Hangar] Opening Fleet Hangar dialog...")
-  tap(690, 240)
+  tap(683, 240)
   time.sleep(1.2)
   capture("04_orbital_fleet_hangar.png")
   shutil.copyfile(
@@ -148,10 +169,10 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Screenshot 08: Pilot Telemetry Dashboard (Tap Profile icon at x=1050, y=240 in Map AppBar)
-  print("[Profile] Opening Pilot Dossier modal...")
-  tap(1050, 240)
-  time.sleep(1.2)
+  # Screenshot 08: Pilot Telemetry Dashboard (Tap Leaderboard icon at x=1163, y=240 in Map AppBar)
+  print("[Telemetry] Opening Combat Telemetry dashboard...")
+  tap(1163, 240)
+  time.sleep(1.5)
   capture("08_pilot_telemetry_dashboard.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "08_pilot_telemetry_dashboard.png"),
@@ -167,9 +188,9 @@ def main():
   print("[Theater] Tapping ENGAGE on Sector 10 (x=830, y=1280)...")
   tap(830, 1280)
   time.sleep(0.8)
-  print("[Theater] Launching battle (x=500, y=2800)...")
-  tap(500, 2800)
-  time.sleep(1.5)
+  print("[Theater] Launching battle (x=500, y=2850)...")
+  tap(500, 2850)
+  time.sleep(1.8)
 
   # Screenshot 02: Quadratic Lance Discharge
   # Select Bay 10 (has cores) and fire Axial Discharge
@@ -187,9 +208,9 @@ def main():
 
   # Return to Map and launch Sector 1 for clean AI victory sequence
   print("[Victory] Returning to Star Map to launch Kilwa Basin S1...")
-  tap(889, 330)  # Pause
+  tap(889, 350)  # Pause
   time.sleep(1.0)
-  tap(310, 1740) # Map
+  tap(313, 1740) # Map
   time.sleep(1.5)
   tap(250, 500)  # Kilwa Basin tab
   time.sleep(0.8)
@@ -198,9 +219,9 @@ def main():
   tap(675, 2850) # Launch battle
   time.sleep(1.8)
 
-  # Activate AI Solver in right HUD (x=1020, y=230) to eliminate invaders and achieve Victory
+  # Activate AI Solver in right HUD (x=1015, y=240) to eliminate invaders and achieve Victory
   print("[Solver] Activating AI Tactical Solver to clear sector...")
-  tap(1020, 230)
+  tap(1015, 240)
 
   # Poll for victory modal
   print("[Victory] Waiting for Sector Liberation modal...")
@@ -239,19 +260,21 @@ def main():
   # Phase 2: Free Tier -> Capture Pro Upgrade Modal
   # =========================================================================
   print("\n[Phase 2] Seeding Free Tier & Capturing Pro Commander Modal...")
-  seed_prefs(pro_unlocked=False, completed_tutorial=True, high_score=3400)
+  seed_prefs(pro_unlocked=False, completed_tutorial=True, high_score=3400, liberated_sectors=1)
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.5)
 
-  # Tap PAUSE at x=889, y=330, then MAP at x=310, y=1740
-  tap(889, 330)
+  # Tap PAUSE at x=889, y=350, then MAP at x=313, y=1740
+  tap(889, 350)
   time.sleep(1.0)
-  tap(310, 1740)
+  tap(313, 1740)
   time.sleep(2.0)
 
-  # In Free Tier, tapping Phantom Drift tab at x=670, y=500 directly opens ProUpgradeModal!
-  print("[Pro Modal] Tapping locked Phantom Drift tab to trigger Pro Upgrade Modal...")
-  tap(670, 500)
+  # In Free Tier, the Pro upgrade icon in AppBar is at x=1283, y=240
+  # Opening via this badge opens ProUpgradeModal with highlightedFeature=null,
+  # displaying only the $1.29 Lifetime purchase CTA and zero rewarded ad buttons.
+  print("[Pro Modal] Tapping Pro icon in AppBar (x=1283, y=240)...")
+  tap(1283, 240)
   time.sleep(1.2)
   capture("09_pro_commander_upgrade.png")
   shutil.copyfile(
@@ -261,7 +284,7 @@ def main():
 
   # Re-seed Pro entitlement so device remains unlocked for general usage
   print("\n[Cleanup] Re-seeding Pro entitlement...")
-  seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=12480)
+  seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
 
   print("\n[Complete] All Play Store phone screenshots recaptured successfully!")
 

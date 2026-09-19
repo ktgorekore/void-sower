@@ -254,5 +254,30 @@ void main() {
         expect(coordinator.state.activeSowBay, isNull);
       },
     );
+
+    test(
+      'AI tactical solver marks hasUsedAiSolver and prevents player stats/points accumulation',
+      () {
+        expect(coordinator.hasUsedAiSolver, isFalse);
+        expect(coordinator.sessionSeedsSown, equals(0));
+
+        // Player manual sow accumulates stats
+        coordinator.sow(11, 1);
+        expect(coordinator.sessionSeedsSown, greaterThan(0));
+        final initialSeeds = coordinator.sessionSeedsSown;
+
+        // Toggling auto solve sets hasUsedAiSolver flag
+        coordinator.toggleAutoSolve();
+        expect(coordinator.hasUsedAiSolver, isTrue);
+        expect(coordinator.state.isAutoSolving, isTrue);
+
+        // Subsequent sowing while auto-solving or after AI used does NOT accumulate player stats
+        coordinator.sow(12, 1);
+        expect(coordinator.sessionSeedsSown, equals(initialSeeds));
+
+        // Competitive score returns 0 once AI solver has been engaged
+        expect(coordinator.competitiveScore, equals(0));
+      },
+    );
   });
 }

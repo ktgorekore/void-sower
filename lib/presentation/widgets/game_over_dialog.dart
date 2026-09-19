@@ -34,6 +34,7 @@ class GameOverDialog extends StatefulWidget {
     required this.onRetry,
     required this.onReturnToMap,
     this.isAmmoDepleted = false,
+    this.isAiAssisted = false,
     this.armDuration = const Duration(milliseconds: 500),
   });
 
@@ -51,6 +52,9 @@ class GameOverDialog extends StatefulWidget {
 
   /// Whether defeat was triggered by ammunition exhaustion rather than breach.
   final bool isAmmoDepleted;
+
+  /// Whether the AI solver was active or used during this sortie.
+  final bool isAiAssisted;
 
   /// Safety debounce duration before action buttons accept taps.
   final Duration armDuration;
@@ -85,8 +89,13 @@ class _GameOverDialogState extends State<GameOverDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final isNewRecord = widget.score >= widget.highScore && widget.score > 0;
-    final effectiveHighScore = math.max(widget.score, widget.highScore);
+    final isNewRecord =
+        !widget.isAiAssisted &&
+        widget.score >= widget.highScore &&
+        widget.score > 0;
+    final effectiveHighScore = widget.isAiAssisted
+        ? widget.highScore
+        : math.max(widget.score, widget.highScore);
     final accentColor = widget.isAmmoDepleted
         ? VoidTheme.solarGold
         : VoidTheme.crimsonFlare;
@@ -153,7 +162,9 @@ class _GameOverDialogState extends State<GameOverDialog> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'FINAL SCORE: ${widget.score}',
+                    widget.isAiAssisted
+                        ? 'AI SIMULATION • UNRANKED'
+                        : 'FINAL SCORE: ${widget.score}',
                     style: const TextStyle(
                       color: VoidTheme.solarGold,
                       fontSize: 16.0,
@@ -177,7 +188,9 @@ class _GameOverDialogState extends State<GameOverDialog> {
                         child: Text(
                           isNewRecord
                               ? '🏆 NEW ALL-TIME HIGH SCORE!'
-                              : 'ALL-TIME HIGH SCORE: $effectiveHighScore',
+                              : (widget.isAiAssisted
+                                    ? 'ALL-TIME HIGH SCORE: ${widget.highScore}'
+                                    : 'ALL-TIME HIGH SCORE: $effectiveHighScore'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

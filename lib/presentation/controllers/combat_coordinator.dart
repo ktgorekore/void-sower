@@ -85,7 +85,10 @@ class CombatCoordinator extends ChangeNotifier {
   PredictionResult? get prediction => _prediction;
   set prediction(PredictionResult? val) {
     _prediction = val;
-    if (val != null && val.totalCascadeLaps > _sessionMaxCascade) {
+    if (!_hasUsedAiSolver &&
+        !_state.isAutoSolving &&
+        val != null &&
+        val.totalCascadeLaps > _sessionMaxCascade) {
       _sessionMaxCascade = val.totalCascadeLaps;
     }
   }
@@ -101,6 +104,9 @@ class CombatCoordinator extends ChangeNotifier {
 
   int _sessionMaxCascade = 0;
   int get sessionMaxCascade => _sessionMaxCascade;
+
+  bool _hasUsedAiSolver = false;
+  bool get hasUsedAiSolver => _hasUsedAiSolver;
 
   DateTime _sessionStartTime = DateTime.now();
   int get sessionFlightTimeSeconds =>
@@ -129,7 +135,12 @@ class CombatCoordinator extends ChangeNotifier {
   int get currentDifficulty => _currentDifficulty;
 
   int _highScore = 0;
-  int get highScore => math.max(_highScore, dreadnought.totalScore);
+  int get highScore => math.max(
+    _highScore,
+    _hasUsedAiSolver ? _highScore : dreadnought.totalScore,
+  );
+
+  int get competitiveScore => _hasUsedAiSolver ? 0 : dreadnought.totalScore;
 
   /// Initializes engine entities, procedurally generates the solvable combat wave,
   /// and primes the FSM.
@@ -142,6 +153,7 @@ class CombatCoordinator extends ChangeNotifier {
     bool startWithTutorial = false,
   }) {
     _sector = sector;
+    _hasUsedAiSolver = autoStartSolver;
     _finalizePendingSow();
     _highScore = PersistenceService.instance.highScore;
     _currentDifficulty = difficulty ?? sector?.difficultyTier ?? difficultyTier;
@@ -208,7 +220,7 @@ class CombatCoordinator extends ChangeNotifier {
     lances = engine.getLances();
     flaks = engine.getFlaks();
 
-    if (dreadnought.totalScore > _highScore) {
+    if (!_hasUsedAiSolver && dreadnought.totalScore > _highScore) {
       _highScore = dreadnought.totalScore;
       unawaited(PersistenceService.instance.setHighScore(_highScore));
     }
@@ -369,7 +381,9 @@ class CombatCoordinator extends ChangeNotifier {
     for (final lance in lances) {
       if (lance.active && !_activeLanceBays.contains(lance.firingBayIndex)) {
         audio.onLanceFired();
-        _sessionLancesFired++;
+        if (!_state.isAutoSolving && !_hasUsedAiSolver) {
+          _sessionLancesFired++;
+        }
       }
     }
     _activeLanceBays = lances
@@ -380,7 +394,9 @@ class CombatCoordinator extends ChangeNotifier {
     final nowHasFlak = flaks.any((f) => f.active);
     if (nowHasFlak && !_hasActiveFlak) {
       audio.onFlakDetonated();
-      _sessionFlakBursts++;
+      if (!_state.isAutoSolving && !_hasUsedAiSolver) {
+        _sessionFlakBursts++;
+      }
     }
     _hasActiveFlak = nowHasFlak;
 
@@ -447,6 +463,7 @@ class CombatCoordinator extends ChangeNotifier {
   }
 
   void _handleSolverMove(int bayIndex, int direction, double targetSlideX) {
+    _hasUsedAiSolver = true;
     engine.slideDreadnought(targetSlideX);
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, direction);
@@ -498,7 +515,9 @@ class CombatCoordinator extends ChangeNotifier {
   void sow(int bayIndex, int direction) {
     if (_state.status != CombatMatchStatus.activeCombat) return;
     final mass = (bayIndex < bays.length) ? bays[bayIndex].chargeUnits : 1;
-    _sessionSeedsSown += mass;
+    if (!_state.isAutoSolving && !_hasUsedAiSolver) {
+      _sessionSeedsSown += mass;
+    }
 
     _sowAnimationGeneration++;
     final generation = _sowAnimationGeneration;
@@ -679,6 +698,9 @@ class CombatCoordinator extends ChangeNotifier {
   /// Toggles the autonomous tactical AI solver.
   void toggleAutoSolve() {
     final next = !_state.isAutoSolving;
+    if (next) {
+      _hasUsedAiSolver = true;
+    }
     _state = _state.copyWith(
       isAutoSolving: next,
       status: next && _state.status == CombatMatchStatus.briefing

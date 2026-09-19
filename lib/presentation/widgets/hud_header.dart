@@ -42,6 +42,7 @@ class HudHeader extends StatelessWidget {
     this.isPaused = false,
     this.onTogglePause,
     this.isAutoSolving = false,
+    this.isAiAssisted = false,
     this.onToggleAutoSolve,
     this.isSecured = false,
     this.onNextSectorTap,
@@ -68,6 +69,7 @@ class HudHeader extends StatelessWidget {
   final bool isPaused;
   final VoidCallback? onTogglePause;
   final bool isAutoSolving;
+  final bool isAiAssisted;
   final VoidCallback? onToggleAutoSolve;
   final bool isSecured;
   final VoidCallback? onNextSectorTap;
@@ -163,8 +165,10 @@ class HudHeader extends StatelessWidget {
     final callsignText = profile.callsign.isNotEmpty
         ? profile.callsign.toUpperCase()
         : 'VANGUARD-01';
-    final effectiveHighScore = math.max(score, highScore);
-    final isNewRecord = score >= highScore && score > 0;
+    final effectiveHighScore = isAiAssisted
+        ? highScore
+        : math.max(score, highScore);
+    final isNewRecord = !isAiAssisted && score >= highScore && score > 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7.0, vertical: 5.5),
@@ -306,16 +310,18 @@ class HudHeader extends StatelessWidget {
           ),
           const SizedBox(height: 2.0),
 
-          // Primary Current Score Row: "SCORE" micro-label + 6-digit score
+          // Primary Current Score Row: "SCORE" micro-label + 6-digit score (or UNRANKED for AI)
           Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              const Text(
-                'SCORE',
+              Text(
+                isAiAssisted ? 'AI SIM' : 'SCORE',
                 style: TextStyle(
-                  color: VoidTheme.plasmaCyanLight,
+                  color: isAiAssisted
+                      ? VoidTheme.solarGold
+                      : VoidTheme.plasmaCyanLight,
                   fontSize: 7.5,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.8,
@@ -323,14 +329,21 @@ class HudHeader extends StatelessWidget {
               ),
               const SizedBox(width: 4.0),
               Text(
-                formatScore(score),
-                style: const TextStyle(
-                  color: VoidTheme.starWhite,
-                  fontSize: 15.0,
+                isAiAssisted ? 'UNRANKED' : formatScore(score),
+                style: TextStyle(
+                  color: isAiAssisted
+                      ? VoidTheme.solarGold
+                      : VoidTheme.starWhite,
+                  fontSize: isAiAssisted ? 13.0 : 15.0,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0.6,
                   shadows: [
-                    Shadow(color: VoidTheme.plasmaCyanLight, blurRadius: 6.0),
+                    Shadow(
+                      color: isAiAssisted
+                          ? VoidTheme.solarGold
+                          : VoidTheme.plasmaCyanLight,
+                      blurRadius: 6.0,
+                    ),
                   ],
                 ),
               ),

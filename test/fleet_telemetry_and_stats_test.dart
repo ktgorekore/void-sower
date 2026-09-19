@@ -23,7 +23,9 @@ import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/presentation/controllers/combat_coordinator.dart';
 import 'package:void_sower/presentation/screens/stats_dashboard_screen.dart';
+import 'package:void_sower/presentation/widgets/game_over_dialog.dart';
 import 'package:void_sower/presentation/widgets/profile_modal.dart';
+import 'package:void_sower/presentation/widgets/victory_dialog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -483,6 +485,63 @@ void main() {
           scrollable: find.byType(Scrollable).first,
         );
         expect(find.text('VIEW FULL FLEET TELEMETRY'), findsOneWidget);
+      },
+    );
+  });
+
+  group('AI Solver Isolation from Player Stats & Score Tests', () {
+    testWidgets(
+      'VictoryDialog renders UNRANKED badge and score when isAiAssisted is true',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(480, 800));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: VictoryDialog(
+                score: 4500,
+                highScore: 12000,
+                coresRemaining: 18,
+                starsEarned: 3,
+                isAiAssisted: true,
+                onNextSector: () {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('AI SOLVER • UNRANKED'), findsOneWidget);
+        expect(find.text('UNRANKED'), findsOneWidget);
+        expect(find.text('4500 PTS'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'GameOverDialog renders AI SIMULATION • UNRANKED when isAiAssisted is true',
+      (tester) async {
+        await tester.binding.setSurfaceSize(const Size(480, 800));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: GameOverDialog(
+                score: 2200,
+                highScore: 12000,
+                isAiAssisted: true,
+                onRetry: () {},
+                onReturnToMap: () {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('AI SIMULATION • UNRANKED'), findsOneWidget);
+        expect(find.text('ALL-TIME HIGH SCORE: 12000'), findsOneWidget);
+        expect(find.text('FINAL SCORE: 2200'), findsNothing);
       },
     );
   });

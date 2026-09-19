@@ -44,6 +44,7 @@ class VictoryDialog extends StatefulWidget {
     this.onDismiss,
     this.canAdvance,
     this.onUpgradePro,
+    this.isAiAssisted = false,
   });
 
   /// 1-based index of the liberated sector.
@@ -91,6 +92,9 @@ class VictoryDialog extends StatefulWidget {
   /// Optional callback to trigger Pro Commander upgrade flow.
   final VoidCallback? onUpgradePro;
 
+  /// Whether the AI solver was active or used during this sortie.
+  final bool isAiAssisted;
+
   @override
   State<VictoryDialog> createState() => _VictoryDialogState();
 }
@@ -120,6 +124,9 @@ class _VictoryDialogState extends State<VictoryDialog> {
   }
 
   String get _starRatingLabel {
+    if (widget.isAiAssisted) {
+      return 'AI SOLVER • UNRANKED';
+    }
     switch (widget.starsEarned) {
       case 3:
         return '★★★ FLAWLESS DEFENSE';
@@ -223,36 +230,54 @@ class _VictoryDialogState extends State<VictoryDialog> {
                       color: VoidTheme.cardSurface,
                       borderRadius: BorderRadius.circular(16.0),
                       border: Border.all(
-                        color: VoidTheme.solarGold.withValues(alpha: 0.4),
+                        color: widget.isAiAssisted
+                            ? VoidTheme.plasmaCyan.withValues(alpha: 0.5)
+                            : VoidTheme.solarGold.withValues(alpha: 0.4),
                         width: 1.0,
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          children: List.generate(3, (i) {
-                            final earned = i < widget.starsEarned;
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 1.5,
-                              ),
-                              child: Icon(
-                                earned ? Icons.star : Icons.star_border,
-                                color: VoidTheme.solarGold,
-                                size: 15.0,
-                              ),
-                            );
-                          }),
-                        ),
-                        const SizedBox(width: 6.0),
-                        Text(
-                          _starRatingLabel,
-                          style: const TextStyle(
-                            color: VoidTheme.solarGoldLight,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.4,
+                        if (!widget.isAiAssisted)
+                          Row(
+                            children: List.generate(3, (i) {
+                              final earned = i < widget.starsEarned;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 1.5,
+                                ),
+                                child: Icon(
+                                  earned ? Icons.star : Icons.star_border,
+                                  color: VoidTheme.solarGold,
+                                  size: 15.0,
+                                ),
+                              );
+                            }),
+                          )
+                        else
+                          const Padding(
+                            padding: EdgeInsets.only(right: 3.0),
+                            child: Icon(
+                              Icons.smart_toy,
+                              color: VoidTheme.plasmaCyan,
+                              size: 13.0,
+                            ),
+                          ),
+                        const SizedBox(width: 4.0),
+                        Flexible(
+                          child: Text(
+                            _starRatingLabel,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: widget.isAiAssisted
+                                  ? VoidTheme.plasmaCyan
+                                  : VoidTheme.solarGoldLight,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.4,
+                            ),
                           ),
                         ),
                       ],
@@ -349,8 +374,10 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     Expanded(
                       child: _buildStatColumn(
                         'MISSION SCORE',
-                        '${widget.score}',
-                        VoidTheme.textPrimary,
+                        widget.isAiAssisted ? 'UNRANKED' : '${widget.score}',
+                        widget.isAiAssisted
+                            ? VoidTheme.textMuted
+                            : VoidTheme.textPrimary,
                       ),
                     ),
                     Container(
@@ -360,10 +387,14 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     ),
                     Expanded(
                       child: _buildStatColumn(
-                        (widget.score >= widget.highScore && widget.score > 0)
+                        (!widget.isAiAssisted &&
+                                widget.score >= widget.highScore &&
+                                widget.score > 0)
                             ? '★ NEW RECORD'
                             : 'HIGH SCORE',
-                        '${math.max(widget.score, widget.highScore)}',
+                        widget.isAiAssisted
+                            ? '${widget.highScore}'
+                            : '${math.max(widget.score, widget.highScore)}',
                         VoidTheme.solarGold,
                       ),
                     ),

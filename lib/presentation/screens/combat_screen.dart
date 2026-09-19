@@ -224,17 +224,21 @@ class _CombatScreenState extends State<CombatScreen>
 
     final currentScore = _coordinator.dreadnought.totalScore;
     final defeatSector = CampaignService.instance.getSector(_currentSectorId);
-    await PersistenceService.instance.recordSectorDefeat(
-      sectorId: _currentSectorId,
-      score: currentScore,
-      lancesFired: _coordinator.sessionLancesFired,
-      flakBursts: _coordinator.sessionFlakBursts,
-      seedsSown: _coordinator.sessionSeedsSown,
-      maxCascadeLaps: _coordinator.sessionMaxCascade,
-      flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
-      chassisId: PersistenceService.instance.selectedChassisId,
-      campaignId: defeatSector.campaignId,
-    );
+    final isAiAssisted = _coordinator.hasUsedAiSolver;
+
+    if (!isAiAssisted) {
+      await PersistenceService.instance.recordSectorDefeat(
+        sectorId: _currentSectorId,
+        score: currentScore,
+        lancesFired: _coordinator.sessionLancesFired,
+        flakBursts: _coordinator.sessionFlakBursts,
+        seedsSown: _coordinator.sessionSeedsSown,
+        maxCascadeLaps: _coordinator.sessionMaxCascade,
+        flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
+        chassisId: PersistenceService.instance.selectedChassisId,
+        campaignId: defeatSector.campaignId,
+      );
+    }
 
     if (!mounted || _overlayState != CombatOverlayState.defeatGrace) {
       return;
@@ -248,6 +252,7 @@ class _CombatScreenState extends State<CombatScreen>
         score: currentScore,
         highScore: _coordinator.highScore,
         isAmmoDepleted: _coordinator.dreadnought.reserveCores <= 0,
+        isAiAssisted: isAiAssisted,
         armDuration: const Duration(milliseconds: 500),
         onRetry: () {
           _autoAdvanceTimer?.cancel();
@@ -295,20 +300,23 @@ class _CombatScreenState extends State<CombatScreen>
         .where((e) => e.isDestroyed)
         .length;
     final currentSector = CampaignService.instance.getSector(_currentSectorId);
+    final isAiAssisted = _coordinator.hasUsedAiSolver;
 
-    await PersistenceService.instance.recordSectorVictory(
-      sectorId: _currentSectorId,
-      score: score,
-      coresRemaining: cores,
-      enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
-      lancesFired: _coordinator.sessionLancesFired,
-      flakBursts: _coordinator.sessionFlakBursts,
-      seedsSown: _coordinator.sessionSeedsSown,
-      maxCascadeLaps: _coordinator.sessionMaxCascade,
-      flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
-      chassisId: PersistenceService.instance.selectedChassisId,
-      campaignId: currentSector.campaignId,
-    );
+    if (!isAiAssisted) {
+      await PersistenceService.instance.recordSectorVictory(
+        sectorId: _currentSectorId,
+        score: score,
+        coresRemaining: cores,
+        enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
+        lancesFired: _coordinator.sessionLancesFired,
+        flakBursts: _coordinator.sessionFlakBursts,
+        seedsSown: _coordinator.sessionSeedsSown,
+        maxCascadeLaps: _coordinator.sessionMaxCascade,
+        flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
+        chassisId: PersistenceService.instance.selectedChassisId,
+        campaignId: currentSector.campaignId,
+      );
+    }
 
     if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
       return;
@@ -347,6 +355,7 @@ class _CombatScreenState extends State<CombatScreen>
             '$liberatedInCampaign / ${operation.sectors.length} LIBERATED',
         armDuration: const Duration(milliseconds: 500),
         canAdvance: canAdvance,
+        isAiAssisted: isAiAssisted,
         onUpgradePro: !isPro
             ? () {
                 _autoAdvanceTimer?.cancel();
@@ -603,7 +612,7 @@ class _CombatScreenState extends State<CombatScreen>
         sectorId: _currentSectorId,
         sectorName: CampaignService.instance.getSector(_currentSectorId).name,
         difficultyTier: _currentDifficultyTier,
-        score: _coordinator.dreadnought.totalScore,
+        score: _coordinator.competitiveScore,
         highScore: _coordinator.highScore,
         onResume: () {
           Navigator.of(dialogContext).pop();
@@ -723,8 +732,9 @@ class _CombatScreenState extends State<CombatScreen>
                                 PersistenceService.instance.userProfile,
                             onProfileTap: _openProfile,
                             reserveCores: dread.reserveCores,
-                            score: dread.totalScore,
+                            score: _coordinator.competitiveScore,
                             highScore: _coordinator.highScore,
+                            isAiAssisted: _coordinator.hasUsedAiSolver,
                             isPro: EntitlementService.instance.isProUnlocked,
                             difficultyTier: _currentDifficultyTier,
                             sectorId: _currentSectorId,

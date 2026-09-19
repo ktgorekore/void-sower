@@ -84,14 +84,30 @@ class PersistenceService {
     await _prefs?.setBool(_kCompletedTutorial, completed);
   }
 
-  int get highScore => _prefs?.getInt(_kHighScore) ?? 0;
+  int get highScore {
+    try {
+      final val = _prefs?.get(_kHighScore);
+      if (val is int) return val;
+      if (val is String) return int.tryParse(val) ?? 0;
+    } catch (_) {}
+    return 0;
+  }
+
   Future<void> setHighScore(int score) async {
     if (score > highScore) {
       await _prefs?.setInt(_kHighScore, score);
     }
   }
 
-  int get liberatedSectors => _prefs?.getInt(_kLiberatedSectors) ?? 1;
+  int get liberatedSectors {
+    try {
+      final val = _prefs?.get(_kLiberatedSectors);
+      if (val is int) return val;
+      if (val is String) return int.tryParse(val) ?? 1;
+    } catch (_) {}
+    return 1;
+  }
+
   Future<void> setLiberatedSectors(int count) async {
     if (count > liberatedSectors) {
       await _prefs?.setInt(_kLiberatedSectors, count);
@@ -113,7 +129,12 @@ class PersistenceService {
   /// Retrieves number of liberated sectors for a specific campaign operation.
   int getLiberatedSectorsForCampaign(String campaignId) {
     if (campaignId == 'kilwa_basin') return liberatedSectors;
-    return _prefs?.getInt('$_kCampaignLiberatedPrefix$campaignId') ?? 1;
+    try {
+      final val = _prefs?.get('$_kCampaignLiberatedPrefix$campaignId');
+      if (val is int) return val;
+      if (val is String) return int.tryParse(val) ?? 1;
+    } catch (_) {}
+    return 1;
   }
 
   /// Sets number of liberated sectors for a specific campaign operation.
@@ -136,13 +157,24 @@ class PersistenceService {
 
   /// Retrieves stars earned (0 to 3) for a specific campaign sector.
   int getSectorStars(int sectorId) {
-    return _prefs?.getInt('$_kSectorStarsPrefix$sectorId') ??
-        (liberatedSectors > sectorId ? 3 : 0);
+    try {
+      final val = _prefs?.get('$_kSectorStarsPrefix$sectorId');
+      if (val is int) return val;
+      if (val is String) {
+        return int.tryParse(val) ?? (liberatedSectors > sectorId ? 3 : 0);
+      }
+    } catch (_) {}
+    return (liberatedSectors > sectorId ? 3 : 0);
   }
 
   /// Retrieves personal high score achieved in a specific campaign sector.
   int getSectorScore(int sectorId) {
-    return _prefs?.getInt('$_kSectorScorePrefix$sectorId') ?? 0;
+    try {
+      final val = _prefs?.get('$_kSectorScorePrefix$sectorId');
+      if (val is int) return val;
+      if (val is String) return int.tryParse(val) ?? 0;
+    } catch (_) {}
+    return 0;
   }
 
   static const String _kSelectedChassisId = 'void_sower_selected_chassis_id';

@@ -67,11 +67,11 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     });
   }
 
-  void _openProUpgrade() {
+  void _openProUpgrade([ProFeature? highlightedFeature]) {
     showDialog<void>(
       context: context,
       builder: (context) => ProUpgradeModal(
-        highlightedFeature: ProFeature.proCampaignTheaters,
+        highlightedFeature: highlightedFeature,
         onUnlocked: () {
           setState(() {
             _sectors = CampaignService.instance.getSectors(_activeCampaignId);
@@ -755,6 +755,21 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
             onPressed: _openSettings,
           ),
+          if (!EntitlementService.instance.isProUnlocked)
+            IconButton(
+              icon: const Icon(
+                Icons.workspace_premium,
+                color: VoidTheme.solarGold,
+              ),
+              tooltip: 'Upgrade to Pro',
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(
+                minWidth: 38.0,
+                minHeight: 38.0,
+              ),
+              onPressed: () => _openProUpgrade(),
+            ),
         ],
       ),
       body: LayoutBuilder(
