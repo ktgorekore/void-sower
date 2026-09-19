@@ -613,5 +613,148 @@ void main() {
         expect(abortTapped, isTrue);
       },
     );
+
+    testWidgets(
+      'HudHeader horizontally aligns bounding boxes and aligns controls left-to-right',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        // 1. Test during active gameplay
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 25,
+                score: 1200,
+                highScore: 5000,
+                difficultyTier: 0,
+                sectorId: 1,
+                userProfile: const UserProfile(callsign: 'VIPER_ONE'),
+                isPro: true,
+                totalInvaders: 2,
+                invadersRemaining: 2,
+                onTogglePause: () {},
+                onRestartTap: () {},
+                onStopTap: () {},
+                onToggleAutoSolve: () {},
+              ),
+            ),
+          ),
+        );
+
+        // Verify profile comes before sector element in the left box
+        final profileFinder = find.text('VIPER_ONE');
+        final sectorFinder = find.text('S1 • PATROL');
+        expect(profileFinder, findsOneWidget);
+        expect(sectorFinder, findsOneWidget);
+        final profileX = tester.getTopLeft(profileFinder).dx;
+        final sectorX = tester.getTopLeft(sectorFinder).dx;
+        expect(
+          profileX,
+          lessThan(sectorX),
+          reason: 'Profile must come before sector',
+        );
+
+        // Verify Left Wing and Right Wing containers have matching heights and top Y during gameplay
+        final containers = tester
+            .widgetList<Container>(find.byType(Container))
+            .where((c) {
+              final dec = c.decoration;
+              return dec is BoxDecoration &&
+                  dec.borderRadius == BorderRadius.circular(10.0);
+            })
+            .toList();
+        expect(containers.length, equals(2));
+
+        final leftWingSize = tester.getSize(find.byWidget(containers[0]));
+        final rightWingSize = tester.getSize(find.byWidget(containers[1]));
+        final leftWingTop = tester.getTopLeft(find.byWidget(containers[0])).dy;
+        final rightWingTop = tester.getTopLeft(find.byWidget(containers[1])).dy;
+
+        expect(
+          leftWingTop,
+          equals(rightWingTop),
+          reason: 'Top edges must be horizontally aligned',
+        );
+        expect(
+          leftWingSize.height,
+          equals(rightWingSize.height),
+          reason: 'Bounding box heights must match during gameplay',
+        );
+
+        // Verify simulation buttons are left and right aligned with top elements in Right Wing
+        final shieldFinder = find.byIcon(Icons.shield_outlined);
+        final energyCoresFinder = find.text('ENERGY CORES');
+        final pauseFinder = find.byTooltip('Pause Sortie');
+        final abortFinder = find.byTooltip('Abort to Map');
+
+        final shieldLeft = tester.getTopLeft(shieldFinder).dx;
+        final pauseLeft = tester.getTopLeft(pauseFinder).dx;
+        final coresRight = tester.getTopRight(energyCoresFinder).dx;
+        final abortRight = tester.getTopRight(abortFinder).dx;
+
+        // Pause starts within 8dp (the inner padding + border) of shield icon
+        expect((pauseLeft - shieldLeft).abs(), lessThanOrEqualTo(8.0));
+        // Abort ends within 10dp of energy cores right edge
+        expect((abortRight - coresRight).abs(), lessThanOrEqualTo(10.0));
+
+        // 2. Test after victory / sector secured
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 20,
+                score: 1200,
+                highScore: 5000,
+                difficultyTier: 0,
+                sectorId: 1,
+                userProfile: const UserProfile(callsign: 'VIPER_ONE'),
+                isPro: true,
+                isSecured: true,
+                totalInvaders: 2,
+                invadersRemaining: 0,
+              ),
+            ),
+          ),
+        );
+
+        final securedContainers = tester
+            .widgetList<Container>(find.byType(Container))
+            .where((c) {
+              final dec = c.decoration;
+              return dec is BoxDecoration &&
+                  dec.borderRadius == BorderRadius.circular(10.0);
+            })
+            .toList();
+        expect(securedContainers.length, equals(2));
+
+        final securedLeftSize = tester.getSize(
+          find.byWidget(securedContainers[0]),
+        );
+        final securedRightSize = tester.getSize(
+          find.byWidget(securedContainers[1]),
+        );
+        final securedLeftTop = tester
+            .getTopLeft(find.byWidget(securedContainers[0]))
+            .dy;
+        final securedRightTop = tester
+            .getTopLeft(find.byWidget(securedContainers[1]))
+            .dy;
+
+        expect(
+          securedLeftTop,
+          equals(securedRightTop),
+          reason: 'Top edges must align after victory',
+        );
+        expect(
+          securedLeftSize.height,
+          equals(securedRightSize.height),
+          reason: 'Heights must match after victory',
+        );
+      },
+    );
   });
 }
