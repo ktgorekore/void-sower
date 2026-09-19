@@ -94,6 +94,12 @@ class HudHeader extends StatelessWidget {
     }
   }
 
+  String get sectorBadgeText {
+    if (sectorId >= 19) return 'SWARM • S$sectorId';
+    if (sectorId >= 10) return 'DRIFT • S$sectorId';
+    return 'S$sectorId • $tierName';
+  }
+
   /// Formats raw score into prominent 6-digit grouped typography (e.g. 004,820).
   static String formatScore(int score) {
     final clamped = score.clamp(0, 999999);
@@ -284,7 +290,7 @@ class HudHeader extends StatelessWidget {
                   ),
                   const SizedBox(width: 4.0),
                   Text(
-                    'S$sectorId • $tierName',
+                    sectorBadgeText,
                     style: TextStyle(
                       color: secured
                           ? VoidTheme.emeraldShield

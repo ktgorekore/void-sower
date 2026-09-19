@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:void_sower/domain/models/pro_feature.dart';
@@ -20,6 +21,10 @@ import 'package:void_sower/domain/models/sector_progression_status.dart';
 import 'package:void_sower/domain/services/campaign_service.dart';
 import 'package:void_sower/domain/services/entitlement_service.dart';
 import 'package:void_sower/domain/services/persistence_service.dart';
+import 'package:void_sower/engine/mock_void_sower_engine.dart';
+import 'package:void_sower/presentation/screens/campaign_map_screen.dart';
+import 'package:void_sower/presentation/screens/combat_screen.dart';
+import 'package:void_sower/presentation/widgets/pro_upgrade_modal.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -154,6 +159,106 @@ void main() {
           PersistenceService.instance.liberatedSectors,
           2,
         ); // Kilwa remains 2
+      },
+    );
+
+    testWidgets(
+      'CampaignMapScreen displays theater switcher tabs and PRO locked badges',
+      (tester) async {
+        final mockEngine = MockVoidSowerEngine();
+        await tester.pumpWidget(
+          MaterialApp(home: CampaignMapScreen(engine: mockEngine)),
+        );
+        await tester.pumpAndSettle();
+
+        // Check theater switcher tabs
+        expect(find.text('KILWA BASIN'), findsOneWidget);
+        expect(find.text('PHANTOM DRIFT'), findsOneWidget);
+        expect(find.text('VOID SWARM'), findsOneWidget);
+
+        // For non-pro, PRO badges are visible
+        expect(find.text('PRO'), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      'Tapping locked Pro theater triggers ProUpgradeModal for non-Pro users',
+      (tester) async {
+        final mockEngine = MockVoidSowerEngine();
+        await tester.pumpWidget(
+          MaterialApp(home: CampaignMapScreen(engine: mockEngine)),
+        );
+        await tester.pumpAndSettle();
+
+        // Tap on PHANTOM DRIFT tab
+        await tester.tap(find.text('PHANTOM DRIFT'));
+        await tester.pumpAndSettle();
+
+        // Modal should open
+        expect(find.byType(ProUpgradeModal), findsOneWidget);
+        expect(find.text('PRO COMMANDER FLEET'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'With Pro unlocked, switching campaign theater updates sectors and doctrine banner',
+      (tester) async {
+        await PersistenceService.instance.setProUnlocked(true);
+        final mockEngine = MockVoidSowerEngine();
+
+        await tester.pumpWidget(
+          MaterialApp(home: CampaignMapScreen(engine: mockEngine)),
+        );
+        await tester.pumpAndSettle();
+
+        // Initially in Kilwa Basin
+        expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+
+        // Tap on PHANTOM DRIFT tab
+        await tester.tap(find.text('PHANTOM DRIFT'));
+        await tester.pumpAndSettle();
+
+        // Doctrine banner and Phantom Drift sector should now be displayed
+        expect(find.text('Aldabra Shimmer Rift'), findsOneWidget);
+        expect(find.text('PHANTOM DRIFT • LATERAL EVASION'), findsOneWidget);
+
+        // Tap on VOID SWARM tab
+        await tester.tap(find.text('VOID SWARM'));
+        await tester.pumpAndSettle();
+
+        // Void Swarm sector and doctrine banner should be displayed
+        expect(find.text('Comoros Hive Gate'), findsOneWidget);
+        expect(
+          find.text('VOID SWARM • HORDE CRUCIBLE & CORE SIPHON'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'Launching sector from Pro campaign displays doctrine badge on HUD',
+      (tester) async {
+        await PersistenceService.instance.setProUnlocked(true);
+        final mockEngine = MockVoidSowerEngine();
+
+        await tester.pumpWidget(
+          MaterialApp(home: CampaignMapScreen(engine: mockEngine)),
+        );
+        await tester.pumpAndSettle();
+
+        // Switch to PHANTOM DRIFT
+        await tester.tap(find.text('PHANTOM DRIFT'));
+        await tester.pumpAndSettle();
+
+        // Engage Sector 10
+        await tester.tap(find.text('ENGAGE').first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Should be in CombatScreen
+        expect(find.byType(CombatScreen), findsOneWidget);
+        // Doctrine badge should show DRIFT • S10
+        expect(find.text('DRIFT • S10'), findsOneWidget);
       },
     );
   });

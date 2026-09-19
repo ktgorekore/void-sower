@@ -91,7 +91,7 @@ class CampaignService {
       default:
         return CampaignOperation(
           id: 'kilwa_basin',
-          title: 'KILWA BASIN',
+          title: 'KILWA NEBULA BASIN',
           subtitle: 'Outer Bastions & Singularity Core',
           tacticalBriefing:
               'Standard imperial attack corridors. Master the ancient count-and-capture plasma dispersal '

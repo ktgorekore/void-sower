@@ -55,6 +55,9 @@ class CampaignOperation {
   /// Total number of sectors liberated in this operation.
   int get liberatedCount => sectors.where((s) => s.isLiberated).length;
 
+  /// Total number of sectors within this operation.
+  int get totalSectors => sectors.length;
+
   /// Total stars earned across this operation.
   int get totalStars => sectors.fold(0, (acc, s) => acc + s.starsEarned);
 

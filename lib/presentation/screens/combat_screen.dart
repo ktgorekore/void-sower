@@ -16,6 +16,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/campaign_service.dart';
 import '../../domain/services/entitlement_service.dart';
@@ -49,6 +50,7 @@ class CombatScreen extends StatefulWidget {
     required this.engine,
     this.difficultyTier = 0,
     this.sectorId = 1,
+    this.sector,
     this.onReturnToMap,
     this.autoStartSolver = false,
     this.startWithTutorial = false,
@@ -57,6 +59,7 @@ class CombatScreen extends StatefulWidget {
   final IVoidSowerEngine engine;
   final int difficultyTier;
   final int sectorId;
+  final CampaignSector? sector;
   final VoidCallback? onReturnToMap;
   final bool autoStartSolver;
   final bool startWithTutorial;
@@ -107,6 +110,7 @@ class _CombatScreenState extends State<CombatScreen>
     _coordinator.addListener(_onCoordinatorStateChanged);
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
+      sector: widget.sector ?? sector,
       autoStartSolver: widget.autoStartSolver,
       startWithTutorial: widget.startWithTutorial,
     );

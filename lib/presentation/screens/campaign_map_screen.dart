@@ -14,9 +14,13 @@
 
 import 'package:flutter/material.dart';
 
+import '../../domain/models/campaign_operation.dart';
 import '../../domain/models/campaign_sector.dart';
+import '../../domain/models/pro_feature.dart';
+import '../../domain/models/sector_combat_doctrine.dart';
 import '../../domain/models/user_profile.dart';
 import '../../domain/services/campaign_service.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
 import '../services/haptic_service.dart';
@@ -25,6 +29,7 @@ import '../widgets/bao_codex_dialog.dart';
 import '../widgets/fleet_hangar_dialog.dart';
 import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/profile_modal.dart';
+import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/tactile_button.dart';
 import 'combat_screen.dart';
@@ -41,13 +46,43 @@ class CampaignMapScreen extends StatefulWidget {
 }
 
 class _CampaignMapScreenState extends State<CampaignMapScreen> {
+  late String _activeCampaignId;
   late List<CampaignSector> _sectors;
   String _selectedChassisId = 'mk1_bastion';
 
   @override
   void initState() {
     super.initState();
-    _sectors = CampaignService.instance.getSectors();
+    _activeCampaignId = PersistenceService.instance.activeCampaignId;
+    _sectors = CampaignService.instance.getSectors(_activeCampaignId);
+  }
+
+  void _switchCampaign(String campaignId) {
+    final op = CampaignService.instance.getOperation(campaignId);
+    if (op.isProRequired && !EntitlementService.instance.isProUnlocked) {
+      _openProUpgrade();
+      return;
+    }
+    HapticService.instance.injectionClick();
+    setState(() {
+      _activeCampaignId = campaignId;
+      PersistenceService.instance.setActiveCampaignId(campaignId);
+      _sectors = CampaignService.instance.getSectors(_activeCampaignId);
+    });
+  }
+
+  void _openProUpgrade() {
+    showDialog<void>(
+      context: context,
+      builder: (context) => ProUpgradeModal(
+        highlightedFeature: ProFeature.proCampaignTheaters,
+        onUnlocked: () {
+          setState(() {
+            _sectors = CampaignService.instance.getSectors(_activeCampaignId);
+          });
+        },
+      ),
+    );
   }
 
   void _launchSector(CampaignSector sector) {
@@ -63,10 +98,11 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           engine: widget.engine,
           difficultyTier: sector.difficultyTier,
           sectorId: sector.sectorId,
+          sector: sector,
           onReturnToMap: () {
             Navigator.of(context).pop();
             setState(() {
-              _sectors = CampaignService.instance.getSectors();
+              _sectors = CampaignService.instance.getSectors(_activeCampaignId);
             });
           },
         ),
@@ -98,7 +134,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           onReturnToMap: () {
             Navigator.of(context).pop();
             setState(() {
-              _sectors = CampaignService.instance.getSectors();
+              _sectors = CampaignService.instance.getSectors(_activeCampaignId);
             });
           },
         ),
@@ -130,7 +166,8 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
       builder: (context) => SettingsModal(
         onDataWiped: () {
           setState(() {
-            _sectors = CampaignService.instance.getSectors();
+            _activeCampaignId = 'kilwa_basin';
+            _sectors = CampaignService.instance.getSectors(_activeCampaignId);
           });
         },
         onLaunchAcademy: _launchAcademy,
@@ -231,6 +268,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
 
     showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
@@ -240,168 +278,379 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             borderWidth: 1.5,
             borderRadius: 20.0,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 38.0,
-                    height: 38.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: VoidTheme.crimsonFlare.withValues(alpha: 0.2),
-                      border: Border.all(
-                        color: VoidTheme.crimsonFlare,
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.lock,
-                        color: VoidTheme.crimsonFlare,
-                        size: 20.0,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12.0),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'SECTOR ${sector.sectorId}: ${sector.name.toUpperCase()}',
-                          style: const TextStyle(
-                            color: VoidTheme.starWhite,
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        const SizedBox(height: 2.0),
-                        const Text(
-                          'IMPERIAL ORBITAL BLOCKADE DETECTED',
-                          style: TextStyle(
-                            color: VoidTheme.crimsonFlare,
-                            fontSize: 10.0,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              // Requirement Box
-              Container(
-                padding: const EdgeInsets.all(12.0),
-                decoration: BoxDecoration(
-                  color: VoidTheme.cardSurface.withValues(alpha: 0.8),
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(
-                    color: VoidTheme.solarGold.withValues(alpha: 0.6),
-                    width: 1.2,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
                   children: [
-                    const Row(
-                      children: [
-                        Icon(
-                          Icons.vpn_key,
-                          color: VoidTheme.solarGold,
-                          size: 14.0,
+                    Container(
+                      width: 38.0,
+                      height: 38.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: VoidTheme.crimsonFlare.withValues(alpha: 0.2),
+                        border: Border.all(
+                          color: VoidTheme.crimsonFlare,
+                          width: 1.5,
                         ),
-                        SizedBox(width: 6.0),
-                        Text(
-                          'CLEARANCE REQUIREMENT',
-                          style: TextStyle(
-                            color: VoidTheme.solarGold,
-                            fontSize: 10.0,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.6,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.lock,
+                          color: VoidTheme.crimsonFlare,
+                          size: 20.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12.0),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SECTOR ${sector.sectorId}: ${sector.name.toUpperCase()}',
+                            style: const TextStyle(
+                              color: VoidTheme.starWhite,
+                              fontSize: 15.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6.0),
-                    Text(
-                      sector.unlockRequirement,
-                      style: const TextStyle(
-                        color: VoidTheme.textPrimary,
-                        fontSize: 12.5,
-                        height: 1.4,
+                          const SizedBox(height: 2.0),
+                          const Text(
+                            'IMPERIAL ORBITAL BLOCKADE DETECTED',
+                            style: TextStyle(
+                              color: VoidTheme.crimsonFlare,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    if (sector.requiredSectorName != null) ...[
-                      const SizedBox(height: 6.0),
-                      Text(
-                        'Target Hyperlane: Sector ${sector.requiredSectorId} (${sector.requiredSectorName})',
-                        style: const TextStyle(
-                          color: VoidTheme.plasmaCyan,
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
-              ),
-              const SizedBox(height: 18.0),
-              // Action Buttons
-              if (requiredSector != null && requiredSector.isUnlocked) ...[
-                TactileButton(
-                  label: 'DEPLOY TO SECTOR ${sector.requiredSectorId}',
-                  icon: Icons.rocket_launch,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    _launchSector(requiredSector);
-                  },
-                  accentColor: VoidTheme.solarGold,
-                  height: 46.0,
+                const SizedBox(height: 16.0),
+                // Requirement Box
+                Container(
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: VoidTheme.cardSurface.withValues(alpha: 0.8),
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(
+                      color: VoidTheme.solarGold.withValues(alpha: 0.6),
+                      width: 1.2,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(
+                            Icons.vpn_key,
+                            color: VoidTheme.solarGold,
+                            size: 14.0,
+                          ),
+                          SizedBox(width: 6.0),
+                          Text(
+                            'CLEARANCE REQUIREMENT',
+                            style: TextStyle(
+                              color: VoidTheme.solarGold,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6.0),
+                      Text(
+                        sector.unlockRequirement,
+                        style: const TextStyle(
+                          color: VoidTheme.textPrimary,
+                          fontSize: 12.5,
+                          height: 1.4,
+                        ),
+                      ),
+                      if (sector.requiredSectorName != null) ...[
+                        const SizedBox(height: 6.0),
+                        Text(
+                          'Target Hyperlane: Sector ${sector.requiredSectorId} (${sector.requiredSectorName})',
+                          style: const TextStyle(
+                            color: VoidTheme.plasmaCyan,
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8.0),
-                TactileButton(
-                  label: 'DISMISS INTEL',
-                  icon: Icons.close,
-                  onPressed: () => Navigator.of(context).pop(),
-                  accentColor: VoidTheme.textMuted,
-                  isPrimary: false,
-                  height: 40.0,
-                ),
-              ] else
-                TactileButton(
-                  label: 'DISMISS INTEL',
-                  icon: Icons.close,
-                  onPressed: () => Navigator.of(context).pop(),
-                  accentColor: VoidTheme.plasmaCyan,
-                  isPrimary: false,
-                  height: 44.0,
-                ),
-            ],
+                const SizedBox(height: 18.0),
+                // Action Buttons
+                if (requiredSector != null && requiredSector.isUnlocked) ...[
+                  TactileButton(
+                    label: 'DEPLOY TO SECTOR ${sector.requiredSectorId}',
+                    icon: Icons.rocket_launch,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _launchSector(requiredSector);
+                    },
+                    accentColor: VoidTheme.solarGold,
+                    height: 46.0,
+                  ),
+                  const SizedBox(height: 8.0),
+                  TactileButton(
+                    label: 'DISMISS INTEL',
+                    icon: Icons.close,
+                    onPressed: () => Navigator.of(context).pop(),
+                    accentColor: VoidTheme.textMuted,
+                    isPrimary: false,
+                    height: 40.0,
+                  ),
+                ] else
+                  TactileButton(
+                    label: 'DISMISS INTEL',
+                    icon: Icons.close,
+                    onPressed: () => Navigator.of(context).pop(),
+                    accentColor: VoidTheme.plasmaCyan,
+                    isPrimary: false,
+                    height: 44.0,
+                  ),
+                if (!EntitlementService.instance.isProUnlocked) ...[
+                  const SizedBox(height: 8.0),
+                  TactileButton(
+                    label: 'INSTANTLY UNLOCK ALL SECTORS • PRO',
+                    icon: Icons.workspace_premium,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _openProUpgrade();
+                    },
+                    accentColor: VoidTheme.solarGold,
+                    height: 44.0,
+                  ),
+                ],
+              ],
+            ),
           ),
         );
       },
     );
   }
 
+  Widget _buildTheaterSwitcher() {
+    final List<CampaignOperation> operations = CampaignService.instance
+        .getOperations();
+    final isPro = EntitlementService.instance.isProUnlocked;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: Container(
+        padding: const EdgeInsets.all(4.0),
+        decoration: BoxDecoration(
+          color: VoidTheme.cardSurface.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(
+            color: VoidTheme.plasmaCyan.withValues(alpha: 0.2),
+            width: 1.0,
+          ),
+        ),
+        child: Row(
+          children: operations.map((op) {
+            final isSelected = op.id == _activeCampaignId;
+            final isLocked = op.isProRequired && !isPro;
+
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => _switchCampaign(op.id),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 7.0,
+                    horizontal: 4.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? VoidTheme.solarGold.withValues(alpha: 0.18)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(7.0),
+                    border: Border.all(
+                      color: isSelected
+                          ? VoidTheme.solarGold
+                          : Colors.transparent,
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              op.id == 'kilwa_basin' ? 'KILWA BASIN' : op.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? VoidTheme.solarGold
+                                    : (isLocked
+                                          ? VoidTheme.textMuted
+                                          : VoidTheme.starWhite),
+                                fontSize: 9.5,
+                                fontWeight: isSelected
+                                    ? FontWeight.w900
+                                    : FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                          if (isLocked) ...[
+                            const SizedBox(width: 3.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3.0,
+                                vertical: 1.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: VoidTheme.solarGold.withValues(
+                                  alpha: 0.25,
+                                ),
+                                borderRadius: BorderRadius.circular(3.0),
+                                border: Border.all(
+                                  color: VoidTheme.solarGold,
+                                  width: 0.6,
+                                ),
+                              ),
+                              child: const Text(
+                                'PRO',
+                                style: TextStyle(
+                                  color: VoidTheme.solarGold,
+                                  fontSize: 6.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        '${op.liberatedCount}/${op.totalSectors} LIBERATED',
+                        style: TextStyle(
+                          color: isSelected
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.textMuted,
+                          fontSize: 7.5,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoctrineBanner() {
+    final CampaignOperation op = CampaignService.instance.getOperation(
+      _activeCampaignId,
+    );
+    IconData doctrineIcon;
+    Color doctrineColor;
+    String doctrineTag;
+
+    switch (op.defaultDoctrine) {
+      case SectorCombatDoctrine.phantomDrift:
+        doctrineIcon = Icons.swap_horiz;
+        doctrineColor = VoidTheme.plasmaCyan;
+        doctrineTag = 'PHANTOM DRIFT • LATERAL EVASION';
+        break;
+      case SectorCombatDoctrine.voidSwarm:
+        doctrineIcon = Icons.hub;
+        doctrineColor = VoidTheme.crimsonFlare;
+        doctrineTag = 'VOID SWARM • HORDE CRUCIBLE & CORE SIPHON';
+        break;
+      case SectorCombatDoctrine.standardOrbital:
+        doctrineIcon = Icons.shield;
+        doctrineColor = VoidTheme.emeraldShield;
+        doctrineTag = 'STANDARD ORBITAL • PLANETARY SIEGE';
+        break;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        decoration: BoxDecoration(
+          color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(
+            color: doctrineColor.withValues(alpha: 0.3),
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(doctrineIcon, color: doctrineColor, size: 14.0),
+            const SizedBox(width: 6.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    doctrineTag,
+                    style: TextStyle(
+                      color: doctrineColor,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                  const SizedBox(height: 1.0),
+                  Text(
+                    op.tacticalBriefing,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: VoidTheme.textMuted,
+                      fontSize: 8.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profile = PersistenceService.instance.userProfile;
+    final activeOp = CampaignService.instance.getOperation(_activeCampaignId);
 
     return Scaffold(
       backgroundColor: VoidTheme.obsidianBlack,
       appBar: AppBar(
         backgroundColor: VoidTheme.obsidianBlack,
         elevation: 0,
-        title: const Column(
+        title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'VOID SOWER',
               style: TextStyle(
                 color: VoidTheme.solarGold,
@@ -411,8 +660,8 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
               ),
             ),
             Text(
-              'KILWA NEBULA BASIN',
-              style: TextStyle(
+              activeOp.title,
+              style: const TextStyle(
                 color: VoidTheme.plasmaCyan,
                 fontSize: 9.5,
                 fontWeight: FontWeight.bold,
@@ -579,6 +828,12 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                       ],
                     ),
                   ),
+
+                  // Theater Switcher Tabs (Kilwa Basin, Phantom Drift, Void Swarm)
+                  _buildTheaterSwitcher(),
+
+                  // Tactical Doctrine & Mission Briefing Banner
+                  _buildDoctrineBanner(),
 
                   // Pilot Profile & Active Flagship Cards Row
                   Padding(
