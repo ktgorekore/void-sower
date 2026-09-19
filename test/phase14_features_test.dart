@@ -251,7 +251,7 @@ void main() {
     });
 
     testWidgets(
-      'SettingsModal renders ENTER FLIGHT ACADEMY button when onLaunchAcademy is provided',
+      'SettingsModal renders FLIGHT ACADEMY button when onLaunchAcademy is provided',
       (tester) async {
         bool academyLaunched = false;
 
@@ -270,10 +270,10 @@ void main() {
         await tester.tap(find.text('DIAGNOSTICS'));
         await tester.pumpAndSettle();
 
-        expect(find.text('ENTER FLIGHT ACADEMY'), findsOneWidget);
+        expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
         expect(find.text('RESET FLIGHT ACADEMY TUTORIAL'), findsOneWidget);
 
-        await tester.tap(find.text('ENTER FLIGHT ACADEMY'));
+        await tester.tap(find.text('FLIGHT ACADEMY'));
         await tester.pumpAndSettle();
 
         expect(academyLaunched, isTrue);

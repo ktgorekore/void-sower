@@ -144,7 +144,7 @@ class BaoCodexDialog extends StatelessWidget {
             // Interactive Flight Academy Onboarding Launch Button
             if (onLaunchAcademy != null) ...[
               TactileButton(
-                label: 'ENTER FLIGHT ACADEMY',
+                label: 'FLIGHT ACADEMY',
                 icon: Icons.school,
                 onPressed: () {
                   Navigator.of(context).pop();

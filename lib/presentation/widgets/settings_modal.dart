@@ -566,7 +566,7 @@ class _SettingsModalState extends State<SettingsModal>
 
         if (widget.onLaunchAcademy != null) ...[
           TactileButton(
-            label: 'ENTER FLIGHT ACADEMY',
+            label: 'FLIGHT ACADEMY',
             icon: Icons.school,
             accentColor: VoidTheme.solarGold,
             isPrimary: true,

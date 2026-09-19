@@ -152,7 +152,7 @@ void main() {
     });
 
     testWidgets(
-      'BaoCodexDialog displays ENTER FLIGHT ACADEMY button when onLaunchAcademy is provided',
+      'BaoCodexDialog displays FLIGHT ACADEMY button when onLaunchAcademy is provided',
       (tester) async {
         bool academyLaunched = false;
 
@@ -166,10 +166,10 @@ void main() {
           ),
         );
 
-        expect(find.text('ENTER FLIGHT ACADEMY'), findsOneWidget);
+        expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
         expect(find.byIcon(Icons.school), findsOneWidget);
 
-        await tester.tap(find.text('ENTER FLIGHT ACADEMY'));
+        await tester.tap(find.text('FLIGHT ACADEMY'));
         await tester.pumpAndSettle();
 
         expect(academyLaunched, isTrue);
