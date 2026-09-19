@@ -176,4 +176,65 @@ TEST(CombatSimulationTest, TacticalCoreGranting) {
   EXPECT_EQ(dread.reserve_cores, 20);
 }
 
+TEST(CombatSimulationTest, LateralDriftEvasion) {
+  Engine engine;
+  engine.Initialize(24, 0.2f);
+
+  // Spawn an enemy in corridor 3 (center x ~ 0.4375)
+  EXPECT_TRUE(engine.SpawnEnemy(3, 0.85f, 0.02f, 50.0f, 100.0f, 1));
+  std::array<EnemyVesselComponent, 16> enemies{};
+  uint32_t count = engine.GetEnemies(absl::MakeSpan(enemies));
+  ASSERT_EQ(count, 1);
+  const float initial_x = enemies[0].world_pos_x;
+
+  // Step without drift: X should remain fixed
+  engine.Update(0.1f);
+  engine.GetEnemies(absl::MakeSpan(enemies));
+  EXPECT_FLOAT_EQ(enemies[0].world_pos_x, initial_x);
+
+  // Enable lateral drift and step: X should shift
+  engine.SetLateralDrift(true);
+  for (int i = 0; i < 10; ++i) {
+    engine.Update(0.05f);
+  }
+  engine.GetEnemies(absl::MakeSpan(enemies));
+  EXPECT_NE(enemies[0].world_pos_x, initial_x);
+  EXPECT_GE(enemies[0].world_pos_x, 0.06f);
+  EXPECT_LE(enemies[0].world_pos_x, 0.94f);
+}
+
+TEST(CombatSimulationTest, ReinforcementEnemySpawning) {
+  Engine engine;
+  engine.Initialize(24, 0.2f);
+
+  std::array<EnemyVesselComponent, 16> enemies{};
+  uint32_t count = engine.GetEnemies(absl::MakeSpan(enemies));
+  EXPECT_EQ(count, 0);
+
+  // Spawn 3 reinforcement enemies in different corridors
+  EXPECT_TRUE(engine.SpawnEnemy(1, 0.95f, 0.03f, 0.0f, 50.0f, 0));
+  EXPECT_TRUE(engine.SpawnEnemy(4, 0.92f, 0.02f, 100.0f, 150.0f, 1));
+  EXPECT_TRUE(engine.SpawnEnemy(7, 0.90f, 0.015f, 200.0f, 300.0f, 2));
+
+  count = engine.GetEnemies(absl::MakeSpan(enemies));
+  EXPECT_EQ(count, 3);
+  bool found_c1 = false;
+  bool found_c4 = false;
+  bool found_c7 = false;
+  for (uint32_t i = 0; i < count; ++i) {
+    if (enemies[i].assigned_corridor == 1 && enemies[i].vessel_type == 0) {
+      found_c1 = true;
+    }
+    if (enemies[i].assigned_corridor == 4 && enemies[i].vessel_type == 1) {
+      found_c4 = true;
+    }
+    if (enemies[i].assigned_corridor == 7 && enemies[i].vessel_type == 2) {
+      found_c7 = true;
+    }
+  }
+  EXPECT_TRUE(found_c1);
+  EXPECT_TRUE(found_c4);
+  EXPECT_TRUE(found_c7);
+}
+
 }  // namespace void_sower::ecs

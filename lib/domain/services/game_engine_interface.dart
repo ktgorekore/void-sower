@@ -52,6 +52,19 @@ abstract class IVoidSowerEngine {
   /// Grants reserve plasma cores directly to the dreadnought reactor.
   void grantCores(int count);
 
+  /// Sets whether descending enemy assault craft execute evasive lateral drift.
+  void setLateralDrift(bool enabled);
+
+  /// Dynamically deploys a reinforcement enemy craft into the active combat theater.
+  bool spawnEnemy({
+    required int corridor,
+    required double worldPosY,
+    required double velocityY,
+    required double shields,
+    required double hull,
+    required int vesselType,
+  });
+
   /// Computes dry-run predictive targeting telemetry without mutating game state.
   PredictionResult predictSow(int startBay, int direction);
 

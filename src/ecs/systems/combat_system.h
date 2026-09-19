@@ -72,6 +72,13 @@ class CombatSystem {
   /// Grants reserve energy cores to the dreadnought reactor.
   void GrantCores(uint32_t count);
 
+  /// Enables or disables evasive lateral drift behavior for enemy craft.
+  void SetLateralDrift(bool enabled) { lateral_drift_ = enabled; }
+
+  /// Spawns an enemy assault craft into the combat theater.
+  bool SpawnEnemy(uint16_t corridor, float world_pos_y, float velocity_y,
+                  float shields, float hull, uint8_t vessel_type);
+
   /// Returns the current simulation state.
   SimulationState GetSimulationState() const;
 
@@ -90,6 +97,8 @@ class CombatSystem {
   BaoCascadeSystem bao_cascade_system_;
   entt::entity dreadnought_entity_{entt::null};
   std::array<entt::entity, kTotalBays> bay_entities_{};
+  bool lateral_drift_{false};
+  float elapsed_combat_time_{0.0f};
 };
 
 }  // namespace void_sower::ecs

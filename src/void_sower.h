@@ -154,6 +154,11 @@ FFI_PLUGIN_EXPORT void void_sower_damage_atmosphere(uint32_t penalty)
     VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_grant_cores(uint32_t count)
     VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_set_lateral_drift(uint8_t enabled)
+    VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT int32_t void_sower_spawn_enemy(
+    uint16_t corridor, float world_pos_y, float velocity_y, float shields,
+    float hull, uint8_t vessel_type) VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_predict_sow(
     uint8_t start_bay, int8_t direction,
     VoidSowerPredictionFFI* out_prediction) VOID_SOWER_NOEXCEPT;

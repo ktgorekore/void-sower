@@ -62,6 +62,13 @@ class Engine {
   /// Grants reserve energy cores to the dreadnought reactor.
   void GrantCores(uint32_t count);
 
+  /// Enables or disables evasive lateral drift behavior for enemy craft.
+  void SetLateralDrift(bool enabled);
+
+  /// Spawns an enemy assault craft into the combat theater.
+  bool SpawnEnemy(uint16_t corridor, float world_pos_y, float velocity_y,
+                  float shields, float hull, uint8_t vessel_type);
+
   /// Dry-run predictive targeting telemetry.
   CombatSystem::PredictionResult PredictSow(uint8_t start_bay,
                                             int8_t direction) const;

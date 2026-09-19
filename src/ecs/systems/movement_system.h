@@ -43,12 +43,15 @@ class MovementSystem {
 
   /**
    * @brief Advances descending enemy assault craft toward the planetary
-   * defense line.
+   * defense line, optionally executing lateral evasive drift maneuvers.
    *
    * @param registry ECS registry containing enemy craft.
    * @param delta_time Elapsed frame time in seconds.
+   * @param lateral_drift Whether lateral corridor shifting is active.
+   * @param elapsed_time Cumulative combat time for harmonic oscillation.
    */
-  void AdvanceEnemies(entt::registry& registry, float delta_time);
+  void AdvanceEnemies(entt::registry& registry, float delta_time,
+                      bool lateral_drift = false, float elapsed_time = 0.0f);
 };
 
 }  // namespace void_sower::ecs

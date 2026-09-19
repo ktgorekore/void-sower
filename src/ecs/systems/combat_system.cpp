@@ -45,6 +45,8 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
                                .current_sim_state = static_cast<uint8_t>(
                                    SimulationState::OrbitalIdle),
                            });
+  lateral_drift_ = false;
+  elapsed_combat_time_ = 0.0f;
 
   for (uint8_t i = 0; i < kTotalBays; ++i) {
     if (bay_entities_[i] == entt::null || !registry_.valid(bay_entities_[i])) {
@@ -125,7 +127,9 @@ void CombatSystem::Update(float delta_time) {
   if (sim_state == SimulationState::OrbitalIdle ||
       sim_state == SimulationState::SowingTraversal ||
       sim_state == SimulationState::CrossDischarge) {
-    movement_system_.AdvanceEnemies(registry_, delta_time);
+    elapsed_combat_time_ += delta_time;
+    movement_system_.AdvanceEnemies(registry_, delta_time, lateral_drift_,
+                                    elapsed_combat_time_);
   }
 
   // 4. Update particle lances and secondary flaks
@@ -175,6 +179,32 @@ CombatSystem::PredictionResult CombatSystem::PredictSow(
     uint8_t start_bay, int8_t direction) const {
   return bao_cascade_system_.PredictSow(registry_, bay_entities_, spatial_grid_,
                                         start_bay, direction);
+}
+
+bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
+                              float velocity_y, float shields, float hull,
+                              uint8_t vessel_type) {
+  if (corridor >= kCorridorCount) return false;
+  auto entity = registry_.create();
+  static uint32_t s_reinforcement_id = 10000;
+  const float corridor_x = (static_cast<float>(corridor) + 0.5f) /
+                           static_cast<float>(kCorridorCount);
+  registry_.emplace<EnemyVesselComponent>(entity,
+                                          EnemyVesselComponent{
+                                              .entity_id = s_reinforcement_id++,
+                                              .assigned_corridor = corridor,
+                                              .world_pos_x = corridor_x,
+                                              .world_pos_y = world_pos_y,
+                                              .velocity_y = velocity_y,
+                                              .current_shields = shields,
+                                              .max_shields = shields,
+                                              .current_hull = hull,
+                                              .max_hull = hull,
+                                              .vessel_type = vessel_type,
+                                              .is_destroyed = 0,
+                                          });
+  RebuildSpatialGrid();
+  return true;
 }
 
 }  // namespace void_sower::ecs

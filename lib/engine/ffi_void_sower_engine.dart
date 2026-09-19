@@ -176,6 +176,33 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void setLateralDrift(bool enabled) {
+    _checkDisposed();
+    _bindings.void_sower_set_lateral_drift(enabled ? 1 : 0);
+  }
+
+  @override
+  bool spawnEnemy({
+    required int corridor,
+    required double worldPosY,
+    required double velocityY,
+    required double shields,
+    required double hull,
+    required int vesselType,
+  }) {
+    _checkDisposed();
+    return _bindings.void_sower_spawn_enemy(
+          corridor,
+          worldPosY,
+          velocityY,
+          shields,
+          hull,
+          vesselType,
+        ) !=
+        0;
+  }
+
+  @override
   PredictionResult predictSow(int startBay, int direction) {
     _checkDisposed();
     _bindings.void_sower_predict_sow(startBay, direction, _cachedPredictionPtr);

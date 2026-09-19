@@ -80,6 +80,25 @@ void Engine::GrantCores(uint32_t count) {
   }
 }
 
+void Engine::SetLateralDrift(bool enabled) {
+  VLOG(6) << "Engine::SetLateralDrift: enabled=" << enabled;
+  if (combat_system_) {
+    combat_system_->SetLateralDrift(enabled);
+  }
+}
+
+bool Engine::SpawnEnemy(uint16_t corridor, float world_pos_y, float velocity_y,
+                        float shields, float hull, uint8_t vessel_type) {
+  VLOG(6) << "Engine::SpawnEnemy: corridor=" << corridor
+          << ", y=" << world_pos_y
+          << ", type=" << static_cast<int>(vessel_type);
+  if (combat_system_) {
+    return combat_system_->SpawnEnemy(corridor, world_pos_y, velocity_y,
+                                      shields, hull, vessel_type);
+  }
+  return false;
+}
+
 CombatSystem::PredictionResult Engine::PredictSow(uint8_t start_bay,
                                                   int8_t direction) const {
   VLOG(10) << "Engine::PredictSow: start_bay=" << static_cast<int>(start_bay)

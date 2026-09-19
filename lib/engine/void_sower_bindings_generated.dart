@@ -140,6 +140,51 @@ class VoidSowerBindings {
   late final _void_sower_grant_cores = _void_sower_grant_coresPtr
       .asFunction<void Function(int)>();
 
+  void void_sower_set_lateral_drift(int enabled) {
+    return _void_sower_set_lateral_drift(enabled);
+  }
+
+  late final _void_sower_set_lateral_driftPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Uint8)>>(
+        'void_sower_set_lateral_drift',
+      );
+  late final _void_sower_set_lateral_drift = _void_sower_set_lateral_driftPtr
+      .asFunction<void Function(int)>();
+
+  int void_sower_spawn_enemy(
+    int corridor,
+    double world_pos_y,
+    double velocity_y,
+    double shields,
+    double hull,
+    int vessel_type,
+  ) {
+    return _void_sower_spawn_enemy(
+      corridor,
+      world_pos_y,
+      velocity_y,
+      shields,
+      hull,
+      vessel_type,
+    );
+  }
+
+  late final _void_sower_spawn_enemyPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Int32 Function(
+            ffi.Uint16,
+            ffi.Float,
+            ffi.Float,
+            ffi.Float,
+            ffi.Float,
+            ffi.Uint8,
+          )
+        >
+      >('void_sower_spawn_enemy');
+  late final _void_sower_spawn_enemy = _void_sower_spawn_enemyPtr
+      .asFunction<int Function(int, double, double, double, double, int)>();
+
   void void_sower_predict_sow(
     int start_bay,
     int direction,

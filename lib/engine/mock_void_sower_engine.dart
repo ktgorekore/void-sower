@@ -40,6 +40,8 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   final List<EnemyCraft> _enemies = <EnemyCraft>[];
   final List<LanceBeam> _lances = <LanceBeam>[];
   final List<FlakBurst> _flaks = <FlakBurst>[];
+  bool _lateralDrift = false;
+  double _elapsedDriftTime = 0.0;
 
   void _initBays() {
     for (var i = 0; i < 16; i++) {
@@ -57,6 +59,8 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     _coresUsed = 0;
     _simState = 0;
     _isCascading = false;
+    _lateralDrift = false;
+    _elapsedDriftTime = 0.0;
     _initBays();
     _enemies.clear();
     _lances.clear();
@@ -165,11 +169,50 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void setLateralDrift(bool enabled) {
+    _lateralDrift = enabled;
+  }
+
+  @override
+  bool spawnEnemy({
+    required int corridor,
+    required double worldPosY,
+    required double velocityY,
+    required double shields,
+    required double hull,
+    required int vesselType,
+  }) {
+    if (corridor < 0 || corridor >= 8) return false;
+    final nextId = 10000 + _enemies.length;
+    final corridorX = (corridor + 0.5) / 8.0;
+    _enemies.add(
+      EnemyCraft(
+        entityId: nextId,
+        assignedCorridor: corridor,
+        worldPosX: corridorX,
+        worldPosY: worldPosY,
+        velocityY: velocityY,
+        currentShields: shields,
+        maxShields: shields,
+        currentHull: hull,
+        maxHull: hull,
+        vesselType: vesselType,
+        isDestroyed: false,
+      ),
+    );
+    return true;
+  }
+
+  @override
   void stepSimulation(double deltaTime) {
     // Interpolate dreadnought lateral position
     _orbitalX +=
         (_targetX - _orbitalX) *
         (1.0 - (0.5 * deltaTime * 20.0)).clamp(0.0, 1.0);
+
+    if (_lateralDrift) {
+      _elapsedDriftTime += deltaTime;
+    }
 
     // Update enemies
     var destroyedCount = 0;
@@ -182,6 +225,15 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         _simState = 8; // GameOver
       }
 
+      var posX = e.worldPosX;
+      var corridor = e.assignedCorridor;
+      if (_lateralDrift) {
+        final phase = e.entityId * 1.57;
+        final lateralVel = math.sin(_elapsedDriftTime * 2.8 + phase) * 0.28;
+        posX = (posX + lateralVel * deltaTime).clamp(0.06, 0.94);
+        corridor = (posX * 8.0).floor().clamp(0, 7);
+      }
+
       // Lance collision check
       var hull = e.currentHull;
       var shields = e.currentShields;
@@ -189,7 +241,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
       for (final l in _lances) {
         if (!l.active) continue;
-        if ((e.worldPosX - l.originX).abs() < 0.08) {
+        if ((posX - l.originX).abs() < 0.08) {
           final dmg = l.totalDamage * deltaTime * 2.0;
           if (shields > 0) {
             shields = (shields - dmg).clamp(0.0, e.maxShields);
@@ -200,8 +252,8 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
             destroyed = true;
             _flaks.add(
               FlakBurst(
-                worldPosX: e.worldPosX,
-                worldPosY: e.worldPosY,
+                worldPosX: posX,
+                worldPosY: newY,
                 blastRadius: 0.15,
                 areaDamage: 50.0,
                 lifetime: 0.4,
@@ -219,8 +271,8 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
       _enemies[i] = EnemyCraft(
         entityId: e.entityId,
-        assignedCorridor: e.assignedCorridor,
-        worldPosX: e.worldPosX,
+        assignedCorridor: corridor,
+        worldPosX: posX,
         worldPosY: newY,
         velocityY: e.velocityY,
         currentShields: shields,

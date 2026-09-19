@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/logging.dart';
 import '../../domain/models/bay_state.dart';
+import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/dreadnought_state.dart';
 import '../../domain/models/enemy_craft.dart';
 import '../../domain/models/flak_burst.dart';
@@ -25,6 +26,8 @@ import '../../domain/models/floating_damage_number.dart';
 import '../../domain/models/lance_beam.dart';
 import '../../domain/models/prediction_result.dart';
 import '../../domain/models/pro_feature.dart';
+import '../../domain/models/sector_combat_doctrine.dart';
+import '../../domain/models/swarm_wave_phase.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
@@ -88,6 +91,17 @@ class CombatCoordinator extends ChangeNotifier {
   int? _pendingSowBay;
   int? _pendingSowDirection;
 
+  CampaignSector? _sector;
+  CampaignSector? get sector => _sector;
+
+  SwarmWavePhase _swarmPhase = SwarmWavePhase.secured;
+  SwarmWavePhase get swarmPhase => _swarmPhase;
+
+  int _remainingReinforcements = 0;
+  int get remainingReinforcements => _remainingReinforcements;
+
+  final Set<int> _neutralizedEnemyIds = <int>{};
+
   int _currentDifficulty = 0;
   int get currentDifficulty => _currentDifficulty;
 
@@ -97,20 +111,31 @@ class CombatCoordinator extends ChangeNotifier {
   /// Initializes engine entities, procedurally generates the solvable combat wave,
   /// and primes the FSM.
   void initialize({
+    CampaignSector? sector,
     int? difficulty,
     int startingCores = 28,
     double boundaryY = 0.15,
     bool autoStartSolver = false,
     bool startWithTutorial = false,
   }) {
+    _sector = sector;
     _finalizePendingSow();
     _highScore = PersistenceService.instance.highScore;
-    _currentDifficulty = difficulty ?? difficultyTier;
+    _currentDifficulty = difficulty ?? sector?.difficultyTier ?? difficultyTier;
+    _neutralizedEnemyIds.clear();
+
+    final doctrine = sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
+    _remainingReinforcements = sector?.reinforcementQuota ?? 0;
+    _swarmPhase = (doctrine == SectorCombatDoctrine.voidSwarm)
+        ? SwarmWavePhase.initialAssault
+        : SwarmWavePhase.secured;
+
     vlog(
       6,
-      'CombatCoordinator: Initializing sector difficulty $_currentDifficulty',
+      'CombatCoordinator: Initializing sector ${sector?.sectorId ?? "custom"} difficulty $_currentDifficulty doctrine $doctrine',
     );
     engine.initialize(startingCores: startingCores, boundaryY: boundaryY);
+    engine.setLateralDrift(doctrine == SectorCombatDoctrine.phantomDrift);
     engine.generateWave(
       difficulty: _currentDifficulty,
       randomSeed: DateTime.now().millisecondsSinceEpoch % 100000,
@@ -182,7 +207,7 @@ class CombatCoordinator extends ChangeNotifier {
         _state.status == CombatMatchStatus.defeat ||
         _state.status == CombatMatchStatus.victory ||
         dreadnought.isGameOver ||
-        dreadnought.isVictory) {
+        (dreadnought.isVictory && _remainingReinforcements <= 0)) {
       particleService.update(clampedDt * 0.2);
       return;
     }
@@ -190,6 +215,64 @@ class CombatCoordinator extends ChangeNotifier {
     // 1. Advance native C++ simulation
     engine.stepSimulation(clampedDt);
     _syncDomainState();
+
+    // Check for newly neutralized enemies for Tactical Core Siphon & Horde Reinforcements
+    final doctrine = _sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
+    for (final enemy in enemies) {
+      if (enemy.isDestroyed && !_neutralizedEnemyIds.contains(enemy.entityId)) {
+        _neutralizedEnemyIds.add(enemy.entityId);
+
+        // Tactical Core Siphon
+        final siphonAmount =
+            _sector?.coreSiphonPerKill ??
+            (enemy.vesselType == 2 ? 3 : (enemy.vesselType == 1 ? 2 : 1));
+        engine.grantCores(siphonAmount);
+        grantEmergencyCores(siphonAmount);
+
+        final enemyCorridorX = (enemy.worldPosX > 0.0 && enemy.worldPosX <= 1.0)
+            ? enemy.worldPosX * viewportSize.width
+            : (enemy.assignedCorridor + 0.5) * (viewportSize.width / 8.0);
+
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: '+$siphonAmount CORES (SIPHON)',
+            x: enemyCorridorX,
+            y: viewportSize.height * 0.40,
+            color: VoidTheme.solarGold,
+            isCritical: siphonAmount >= 2,
+          ),
+        );
+        HapticService.instance.sowTick();
+
+        // Void Swarm horde reinforcement spawning
+        if (doctrine == SectorCombatDoctrine.voidSwarm &&
+            _remainingReinforcements > 0) {
+          _remainingReinforcements--;
+          final respawnCorridor = _random.nextInt(8);
+          final vType = (_remainingReinforcements % 4 == 0)
+              ? 1
+              : ((_remainingReinforcements == 0) ? 2 : 0);
+          final shields = (vType == 2) ? 150.0 : (vType == 1 ? 60.0 : 0.0);
+          final hull = (vType == 2) ? 250.0 : (vType == 1 ? 100.0 : 40.0);
+          final velY = 0.02 + (_currentDifficulty * 0.006);
+
+          engine.spawnEnemy(
+            corridor: respawnCorridor,
+            worldPosY: 0.96,
+            velocityY: velY,
+            shields: shields,
+            hull: hull,
+            vesselType: vType,
+          );
+
+          if (_remainingReinforcements == 0) {
+            _swarmPhase = SwarmWavePhase.finalStand;
+          } else if (_swarmPhase == SwarmWavePhase.initialAssault) {
+            _swarmPhase = SwarmWavePhase.reinforcementWaves;
+          }
+        }
+      }
+    }
 
     // Check if orbital was breached, ammo exhausted, or victory achieved during simulation step
     final bool isAmmoExhausted =
@@ -207,8 +290,9 @@ class CombatCoordinator extends ChangeNotifier {
       bulletManager.clear();
       particleService.update(clampedDt * 0.2);
       return;
-    } else if (dreadnought.isVictory) {
+    } else if (dreadnought.isVictory && _remainingReinforcements <= 0) {
       if (_state.status != CombatMatchStatus.victory) {
+        _swarmPhase = SwarmWavePhase.secured;
         _state = _state.copyWith(status: CombatMatchStatus.victory);
         audio.onVictory();
         notifyListeners();

@@ -39,4 +39,32 @@ class EnemyCraft {
   final double maxHull;
   final int vesselType; // 0: Drone, 1: Cruiser, 2: Flagship
   final bool isDestroyed;
+
+  EnemyCraft copyWith({
+    int? entityId,
+    int? assignedCorridor,
+    double? worldPosX,
+    double? worldPosY,
+    double? velocityY,
+    double? currentShields,
+    double? maxShields,
+    double? currentHull,
+    double? maxHull,
+    int? vesselType,
+    bool? isDestroyed,
+  }) {
+    return EnemyCraft(
+      entityId: entityId ?? this.entityId,
+      assignedCorridor: assignedCorridor ?? this.assignedCorridor,
+      worldPosX: worldPosX ?? this.worldPosX,
+      worldPosY: worldPosY ?? this.worldPosY,
+      velocityY: velocityY ?? this.velocityY,
+      currentShields: currentShields ?? this.currentShields,
+      maxShields: maxShields ?? this.maxShields,
+      currentHull: currentHull ?? this.currentHull,
+      maxHull: maxHull ?? this.maxHull,
+      vesselType: vesselType ?? this.vesselType,
+      isDestroyed: isDestroyed ?? this.isDestroyed,
+    );
+  }
 }

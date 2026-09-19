@@ -159,6 +159,35 @@ void void_sower_grant_cores(uint32_t count) noexcept {
   }
 }
 
+void void_sower_set_lateral_drift(uint8_t enabled) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().SetLateralDrift(enabled != 0);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_set_lateral_drift: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_set_lateral_drift";
+  }
+}
+
+int32_t void_sower_spawn_enemy(uint16_t corridor, float world_pos_y,
+                               float velocity_y, float shields, float hull,
+                               uint8_t vessel_type) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    return GetOrCreateEngine().SpawnEnemy(corridor, world_pos_y, velocity_y,
+                                          shields, hull, vessel_type)
+               ? 1
+               : 0;
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_spawn_enemy: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_spawn_enemy";
+    return 0;
+  }
+}
+
 void void_sower_predict_sow(uint8_t start_bay, int8_t direction,
                             VoidSowerPredictionFFI* out_prediction) noexcept {
   if (!out_prediction) return;

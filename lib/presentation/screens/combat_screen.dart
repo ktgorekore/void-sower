@@ -23,6 +23,7 @@ import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../controllers/combat_coordinator.dart';
+import '../controllers/combat_overlay_state.dart';
 import '../theme/void_theme.dart';
 import 'campaign_map_screen.dart';
 import '../widgets/bao_codex_dialog.dart';
@@ -76,10 +77,7 @@ class _CombatScreenState extends State<CombatScreen>
 
   int _currentDifficultyTier = 0;
   int _currentSectorId = 1;
-  bool _isModalOpen = false;
-  bool _isVictoryModalShowing = false;
-  bool _isGameOverModalShowing = false;
-  bool _victoryDialogDismissed = false;
+  CombatOverlayState _overlayState = CombatOverlayState.none;
   Timer? _autoAdvanceTimer;
 
   int _lastReserveCores = -1;
@@ -145,15 +143,12 @@ class _CombatScreenState extends State<CombatScreen>
           );
       _coordinator.update(clampedDt, viewport);
       final matchStatus = _coordinator.state.status;
-      if (matchStatus == CombatMatchStatus.defeat &&
-          !_isModalOpen &&
-          !_isGameOverModalShowing) {
-        _showGameOverModal();
-      } else if (matchStatus == CombatMatchStatus.victory &&
-          !_isModalOpen &&
-          !_isVictoryModalShowing &&
-          !_victoryDialogDismissed) {
-        _showVictoryModal();
+      if (_overlayState == CombatOverlayState.none) {
+        if (matchStatus == CombatMatchStatus.defeat) {
+          _showGameOverModal();
+        } else if (matchStatus == CombatMatchStatus.victory) {
+          _showVictoryModal();
+        }
       }
       if (_tickCount++ % 60 == 0) {
         debugPrint(
@@ -201,42 +196,35 @@ class _CombatScreenState extends State<CombatScreen>
     if (!mounted) return;
     final matchStatus = _coordinator.state.status;
 
-    if (matchStatus == CombatMatchStatus.defeat &&
-        !_isModalOpen &&
-        !_isGameOverModalShowing) {
-      _showGameOverModal();
-    } else if (matchStatus == CombatMatchStatus.victory &&
-        !_isModalOpen &&
-        !_isVictoryModalShowing &&
-        !_victoryDialogDismissed) {
-      _showVictoryModal();
+    if (_overlayState == CombatOverlayState.none) {
+      if (matchStatus == CombatMatchStatus.defeat) {
+        _showGameOverModal();
+      } else if (matchStatus == CombatMatchStatus.victory) {
+        _showVictoryModal();
+      }
     }
 
     setState(() {});
   }
 
   Future<void> _showGameOverModal() async {
-    if (_isGameOverModalShowing || _isModalOpen) return;
-    _isGameOverModalShowing = true;
-    _isModalOpen = true;
+    if (_overlayState.isTerminalFlow || _overlayState.isModalOpen) return;
+    _overlayState = CombatOverlayState.defeatGrace;
     _autoAdvanceTimer?.cancel();
 
     // 400ms grace period so in-flight shooting taps subside and breach explosion renders
     await Future.delayed(const Duration(milliseconds: 400));
-    if (!mounted) {
-      _isGameOverModalShowing = false;
-      _isModalOpen = false;
+    if (!mounted || _overlayState != CombatOverlayState.defeatGrace) {
       return;
     }
 
     final currentScore = _coordinator.dreadnought.totalScore;
     unawaited(PersistenceService.instance.setHighScore(currentScore));
 
-    if (!mounted) {
-      _isGameOverModalShowing = false;
-      _isModalOpen = false;
+    if (!mounted || _overlayState != CombatOverlayState.defeatGrace) {
       return;
     }
+    _overlayState = CombatOverlayState.defeatModal;
 
     showDialog<void>(
       context: context,
@@ -249,15 +237,12 @@ class _CombatScreenState extends State<CombatScreen>
         onRetry: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
-          _isModalOpen = false;
-          _isGameOverModalShowing = false;
           _restartCombat();
         },
         onReturnToMap: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
-          _isModalOpen = false;
-          _isGameOverModalShowing = false;
+          _overlayState = CombatOverlayState.none;
           _openMap();
         },
       ),
@@ -265,10 +250,8 @@ class _CombatScreenState extends State<CombatScreen>
 
     if (_coordinator.state.isAutoSolving) {
       _autoAdvanceTimer = Timer(const Duration(milliseconds: 1800), () {
-        if (mounted && _isModalOpen) {
+        if (mounted && _overlayState == CombatOverlayState.defeatModal) {
           Navigator.of(context, rootNavigator: true).pop();
-          _isModalOpen = false;
-          _isGameOverModalShowing = false;
           _restartCombat();
         }
       });
@@ -276,19 +259,18 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   Future<void> _showVictoryModal() async {
-    if (_isVictoryModalShowing || _isModalOpen || _victoryDialogDismissed) {
+    if (_overlayState == CombatOverlayState.victoryReview) {
+      // Re-opening victory dialog from battlefield review dock
+    } else if (_overlayState.isTerminalFlow || _overlayState.isModalOpen) {
       return;
     }
-    _isVictoryModalShowing = true;
-    _isModalOpen = true;
+    _overlayState = CombatOverlayState.victoryGrace;
     _autoAdvanceTimer?.cancel();
 
     // 600ms grace period so in-flight shooting taps clear, animations finish,
     // and victory fanfare plays before modal interrupts.
     await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted || _victoryDialogDismissed) {
-      _isVictoryModalShowing = false;
-      _isModalOpen = false;
+    if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
       return;
     }
 
@@ -297,7 +279,6 @@ class _CombatScreenState extends State<CombatScreen>
     final enemiesNeutralized = _coordinator.enemies
         .where((e) => e.isDestroyed)
         .length;
-    final previousLiberated = PersistenceService.instance.liberatedSectors;
 
     await PersistenceService.instance.recordSectorVictory(
       sectorId: _currentSectorId,
@@ -306,21 +287,24 @@ class _CombatScreenState extends State<CombatScreen>
       enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
     );
 
-    if (!mounted || _victoryDialogDismissed) {
-      _isVictoryModalShowing = false;
-      _isModalOpen = false;
+    if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
       return;
     }
+    _overlayState = CombatOverlayState.victoryModal;
 
-    final newLiberated = PersistenceService.instance.liberatedSectors;
-    final isNewUnlock =
-        newLiberated > previousLiberated && _currentSectorId < 9;
+    final currentSector = CampaignService.instance.getSector(_currentSectorId);
+    final operation = CampaignService.instance.getOperation(
+      currentSector.campaignId,
+    );
+    final isPro = EntitlementService.instance.isProUnlocked;
+    final maxSectorInOperation =
+        operation.baseSectorId + operation.sectors.length - 1;
+    final isNewUnlock = !isPro && _currentSectorId < maxSectorInOperation;
     final nextSector = isNewUnlock
         ? CampaignService.instance.getSector(_currentSectorId + 1)
         : null;
-    final allSectors = CampaignService.instance.getSectors();
-    final liberatedCount = allSectors.where((s) => s.isLiberated).length;
-    final currentSector = CampaignService.instance.getSector(_currentSectorId);
+    final liberatedInCampaign = PersistenceService.instance
+        .getLiberatedSectorsForCampaign(currentSector.campaignId);
 
     showDialog<void>(
       context: context,
@@ -333,28 +317,24 @@ class _CombatScreenState extends State<CombatScreen>
         sectorName: currentSector.name,
         isNewUnlock: isNewUnlock,
         unlockedSectorName: nextSector?.name,
-        campaignProgressText: '$liberatedCount / 9 LIBERATED',
+        campaignProgressText:
+            '$liberatedInCampaign / ${operation.sectors.length} LIBERATED',
         armDuration: const Duration(milliseconds: 500),
         onNextSector: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
-          _isModalOpen = false;
-          _isVictoryModalShowing = false;
           _advanceNextSector();
         },
         onReturnToMap: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
-          _isModalOpen = false;
-          _isVictoryModalShowing = false;
+          _overlayState = CombatOverlayState.none;
           _openMap();
         },
         onDismiss: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
-          _isModalOpen = false;
-          _isVictoryModalShowing = false;
-          _victoryDialogDismissed = true;
+          _overlayState = CombatOverlayState.victoryReview;
           if (mounted) setState(() {});
         },
       ),
@@ -362,10 +342,8 @@ class _CombatScreenState extends State<CombatScreen>
 
     if (_coordinator.state.isAutoSolving) {
       _autoAdvanceTimer = Timer(const Duration(milliseconds: 1800), () {
-        if (mounted && _isModalOpen) {
+        if (mounted && _overlayState == CombatOverlayState.victoryModal) {
           Navigator.of(context, rootNavigator: true).pop();
-          _isModalOpen = false;
-          _isVictoryModalShowing = false;
           _advanceNextSector();
         }
       });
@@ -373,14 +351,12 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _restartCombat() {
-    _victoryDialogDismissed = false;
-    _isVictoryModalShowing = false;
-    _isGameOverModalShowing = false;
-    _isModalOpen = false;
+    _overlayState = CombatOverlayState.none;
     final sector = CampaignService.instance.getSector(_currentSectorId);
     _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
+      sector: sector,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
     if (!_ticker.isTicking) {
@@ -391,17 +367,21 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _advanceNextSector() {
-    _victoryDialogDismissed = false;
-    _isVictoryModalShowing = false;
-    _isGameOverModalShowing = false;
-    _isModalOpen = false;
-    if (_currentSectorId < 9) {
+    _overlayState = CombatOverlayState.none;
+    final currentSector = CampaignService.instance.getSector(_currentSectorId);
+    final operation = CampaignService.instance.getOperation(
+      currentSector.campaignId,
+    );
+    final maxSectorInOperation =
+        operation.baseSectorId + operation.sectors.length - 1;
+    if (_currentSectorId < maxSectorInOperation) {
       _currentSectorId++;
     }
     final sector = CampaignService.instance.getSector(_currentSectorId);
     _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
+      sector: sector,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
     if (!_ticker.isTicking) {
@@ -412,6 +392,8 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openCodex() {
+    if (_overlayState != CombatOverlayState.none) return;
+    _overlayState = CombatOverlayState.codex;
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -423,6 +405,7 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
+      _overlayState = CombatOverlayState.none;
       if (mounted &&
           wasTicking &&
           _coordinator.state.status != CombatMatchStatus.briefing) {
@@ -432,6 +415,8 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openSettings() {
+    if (_overlayState != CombatOverlayState.none) return;
+    _overlayState = CombatOverlayState.settings;
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -446,6 +431,7 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
+      _overlayState = CombatOverlayState.none;
       if (mounted &&
           wasTicking &&
           _coordinator.state.status != CombatMatchStatus.briefing) {
@@ -455,6 +441,8 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openEmergencyFlare() {
+    if (_overlayState != CombatOverlayState.none) return;
+    _overlayState = CombatOverlayState.emergencyFlare;
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -466,6 +454,7 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
+      _overlayState = CombatOverlayState.none;
       if (mounted && wasTicking) {
         _ticker.start();
       }
@@ -473,6 +462,8 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openProfile() {
+    if (_overlayState != CombatOverlayState.none) return;
+    _overlayState = CombatOverlayState.profile;
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -485,6 +476,7 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
+      _overlayState = CombatOverlayState.none;
       if (mounted && wasTicking) {
         _ticker.start();
       }
@@ -551,9 +543,9 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openPauseMenu() {
-    if (_isModalOpen) return;
+    if (_overlayState != CombatOverlayState.none) return;
     _coordinator.pauseCombat();
-    _isModalOpen = true;
+    _overlayState = CombatOverlayState.paused;
 
     bool shouldResumeOnClose = true;
 
@@ -578,31 +570,38 @@ class _CombatScreenState extends State<CombatScreen>
         onAbort: () {
           shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
+          _overlayState = CombatOverlayState.none;
           _openMap();
         },
         onMap: () {
           shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
+          _overlayState = CombatOverlayState.none;
           _openMap();
         },
         onCodex: () {
           shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
+          _overlayState = CombatOverlayState.none;
           _openCodex();
         },
         onAcademy: () {
           shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
+          _overlayState = CombatOverlayState.none;
           _coordinator.showTutorial();
         },
         onSettings: () {
           shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
+          _overlayState = CombatOverlayState.none;
           _openSettings();
         },
       ),
     ).then((_) {
-      _isModalOpen = false;
+      if (_overlayState == CombatOverlayState.paused) {
+        _overlayState = CombatOverlayState.none;
+      }
       if (mounted &&
           shouldResumeOnClose &&
           _coordinator.state.status == CombatMatchStatus.paused) {
@@ -691,16 +690,15 @@ class _CombatScreenState extends State<CombatScreen>
                                 .where((e) => !e.isDestroyed)
                                 .length,
                             isPaused:
-                                matchState.status == CombatMatchStatus.paused,
+                                matchState.status == CombatMatchStatus.paused ||
+                                _overlayState == CombatOverlayState.paused,
                             onTogglePause: _toggleTacticalPause,
                             onRestartTap: _restartCombat,
                             onStopTap: _openMap,
                             onMapTap: _openMap,
                             onNextSectorTap: () {
-                              if (_victoryDialogDismissed) {
-                                setState(() {
-                                  _victoryDialogDismissed = false;
-                                });
+                              if (_overlayState ==
+                                  CombatOverlayState.victoryReview) {
                                 _showVictoryModal();
                               } else {
                                 _advanceNextSector();
@@ -807,7 +805,7 @@ class _CombatScreenState extends State<CombatScreen>
                                 ),
                                 if (matchState.status ==
                                         CombatMatchStatus.paused &&
-                                    !_isModalOpen)
+                                    !_overlayState.isModalOpen)
                                   Positioned(
                                     top: 8.0,
                                     left: 16.0,
@@ -914,8 +912,8 @@ class _CombatScreenState extends State<CombatScreen>
                                   ),
                                 // Ergonomic Sector Secured Bottom Command Dock when modal is dismissed
                                 if (isSecured &&
-                                    _victoryDialogDismissed &&
-                                    !_isModalOpen)
+                                    _overlayState ==
+                                        CombatOverlayState.victoryReview)
                                   Positioned(
                                     bottom: 12.0,
                                     left: 16.0,
@@ -1114,10 +1112,6 @@ class _CombatScreenState extends State<CombatScreen>
                                               // Quick Recap Button to reopen victory dialog
                                               GestureDetector(
                                                 onTap: () {
-                                                  setState(() {
-                                                    _victoryDialogDismissed =
-                                                        false;
-                                                  });
                                                   _showVictoryModal();
                                                 },
                                                 child: Container(
