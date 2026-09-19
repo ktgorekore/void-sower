@@ -519,5 +519,99 @@ void main() {
         expect(stopTapped, isTrue);
       },
     );
+
+    testWidgets(
+      'HudHeader positions AI and invaders count at the top and expands pause, restart, and abort at the bottom',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400);
+        tester.view.devicePixelRatio = 2.0;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        bool pauseTapped = false;
+        bool restartTapped = false;
+        bool abortTapped = false;
+        bool aiTapped = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 25,
+                score: 2400,
+                highScore: 8000,
+                difficultyTier: 1,
+                sectorId: 2,
+                sectorName: 'Zanzibar Reef Gate',
+                totalInvaders: 8,
+                invadersRemaining: 5,
+                isPaused: false,
+                isAutoSolving: false,
+                onTogglePause: () => pauseTapped = true,
+                onRestartTap: () => restartTapped = true,
+                onStopTap: () => abortTapped = true,
+                onToggleAutoSolve: () => aiTapped = true,
+              ),
+            ),
+          ),
+        );
+
+        // Verify elements exist
+        final invadersFinder = find.text('3/8');
+        final aiFinder = find.text('AI');
+        final pauseFinder = find.byIcon(Icons.pause);
+        final restartFinder = find.byIcon(Icons.replay);
+        final abortFinder = find.byIcon(Icons.stop_circle_outlined);
+
+        expect(invadersFinder, findsOneWidget);
+        expect(aiFinder, findsOneWidget);
+        expect(pauseFinder, findsOneWidget);
+        expect(restartFinder, findsOneWidget);
+        expect(abortFinder, findsOneWidget);
+
+        // Verify vertical hierarchy: AI & invaders count are positioned ABOVE pause, restart, and abort
+        final invadersY = tester.getTopLeft(invadersFinder).dy;
+        final aiY = tester.getTopLeft(aiFinder).dy;
+        final pauseY = tester.getTopLeft(pauseFinder).dy;
+        final restartY = tester.getTopLeft(restartFinder).dy;
+        final abortY = tester.getTopLeft(abortFinder).dy;
+
+        expect(invadersY, lessThan(pauseY));
+        expect(aiY, lessThan(pauseY));
+        expect(invadersY, lessThan(restartY));
+        expect(aiY, lessThan(restartY));
+        expect(invadersY, lessThan(abortY));
+        expect(aiY, lessThan(abortY));
+
+        // Verify bottom simulation controls are expanded (width >= 46 dp, height >= 32 dp)
+        final pauseSize = tester.getSize(find.byTooltip('Pause Sortie'));
+        final restartSize = tester.getSize(find.byTooltip('Restart Sector'));
+        final abortSize = tester.getSize(find.byTooltip('Abort to Map'));
+
+        expect(pauseSize.width, greaterThanOrEqualTo(46.0));
+        expect(pauseSize.height, greaterThanOrEqualTo(32.0));
+        expect(restartSize.width, greaterThanOrEqualTo(46.0));
+        expect(restartSize.height, greaterThanOrEqualTo(32.0));
+        expect(abortSize.width, greaterThanOrEqualTo(46.0));
+        expect(abortSize.height, greaterThanOrEqualTo(32.0));
+
+        // Verify all interactive controls trigger their delegates
+        await tester.tap(aiFinder);
+        await tester.pumpAndSettle();
+        expect(aiTapped, isTrue);
+
+        await tester.tap(pauseFinder);
+        await tester.pumpAndSettle();
+        expect(pauseTapped, isTrue);
+
+        await tester.tap(restartFinder);
+        await tester.pumpAndSettle();
+        expect(restartTapped, isTrue);
+
+        await tester.tap(abortFinder);
+        await tester.pumpAndSettle();
+        expect(abortTapped, isTrue);
+      },
+    );
   });
 }

@@ -397,6 +397,10 @@ class HudHeader extends StatelessWidget {
         ? VoidTheme.crimsonFlare
         : VoidTheme.solarGold;
 
+    final hasControls =
+        !secured &&
+        (onTogglePause != null || onRestartTap != null || onStopTap != null);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.0),
       child: BackdropFilter(
@@ -424,98 +428,35 @@ class HudHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Energy Cores Micro-Gauge with 4px Progress Bar
-              GestureDetector(
-                onTap: onEmergencyFlareTap,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.bolt, size: 13.0, color: coreColor),
-                        const SizedBox(width: 1.0),
-                        Text(
-                          '$reserveCores/50',
-                          style: TextStyle(
-                            color: coreColor,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.3,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2.0),
-                    // 4px-high progress bar
-                    Container(
-                      width: 86.0,
-                      height: 3.5,
-                      decoration: BoxDecoration(
-                        color: VoidTheme.cardSurface,
-                        borderRadius: BorderRadius.circular(2.0),
-                      ),
-                      child: FractionallySizedBox(
-                        alignment: Alignment.centerLeft,
-                        widthFactor: coreFill,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: coreColor,
-                            borderRadius: BorderRadius.circular(2.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: coreColor.withValues(alpha: 0.5),
-                                blurRadius: 4.0,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 1.0),
-                    Text(
-                      'ENERGY CORES',
-                      style: TextStyle(
-                        color: VoidTheme.textMuted.withValues(alpha: 0.8),
-                        fontSize: 7.0,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 5.0),
-
-              // Bottom Row: Hostiles & Controls (AI + Pause)
+              // Top Row: Invaders Count, AI Solver Toggle, & Energy Cores Telemetry
               Row(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Hostiles Micro-Indicator / Clean SECURED Status
+                  // 1. Invaders Count / Clean SECURED Status
                   GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: secured ? onNextSectorTap : null,
                     child: Container(
-                      padding: secured
-                          ? const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 2.0,
-                            )
-                          : EdgeInsets.zero,
-                      decoration: secured
-                          ? BoxDecoration(
-                              color: VoidTheme.emeraldShield.withValues(
-                                alpha: 0.18,
-                              ),
-                              borderRadius: BorderRadius.circular(4.0),
-                              border: Border.all(
-                                color: VoidTheme.emeraldShield.withValues(
-                                  alpha: 0.6,
-                                ),
-                                width: 0.8,
-                              ),
-                            )
-                          : null,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5.5,
+                        vertical: 2.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: secured
+                            ? VoidTheme.emeraldShield.withValues(alpha: 0.18)
+                            : VoidTheme.cardSurface.withValues(alpha: 0.55),
+                        borderRadius: BorderRadius.circular(4.0),
+                        border: Border.all(
+                          color: secured
+                              ? VoidTheme.emeraldShield.withValues(alpha: 0.6)
+                              : (remaining <= 2
+                                        ? VoidTheme.solarGold
+                                        : VoidTheme.crimsonFlare)
+                                    .withValues(alpha: 0.35),
+                          width: 0.8,
+                        ),
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -523,7 +464,7 @@ class HudHeader extends StatelessWidget {
                             secured
                                 ? Icons.check_circle
                                 : Icons.shield_outlined,
-                            size: 12.0,
+                            size: 11.5,
                             color: secured
                                 ? VoidTheme.emeraldShield
                                 : (remaining <= 2
@@ -553,14 +494,15 @@ class HudHeader extends StatelessWidget {
                     ),
                   ),
 
-                  // AI Tactical Auto-Solver Toggle Switch (active combat only)
+                  // 2. AI Tactical Auto-Solver Toggle Switch (active combat only)
                   if (!secured && onToggleAutoSolve != null) ...[
-                    const SizedBox(width: 8.0),
+                    const SizedBox(width: 5.0),
                     GestureDetector(
+                      behavior: HitTestBehavior.opaque,
                       onTap: onToggleAutoSolve,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 5.5,
+                          horizontal: 6.0,
                           vertical: 2.5,
                         ),
                         decoration: BoxDecoration(
@@ -612,33 +554,107 @@ class HudHeader extends StatelessWidget {
                     ),
                   ],
 
-                  // Simulation Controls: Pause/Play, Restart, Stop/Abort (Active combat only, Icon-Only)
-                  if (!secured) ...[
-                    // 1. Pause or Play Button [ ⏸ / ▶ ]
+                  // 3. Energy Cores Micro-Gauge with Progress Bar
+                  const SizedBox(width: 8.0),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onEmergencyFlareTap,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bolt, size: 12.0, color: coreColor),
+                            const SizedBox(width: 1.0),
+                            Text(
+                              '$reserveCores/50',
+                              style: TextStyle(
+                                color: coreColor,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 1.5),
+                        // Progress bar
+                        Container(
+                          width: 64.0,
+                          height: 3.0,
+                          decoration: BoxDecoration(
+                            color: VoidTheme.cardSurface,
+                            borderRadius: BorderRadius.circular(2.0),
+                          ),
+                          child: FractionallySizedBox(
+                            alignment: Alignment.centerLeft,
+                            widthFactor: coreFill,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: coreColor,
+                                borderRadius: BorderRadius.circular(2.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: coreColor.withValues(alpha: 0.5),
+                                    blurRadius: 3.0,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 1.0),
+                        Text(
+                          'ENERGY CORES',
+                          style: TextStyle(
+                            color: VoidTheme.textMuted.withValues(alpha: 0.8),
+                            fontSize: 6.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              // Bottom Row: Expanded Simulation Controls (Pause/Play, Restart, Stop/Abort)
+              if (hasControls) ...[
+                const SizedBox(height: 5.5),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 1. Expanded Pause or Play Button [ ⏸ / ▶ ]
                     if (onTogglePause != null) ...[
-                      const SizedBox(width: 5.0),
                       Tooltip(
                         message: isPaused ? 'Resume Sortie' : 'Pause Sortie',
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: onTogglePause,
                           child: Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 46.0,
+                              minHeight: 32.0,
+                            ),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 3.5,
+                              horizontal: 10.0,
+                              vertical: 6.0,
                             ),
                             decoration: BoxDecoration(
                               color: isPaused
                                   ? VoidTheme.solarGold
                                   : VoidTheme.cardSurface.withValues(
-                                      alpha: 0.7,
+                                      alpha: 0.75,
                                     ),
-                              borderRadius: BorderRadius.circular(4.0),
+                              borderRadius: BorderRadius.circular(5.0),
                               border: Border.all(
                                 color: isPaused
                                     ? VoidTheme.solarGold
                                     : VoidTheme.textSecondary.withValues(
-                                        alpha: 0.5,
+                                        alpha: 0.55,
                                       ),
                                 width: 1.0,
                               ),
@@ -648,95 +664,126 @@ class HudHeader extends StatelessWidget {
                                         color: VoidTheme.solarGold.withValues(
                                           alpha: 0.4,
                                         ),
-                                        blurRadius: 4.0,
+                                        blurRadius: 5.0,
                                       ),
                                     ]
                                   : null,
                             ),
-                            child: Icon(
-                              isPaused ? Icons.play_arrow : Icons.pause,
-                              size: 13.0,
-                              color: isPaused
-                                  ? VoidTheme.obsidianBlack
-                                  : VoidTheme.starWhite,
+                            child: Center(
+                              child: Icon(
+                                isPaused ? Icons.play_arrow : Icons.pause,
+                                size: 16.0,
+                                color: isPaused
+                                    ? VoidTheme.obsidianBlack
+                                    : VoidTheme.starWhite,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ],
 
-                    // 2. Restart Sortie Button [ 🔄 ]
+                    // 2. Expanded Restart Sortie Button [ 🔄 ]
                     if (onRestartTap != null) ...[
-                      const SizedBox(width: 4.0),
+                      if (onTogglePause != null) const SizedBox(width: 5.0),
                       Tooltip(
                         message: 'Restart Sector',
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: onRestartTap,
                           child: Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 46.0,
+                              minHeight: 32.0,
+                            ),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 3.5,
+                              horizontal: 10.0,
+                              vertical: 6.0,
                             ),
                             decoration: BoxDecoration(
                               color: VoidTheme.cardSurface.withValues(
-                                alpha: 0.7,
+                                alpha: 0.75,
                               ),
-                              borderRadius: BorderRadius.circular(4.0),
+                              borderRadius: BorderRadius.circular(5.0),
                               border: Border.all(
                                 color: VoidTheme.plasmaCyan.withValues(
-                                  alpha: 0.5,
+                                  alpha: 0.55,
                                 ),
                                 width: 1.0,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: VoidTheme.plasmaCyan.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  blurRadius: 4.0,
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.replay,
-                              size: 13.0,
-                              color: VoidTheme.plasmaCyanLight,
+                            child: const Center(
+                              child: Icon(
+                                Icons.replay,
+                                size: 16.0,
+                                color: VoidTheme.plasmaCyanLight,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ],
 
-                    // 3. Stop / Abort Sortie Button [ ⏹ ]
+                    // 3. Expanded Stop / Abort Sortie Button [ ⏹ ]
                     if (onStopTap != null) ...[
-                      const SizedBox(width: 4.0),
+                      if (onTogglePause != null || onRestartTap != null)
+                        const SizedBox(width: 5.0),
                       Tooltip(
                         message: 'Abort to Map',
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,
                           onTap: onStopTap,
                           child: Container(
+                            constraints: const BoxConstraints(
+                              minWidth: 46.0,
+                              minHeight: 32.0,
+                            ),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 3.5,
+                              horizontal: 10.0,
+                              vertical: 6.0,
                             ),
                             decoration: BoxDecoration(
                               color: VoidTheme.cardSurface.withValues(
-                                alpha: 0.7,
+                                alpha: 0.75,
                               ),
-                              borderRadius: BorderRadius.circular(4.0),
+                              borderRadius: BorderRadius.circular(5.0),
                               border: Border.all(
                                 color: VoidTheme.crimsonFlare.withValues(
-                                  alpha: 0.5,
+                                  alpha: 0.55,
                                 ),
                                 width: 1.0,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: VoidTheme.crimsonFlare.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  blurRadius: 4.0,
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.stop_circle_outlined,
-                              size: 13.0,
-                              color: VoidTheme.crimsonFlare,
+                            child: const Center(
+                              child: Icon(
+                                Icons.stop_circle_outlined,
+                                size: 16.0,
+                                color: VoidTheme.crimsonFlare,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ],
                   ],
-                ],
-              ),
+                ),
+              ],
             ],
           ),
         ),
