@@ -56,12 +56,12 @@ class ParticleService {
 
   final int maxParticles;
   late final List<VisualParticle> _pool;
+  final List<VisualParticle> _activeList = <VisualParticle>[];
   final math.Random _rng = math.Random(1337);
 
-  List<VisualParticle> get activeParticles =>
-      _pool.where((p) => p.active).toList(growable: false);
+  List<VisualParticle> get activeParticles => _activeList;
 
-  bool get hasActiveParticles => _pool.any((p) => p.active);
+  bool get hasActiveParticles => _activeList.isNotEmpty;
 
   void spawnFlakBurst(double x, double y, Color color, {int count = 24}) {
     var spawned = 0;
@@ -128,6 +128,7 @@ class ParticleService {
   }
 
   void update(double dt) {
+    _activeList.clear();
     for (final p in _pool) {
       if (p.active) {
         p.life += dt;
@@ -136,6 +137,7 @@ class ParticleService {
         } else {
           p.x += p.vx * dt;
           p.y += p.vy * dt;
+          _activeList.add(p);
         }
       }
     }
@@ -145,5 +147,6 @@ class ParticleService {
     for (final p in _pool) {
       p.active = false;
     }
+    _activeList.clear();
   }
 }

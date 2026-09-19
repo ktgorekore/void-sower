@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -159,230 +158,213 @@ class HudHeader extends StatelessWidget {
     final effectiveHighScore = math.max(score, highScore);
     final isNewRecord = score >= highScore && score > 0;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10.0),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 7.5, vertical: 5.0),
-          decoration: BoxDecoration(
-            color: VoidTheme.obsidianBlack.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(
-              color: secured
-                  ? VoidTheme.emeraldShield.withValues(alpha: 0.4)
-                  : VoidTheme.plasmaCyan.withValues(alpha: 0.25),
-              width: 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color:
-                    (secured ? VoidTheme.emeraldShield : VoidTheme.plasmaCyan)
-                        .withValues(alpha: 0.12),
-                blurRadius: 10.0,
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7.5, vertical: 5.0),
+      decoration: BoxDecoration(
+        color: VoidTheme.obsidianBlack.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(
+          color: secured
+              ? VoidTheme.emeraldShield.withValues(alpha: 0.4)
+              : VoidTheme.plasmaCyan.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (secured ? VoidTheme.emeraldShield : VoidTheme.plasmaCyan)
+                .withValues(alpha: 0.12),
+            blurRadius: 10.0,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Mission Micro-Badge & Pilot Callsign with Person Icon & PRO Badge
+          Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Mission Micro-Badge & Pilot Callsign with Person Icon & PRO Badge
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 5.0,
-                    height: 5.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: secured
-                          ? VoidTheme.emeraldShield
-                          : VoidTheme.plasmaCyan,
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              (secured
-                                      ? VoidTheme.emeraldShield
-                                      : VoidTheme.plasmaCyan)
-                                  .withValues(alpha: 0.8),
-                          blurRadius: 4.0,
-                        ),
-                      ],
+              Container(
+                width: 5.0,
+                height: 5.0,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: secured
+                      ? VoidTheme.emeraldShield
+                      : VoidTheme.plasmaCyan,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          (secured
+                                  ? VoidTheme.emeraldShield
+                                  : VoidTheme.plasmaCyan)
+                              .withValues(alpha: 0.8),
+                      blurRadius: 4.0,
                     ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  Text(
-                    'S$sectorId • $tierName',
-                    style: TextStyle(
-                      color: secured
-                          ? VoidTheme.emeraldShield
-                          : VoidTheme.plasmaCyan,
-                      fontSize: 8.0,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
+                  ],
+                ),
+              ),
+              const SizedBox(width: 4.0),
+              Text(
+                'S$sectorId • $tierName',
+                style: TextStyle(
+                  color: secured
+                      ? VoidTheme.emeraldShield
+                      : VoidTheme.plasmaCyan,
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(width: 3.0),
+              Text(
+                '•',
+                style: TextStyle(
+                  color: VoidTheme.textMuted.withValues(alpha: 0.4),
+                  fontSize: 7.0,
+                ),
+              ),
+              const SizedBox(width: 3.0),
+              GestureDetector(
+                onTap: onProfileTap,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.person,
+                      size: 8.5,
+                      color: effectiveIsPro
+                          ? VoidTheme.solarGold
+                          : VoidTheme.plasmaCyan.withValues(alpha: 0.8),
                     ),
-                  ),
-                  const SizedBox(width: 3.0),
-                  Text(
-                    '•',
-                    style: TextStyle(
-                      color: VoidTheme.textMuted.withValues(alpha: 0.4),
-                      fontSize: 7.0,
-                    ),
-                  ),
-                  const SizedBox(width: 3.0),
-                  GestureDetector(
-                    onTap: onProfileTap,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.person,
-                          size: 8.5,
+                    const SizedBox(width: 2.0),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: effectiveIsPro ? 44.0 : 54.0,
+                      ),
+                      child: Text(
+                        callsignText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
                           color: effectiveIsPro
-                              ? VoidTheme.solarGold
-                              : VoidTheme.plasmaCyan.withValues(alpha: 0.8),
+                              ? VoidTheme.starWhite
+                              : VoidTheme.textMuted.withValues(alpha: 0.85),
+                          fontSize: 7.0,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
                         ),
-                        const SizedBox(width: 2.0),
-                        ConstrainedBox(
-                          constraints: BoxConstraints(
-                            maxWidth: effectiveIsPro ? 44.0 : 54.0,
-                          ),
-                          child: Text(
-                            callsignText,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: effectiveIsPro
-                                  ? VoidTheme.starWhite
-                                  : VoidTheme.textMuted.withValues(alpha: 0.85),
-                              fontSize: 7.0,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
-                            ),
+                      ),
+                    ),
+                    if (effectiveIsPro) ...[
+                      const SizedBox(width: 3.0),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 3.0,
+                          vertical: 0.5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.solarGold.withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(3.0),
+                          border: Border.all(
+                            color: VoidTheme.solarGold.withValues(alpha: 0.85),
+                            width: 0.6,
                           ),
                         ),
-                        if (effectiveIsPro) ...[
-                          const SizedBox(width: 3.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 3.0,
-                              vertical: 0.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.solarGold.withValues(
-                                alpha: 0.22,
-                              ),
-                              borderRadius: BorderRadius.circular(3.0),
-                              border: Border.all(
-                                color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.85,
-                                ),
-                                width: 0.6,
-                              ),
-                            ),
-                            child: const Text(
-                              'PRO',
-                              style: TextStyle(
-                                color: VoidTheme.solarGold,
-                                fontSize: 6.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                        child: const Text(
+                          'PRO',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 6.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 2.0),
-
-              // Primary Current Score Row: "SCORE" micro-label + 6-digit score
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  const Text(
-                    'SCORE',
-                    style: TextStyle(
-                      color: VoidTheme.plasmaCyanLight,
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  Text(
-                    formatScore(score),
-                    style: const TextStyle(
-                      color: VoidTheme.starWhite,
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.6,
-                      shadows: [
-                        Shadow(
-                          color: VoidTheme.plasmaCyanLight,
-                          blurRadius: 6.0,
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 1.0),
-
-              // All-Time High Score Sub-Row: Trophy + "HI-SCORE" + 6-digit high score
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.emoji_events,
-                    size: 8.5,
-                    color: isNewRecord
-                        ? VoidTheme.solarGold
-                        : VoidTheme.solarGold.withValues(alpha: 0.75),
-                  ),
-                  const SizedBox(width: 2.5),
-                  Text(
-                    isNewRecord ? 'HI-SCORE ★' : 'HI-SCORE',
-                    style: TextStyle(
-                      color: isNewRecord
-                          ? VoidTheme.solarGold
-                          : VoidTheme.solarGold.withValues(alpha: 0.85),
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(width: 3.5),
-                  Text(
-                    formatScore(effectiveHighScore),
-                    style: TextStyle(
-                      color: isNewRecord
-                          ? VoidTheme.solarGold
-                          : VoidTheme.solarGold.withValues(alpha: 0.9),
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      shadows: isNewRecord
-                          ? const [
-                              Shadow(
-                                color: VoidTheme.solarGold,
-                                blurRadius: 6.0,
-                              ),
-                            ]
-                          : null,
-                    ),
-                  ),
-                ],
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 2.0),
+
+          // Primary Current Score Row: "SCORE" micro-label + 6-digit score
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              const Text(
+                'SCORE',
+                style: TextStyle(
+                  color: VoidTheme.plasmaCyanLight,
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(width: 4.0),
+              Text(
+                formatScore(score),
+                style: const TextStyle(
+                  color: VoidTheme.starWhite,
+                  fontSize: 15.0,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                  shadows: [
+                    Shadow(color: VoidTheme.plasmaCyanLight, blurRadius: 6.0),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 1.0),
+
+          // All-Time High Score Sub-Row: Trophy + "HI-SCORE" + 6-digit high score
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.emoji_events,
+                size: 8.5,
+                color: isNewRecord
+                    ? VoidTheme.solarGold
+                    : VoidTheme.solarGold.withValues(alpha: 0.75),
+              ),
+              const SizedBox(width: 2.5),
+              Text(
+                isNewRecord ? 'HI-SCORE ★' : 'HI-SCORE',
+                style: TextStyle(
+                  color: isNewRecord
+                      ? VoidTheme.solarGold
+                      : VoidTheme.solarGold.withValues(alpha: 0.85),
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(width: 3.5),
+              Text(
+                formatScore(effectiveHighScore),
+                style: TextStyle(
+                  color: isNewRecord
+                      ? VoidTheme.solarGold
+                      : VoidTheme.solarGold.withValues(alpha: 0.9),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                  shadows: isNewRecord
+                      ? const [
+                          Shadow(color: VoidTheme.solarGold, blurRadius: 6.0),
+                        ]
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -401,392 +383,374 @@ class HudHeader extends StatelessWidget {
         !secured &&
         (onTogglePause != null || onRestartTap != null || onStopTap != null);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(10.0),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 5.5),
-          decoration: BoxDecoration(
-            color: VoidTheme.obsidianBlack.withValues(alpha: 0.65),
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(
-              color: secured
-                  ? VoidTheme.emeraldShield.withValues(alpha: 0.4)
-                  : VoidTheme.solarGold.withValues(alpha: 0.25),
-              width: 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: (secured ? VoidTheme.emeraldShield : VoidTheme.solarGold)
-                    .withValues(alpha: 0.12),
-                blurRadius: 10.0,
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.5, vertical: 5.5),
+      decoration: BoxDecoration(
+        color: VoidTheme.obsidianBlack.withValues(alpha: 0.85),
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(
+          color: secured
+              ? VoidTheme.emeraldShield.withValues(alpha: 0.4)
+              : VoidTheme.solarGold.withValues(alpha: 0.25),
+          width: 1.0,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (secured ? VoidTheme.emeraldShield : VoidTheme.solarGold)
+                .withValues(alpha: 0.12),
+            blurRadius: 10.0,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top Row: Invaders Count, AI Solver Toggle, & Energy Cores Telemetry
+          Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Top Row: Invaders Count, AI Solver Toggle, & Energy Cores Telemetry
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 1. Invaders Count / Clean SECURED Status
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: secured ? onNextSectorTap : null,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5.5,
-                        vertical: 2.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: secured
-                            ? VoidTheme.emeraldShield.withValues(alpha: 0.18)
-                            : VoidTheme.cardSurface.withValues(alpha: 0.55),
-                        borderRadius: BorderRadius.circular(4.0),
-                        border: Border.all(
-                          color: secured
-                              ? VoidTheme.emeraldShield.withValues(alpha: 0.6)
-                              : (remaining <= 2
-                                        ? VoidTheme.solarGold
-                                        : VoidTheme.crimsonFlare)
-                                    .withValues(alpha: 0.35),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            secured
-                                ? Icons.check_circle
-                                : Icons.shield_outlined,
-                            size: 11.5,
-                            color: secured
-                                ? VoidTheme.emeraldShield
-                                : (remaining <= 2
-                                      ? VoidTheme.solarGold
-                                      : VoidTheme.crimsonFlare),
-                          ),
-                          const SizedBox(width: 3.0),
-                          Text(
-                            secured
-                                ? 'SECURED'
-                                : (total > 0
-                                      ? '$eliminated/$total'
-                                      : '$remaining'),
-                            style: TextStyle(
-                              color: secured
-                                  ? VoidTheme.emeraldShield
-                                  : (remaining <= 2
-                                        ? VoidTheme.solarGold
-                                        : VoidTheme.starWhite),
-                              fontSize: 10.0,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ],
-                      ),
+              // 1. Invaders Count / Clean SECURED Status
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: secured ? onNextSectorTap : null,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5.5,
+                    vertical: 2.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: secured
+                        ? VoidTheme.emeraldShield.withValues(alpha: 0.18)
+                        : VoidTheme.cardSurface.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(4.0),
+                    border: Border.all(
+                      color: secured
+                          ? VoidTheme.emeraldShield.withValues(alpha: 0.6)
+                          : (remaining <= 2
+                                    ? VoidTheme.solarGold
+                                    : VoidTheme.crimsonFlare)
+                                .withValues(alpha: 0.35),
+                      width: 0.8,
                     ),
                   ),
-
-                  // 2. AI Tactical Auto-Solver Toggle Switch (active combat only)
-                  if (!secured && onToggleAutoSolve != null) ...[
-                    const SizedBox(width: 5.0),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: onToggleAutoSolve,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6.0,
-                          vertical: 2.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isAutoSolving
-                              ? VoidTheme.crimsonFlare
-                              : VoidTheme.cardSurface.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(4.0),
-                          border: Border.all(
-                            color: isAutoSolving
-                                ? VoidTheme.crimsonFlare
-                                : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                            width: 1.0,
-                          ),
-                          boxShadow: isAutoSolving
-                              ? [
-                                  BoxShadow(
-                                    color: VoidTheme.crimsonFlare.withValues(
-                                      alpha: 0.4,
-                                    ),
-                                    blurRadius: 4.0,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.smart_toy,
-                              size: 11.0,
-                              color: isAutoSolving
-                                  ? VoidTheme.obsidianBlack
-                                  : VoidTheme.plasmaCyanLight,
-                            ),
-                            const SizedBox(width: 2.0),
-                            Text(
-                              'AI',
-                              style: TextStyle(
-                                color: isAutoSolving
-                                    ? VoidTheme.obsidianBlack
-                                    : VoidTheme.plasmaCyanLight,
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        secured ? Icons.check_circle : Icons.shield_outlined,
+                        size: 11.5,
+                        color: secured
+                            ? VoidTheme.emeraldShield
+                            : (remaining <= 2
+                                  ? VoidTheme.solarGold
+                                  : VoidTheme.crimsonFlare),
+                      ),
+                      const SizedBox(width: 3.0),
+                      Text(
+                        secured
+                            ? 'SECURED'
+                            : (total > 0 ? '$eliminated/$total' : '$remaining'),
+                        style: TextStyle(
+                          color: secured
+                              ? VoidTheme.emeraldShield
+                              : (remaining <= 2
+                                    ? VoidTheme.solarGold
+                                    : VoidTheme.starWhite),
+                          fontSize: 10.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              ),
 
-                  // 3. Energy Cores Micro-Gauge with Progress Bar
-                  const SizedBox(width: 8.0),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: onEmergencyFlareTap,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+              // 2. AI Tactical Auto-Solver Toggle Switch (active combat only)
+              if (!secured && onToggleAutoSolve != null) ...[
+                const SizedBox(width: 5.0),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onToggleAutoSolve,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6.0,
+                      vertical: 2.5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isAutoSolving
+                          ? VoidTheme.crimsonFlare
+                          : VoidTheme.cardSurface.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(4.0),
+                      border: Border.all(
+                        color: isAutoSolving
+                            ? VoidTheme.crimsonFlare
+                            : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                        width: 1.0,
+                      ),
+                      boxShadow: isAutoSolving
+                          ? [
+                              BoxShadow(
+                                color: VoidTheme.crimsonFlare.withValues(
+                                  alpha: 0.4,
+                                ),
+                                blurRadius: 4.0,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.bolt, size: 12.0, color: coreColor),
-                            const SizedBox(width: 1.0),
-                            Text(
-                              '$reserveCores/50',
-                              style: TextStyle(
-                                color: coreColor,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ],
+                        Icon(
+                          Icons.smart_toy,
+                          size: 11.0,
+                          color: isAutoSolving
+                              ? VoidTheme.obsidianBlack
+                              : VoidTheme.plasmaCyanLight,
                         ),
-                        const SizedBox(height: 1.5),
-                        // Progress bar
-                        Container(
-                          width: 64.0,
-                          height: 3.0,
-                          decoration: BoxDecoration(
-                            color: VoidTheme.cardSurface,
-                            borderRadius: BorderRadius.circular(2.0),
-                          ),
-                          child: FractionallySizedBox(
-                            alignment: Alignment.centerLeft,
-                            widthFactor: coreFill,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: coreColor,
-                                borderRadius: BorderRadius.circular(2.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: coreColor.withValues(alpha: 0.5),
-                                    blurRadius: 3.0,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 1.0),
+                        const SizedBox(width: 2.0),
                         Text(
-                          'ENERGY CORES',
+                          'AI',
                           style: TextStyle(
-                            color: VoidTheme.textMuted.withValues(alpha: 0.8),
-                            fontSize: 6.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.3,
+                            color: isAutoSolving
+                                ? VoidTheme.obsidianBlack
+                                : VoidTheme.plasmaCyanLight,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-
-              // Bottom Row: Expanded Simulation Controls (Pause/Play, Restart, Stop/Abort)
-              if (hasControls) ...[
-                const SizedBox(height: 5.5),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 1. Expanded Pause or Play Button [ ⏸ / ▶ ]
-                    if (onTogglePause != null) ...[
-                      Tooltip(
-                        message: isPaused ? 'Resume Sortie' : 'Pause Sortie',
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onTogglePause,
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              minWidth: 46.0,
-                              minHeight: 32.0,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0,
-                              vertical: 6.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isPaused
-                                  ? VoidTheme.solarGold
-                                  : VoidTheme.cardSurface.withValues(
-                                      alpha: 0.75,
-                                    ),
-                              borderRadius: BorderRadius.circular(5.0),
-                              border: Border.all(
-                                color: isPaused
-                                    ? VoidTheme.solarGold
-                                    : VoidTheme.textSecondary.withValues(
-                                        alpha: 0.55,
-                                      ),
-                                width: 1.0,
-                              ),
-                              boxShadow: isPaused
-                                  ? [
-                                      BoxShadow(
-                                        color: VoidTheme.solarGold.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                        blurRadius: 5.0,
-                                      ),
-                                    ]
-                                  : null,
-                            ),
-                            child: Center(
-                              child: Icon(
-                                isPaused ? Icons.play_arrow : Icons.pause,
-                                size: 16.0,
-                                color: isPaused
-                                    ? VoidTheme.obsidianBlack
-                                    : VoidTheme.starWhite,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // 2. Expanded Restart Sortie Button [ 🔄 ]
-                    if (onRestartTap != null) ...[
-                      if (onTogglePause != null) const SizedBox(width: 5.0),
-                      Tooltip(
-                        message: 'Restart Sector',
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onRestartTap,
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              minWidth: 46.0,
-                              minHeight: 32.0,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0,
-                              vertical: 6.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.cardSurface.withValues(
-                                alpha: 0.75,
-                              ),
-                              borderRadius: BorderRadius.circular(5.0),
-                              border: Border.all(
-                                color: VoidTheme.plasmaCyan.withValues(
-                                  alpha: 0.55,
-                                ),
-                                width: 1.0,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: VoidTheme.plasmaCyan.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  blurRadius: 4.0,
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.replay,
-                                size: 16.0,
-                                color: VoidTheme.plasmaCyanLight,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-
-                    // 3. Expanded Stop / Abort Sortie Button [ ⏹ ]
-                    if (onStopTap != null) ...[
-                      if (onTogglePause != null || onRestartTap != null)
-                        const SizedBox(width: 5.0),
-                      Tooltip(
-                        message: 'Abort to Map',
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: onStopTap,
-                          child: Container(
-                            constraints: const BoxConstraints(
-                              minWidth: 46.0,
-                              minHeight: 32.0,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10.0,
-                              vertical: 6.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.cardSurface.withValues(
-                                alpha: 0.75,
-                              ),
-                              borderRadius: BorderRadius.circular(5.0),
-                              border: Border.all(
-                                color: VoidTheme.crimsonFlare.withValues(
-                                  alpha: 0.55,
-                                ),
-                                width: 1.0,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: VoidTheme.crimsonFlare.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  blurRadius: 4.0,
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.stop_circle_outlined,
-                                size: 16.0,
-                                color: VoidTheme.crimsonFlare,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
                 ),
               ],
+
+              // 3. Energy Cores Micro-Gauge with Progress Bar
+              const SizedBox(width: 8.0),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onEmergencyFlareTap,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.bolt, size: 12.0, color: coreColor),
+                        const SizedBox(width: 1.0),
+                        Text(
+                          '$reserveCores/50',
+                          style: TextStyle(
+                            color: coreColor,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 1.5),
+                    // Progress bar
+                    Container(
+                      width: 64.0,
+                      height: 3.0,
+                      decoration: BoxDecoration(
+                        color: VoidTheme.cardSurface,
+                        borderRadius: BorderRadius.circular(2.0),
+                      ),
+                      child: FractionallySizedBox(
+                        alignment: Alignment.centerLeft,
+                        widthFactor: coreFill,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: coreColor,
+                            borderRadius: BorderRadius.circular(2.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: coreColor.withValues(alpha: 0.5),
+                                blurRadius: 3.0,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 1.0),
+                    Text(
+                      'ENERGY CORES',
+                      style: TextStyle(
+                        color: VoidTheme.textMuted.withValues(alpha: 0.8),
+                        fontSize: 6.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-        ),
+
+          // Bottom Row: Expanded Simulation Controls (Pause/Play, Restart, Stop/Abort)
+          if (hasControls) ...[
+            const SizedBox(height: 5.5),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 1. Expanded Pause or Play Button [ ⏸ / ▶ ]
+                if (onTogglePause != null) ...[
+                  Tooltip(
+                    message: isPaused ? 'Resume Sortie' : 'Pause Sortie',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onTogglePause,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 46.0,
+                          minHeight: 32.0,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 6.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isPaused
+                              ? VoidTheme.solarGold
+                              : VoidTheme.cardSurface.withValues(alpha: 0.75),
+                          borderRadius: BorderRadius.circular(5.0),
+                          border: Border.all(
+                            color: isPaused
+                                ? VoidTheme.solarGold
+                                : VoidTheme.textSecondary.withValues(
+                                    alpha: 0.55,
+                                  ),
+                            width: 1.0,
+                          ),
+                          boxShadow: isPaused
+                              ? [
+                                  BoxShadow(
+                                    color: VoidTheme.solarGold.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 5.0,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            isPaused ? Icons.play_arrow : Icons.pause,
+                            size: 16.0,
+                            color: isPaused
+                                ? VoidTheme.obsidianBlack
+                                : VoidTheme.starWhite,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+
+                // 2. Expanded Restart Sortie Button [ 🔄 ]
+                if (onRestartTap != null) ...[
+                  if (onTogglePause != null) const SizedBox(width: 5.0),
+                  Tooltip(
+                    message: 'Restart Sector',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onRestartTap,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 46.0,
+                          minHeight: 32.0,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 6.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.cardSurface.withValues(alpha: 0.75),
+                          borderRadius: BorderRadius.circular(5.0),
+                          border: Border.all(
+                            color: VoidTheme.plasmaCyan.withValues(alpha: 0.55),
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: VoidTheme.plasmaCyan.withValues(
+                                alpha: 0.1,
+                              ),
+                              blurRadius: 4.0,
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.replay,
+                            size: 16.0,
+                            color: VoidTheme.plasmaCyanLight,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+
+                // 3. Expanded Stop / Abort Sortie Button [ ⏹ ]
+                if (onStopTap != null) ...[
+                  if (onTogglePause != null || onRestartTap != null)
+                    const SizedBox(width: 5.0),
+                  Tooltip(
+                    message: 'Abort to Map',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onStopTap,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 46.0,
+                          minHeight: 32.0,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 6.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.cardSurface.withValues(alpha: 0.75),
+                          borderRadius: BorderRadius.circular(5.0),
+                          border: Border.all(
+                            color: VoidTheme.crimsonFlare.withValues(
+                              alpha: 0.55,
+                            ),
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: VoidTheme.crimsonFlare.withValues(
+                                alpha: 0.1,
+                              ),
+                              blurRadius: 4.0,
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.stop_circle_outlined,
+                            size: 16.0,
+                            color: VoidTheme.crimsonFlare,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }

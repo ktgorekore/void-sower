@@ -230,12 +230,29 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
       _cachedEnemiesPtr,
       kMaxEnemies,
     );
-    _cachedEnemiesList.clear();
+    while (_cachedEnemiesList.length > count) {
+      _cachedEnemiesList.removeLast();
+    }
 
     for (var i = 0; i < count; i++) {
       final e = _cachedEnemiesPtr[i];
-      _cachedEnemiesList.add(
-        EnemyCraft(
+      final isDestroyed = e.is_destroyed != 0;
+      if (i < _cachedEnemiesList.length) {
+        final current = _cachedEnemiesList[i];
+        if (current.entityId == e.entity_id &&
+            current.assignedCorridor == e.assigned_corridor &&
+            current.worldPosX == e.world_pos_x &&
+            current.worldPosY == e.world_pos_y &&
+            current.velocityY == e.velocity_y &&
+            current.currentShields == e.current_shields &&
+            current.maxShields == e.max_shields &&
+            current.currentHull == e.current_hull &&
+            current.maxHull == e.max_hull &&
+            current.vesselType == e.vessel_type &&
+            current.isDestroyed == isDestroyed) {
+          continue;
+        }
+        _cachedEnemiesList[i] = EnemyCraft(
           entityId: e.entity_id,
           assignedCorridor: e.assigned_corridor,
           worldPosX: e.world_pos_x,
@@ -246,9 +263,25 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
           currentHull: e.current_hull,
           maxHull: e.max_hull,
           vesselType: e.vessel_type,
-          isDestroyed: e.is_destroyed != 0,
-        ),
-      );
+          isDestroyed: isDestroyed,
+        );
+      } else {
+        _cachedEnemiesList.add(
+          EnemyCraft(
+            entityId: e.entity_id,
+            assignedCorridor: e.assigned_corridor,
+            worldPosX: e.world_pos_x,
+            worldPosY: e.world_pos_y,
+            velocityY: e.velocity_y,
+            currentShields: e.current_shields,
+            maxShields: e.max_shields,
+            currentHull: e.current_hull,
+            maxHull: e.max_hull,
+            vesselType: e.vessel_type,
+            isDestroyed: isDestroyed,
+          ),
+        );
+      }
     }
     return _cachedEnemiesList;
   }
@@ -257,12 +290,26 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   List<LanceBeam> getLances() {
     _checkDisposed();
     final count = _bindings.void_sower_get_lances(_cachedLancesPtr, kMaxLances);
-    _cachedLancesList.clear();
+    while (_cachedLancesList.length > count) {
+      _cachedLancesList.removeLast();
+    }
 
     for (var i = 0; i < count; i++) {
       final l = _cachedLancesPtr[i];
-      _cachedLancesList.add(
-        LanceBeam(
+      final active = l.active != 0;
+      if (i < _cachedLancesList.length) {
+        final current = _cachedLancesList[i];
+        if (current.firingBayIndex == l.firing_bay_index &&
+            current.originX == l.origin_x &&
+            current.originY == l.origin_y &&
+            current.beamWidth == l.beam_width &&
+            current.sustainedDuration == l.sustained_duration &&
+            current.remainingDuration == l.remaining_duration &&
+            current.totalDamage == l.total_damage &&
+            current.active == active) {
+          continue;
+        }
+        _cachedLancesList[i] = LanceBeam(
           firingBayIndex: l.firing_bay_index,
           originX: l.origin_x,
           originY: l.origin_y,
@@ -270,9 +317,22 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
           sustainedDuration: l.sustained_duration,
           remainingDuration: l.remaining_duration,
           totalDamage: l.total_damage,
-          active: l.active != 0,
-        ),
-      );
+          active: active,
+        );
+      } else {
+        _cachedLancesList.add(
+          LanceBeam(
+            firingBayIndex: l.firing_bay_index,
+            originX: l.origin_x,
+            originY: l.origin_y,
+            beamWidth: l.beam_width,
+            sustainedDuration: l.sustained_duration,
+            remainingDuration: l.remaining_duration,
+            totalDamage: l.total_damage,
+            active: active,
+          ),
+        );
+      }
     }
     return _cachedLancesList;
   }
@@ -281,21 +341,46 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   List<FlakBurst> getFlaks() {
     _checkDisposed();
     final count = _bindings.void_sower_get_flaks(_cachedFlaksPtr, kMaxFlaks);
-    _cachedFlaksList.clear();
+    while (_cachedFlaksList.length > count) {
+      _cachedFlaksList.removeLast();
+    }
 
     for (var i = 0; i < count; i++) {
       final f = _cachedFlaksPtr[i];
-      _cachedFlaksList.add(
-        FlakBurst(
+      final active = f.active != 0;
+      if (i < _cachedFlaksList.length) {
+        final current = _cachedFlaksList[i];
+        if (current.worldPosX == f.world_pos_x &&
+            current.worldPosY == f.world_pos_y &&
+            current.blastRadius == f.blast_radius &&
+            current.areaDamage == f.area_damage &&
+            current.lifetime == f.lifetime &&
+            current.remainingLifetime == f.remaining_lifetime &&
+            current.active == active) {
+          continue;
+        }
+        _cachedFlaksList[i] = FlakBurst(
           worldPosX: f.world_pos_x,
           worldPosY: f.world_pos_y,
           blastRadius: f.blast_radius,
           areaDamage: f.area_damage,
           lifetime: f.lifetime,
           remainingLifetime: f.remaining_lifetime,
-          active: f.active != 0,
-        ),
-      );
+          active: active,
+        );
+      } else {
+        _cachedFlaksList.add(
+          FlakBurst(
+            worldPosX: f.world_pos_x,
+            worldPosY: f.world_pos_y,
+            blastRadius: f.blast_radius,
+            areaDamage: f.area_damage,
+            lifetime: f.lifetime,
+            remainingLifetime: f.remaining_lifetime,
+            active: active,
+          ),
+        );
+      }
     }
     return _cachedFlaksList;
   }

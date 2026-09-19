@@ -51,8 +51,8 @@ class InvaderBulletManager {
   double _enemyFireCooldown = 1.0;
   int _bulletIdCounter = 0;
 
-  /// Unmodifiable view of active bullets.
-  List<EnemyBullet> get bullets => List<EnemyBullet>.unmodifiable(_bullets);
+  /// Active bullets in flight.
+  List<EnemyBullet> get bullets => _bullets;
 
   /// Clears all active bullets.
   void clear() {
@@ -77,21 +77,18 @@ class InvaderBulletManager {
     _enemyFireCooldown -= dt;
     if (_enemyFireCooldown <= 0.0 && enemies.isNotEmpty) {
       _enemyFireCooldown = 1.0 + _random.nextDouble() * 0.8;
-      final activeEnemies = enemies
-          .where(
-            (e) => !e.isDestroyed && e.worldPosY > 0.15 && e.worldPosY <= 1.0,
-          )
-          .toList();
-      if (activeEnemies.isNotEmpty) {
-        final frontEnemiesByCorridor = <int, EnemyCraft>{};
-        for (final e in activeEnemies) {
+      final frontEnemiesByCorridor = <int, EnemyCraft>{};
+      for (var i = 0; i < enemies.length; i++) {
+        final e = enemies[i];
+        if (!e.isDestroyed && e.worldPosY > 0.15 && e.worldPosY <= 1.0) {
           final c = e.assignedCorridor;
           if (!frontEnemiesByCorridor.containsKey(c) ||
               e.worldPosY < frontEnemiesByCorridor[c]!.worldPosY) {
             frontEnemiesByCorridor[c] = e;
           }
         }
-
+      }
+      if (frontEnemiesByCorridor.isNotEmpty) {
         final candidates = frontEnemiesByCorridor.values.toList();
         candidates.shuffle(_random);
         final shooters = candidates.take(math.min(2, candidates.length));

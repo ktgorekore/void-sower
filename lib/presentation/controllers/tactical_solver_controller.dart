@@ -93,7 +93,12 @@ class TacticalSolverController {
     PredictionResult? bestPred;
 
     for (int bay = 0; bay < 16; bay++) {
-      for (final dir in [1, -1]) {
+      // Reservoir bays (0..7) with 0 charges cannot sow or receive namua injection.
+      if (bay < 8 && bay < bays.length && bays[bay].chargeUnits == 0) {
+        continue;
+      }
+      for (var d = 0; d < 2; d++) {
+        final dir = d == 0 ? 1 : -1;
         final pred = engine.predictSow(bay, dir);
         double score = 0.0;
 

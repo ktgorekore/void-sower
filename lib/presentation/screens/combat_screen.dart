@@ -68,6 +68,7 @@ class _CombatScreenState extends State<CombatScreen>
     with SingleTickerProviderStateMixin {
   late final CombatCoordinator _coordinator;
   late final Ticker _ticker;
+  late final ValueNotifier<double> _renderNotifier;
 
   Duration _lastElapsed = Duration.zero;
   double _animationTime = 0.0;
@@ -81,9 +82,23 @@ class _CombatScreenState extends State<CombatScreen>
   bool _victoryDialogDismissed = false;
   Timer? _autoAdvanceTimer;
 
+  int _lastReserveCores = -1;
+  int _lastTotalScore = -1;
+  int _lastInvadersRemaining = -1;
+  CombatMatchStatus? _lastStatus;
+  int? _lastSelectedBay;
+  int? _lastActiveSowBay;
+  bool _lastAutoSolving = false;
+  int _targetFps = 60;
+  int _lastTickMicros = 0;
+
   @override
   void initState() {
     super.initState();
+    _renderNotifier = ValueNotifier<double>(0.0);
+    final isLowBattery = PersistenceService.instance.lowBatteryMode;
+    _targetFps = isLowBattery ? 30 : PersistenceService.instance.targetFps;
+
     _currentSectorId = widget.sectorId;
     final sector = CampaignService.instance.getSector(_currentSectorId);
     _currentDifficultyTier = sector.difficultyTier;
@@ -106,6 +121,15 @@ class _CombatScreenState extends State<CombatScreen>
 
   void _onTick(Duration elapsed) {
     try {
+      final nowMicros = elapsed.inMicroseconds;
+      if (_lastTickMicros > 0) {
+        final frameIntervalMicros = (1000000 / _targetFps).round();
+        if ((nowMicros - _lastTickMicros) < (frameIntervalMicros - 1500)) {
+          return;
+        }
+      }
+      _lastTickMicros = nowMicros;
+
       final dtSeconds = (_lastElapsed == Duration.zero)
           ? 0.016
           : (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
@@ -136,9 +160,36 @@ class _CombatScreenState extends State<CombatScreen>
           '[VoidSower CombatScreen] Tick $_tickCount: status=${_coordinator.state.status.name}, enemies=${_coordinator.enemies.length}, bullets=${_coordinator.bulletManager.bullets.length}, lances=${_coordinator.lances.where((l) => l.active).length}',
         );
       }
-      if (mounted) {
-        setState(() {});
+
+      final dread = _coordinator.dreadnought;
+      final remaining = _coordinator.enemies
+          .where((e) => !e.isDestroyed)
+          .length;
+      final state = _coordinator.state;
+
+      final hudChanged =
+          dread.reserveCores != _lastReserveCores ||
+          dread.totalScore != _lastTotalScore ||
+          remaining != _lastInvadersRemaining ||
+          state.status != _lastStatus ||
+          state.selectedBay != _lastSelectedBay ||
+          state.activeSowBay != _lastActiveSowBay ||
+          state.isAutoSolving != _lastAutoSolving;
+
+      if (hudChanged) {
+        _lastReserveCores = dread.reserveCores;
+        _lastTotalScore = dread.totalScore;
+        _lastInvadersRemaining = remaining;
+        _lastStatus = state.status;
+        _lastSelectedBay = state.selectedBay;
+        _lastActiveSowBay = state.activeSowBay;
+        _lastAutoSolving = state.isAutoSolving;
+        if (mounted) {
+          setState(() {});
+        }
       }
+
+      _renderNotifier.value = _animationTime;
     } catch (e, stack) {
       debugPrint(
         '[VoidSower CombatScreen] CRITICAL ERROR IN _onTick: $e\n$stack',
@@ -444,6 +495,7 @@ class _CombatScreenState extends State<CombatScreen>
   void dispose() {
     _autoAdvanceTimer?.cancel();
     _ticker.dispose();
+    _renderNotifier.dispose();
     _coordinator.removeListener(_onCoordinatorStateChanged);
     _coordinator.dispose();
     super.dispose();
@@ -608,46 +660,49 @@ class _CombatScreenState extends State<CombatScreen>
                   SafeArea(
                     child: Column(
                       children: [
-                        // Top HUD
-                        HudHeader(
-                          userProfile: PersistenceService.instance.userProfile,
-                          onProfileTap: _openProfile,
-                          reserveCores: dread.reserveCores,
-                          score: dread.totalScore,
-                          highScore: _coordinator.highScore,
-                          isPro: EntitlementService.instance.isProUnlocked,
-                          difficultyTier: _currentDifficultyTier,
-                          sectorId: _currentSectorId,
-                          sectorName: CampaignService.instance
-                              .getSector(_currentSectorId)
-                              .name,
-                          totalInvaders: _coordinator.enemies.length,
-                          invadersRemaining: _coordinator.enemies
-                              .where((e) => !e.isDestroyed)
-                              .length,
-                          isPaused:
-                              matchState.status == CombatMatchStatus.paused,
-                          onTogglePause: _toggleTacticalPause,
-                          onRestartTap: _restartCombat,
-                          onStopTap: _openMap,
-                          onMapTap: _openMap,
-                          onNextSectorTap: () {
-                            if (_victoryDialogDismissed) {
-                              setState(() {
-                                _victoryDialogDismissed = false;
-                              });
-                              _showVictoryModal();
-                            } else {
-                              _advanceNextSector();
-                            }
-                          },
-                          isSecured: isSecured,
-                          onSettingsTap: _openSettings,
-                          onCodexTap: _openCodex,
-                          onTutorialTap: _coordinator.showTutorial,
-                          onEmergencyFlareTap: _openEmergencyFlare,
-                          isAutoSolving: matchState.isAutoSolving,
-                          onToggleAutoSolve: _toggleAutoSolve,
+                        // Top HUD (Isolated RepaintBoundary)
+                        RepaintBoundary(
+                          child: HudHeader(
+                            userProfile:
+                                PersistenceService.instance.userProfile,
+                            onProfileTap: _openProfile,
+                            reserveCores: dread.reserveCores,
+                            score: dread.totalScore,
+                            highScore: _coordinator.highScore,
+                            isPro: EntitlementService.instance.isProUnlocked,
+                            difficultyTier: _currentDifficultyTier,
+                            sectorId: _currentSectorId,
+                            sectorName: CampaignService.instance
+                                .getSector(_currentSectorId)
+                                .name,
+                            totalInvaders: _coordinator.enemies.length,
+                            invadersRemaining: _coordinator.enemies
+                                .where((e) => !e.isDestroyed)
+                                .length,
+                            isPaused:
+                                matchState.status == CombatMatchStatus.paused,
+                            onTogglePause: _toggleTacticalPause,
+                            onRestartTap: _restartCombat,
+                            onStopTap: _openMap,
+                            onMapTap: _openMap,
+                            onNextSectorTap: () {
+                              if (_victoryDialogDismissed) {
+                                setState(() {
+                                  _victoryDialogDismissed = false;
+                                });
+                                _showVictoryModal();
+                              } else {
+                                _advanceNextSector();
+                              }
+                            },
+                            isSecured: isSecured,
+                            onSettingsTap: _openSettings,
+                            onCodexTap: _openCodex,
+                            onTutorialTap: _coordinator.showTutorial,
+                            onEmergencyFlareTap: _openEmergencyFlare,
+                            isAutoSolving: matchState.isAutoSolving,
+                            onToggleAutoSolve: _toggleAutoSolve,
+                          ),
                         ),
 
                         // Tactical Combat Corridor (Upper Viewport)
@@ -656,69 +711,87 @@ class _CombatScreenState extends State<CombatScreen>
                             child: Stack(
                               children: [
                                 Positioned.fill(
-                                  child: Transform.translate(
-                                    offset: matchState.screenShake,
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        _combatViewportSize = Size(
-                                          constraints.maxWidth,
-                                          constraints.maxHeight,
-                                        );
-                                        return GestureDetector(
-                                          behavior: HitTestBehavior.opaque,
-                                          onPanUpdate: (details) {
-                                            final normX =
-                                                (details.localPosition.dx /
-                                                        constraints.maxWidth)
-                                                    .clamp(0.0, 1.0);
-                                            _coordinator.slidePosition(normX);
-                                          },
-                                          onDoubleTap: () {
-                                            if (matchState.canReceiveInput) {
-                                              _coordinator
-                                                  .quickFireActiveCorridor();
-                                            }
-                                          },
-                                          onTap: () {
-                                            if (matchState.canReceiveInput) {
-                                              _coordinator
-                                                  .quickFireActiveCorridor();
-                                            }
-                                          },
-                                          child: Stack(
-                                            fit: StackFit.expand,
-                                            children: [
-                                              // Retained Static Skia Surface (Corridors & Defense Rails)
-                                              const RepaintBoundary(
-                                                child: CustomPaint(
-                                                  painter:
-                                                      CombatBackgroundPainter(),
-                                                ),
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      _combatViewportSize = Size(
+                                        constraints.maxWidth,
+                                        constraints.maxHeight,
+                                      );
+                                      return GestureDetector(
+                                        behavior: HitTestBehavior.opaque,
+                                        onPanUpdate: (details) {
+                                          final normX =
+                                              (details.localPosition.dx /
+                                                      constraints.maxWidth)
+                                                  .clamp(0.0, 1.0);
+                                          _coordinator.slidePosition(normX);
+                                        },
+                                        onDoubleTap: () {
+                                          if (matchState.canReceiveInput) {
+                                            _coordinator
+                                                .quickFireActiveCorridor();
+                                          }
+                                        },
+                                        onTap: () {
+                                          if (matchState.canReceiveInput) {
+                                            _coordinator
+                                                .quickFireActiveCorridor();
+                                          }
+                                        },
+                                        child: Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            // Retained Static Skia Surface (Corridors & Defense Rails)
+                                            const RepaintBoundary(
+                                              child: CustomPaint(
+                                                painter:
+                                                    CombatBackgroundPainter(),
                                               ),
-                                              // Dynamic Combat Entities Layer (Zero Allocation)
-                                              CustomPaint(
-                                                size: _combatViewportSize!,
-                                                painter: CombatPainter(
-                                                  dreadnought: dread,
-                                                  enemies: _coordinator.enemies,
-                                                  lances: _coordinator.lances,
-                                                  flaks: _coordinator.flaks,
-                                                  particles: _coordinator
-                                                      .particleService
-                                                      .activeParticles,
-                                                  damageNumbers: _coordinator
-                                                      .damageNumbers,
-                                                  enemyBullets: _coordinator
-                                                      .bulletManager
-                                                      .bullets,
-                                                  animationTime: _animationTime,
-                                                ),
+                                            ),
+                                            // Dynamic Combat Entities Layer (Zero Allocation & Isolated Repaint)
+                                            RepaintBoundary(
+                                              child: ListenableBuilder(
+                                                listenable: _renderNotifier,
+                                                builder: (context, _) {
+                                                  return Transform.translate(
+                                                    offset: _coordinator
+                                                        .state
+                                                        .screenShake,
+                                                    child: CustomPaint(
+                                                      size:
+                                                          _combatViewportSize!,
+                                                      painter: CombatPainter(
+                                                        dreadnought:
+                                                            _coordinator
+                                                                .dreadnought,
+                                                        enemies: _coordinator
+                                                            .enemies,
+                                                        lances:
+                                                            _coordinator.lances,
+                                                        flaks:
+                                                            _coordinator.flaks,
+                                                        particles: _coordinator
+                                                            .particleService
+                                                            .activeParticles,
+                                                        damageNumbers:
+                                                            _coordinator
+                                                                .damageNumbers,
+                                                        enemyBullets:
+                                                            _coordinator
+                                                                .bulletManager
+                                                                .bullets,
+                                                        animationTime:
+                                                            _animationTime,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
                                               ),
-                                            ],
-                                          ),
-                                        );
-                                      },
-                                    ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                                 if (matchState.status ==
@@ -1070,21 +1143,25 @@ class _CombatScreenState extends State<CombatScreen>
                           ),
                         ),
 
-                        // Middle Dynamic Projection Shelf
-                        ProjectionShelf(
-                          prediction: _coordinator.prediction,
-                          selectedBay: matchState.selectedBay,
+                        // Middle Dynamic Projection Shelf (Isolated RepaintBoundary)
+                        RepaintBoundary(
+                          child: ProjectionShelf(
+                            prediction: _coordinator.prediction,
+                            selectedBay: matchState.selectedBay,
+                          ),
                         ),
 
-                        // Lower Primary Thumb Command Arc
-                        CommandArcWidget(
-                          bays: _coordinator.bays,
-                          selectedBay: matchState.selectedBay,
-                          activeSowBay: matchState.activeSowBay,
-                          onBaySelected: _coordinator.selectBay,
-                          onSowAction: _coordinator.sow,
-                          onInjectCore: _coordinator.injectCore,
-                          onSlidePosition: _coordinator.slidePosition,
+                        // Lower Primary Thumb Command Arc (Isolated RepaintBoundary)
+                        RepaintBoundary(
+                          child: CommandArcWidget(
+                            bays: _coordinator.bays,
+                            selectedBay: matchState.selectedBay,
+                            activeSowBay: matchState.activeSowBay,
+                            onBaySelected: _coordinator.selectBay,
+                            onSowAction: _coordinator.sow,
+                            onInjectCore: _coordinator.injectCore,
+                            onSlidePosition: _coordinator.slidePosition,
+                          ),
                         ),
                       ],
                     ),
