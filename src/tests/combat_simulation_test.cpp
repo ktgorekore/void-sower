@@ -158,4 +158,22 @@ TEST(CombatSimulationTest, AxialLanceFiresFromDreadnoughtPosition) {
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
+TEST(CombatSimulationTest, TacticalCoreGranting) {
+  Engine engine;
+  engine.Initialize(12, 0.2f);
+
+  auto dread = engine.GetDreadnoughtState();
+  EXPECT_EQ(dread.reserve_cores, 12);
+
+  // Grant 3 cores from tactical siphon
+  engine.GrantCores(3);
+  dread = engine.GetDreadnoughtState();
+  EXPECT_EQ(dread.reserve_cores, 15);
+
+  // Grant another 5 cores
+  engine.GrantCores(5);
+  dread = engine.GetDreadnoughtState();
+  EXPECT_EQ(dread.reserve_cores, 20);
+}
+
 }  // namespace void_sower::ecs

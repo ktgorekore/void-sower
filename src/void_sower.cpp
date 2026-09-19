@@ -148,6 +148,17 @@ void void_sower_damage_atmosphere(uint32_t penalty) noexcept {
   }
 }
 
+void void_sower_grant_cores(uint32_t count) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().GrantCores(count);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_grant_cores: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_grant_cores";
+  }
+}
+
 void void_sower_predict_sow(uint8_t start_bay, int8_t direction,
                             VoidSowerPredictionFFI* out_prediction) noexcept {
   if (!out_prediction) return;

@@ -73,6 +73,13 @@ void Engine::DamageAtmosphere(uint32_t penalty) {
   combat_system_->DamageAtmosphere(penalty);
 }
 
+void Engine::GrantCores(uint32_t count) {
+  VLOG(6) << "Engine::GrantCores: count=" << count;
+  if (combat_system_) {
+    combat_system_->GrantCores(count);
+  }
+}
+
 CombatSystem::PredictionResult Engine::PredictSow(uint8_t start_bay,
                                                   int8_t direction) const {
   VLOG(10) << "Engine::PredictSow: start_bay=" << static_cast<int>(start_bay)

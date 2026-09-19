@@ -152,6 +152,8 @@ FFI_PLUGIN_EXPORT void void_sower_damage_conduit(uint8_t bay_index)
     VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_damage_atmosphere(uint32_t penalty)
     VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_grant_cores(uint32_t count)
+    VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_predict_sow(
     uint8_t start_bay, int8_t direction,
     VoidSowerPredictionFFI* out_prediction) VOID_SOWER_NOEXCEPT;

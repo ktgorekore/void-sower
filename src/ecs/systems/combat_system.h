@@ -69,6 +69,9 @@ class CombatSystem {
   /// Applies atmospheric breach penalty.
   void DamageAtmosphere(uint32_t penalty);
 
+  /// Grants reserve energy cores to the dreadnought reactor.
+  void GrantCores(uint32_t count);
+
   /// Returns the current simulation state.
   SimulationState GetSimulationState() const;
 

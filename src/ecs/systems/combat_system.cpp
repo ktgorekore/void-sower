@@ -163,6 +163,14 @@ void CombatSystem::DamageAtmosphere(uint32_t penalty) {
                                            penalty);
 }
 
+void CombatSystem::GrantCores(uint32_t count) {
+  if (dreadnought_entity_ != entt::null &&
+      registry_.valid(dreadnought_entity_)) {
+    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    dread.reserve_cores += count;
+  }
+}
+
 CombatSystem::PredictionResult CombatSystem::PredictSow(
     uint8_t start_bay, int8_t direction) const {
   return bao_cascade_system_.PredictSow(registry_, bay_entities_, spatial_grid_,

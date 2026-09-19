@@ -59,6 +59,9 @@ class Engine {
   /// Applies atmospheric breach penalty.
   void DamageAtmosphere(uint32_t penalty);
 
+  /// Grants reserve energy cores to the dreadnought reactor.
+  void GrantCores(uint32_t count);
+
   /// Dry-run predictive targeting telemetry.
   CombatSystem::PredictionResult PredictSow(uint8_t start_bay,
                                             int8_t direction) const;
