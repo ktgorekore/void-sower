@@ -160,6 +160,11 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void grantCores(int count) {
+    _reserveCores += count;
+  }
+
+  @override
   void stepSimulation(double deltaTime) {
     // Interpolate dreadnought lateral position
     _orbitalX +=

@@ -170,6 +170,12 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void grantCores(int count) {
+    _checkDisposed();
+    _bindings.void_sower_grant_cores(count);
+  }
+
+  @override
   PredictionResult predictSow(int startBay, int direction) {
     _checkDisposed();
     _bindings.void_sower_predict_sow(startBay, direction, _cachedPredictionPtr);

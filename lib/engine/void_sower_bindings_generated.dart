@@ -129,6 +129,17 @@ class VoidSowerBindings {
   late final _void_sower_damage_atmosphere = _void_sower_damage_atmospherePtr
       .asFunction<void Function(int)>();
 
+  void void_sower_grant_cores(int count) {
+    return _void_sower_grant_cores(count);
+  }
+
+  late final _void_sower_grant_coresPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Uint32)>>(
+        'void_sower_grant_cores',
+      );
+  late final _void_sower_grant_cores = _void_sower_grant_coresPtr
+      .asFunction<void Function(int)>();
+
   void void_sower_predict_sow(
     int start_bay,
     int direction,

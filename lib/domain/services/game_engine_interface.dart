@@ -49,6 +49,9 @@ abstract class IVoidSowerEngine {
   /// Applies atmospheric breach penalty.
   void damageAtmosphere(int penalty);
 
+  /// Grants reserve plasma cores directly to the dreadnought reactor.
+  void grantCores(int count);
+
   /// Computes dry-run predictive targeting telemetry without mutating game state.
   PredictionResult predictSow(int startBay, int direction);
 
