@@ -58,6 +58,35 @@ class CampaignService {
     ];
   }
 
+  /// Returns total stars earned across all 27 campaign sectors.
+  int getTotalStarsEarned() {
+    int total = 0;
+    for (int i = 1; i <= 27; i++) {
+      total += PersistenceService.instance.getSectorStars(i);
+    }
+    return total;
+  }
+
+  /// Returns stars earned in a specific campaign operation.
+  int getStarsEarnedForCampaign(String campaignId) {
+    final op = getOperation(campaignId);
+    int total = 0;
+    for (final s in op.sectors) {
+      total += PersistenceService.instance.getSectorStars(s.sectorId);
+    }
+    return total;
+  }
+
+  /// Returns number of liberated sectors in a specific campaign operation.
+  int getLiberatedCountForCampaign(String campaignId) {
+    return getSectorsForCampaign(campaignId).where((s) => s.isLiberated).length;
+  }
+
+  /// Returns total liberated sectors across all campaign theaters.
+  int getTotalLiberatedSectors() {
+    return getAllSectors().where((s) => s.isLiberated).length;
+  }
+
   /// Retrieves a specific campaign operation by its identifier.
   CampaignOperation getOperation(String operationId) {
     switch (operationId) {

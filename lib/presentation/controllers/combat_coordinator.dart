@@ -81,7 +81,30 @@ class CombatCoordinator extends ChangeNotifier {
   List<EnemyCraft> enemies = const [];
   List<LanceBeam> lances = const [];
   List<FlakBurst> flaks = const [];
-  PredictionResult? prediction;
+  PredictionResult? _prediction;
+  PredictionResult? get prediction => _prediction;
+  set prediction(PredictionResult? val) {
+    _prediction = val;
+    if (val != null && val.totalCascadeLaps > _sessionMaxCascade) {
+      _sessionMaxCascade = val.totalCascadeLaps;
+    }
+  }
+
+  int _sessionLancesFired = 0;
+  int get sessionLancesFired => _sessionLancesFired;
+
+  int _sessionFlakBursts = 0;
+  int get sessionFlakBursts => _sessionFlakBursts;
+
+  int _sessionSeedsSown = 0;
+  int get sessionSeedsSown => _sessionSeedsSown;
+
+  int _sessionMaxCascade = 0;
+  int get sessionMaxCascade => _sessionMaxCascade;
+
+  DateTime _sessionStartTime = DateTime.now();
+  int get sessionFlightTimeSeconds =>
+      math.max(0, DateTime.now().difference(_sessionStartTime).inSeconds);
 
   Set<int> _activeLanceBays = <int>{};
   bool _hasActiveFlak = false;
@@ -123,6 +146,11 @@ class CombatCoordinator extends ChangeNotifier {
     _highScore = PersistenceService.instance.highScore;
     _currentDifficulty = difficulty ?? sector?.difficultyTier ?? difficultyTier;
     _neutralizedEnemyIds.clear();
+    _sessionLancesFired = 0;
+    _sessionFlakBursts = 0;
+    _sessionSeedsSown = 0;
+    _sessionMaxCascade = 0;
+    _sessionStartTime = DateTime.now();
 
     final doctrine = sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
     _remainingReinforcements = sector?.reinforcementQuota ?? 0;
@@ -341,6 +369,7 @@ class CombatCoordinator extends ChangeNotifier {
     for (final lance in lances) {
       if (lance.active && !_activeLanceBays.contains(lance.firingBayIndex)) {
         audio.onLanceFired();
+        _sessionLancesFired++;
       }
     }
     _activeLanceBays = lances
@@ -351,6 +380,7 @@ class CombatCoordinator extends ChangeNotifier {
     final nowHasFlak = flaks.any((f) => f.active);
     if (nowHasFlak && !_hasActiveFlak) {
       audio.onFlakDetonated();
+      _sessionFlakBursts++;
     }
     _hasActiveFlak = nowHasFlak;
 
@@ -468,6 +498,7 @@ class CombatCoordinator extends ChangeNotifier {
   void sow(int bayIndex, int direction) {
     if (_state.status != CombatMatchStatus.activeCombat) return;
     final mass = (bayIndex < bays.length) ? bays[bayIndex].chargeUnits : 1;
+    _sessionSeedsSown += mass;
 
     _sowAnimationGeneration++;
     final generation = _sowAnimationGeneration;
@@ -544,6 +575,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Direct core injection into a designated bay.
   void injectCore(int bayIndex, int direction) {
     if (!_state.canReceiveInput) return;
+    _sessionSeedsSown++;
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
     engine.injectCore(bayIndex, direction);
@@ -578,6 +610,7 @@ class CombatCoordinator extends ChangeNotifier {
     // Sowing inward along the frontline keeps single-hop shots on the frontline batteries
     final direction = (corridor >= 4) ? -1 : 1;
 
+    _sessionSeedsSown++;
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
 

@@ -54,6 +54,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   void initState() {
     super.initState();
     _activeCampaignId = PersistenceService.instance.activeCampaignId;
+    _selectedChassisId = PersistenceService.instance.selectedChassisId;
     _sectors = CampaignService.instance.getSectors(_activeCampaignId);
   }
 
@@ -112,6 +113,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
         selectedChassisId: _selectedChassisId,
         onChassisSelected: (newId) {
           setState(() => _selectedChassisId = newId);
+          PersistenceService.instance.setSelectedChassisId(newId);
         },
       ),
     );

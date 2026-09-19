@@ -18,6 +18,7 @@ import 'package:flutter/services.dart';
 import '../../domain/models/user_profile.dart';
 import '../../domain/services/auth_service.dart';
 import '../../domain/services/persistence_service.dart';
+import '../screens/stats_dashboard_screen.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
@@ -593,7 +594,11 @@ class _ProfileModalState extends State<ProfileModal> {
                                           ),
                                         ],
                                       ),
-                                    Row(
+                                    Wrap(
+                                      spacing: 8.0,
+                                      runSpacing: 4.0,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
                                       children: [
                                         Text(
                                           'RANK: ${rank.title.toUpperCase()}',
@@ -818,6 +823,22 @@ class _ProfileModalState extends State<ProfileModal> {
                             height: 12.0,
                           ),
                           _metricRow(
+                            'Sorties / Win Rate',
+                            '${_profile.missionsPlayed} (${_profile.winRate.toStringAsFixed(0)}%)',
+                          ),
+                          const Divider(
+                            color: VoidTheme.obsidianBlack,
+                            height: 12.0,
+                          ),
+                          _metricRow(
+                            'Flawless Defenses',
+                            '${_profile.flawlessVictories}',
+                          ),
+                          const Divider(
+                            color: VoidTheme.obsidianBlack,
+                            height: 12.0,
+                          ),
+                          _metricRow(
                             'Enemies Neutralized',
                             '${_profile.enemiesDestroyed}',
                           ),
@@ -831,13 +852,51 @@ class _ProfileModalState extends State<ProfileModal> {
                             height: 12.0,
                           ),
                           _metricRow(
+                            'Surplus Cores Saved',
+                            '${_profile.totalCoresSaved}',
+                          ),
+                          const Divider(
+                            color: VoidTheme.obsidianBlack,
+                            height: 12.0,
+                          ),
+                          _metricRow(
                             'Max Cascade Laps',
                             '${_profile.maxCascadeLaps}',
+                          ),
+                          const Divider(
+                            color: VoidTheme.obsidianBlack,
+                            height: 12.0,
+                          ),
+                          _metricRow(
+                            'Flight Time',
+                            _profile.formattedFlightTime,
+                          ),
+                          const Divider(
+                            color: VoidTheme.obsidianBlack,
+                            height: 12.0,
+                          ),
+                          _metricRow(
+                            'Deployment Streak',
+                            '${_profile.currentStreak} Days (Record: ${_profile.longestStreak})',
                           ),
                         ],
                       ),
                     ),
-
+                    const SizedBox(height: 8.0),
+                    TactileButton(
+                      label: 'VIEW FULL FLEET TELEMETRY',
+                      icon: Icons.analytics_outlined,
+                      accentColor: VoidTheme.solarGold,
+                      height: 38.0,
+                      fontSize: 11.0,
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) => const StatsDashboardScreen(),
+                          ),
+                        );
+                      },
+                    ),
                     const SizedBox(height: 16.0),
 
                     // Save Mobility (Export / Import)
@@ -1255,13 +1314,16 @@ class _ProfileModalState extends State<ProfileModal> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: VoidTheme.starWhite.withValues(alpha: 0.8),
-            fontSize: 11.5,
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: VoidTheme.starWhite.withValues(alpha: 0.8),
+              fontSize: 11.5,
+            ),
           ),
         ),
+        const SizedBox(width: 8.0),
         Text(
           value,
           style: const TextStyle(

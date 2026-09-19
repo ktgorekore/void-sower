@@ -109,6 +109,19 @@ class UserProfile {
     this.enemiesDestroyed = 0,
     this.lancesFired = 0,
     this.maxCascadeLaps = 0,
+    this.missionsPlayed = 0,
+    this.victories = 0,
+    this.defeats = 0,
+    this.flawlessVictories = 0,
+    this.totalSeedsSown = 0,
+    this.flakBurstsTriggered = 0,
+    this.totalCoresSaved = 0,
+    this.currentStreak = 0,
+    this.longestStreak = 0,
+    this.lastPlayedDate,
+    this.totalFlightTimeSeconds = 0,
+    this.chassisSorties = const <String, int>{},
+    this.campaignSorties = const <String, int>{},
     this.unlockedAchievements = const <String>[],
     this.isGoogleLinked = false,
     this.googleEmail,
@@ -137,6 +150,45 @@ class UserProfile {
   /// Maximum consecutive Bao cascade laps achieved in a single turn.
   final int maxCascadeLaps;
 
+  /// Total combat sorties launched (victories + defeats).
+  final int missionsPlayed;
+
+  /// Total missions successfully won / sectors secured.
+  final int victories;
+
+  /// Total missions lost (reactor breach or cores depleted).
+  final int defeats;
+
+  /// Flawless 3-star defenses with >= 16 cores preserved.
+  final int flawlessVictories;
+
+  /// Total count of plasma cores / seeds distributed into bays.
+  final int totalSeedsSown;
+
+  /// Anti-fighter flak shield detonations triggered.
+  final int flakBurstsTriggered;
+
+  /// Surplus reactor cores preserved across all missions.
+  final int totalCoresSaved;
+
+  /// Consecutive days deployed to combat.
+  final int currentStreak;
+
+  /// All-time longest daily deployment streak.
+  final int longestStreak;
+
+  /// Date string ('YYYY-MM-DD') of most recent combat sortie.
+  final String? lastPlayedDate;
+
+  /// Cumulative mission flight time in seconds.
+  final int totalFlightTimeSeconds;
+
+  /// Sorties deployed partitioned by dreadnought chassis ID.
+  final Map<String, int> chassisSorties;
+
+  /// Sorties deployed partitioned by campaign theater ID.
+  final Map<String, int> campaignSorties;
+
   /// List of achievement IDs unlocked by the pilot.
   final List<String> unlockedAchievements;
 
@@ -164,6 +216,62 @@ class UserProfile {
     return (progress / range).clamp(0.0, 1.0);
   }
 
+  /// Derived mission win rate percentage (0.0 to 100.0).
+  double get winRate =>
+      missionsPlayed > 0 ? (victories / missionsPlayed) * 100.0 : 0.0;
+
+  /// Derived average combat score per sortie.
+  int get averageScore =>
+      missionsPlayed > 0 ? (lifetimeScore / missionsPlayed).round() : 0;
+
+  /// Derived combat efficiency (neutralized hostiles per particle lance discharge).
+  double get combatEfficiency =>
+      lancesFired > 0 ? (enemiesDestroyed / lancesFired) : 0.0;
+
+  /// Derived flawless victory rate (percentage of victories that were 3-star flawless).
+  double get flawlessRate =>
+      victories > 0 ? (flawlessVictories / victories) * 100.0 : 0.0;
+
+  /// Identifier of the pilot's most deployed chassis variant.
+  String get favoriteChassisId {
+    if (chassisSorties.isEmpty) return 'mk1_bastion';
+    String bestId = 'mk1_bastion';
+    int maxCount = -1;
+    for (final entry in chassisSorties.entries) {
+      if (entry.value > maxCount) {
+        maxCount = entry.value;
+        bestId = entry.key;
+      }
+    }
+    return bestId;
+  }
+
+  /// Display title of the pilot's most deployed chassis variant.
+  String get favoriteChassisName {
+    switch (favoriteChassisId) {
+      case 'mk2_monsoon':
+        return 'MK-II Monsoon Vanguard';
+      case 'mk3_singularity':
+        return 'MK-III Singularity Sovereign';
+      case 'mk4_golden_sovereign':
+        return 'MK-IV Golden Sovereign';
+      case 'mk1_bastion':
+      default:
+        return 'MK-I Bastion Standard';
+    }
+  }
+
+  /// Formatted total flight time string (e.g. "45s", "14m 20s", "3h 12m").
+  String get formattedFlightTime {
+    if (totalFlightTimeSeconds < 60) return '${totalFlightTimeSeconds}s';
+    final minutes = totalFlightTimeSeconds ~/ 60;
+    final seconds = totalFlightTimeSeconds % 60;
+    if (minutes < 60) return '${minutes}m ${seconds}s';
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    return '${hours}h ${remainingMinutes}m';
+  }
+
   /// Creates a copy of this profile with updated attributes.
   UserProfile copyWith({
     String? id,
@@ -173,6 +281,19 @@ class UserProfile {
     int? enemiesDestroyed,
     int? lancesFired,
     int? maxCascadeLaps,
+    int? missionsPlayed,
+    int? victories,
+    int? defeats,
+    int? flawlessVictories,
+    int? totalSeedsSown,
+    int? flakBurstsTriggered,
+    int? totalCoresSaved,
+    int? currentStreak,
+    int? longestStreak,
+    String? lastPlayedDate,
+    int? totalFlightTimeSeconds,
+    Map<String, int>? chassisSorties,
+    Map<String, int>? campaignSorties,
     List<String>? unlockedAchievements,
     bool? isGoogleLinked,
     String? googleEmail,
@@ -187,6 +308,20 @@ class UserProfile {
       enemiesDestroyed: enemiesDestroyed ?? this.enemiesDestroyed,
       lancesFired: lancesFired ?? this.lancesFired,
       maxCascadeLaps: maxCascadeLaps ?? this.maxCascadeLaps,
+      missionsPlayed: missionsPlayed ?? this.missionsPlayed,
+      victories: victories ?? this.victories,
+      defeats: defeats ?? this.defeats,
+      flawlessVictories: flawlessVictories ?? this.flawlessVictories,
+      totalSeedsSown: totalSeedsSown ?? this.totalSeedsSown,
+      flakBurstsTriggered: flakBurstsTriggered ?? this.flakBurstsTriggered,
+      totalCoresSaved: totalCoresSaved ?? this.totalCoresSaved,
+      currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
+      lastPlayedDate: lastPlayedDate ?? this.lastPlayedDate,
+      totalFlightTimeSeconds:
+          totalFlightTimeSeconds ?? this.totalFlightTimeSeconds,
+      chassisSorties: chassisSorties ?? this.chassisSorties,
+      campaignSorties: campaignSorties ?? this.campaignSorties,
       unlockedAchievements: unlockedAchievements ?? this.unlockedAchievements,
       isGoogleLinked: isGoogleLinked ?? this.isGoogleLinked,
       googleEmail: googleEmail ?? this.googleEmail,
@@ -205,6 +340,19 @@ class UserProfile {
       'enemiesDestroyed': enemiesDestroyed,
       'lancesFired': lancesFired,
       'maxCascadeLaps': maxCascadeLaps,
+      'missionsPlayed': missionsPlayed,
+      'victories': victories,
+      'defeats': defeats,
+      'flawlessVictories': flawlessVictories,
+      'totalSeedsSown': totalSeedsSown,
+      'flakBurstsTriggered': flakBurstsTriggered,
+      'totalCoresSaved': totalCoresSaved,
+      'currentStreak': currentStreak,
+      'longestStreak': longestStreak,
+      'lastPlayedDate': lastPlayedDate,
+      'totalFlightTimeSeconds': totalFlightTimeSeconds,
+      'chassisSorties': chassisSorties,
+      'campaignSorties': campaignSorties,
       'unlockedAchievements': unlockedAchievements,
       'isGoogleLinked': isGoogleLinked,
       'googleEmail': googleEmail,
@@ -237,6 +385,28 @@ class UserProfile {
       enemiesDestroyed: (json['enemiesDestroyed'] as num?)?.toInt() ?? 0,
       lancesFired: (json['lancesFired'] as num?)?.toInt() ?? 0,
       maxCascadeLaps: (json['maxCascadeLaps'] as num?)?.toInt() ?? 0,
+      missionsPlayed: (json['missionsPlayed'] as num?)?.toInt() ?? 0,
+      victories: (json['victories'] as num?)?.toInt() ?? 0,
+      defeats: (json['defeats'] as num?)?.toInt() ?? 0,
+      flawlessVictories: (json['flawlessVictories'] as num?)?.toInt() ?? 0,
+      totalSeedsSown: (json['totalSeedsSown'] as num?)?.toInt() ?? 0,
+      flakBurstsTriggered: (json['flakBurstsTriggered'] as num?)?.toInt() ?? 0,
+      totalCoresSaved: (json['totalCoresSaved'] as num?)?.toInt() ?? 0,
+      currentStreak: (json['currentStreak'] as num?)?.toInt() ?? 0,
+      longestStreak: (json['longestStreak'] as num?)?.toInt() ?? 0,
+      lastPlayedDate: json['lastPlayedDate'] as String?,
+      totalFlightTimeSeconds:
+          (json['totalFlightTimeSeconds'] as num?)?.toInt() ?? 0,
+      chassisSorties:
+          (json['chassisSorties'] as Map<String, dynamic>?)?.map(
+            (k, v) => MapEntry(k, (v as num).toInt()),
+          ) ??
+          const <String, int>{},
+      campaignSorties:
+          (json['campaignSorties'] as Map<String, dynamic>?)?.map(
+            (k, v) => MapEntry(k, (v as num).toInt()),
+          ) ??
+          const <String, int>{},
       unlockedAchievements:
           (json['unlockedAchievements'] as List<dynamic>?)
               ?.map((e) => e.toString())

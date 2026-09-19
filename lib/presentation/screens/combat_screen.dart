@@ -223,7 +223,18 @@ class _CombatScreenState extends State<CombatScreen>
     }
 
     final currentScore = _coordinator.dreadnought.totalScore;
-    unawaited(PersistenceService.instance.setHighScore(currentScore));
+    final defeatSector = CampaignService.instance.getSector(_currentSectorId);
+    await PersistenceService.instance.recordSectorDefeat(
+      sectorId: _currentSectorId,
+      score: currentScore,
+      lancesFired: _coordinator.sessionLancesFired,
+      flakBursts: _coordinator.sessionFlakBursts,
+      seedsSown: _coordinator.sessionSeedsSown,
+      maxCascadeLaps: _coordinator.sessionMaxCascade,
+      flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
+      chassisId: PersistenceService.instance.selectedChassisId,
+      campaignId: defeatSector.campaignId,
+    );
 
     if (!mounted || _overlayState != CombatOverlayState.defeatGrace) {
       return;
@@ -283,12 +294,20 @@ class _CombatScreenState extends State<CombatScreen>
     final enemiesNeutralized = _coordinator.enemies
         .where((e) => e.isDestroyed)
         .length;
+    final currentSector = CampaignService.instance.getSector(_currentSectorId);
 
     await PersistenceService.instance.recordSectorVictory(
       sectorId: _currentSectorId,
       score: score,
       coresRemaining: cores,
       enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
+      lancesFired: _coordinator.sessionLancesFired,
+      flakBursts: _coordinator.sessionFlakBursts,
+      seedsSown: _coordinator.sessionSeedsSown,
+      maxCascadeLaps: _coordinator.sessionMaxCascade,
+      flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
+      chassisId: PersistenceService.instance.selectedChassisId,
+      campaignId: currentSector.campaignId,
     );
 
     if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
@@ -296,7 +315,6 @@ class _CombatScreenState extends State<CombatScreen>
     }
     _overlayState = CombatOverlayState.victoryModal;
 
-    final currentSector = CampaignService.instance.getSector(_currentSectorId);
     final operation = CampaignService.instance.getOperation(
       currentSector.campaignId,
     );

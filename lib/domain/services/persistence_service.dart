@@ -14,6 +14,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -144,13 +145,63 @@ class PersistenceService {
     return _prefs?.getInt('$_kSectorScorePrefix$sectorId') ?? 0;
   }
 
+  static const String _kSelectedChassisId = 'void_sower_selected_chassis_id';
+
+  /// Currently equipped dreadnought chassis ID ('mk1_bastion', 'mk2_monsoon', 'mk3_singularity', 'mk4_golden_sovereign').
+  String get selectedChassisId =>
+      _prefs?.getString(_kSelectedChassisId) ?? 'mk1_bastion';
+
+  /// Updates equipped dreadnought chassis ID.
+  Future<void> setSelectedChassisId(String id) async {
+    await _prefs?.setString(_kSelectedChassisId, id);
+  }
+
+  static String _formatTodayDate([DateTime? now]) {
+    final dt = now ?? DateTime.now();
+    return '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+  }
+
+  static bool _isYesterday(String lastDateStr, String todayStr) {
+    try {
+      final lastParts = lastDateStr.split('-').map(int.parse).toList();
+      final todayParts = todayStr.split('-').map(int.parse).toList();
+      final lastDt = DateTime(lastParts[0], lastParts[1], lastParts[2]);
+      final todayDt = DateTime(todayParts[0], todayParts[1], todayParts[2]);
+      return todayDt.difference(lastDt).inDays == 1;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static int _calculateUpdatedStreak(
+    String? lastPlayedDate,
+    int currentStreak,
+    String today,
+  ) {
+    if (lastPlayedDate == null) return 1;
+    if (lastPlayedDate == today) {
+      return currentStreak == 0 ? 1 : currentStreak;
+    }
+    if (_isYesterday(lastPlayedDate, today)) {
+      return (currentStreak <= 0 ? 1 : currentStreak) + 1;
+    }
+    return 1;
+  }
+
   /// Records a successful sector defense, awards stars and score, unlocks the next sector,
-  /// and increments pilot profile statistics.
+  /// and updates pilot profile statistics and combat telemetry.
   Future<void> recordSectorVictory({
     required int sectorId,
     required int score,
     required int coresRemaining,
     int enemiesNeutralized = 4,
+    int lancesFired = 0,
+    int flakBursts = 0,
+    int seedsSown = 0,
+    int maxCascadeLaps = 0,
+    int flightTimeSeconds = 0,
+    String chassisId = 'mk1_bastion',
+    String campaignId = 'kilwa_basin',
   }) async {
     final earnedStars = coresRemaining >= 16
         ? 3
@@ -195,9 +246,103 @@ class PersistenceService {
 
     // Update active pilot profile statistics
     final active = userProfile;
+    final isFlawless = coresRemaining >= 16;
+    final today = _formatTodayDate();
+    final newStreak = _calculateUpdatedStreak(
+      active.lastPlayedDate,
+      active.currentStreak,
+      today,
+    );
+    final longestStreak = math.max(active.longestStreak, newStreak);
+
+    final updatedChassisSorties = Map<String, int>.from(active.chassisSorties);
+    updatedChassisSorties[chassisId] =
+        (updatedChassisSorties[chassisId] ?? 0) + 1;
+
+    final updatedCampaignSorties = Map<String, int>.from(
+      active.campaignSorties,
+    );
+    updatedCampaignSorties[campaignId] =
+        (updatedCampaignSorties[campaignId] ?? 0) + 1;
+
     final updatedProfile = active.copyWith(
       lifetimeScore: active.lifetimeScore + score,
       enemiesDestroyed: active.enemiesDestroyed + enemiesNeutralized,
+      missionsPlayed: active.missionsPlayed + 1,
+      victories: active.victories + 1,
+      flawlessVictories: isFlawless
+          ? (active.flawlessVictories + 1)
+          : active.flawlessVictories,
+      totalCoresSaved: active.totalCoresSaved + coresRemaining,
+      lancesFired: active.lancesFired + lancesFired,
+      flakBurstsTriggered: active.flakBurstsTriggered + flakBursts,
+      totalSeedsSown: active.totalSeedsSown + seedsSown,
+      maxCascadeLaps: math.max(active.maxCascadeLaps, maxCascadeLaps),
+      totalFlightTimeSeconds: active.totalFlightTimeSeconds + flightTimeSeconds,
+      currentStreak: newStreak,
+      longestStreak: longestStreak,
+      lastPlayedDate: today,
+      chassisSorties: updatedChassisSorties,
+      campaignSorties: updatedCampaignSorties,
+    );
+    await saveUserProfile(updatedProfile);
+  }
+
+  /// Records a mission defeat (reactor breach or cores depleted), updates streaks,
+  /// flight time, and sorties telemetry in the pilot profile.
+  Future<void> recordSectorDefeat({
+    required int sectorId,
+    required int score,
+    int lancesFired = 0,
+    int flakBursts = 0,
+    int seedsSown = 0,
+    int maxCascadeLaps = 0,
+    int flightTimeSeconds = 0,
+    String chassisId = 'mk1_bastion',
+    String campaignId = 'kilwa_basin',
+  }) async {
+    final previousScore = getSectorScore(sectorId);
+    if (score > previousScore) {
+      await _prefs?.setInt('$_kSectorScorePrefix$sectorId', score);
+    }
+
+    // Update global high score
+    await setHighScore(score);
+
+    // Update active pilot profile statistics
+    final active = userProfile;
+    final today = _formatTodayDate();
+    final newStreak = _calculateUpdatedStreak(
+      active.lastPlayedDate,
+      active.currentStreak,
+      today,
+    );
+    final longestStreak = math.max(active.longestStreak, newStreak);
+
+    final updatedChassisSorties = Map<String, int>.from(active.chassisSorties);
+    updatedChassisSorties[chassisId] =
+        (updatedChassisSorties[chassisId] ?? 0) + 1;
+
+    final updatedCampaignSorties = Map<String, int>.from(
+      active.campaignSorties,
+    );
+    updatedCampaignSorties[campaignId] =
+        (updatedCampaignSorties[campaignId] ?? 0) + 1;
+
+    final updatedProfile = active.copyWith(
+      lifetimeScore: active.lifetimeScore + score,
+      missionsPlayed: active.missionsPlayed + 1,
+      defeats: active.defeats + 1,
+      lancesFired: active.lancesFired + lancesFired,
+      flakBurstsTriggered: active.flakBurstsTriggered + flakBursts,
+      totalSeedsSown: active.totalSeedsSown + seedsSown,
+      maxCascadeLaps: math.max(active.maxCascadeLaps, maxCascadeLaps),
+      totalFlightTimeSeconds: active.totalFlightTimeSeconds + flightTimeSeconds,
+      currentStreak: newStreak,
+      longestStreak: longestStreak,
+      lastPlayedDate: today,
+      chassisSorties: updatedChassisSorties,
+      campaignSorties: updatedCampaignSorties,
     );
     await saveUserProfile(updatedProfile);
   }
@@ -421,6 +566,7 @@ class PersistenceService {
       'isHapticsEnabled': isHapticsEnabled,
       'highShadersEnabled': highShadersEnabled,
       'targetFps': targetFps,
+      'selectedChassisId': selectedChassisId,
       'userProfile': userProfile.toJson(),
     };
 
@@ -497,6 +643,9 @@ class PersistenceService {
       }
       if (payload['targetFps'] is int) {
         await _prefs?.setInt(_kTargetFps, payload['targetFps'] as int);
+      }
+      if (payload['selectedChassisId'] is String) {
+        await setSelectedChassisId(payload['selectedChassisId'] as String);
       }
       if (payload['userProfile'] is Map<String, dynamic>) {
         final profile = UserProfile.fromJson(
