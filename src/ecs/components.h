@@ -179,12 +179,13 @@ struct FlakBurstComponent {
  */
 struct alignas(64) DreadnoughtStateComponent {
   float orbital_position_x{
-      0.5f};                      ///< Platform position (0.0 to 1.0) [offset 0]
-  float target_position_x{0.5f};  ///< Smoothed interpolation target [offset 4]
-  float boundary_line_y{0.2f};    ///< Atmospheric threshold line [offset 8]
-  uint32_t reserve_cores{0};      ///< Unplaced core inventory [offset 12]
-  uint32_t total_score{0};        ///< Cumulative score [offset 16]
-  uint32_t cores_used{0};         ///< Total cores injected so far [offset 20]
+      0.4375f};  ///< Platform position (0.0 to 1.0, C4 center) [offset 0]
+  float target_position_x{
+      0.4375f};  ///< Smoothed interpolation target (C4 center) [offset 4]
+  float boundary_line_y{0.2f};  ///< Atmospheric threshold line [offset 8]
+  uint32_t reserve_cores{0};    ///< Unplaced core inventory [offset 12]
+  uint32_t total_score{0};      ///< Cumulative score [offset 16]
+  uint32_t cores_used{0};       ///< Total cores injected so far [offset 20]
   uint8_t is_cascading{
       0};  ///< Input lock flag during active relays [offset 24]
   uint8_t current_sim_state{0};  ///< SimulationState [offset 25]

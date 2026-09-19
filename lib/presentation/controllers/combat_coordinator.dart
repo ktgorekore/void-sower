@@ -594,7 +594,7 @@ class CombatCoordinator extends ChangeNotifier {
             (dreadnought.orbitalPositionX > 0.0 &&
                 dreadnought.orbitalPositionX <= 1.0)
             ? dreadnought.orbitalPositionX
-            : 0.5,
+            : 0.4375,
         y: (dreadnought.boundaryLineY + 0.04).clamp(0.0, 1.0),
         color: VoidTheme.solarGold,
         isCritical: false,
@@ -610,11 +610,15 @@ class CombatCoordinator extends ChangeNotifier {
   /// Sets the dreadnought's target horizontal position.
   void slidePosition(double targetX) {
     final clampedX = targetX.clamp(0.0, 1.0);
-    engine.slideDreadnought(clampedX);
-    if (_state.status == CombatMatchStatus.paused) {
-      dreadnought = dreadnought.copyWith(orbitalPositionX: clampedX);
-    }
     final corridor = (clampedX * 8.0).floor().clamp(0, 7);
+    final snappedX = (corridor + 0.5) / 8.0;
+    engine.slideDreadnought(snappedX);
+    if (_state.status == CombatMatchStatus.paused) {
+      dreadnought = dreadnought.copyWith(
+        orbitalPositionX: snappedX,
+        targetPositionX: snappedX,
+      );
+    }
     final frontlineBay = corridor + 8;
     if (_state.selectedBay != frontlineBay &&
         _state.status != CombatMatchStatus.sowingSequence) {

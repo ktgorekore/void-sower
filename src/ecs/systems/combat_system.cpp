@@ -35,8 +35,8 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
 
   registry_.emplace_or_replace<DreadnoughtStateComponent>(
       dreadnought_entity_, DreadnoughtStateComponent{
-                               .orbital_position_x = 0.5f,
-                               .target_position_x = 0.5f,
+                               .orbital_position_x = 0.4375f,
+                               .target_position_x = 0.4375f,
                                .boundary_line_y = boundary_y,
                                .reserve_cores = starting_cores,
                                .total_score = 0,

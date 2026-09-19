@@ -53,8 +53,8 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   void initialize({int startingCores = 32, double boundaryY = 0.15}) {
     _reserveCores = startingCores;
     _boundaryY = boundaryY;
-    _orbitalX = 0.5;
-    _targetX = 0.5;
+    _orbitalX = 0.4375;
+    _targetX = 0.4375;
     _score = 0;
     _coresUsed = 0;
     _simState = 0;

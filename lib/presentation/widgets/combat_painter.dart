@@ -373,7 +373,9 @@ class CombatPainter extends CustomPainter {
     for (var i = 0; i < enemies.length; i++) {
       final enemy = enemies[i];
       if (enemy.isDestroyed) continue;
-      final x = (enemy.assignedCorridor + 0.5) * corridorWidth;
+      final x = (enemy.worldPosX > 0.0 && enemy.worldPosX <= 1.0)
+          ? enemy.worldPosX * size.width
+          : (enemy.assignedCorridor + 0.5) * corridorWidth;
       final double y;
       if (enemy.worldPosY <= 1.0) {
         final normY = enemy.worldPosY.clamp(0.0, 1.0);
@@ -514,14 +516,13 @@ class CombatPainter extends CustomPainter {
         (dreadnought.orbitalPositionX > 0.0 &&
             dreadnought.orbitalPositionX <= 1.0)
         ? dreadnought.orbitalPositionX
-        : 0.5;
+        : 0.4375;
     final centerX = dreadNormX * size.width;
     final shipY = boundaryY + 12.0;
 
     // Active corridor highlight under dreadnought (Energized Runway Track)
     final activeCorridor = (centerX / (size.width / 8.0)).floor().clamp(0, 7);
     final corridorWidth = size.width / 8.0;
-    final targetCenterX = (activeCorridor + 0.5) * corridorWidth;
 
     _highlightPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.14);
     canvas.drawRect(
@@ -534,21 +535,20 @@ class CombatPainter extends CustomPainter {
       _highlightPaint,
     );
 
-    // Targeting Alignment Laser Beam (Pulsing high-visibility beam)
+    // Targeting Alignment Laser Beam (Pulsing high-visibility beam aligned with ship prow)
     final aimPulse = 0.40 + 0.25 * math.sin(animationTime * 10.0);
     _aimPaint.color = VoidTheme.plasmaCyan.withValues(alpha: aimPulse);
     _aimPaint.strokeWidth = 2.0;
-    canvas.drawLine(
-      Offset(targetCenterX, boundaryY),
-      Offset(targetCenterX, 0),
-      _aimPaint,
-    );
+    canvas.drawLine(Offset(centerX, boundaryY), Offset(centerX, 0), _aimPaint);
 
     // Lock-on reticles on descending enemies in active corridor
     final topMargin = size.height * 0.06;
     for (var i = 0; i < enemies.length; i++) {
       final enemy = enemies[i];
       if (!enemy.isDestroyed && enemy.assignedCorridor == activeCorridor) {
+        final enemyX = (enemy.worldPosX > 0.0 && enemy.worldPosX <= 1.0)
+            ? enemy.worldPosX * size.width
+            : (enemy.assignedCorridor + 0.5) * corridorWidth;
         final double ey = (enemy.worldPosY <= 1.0)
             ? topMargin +
                   ((1.0 - enemy.worldPosY.clamp(0.0, 1.0)) / 0.85) *
@@ -557,7 +557,7 @@ class CombatPainter extends CustomPainter {
         final lockSize = 16.0 + 2.0 * math.sin(animationTime * 8.0);
         canvas.drawRect(
           Rect.fromCenter(
-            center: Offset(targetCenterX, ey),
+            center: Offset(enemyX, ey),
             width: lockSize * 2,
             height: lockSize * 2,
           ),
