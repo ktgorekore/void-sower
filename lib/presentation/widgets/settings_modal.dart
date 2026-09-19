@@ -24,10 +24,16 @@ import 'tactile_button.dart';
 
 /// Centralized settings and preferences modal with Afrofuturistic styling.
 class SettingsModal extends StatefulWidget {
-  const SettingsModal({super.key, this.onResetTutorial, this.onDataWiped});
+  const SettingsModal({
+    super.key,
+    this.onResetTutorial,
+    this.onDataWiped,
+    this.onLaunchAcademy,
+  });
 
   final VoidCallback? onResetTutorial;
   final VoidCallback? onDataWiped;
+  final VoidCallback? onLaunchAcademy;
 
   @override
   State<SettingsModal> createState() => _SettingsModalState();
@@ -558,11 +564,27 @@ class _SettingsModalState extends State<SettingsModal>
         const Divider(color: VoidTheme.cardSurface),
         const SizedBox(height: 12.0),
 
+        if (widget.onLaunchAcademy != null) ...[
+          TactileButton(
+            label: 'ENTER FLIGHT ACADEMY',
+            icon: Icons.school,
+            accentColor: VoidTheme.solarGold,
+            isPrimary: true,
+            height: 40.0,
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.onLaunchAcademy?.call();
+            },
+          ),
+          const SizedBox(height: 8.0),
+        ],
+
         TactileButton(
           label: 'RESET FLIGHT ACADEMY TUTORIAL',
-          icon: Icons.school,
-          accentColor: VoidTheme.solarGold,
-          height: 40.0,
+          icon: Icons.restart_alt,
+          accentColor: VoidTheme.textSecondary,
+          isPrimary: false,
+          height: 38.0,
           onPressed: () async {
             await PersistenceService.instance.setCompletedTutorial(false);
             widget.onResetTutorial?.call();

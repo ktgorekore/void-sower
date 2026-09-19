@@ -50,6 +50,7 @@ class CombatScreen extends StatefulWidget {
     this.sectorId = 1,
     this.onReturnToMap,
     this.autoStartSolver = false,
+    this.startWithTutorial = false,
   });
 
   final IVoidSowerEngine engine;
@@ -57,6 +58,7 @@ class CombatScreen extends StatefulWidget {
   final int sectorId;
   final VoidCallback? onReturnToMap;
   final bool autoStartSolver;
+  final bool startWithTutorial;
 
   @override
   State<CombatScreen> createState() => _CombatScreenState();
@@ -93,6 +95,7 @@ class _CombatScreenState extends State<CombatScreen>
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
       autoStartSolver: widget.autoStartSolver,
+      startWithTutorial: widget.startWithTutorial,
     );
 
     _ticker = createTicker(_onTick);
@@ -358,10 +361,23 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openCodex() {
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
+
     showDialog<void>(
       context: context,
-      builder: (context) => const BaoCodexDialog(),
-    );
+      builder: (context) => BaoCodexDialog(
+        onLaunchAcademy: () {
+          _coordinator.showTutorial();
+        },
+      ),
+    ).then((_) {
+      if (mounted &&
+          wasTicking &&
+          _coordinator.state.status != CombatMatchStatus.briefing) {
+        _ticker.start();
+      }
+    });
   }
 
   void _openSettings() {
@@ -371,12 +387,17 @@ class _CombatScreenState extends State<CombatScreen>
     showDialog<void>(
       context: context,
       builder: (context) => SettingsModal(
+        onLaunchAcademy: () {
+          _coordinator.showTutorial();
+        },
         onResetTutorial: () {
           _coordinator.showTutorial();
         },
       ),
     ).then((_) {
-      if (mounted && wasTicking) {
+      if (mounted &&
+          wasTicking &&
+          _coordinator.state.status != CombatMatchStatus.briefing) {
         _ticker.start();
       }
     });

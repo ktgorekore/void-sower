@@ -250,6 +250,36 @@ void main() {
       expect(find.text('LEGAL & ABOUT'), findsOneWidget);
     });
 
+    testWidgets(
+      'SettingsModal renders ENTER FLIGHT ACADEMY button when onLaunchAcademy is provided',
+      (tester) async {
+        bool academyLaunched = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SettingsModal(
+                onLaunchAcademy: () => academyLaunched = true,
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Switch to DIAGNOSTICS tab
+        await tester.tap(find.text('DIAGNOSTICS'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('ENTER FLIGHT ACADEMY'), findsOneWidget);
+        expect(find.text('RESET FLIGHT ACADEMY TUTORIAL'), findsOneWidget);
+
+        await tester.tap(find.text('ENTER FLIGHT ACADEMY'));
+        await tester.pumpAndSettle();
+
+        expect(academyLaunched, isTrue);
+      },
+    );
+
     testWidgets('ProfileModal renders pilot dossier and insignia selector', (
       tester,
     ) async {

@@ -275,5 +275,31 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('IMPERIAL ORBITAL BLOCKADE DETECTED'), findsNothing);
     });
+
+    testWidgets(
+      'CampaignMapScreen provides direct Flight Academy action in app bar and launches tutorial',
+      (tester) async {
+        final engine = MockVoidSowerEngine();
+
+        await tester.pumpWidget(
+          MaterialApp(home: CampaignMapScreen(engine: engine)),
+        );
+        await tester.pumpAndSettle();
+
+        // Verify Flight Academy icon button exists in AppBar actions
+        final academyIcon = find.byTooltip('Flight Academy');
+        expect(academyIcon, findsOneWidget);
+        expect(find.byIcon(Icons.school), findsOneWidget);
+
+        // Tap Flight Academy icon button to launch CombatScreen with tutorial active
+        await tester.tap(academyIcon);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        // Verify that the Flight Academy tutorial overlay is active over Sector 1
+        expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
+        expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+      },
+    );
   });
 }

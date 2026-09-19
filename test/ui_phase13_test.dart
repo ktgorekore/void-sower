@@ -151,6 +151,31 @@ void main() {
       expect(find.text('DISMISS CODEX'), findsOneWidget);
     });
 
+    testWidgets(
+      'BaoCodexDialog displays ENTER FLIGHT ACADEMY button when onLaunchAcademy is provided',
+      (tester) async {
+        bool academyLaunched = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: BaoCodexDialog(
+                onLaunchAcademy: () => academyLaunched = true,
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('ENTER FLIGHT ACADEMY'), findsOneWidget);
+        expect(find.byIcon(Icons.school), findsOneWidget);
+
+        await tester.tap(find.text('ENTER FLIGHT ACADEMY'));
+        await tester.pumpAndSettle();
+
+        expect(academyLaunched, isTrue);
+      },
+    );
+
     testWidgets('FleetHangarDialog displays chassis variants and stats', (
       tester,
     ) async {

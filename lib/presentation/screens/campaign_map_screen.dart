@@ -86,10 +86,30 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     );
   }
 
+  void _launchAcademy() {
+    HapticService.instance.injectionClick();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => CombatScreen(
+          engine: widget.engine,
+          difficultyTier: 0,
+          sectorId: 1,
+          startWithTutorial: true,
+          onReturnToMap: () {
+            Navigator.of(context).pop();
+            setState(() {
+              _sectors = CampaignService.instance.getSectors();
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   void _openCodex() {
     showDialog<void>(
       context: context,
-      builder: (context) => const BaoCodexDialog(),
+      builder: (context) => BaoCodexDialog(onLaunchAcademy: _launchAcademy),
     );
   }
 
@@ -113,6 +133,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             _sectors = CampaignService.instance.getSectors();
           });
         },
+        onLaunchAcademy: _launchAcademy,
       ),
     );
   }
@@ -404,12 +425,18 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           IconButton(
             icon: const Icon(Icons.rocket_launch, color: VoidTheme.plasmaCyan),
             tooltip: 'Fleet Hangar',
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
             onPressed: _openHangar,
           ),
           IconButton(
-            icon: const Icon(Icons.account_circle, color: VoidTheme.solarGold),
-            tooltip: 'Pilot Profile',
-            onPressed: _openProfile,
+            icon: const Icon(Icons.school, color: VoidTheme.solarGold),
+            tooltip: 'Flight Academy',
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
+            onPressed: _launchAcademy,
           ),
           IconButton(
             icon: const Icon(
@@ -417,7 +444,18 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
               color: VoidTheme.solarGoldLight,
             ),
             tooltip: 'Bao Codex',
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
             onPressed: _openCodex,
+          ),
+          IconButton(
+            icon: const Icon(Icons.account_circle, color: VoidTheme.starWhite),
+            tooltip: 'Pilot Profile',
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
+            onPressed: _openProfile,
           ),
           IconButton(
             icon: const Icon(
@@ -425,6 +463,9 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
               color: VoidTheme.starWhite,
             ),
             tooltip: 'Combat Telemetry',
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
@@ -439,6 +480,9 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
               color: VoidTheme.solarGold,
             ),
             tooltip: 'Fleet Settings',
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
             onPressed: _openSettings,
           ),
         ],

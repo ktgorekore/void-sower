@@ -98,6 +98,7 @@ class CombatCoordinator extends ChangeNotifier {
     int startingCores = 28,
     double boundaryY = 0.15,
     bool autoStartSolver = false,
+    bool startWithTutorial = false,
   }) {
     _highScore = PersistenceService.instance.highScore;
     _currentDifficulty = difficulty ?? difficultyTier;
@@ -123,9 +124,10 @@ class CombatCoordinator extends ChangeNotifier {
     prediction = engine.predictSow(initialBay, 1);
 
     final shouldShowTutorial =
-        !PersistenceService.instance.hasCompletedTutorial &&
-        _currentDifficulty == 0 &&
-        !autoStartSolver;
+        startWithTutorial ||
+        (!PersistenceService.instance.hasCompletedTutorial &&
+            _currentDifficulty == 0 &&
+            !autoStartSolver);
 
     _state = CombatMatchState(
       status: shouldShowTutorial

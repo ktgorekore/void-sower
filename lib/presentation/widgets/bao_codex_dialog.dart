@@ -20,7 +20,10 @@ import 'tutorial_video_dialog.dart';
 
 /// In-game Bao Codex and Tactical Rules Guide detailing orbital battery principles.
 class BaoCodexDialog extends StatelessWidget {
-  const BaoCodexDialog({super.key});
+  const BaoCodexDialog({super.key, this.onLaunchAcademy});
+
+  /// Optional callback to launch or transition into the interactive Flight Academy.
+  final VoidCallback? onLaunchAcademy;
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +141,22 @@ class BaoCodexDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16.0),
 
+            // Interactive Flight Academy Onboarding Launch Button
+            if (onLaunchAcademy != null) ...[
+              TactileButton(
+                label: 'ENTER FLIGHT ACADEMY',
+                icon: Icons.school,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onLaunchAcademy?.call();
+                },
+                accentColor: VoidTheme.solarGold,
+                isPrimary: true,
+                height: 42.0,
+              ),
+              const SizedBox(height: 8.0),
+            ],
+
             // Video Briefing Button
             TactileButton(
               label: 'WATCH VIDEO TUTORIAL (60s)',
@@ -149,7 +168,7 @@ class BaoCodexDialog extends StatelessWidget {
                 );
               },
               accentColor: VoidTheme.solarGold,
-              isPrimary: false,
+              isPrimary: onLaunchAcademy == null,
               height: 42.0,
             ),
             const SizedBox(height: 8.0),
