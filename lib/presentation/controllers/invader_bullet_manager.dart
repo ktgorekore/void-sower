@@ -15,6 +15,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
+import '../../domain/models/bay_state.dart';
 import '../../domain/models/enemy_bullet.dart';
 import '../../domain/models/enemy_craft.dart';
 import '../../domain/models/flak_burst.dart';
@@ -69,6 +70,7 @@ class InvaderBulletManager {
     required List<EnemyCraft> enemies,
     required List<LanceBeam> lances,
     required List<FlakBurst> flaks,
+    List<BayState> bays = const [],
   }) {
     final corridorWidth = viewportSize.width / 8.0;
     final topMargin = viewportSize.height * 0.06;
@@ -204,24 +206,49 @@ class InvaderBulletManager {
         final hitDread = (bullet.x - dreadX).abs() < 46.0;
         if (hitDread) {
           final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
-          particleService.spawnFlakBurst(
-            bullet.x,
-            boundaryY,
-            VoidTheme.crimsonFlare,
-            count: 18,
-          );
-          if (damageNumbers.length < 8) {
-            damageNumbers.add(
-              FloatingDamageNumber(
-                text: 'CONDUIT BREACH! -1 CORE & DRAINED',
-                x: bullet.x,
-                y: boundaryY - 24,
-                color: VoidTheme.crimsonFlare,
-                isCritical: true,
-              ),
+          final bayIndex = 8 + activeCorridor;
+          final isCharged =
+              bayIndex < bays.length && bays[bayIndex].chargeUnits > 0;
+
+          if (isCharged) {
+            particleService.spawnFlakBurst(
+              bullet.x,
+              boundaryY,
+              VoidTheme.plasmaCyan,
+              count: 18,
             );
+            if (damageNumbers.length < 8) {
+              damageNumbers.add(
+                FloatingDamageNumber(
+                  text: 'CANOPY DEFLECT! +50',
+                  x: bullet.x,
+                  y: boundaryY - 24,
+                  color: VoidTheme.plasmaCyan,
+                  isCritical: true,
+                ),
+              );
+            }
+            onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
+          } else {
+            particleService.spawnFlakBurst(
+              bullet.x,
+              boundaryY,
+              VoidTheme.crimsonFlare,
+              count: 18,
+            );
+            if (damageNumbers.length < 8) {
+              damageNumbers.add(
+                FloatingDamageNumber(
+                  text: 'CONDUIT BREACH! -1 CORE & DRAINED',
+                  x: bullet.x,
+                  y: boundaryY - 24,
+                  color: VoidTheme.crimsonFlare,
+                  isCritical: true,
+                ),
+              );
+            }
+            onConduitBreached(activeCorridor, bullet.x, boundaryY);
           }
-          onConduitBreached(activeCorridor, bullet.x, boundaryY);
         } else {
           particleService.spawnLanceSparks(
             bullet.x,

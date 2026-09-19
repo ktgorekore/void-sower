@@ -74,16 +74,16 @@ def reset_app_pro_state(completed_tutorial=False):
 
 def record_60s_tutorial():
   print("[Record 60s] Resetting app state to fresh cadet profile with Pro unlocked...")
-  reset_app_pro_state(completed_tutorial=False)
+  reset_app_pro_state(completed_tutorial=True)
 
-  print("[Record 60s] Starting Void Sower main activity...")
+  print("[Record 60s] Starting Void Sower main activity directly into combat arena...")
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.5)
 
   print("[Record 60s] Launching screenrecord (60s at 1080x2400)...")
   rec_proc = subprocess.Popen([
       "adb", "-s", DEVICE, "shell",
-      "screenrecord", "--size", "1080x2400", "--bit-rate", "14000000", "--time-limit", "60",
+      "screenrecord", "--size", "1080x2400", "--bit-rate", "16000000", "--time-limit", "60",
       "/sdcard/gameplay_60s.mp4"
   ])
 
@@ -95,91 +95,59 @@ def record_60s_tutorial():
     if rem > 0:
       time.sleep(rem)
 
-  # 1. 0s..4s: Flight Academy Tutorial overlay shown over combat arena
-  wait_until(3.5)
-  print("[Timeline 3.5s] Dismiss Flight Academy (tap SKIP at x=210, y=2060)")
-  tap(210, 2060)
+  # Phase 1: 0s..7.6s — Threat & Corridors (Invaders descending down C2 and C7)
+  print("[Timeline 0s..7.6s] Observing descending assault craft down eight corridors...")
 
-  # 2. 4s..9s: Active Kilwa Basin Combat (Corridor evasion + axial lance discharge)
-  wait_until(5.0)
-  print("[Timeline 5.0s] Slide dreadnought laterally to evade incoming bombs")
-  swipe(400, 2200, 950, 2200, 300)
+  # Phase 2: 7.6s..15.5s — Aiming & Corridor Alignment
+  wait_until(8.5)
+  print("[Timeline 8.5s] Align prow to Corridor 2 (tap C2 notch at x=252, y=2406)")
+  tap(252, 2406)
 
-  wait_until(6.5)
-  print("[Timeline 6.5s] Align back to target corridor")
-  swipe(950, 2200, 672, 2200, 250)
+  wait_until(11.5)
+  print("[Timeline 11.5s] Align prow to Corridor 7 (tap C7 notch at x=1092, y=2406)")
+  tap(1092, 2406)
 
-  wait_until(7.8)
-  print("[Timeline 7.8s] Discharge Axial Particle Lance (tap x=500, y=2850)")
-  tap(500, 2850)
+  wait_until(14.0)
+  print("[Timeline 14.0s] Re-align prow to Corridor 2 (tap C2 notch at x=252, y=2406)")
+  tap(252, 2406)
 
-  # 3. 9s..16s: Pause -> Multi-Theater Campaign Star Map
-  wait_until(9.5)
-  print("[Timeline 9.5s] Open Tactical Pause menu (tap x=889, y=330)")
-  tap(889, 330)
+  # Phase 3: 15.5s..25.2s — 16-Bay Capacitor Ring & Sowing Cascades
+  wait_until(16.5)
+  print("[Timeline 16.5s] Focus frontline Bay 9 under C2 (tap x=252, y=2530)")
+  tap(252, 2530)
 
-  wait_until(10.5)
-  print("[Timeline 10.5s] Open Star Map (tap MAP at x=310, y=1740)")
-  tap(310, 1740)
+  wait_until(19.5)
+  print("[Timeline 19.5s] Sow plasma cores clockwise across frontline bays (swipe Bay 9 rightwards)")
+  swipe(252, 2530, 588, 2530, 200)
 
-  wait_until(12.0)
-  print("[Timeline 12.0s] Open Pilot Telemetry Dossier (tap x=260, y=700)")
-  tap(260, 700)
+  wait_until(23.0)
+  print("[Timeline 23.0s] Select frontline Bay 9 (tap x=252, y=2530)")
+  tap(252, 2530)
 
-  wait_until(14.5)
-  print("[Timeline 14.5s] Close Pilot Dossier")
-  keyevent(4)
-
-  # 4. 16s..27s: Switch to Phantom Drift Theater (Evasive Invaders)
-  wait_until(16.0)
-  print("[Timeline 16.0s] Switch to Phantom Drift theater tab (tap x=670, y=500)")
-  tap(670, 500)
-
-  wait_until(17.5)
-  print("[Timeline 17.5s] Select Sector 10 Aldabra Shimmer Reef (tap ENGAGE at x=830, y=1280)")
-  tap(830, 1280)
-
-  wait_until(18.5)
-  print("[Timeline 18.5s] Launch Phantom Drift Battle (tap ENGAGE BATTLE at x=675, y=2850)")
-  tap(675, 2850)
-
-  wait_until(21.0)
-  print("[Timeline 21.0s] Phantom Drift active - fire particle lance at drifting invader")
-  tap(500, 2850)
-
-  wait_until(23.5)
-  print("[Timeline 23.5s] Sow capacitor bay to track lateral movement")
-  tap(440, 2520)
-  time.sleep(0.3)
-  tap(500, 2850)
-
-  # 5. 27s..38s: Switch to Void Swarm Theater (Respawning Invaders & Core Siphon)
-  wait_until(27.0)
-  print("[Timeline 27.0s] Open Tactical Pause to return to Star Map (tap x=889, y=330)")
-  tap(889, 330)
+  # Phase 4: 25.2s..35.2s — Axial Particle Lance Discharge
+  wait_until(25.5)
+  print("[Timeline 25.5s] Tap Axial Discharge bar (tap x=672, y=2860)")
+  tap(672, 2860)
 
   wait_until(28.0)
-  print("[Timeline 28.0s] Open Star Map (tap MAP at x=310, y=1740)")
-  tap(310, 1740)
+  print("[Timeline 28.0s] Quick-fire secondary prow pulse (tap arena x=252, y=1500)")
+  tap(252, 1500)
 
-  wait_until(29.5)
-  print("[Timeline 29.5s] Switch to Void Swarm theater tab (tap x=1090, y=500)")
-  tap(1090, 500)
+  # Phase 5: 35.2s..43.3s — Harmonic Shield Deflection vs EMP Breaches
+  wait_until(36.0)
+  print("[Timeline 36.0s] Align charged canopy under C7 craft (tap C7 at x=1092, y=2406)")
+  tap(1092, 2406)
 
-  wait_until(31.0)
-  print("[Timeline 31.0s] Select Sector 19 Comoros Hive Gate (tap ENGAGE at x=830, y=1280)")
-  tap(830, 1280)
+  wait_until(39.5)
+  print("[Timeline 39.5s] Re-align charged canopy under C2 craft (tap C2 at x=252, y=2406)")
+  tap(252, 2406)
 
-  wait_until(32.0)
-  print("[Timeline 32.0s] Launch Void Swarm Battle (tap ENGAGE BATTLE at x=675, y=2850)")
-  tap(675, 2850)
+  # Phase 6: 43.3s..60.0s — Autonomous AI Tactical Advisor & Sector Victory
+  wait_until(43.5)
+  print("[Timeline 43.5s] Engage AI Tactical Advisor (tap AI button at x=1030, y=236)")
+  tap(1030, 236)
 
-  # 6. 38s..50s: Engage Autonomous AI Tactical Solver (Pro Feature)
-  wait_until(36.5)
-  print("[Timeline 36.5s] Engage AI Tactical Solver (tap x=1020, y=230 in HUD)")
-  tap(1020, 230)
-
-  print("[Record 60s] AI Solver active, executing optimal cascades against swarm...")
+  print("[Record 60s] AI Solver active, executing Grandmaster cascades toward victory...")
   rec_proc.wait()
   print("[Record 60s] Screen recording completed successfully!")
 

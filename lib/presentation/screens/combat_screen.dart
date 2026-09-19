@@ -724,6 +724,7 @@ class _CombatScreenState extends State<CombatScreen>
                 children: [
                   SafeArea(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         // Top HUD (Isolated RepaintBoundary)
                         RepaintBoundary(

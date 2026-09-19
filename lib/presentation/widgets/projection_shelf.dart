@@ -31,7 +31,9 @@ class ProjectionShelf extends StatelessWidget {
   Widget build(BuildContext context) {
     if (prediction == null || selectedBay == null) {
       return Container(
+        width: double.infinity,
         height: 22.0,
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: VoidTheme.obsidianBlack.withValues(alpha: 0.75),
@@ -67,8 +69,9 @@ class ProjectionShelf extends StatelessWidget {
     final isRelay = p.triggersRelay;
 
     return Container(
+      width: double.infinity,
       height: 22.0,
-      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
       decoration: BoxDecoration(
         color: VoidTheme.cardSurface.withValues(alpha: 0.9),
         border: Border.symmetric(
@@ -78,90 +81,100 @@ class ProjectionShelf extends StatelessWidget {
           ),
         ),
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Trajectory Preview
-            Row(
-              children: [
-                const Icon(
-                  Icons.radar,
-                  color: VoidTheme.plasmaCyan,
-                  size: 13.0,
-                ),
-                const SizedBox(width: 6.0),
-                Text(
-                  'BAY $selectedBay → BAY ${p.terminalBay}',
-                  style: const TextStyle(
-                    color: VoidTheme.textPrimary,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                if (p.terminalCorridor >= 0) ...[
-                  const SizedBox(width: 5.0),
-                  Text(
-                    '(CORRIDOR ${p.terminalCorridor})',
-                    style: const TextStyle(
-                      color: VoidTheme.plasmaCyanLight,
-                      fontSize: 9.5,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            const SizedBox(width: 10.0),
-
-            // Damage / Effect Readout
-            Row(
-              children: [
-                if (isLance) ...[
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Trajectory Preview (Anchored to Left)
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   const Icon(
-                    Icons.flash_on,
+                    Icons.radar,
                     color: VoidTheme.plasmaCyan,
                     size: 13.0,
                   ),
-                  const SizedBox(width: 3.0),
+                  const SizedBox(width: 6.0),
                   Text(
-                    'LANCE: ${p.predictedDamage.toInt()} DMG (M=${p.finalMass})',
+                    'BAY $selectedBay → BAY ${p.terminalBay}',
                     style: const TextStyle(
-                      color: VoidTheme.plasmaCyan,
+                      color: VoidTheme.textPrimary,
                       fontSize: 10.5,
                       fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ] else if (isRelay) ...[
-                  const Icon(
-                    Icons.alt_route,
-                    color: VoidTheme.solarGold,
-                    size: 13.0,
-                  ),
-                  const SizedBox(width: 3.0),
-                  const Text(
-                    'RELAY OVERLOAD (FLAK VENT)',
-                    style: TextStyle(
-                      color: VoidTheme.solarGold,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
+                  if (p.terminalCorridor >= 0) ...[
+                    const SizedBox(width: 5.0),
+                    Text(
+                      '(CORRIDOR ${p.terminalCorridor})',
+                      style: const TextStyle(
+                        color: VoidTheme.plasmaCyanLight,
+                        fontSize: 9.5,
+                      ),
                     ),
-                  ),
-                ] else ...[
-                  Text(
-                    'ACCUMULATE: M=${p.finalMass} (MIN 4 FOR LANCE)',
-                    style: const TextStyle(
-                      color: VoidTheme.textSecondary,
-                      fontSize: 11.0,
-                    ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8.0),
+
+          // Damage / Effect Readout (Anchored to Right)
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isLance) ...[
+                    const Icon(
+                      Icons.flash_on,
+                      color: VoidTheme.plasmaCyan,
+                      size: 13.0,
+                    ),
+                    const SizedBox(width: 3.0),
+                    Text(
+                      'LANCE: ${p.predictedDamage.toInt()} DMG (M=${p.finalMass})',
+                      style: const TextStyle(
+                        color: VoidTheme.plasmaCyan,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ] else if (isRelay) ...[
+                    const Icon(
+                      Icons.alt_route,
+                      color: VoidTheme.solarGold,
+                      size: 13.0,
+                    ),
+                    const SizedBox(width: 3.0),
+                    const Text(
+                      'RELAY OVERLOAD (FLAK VENT)',
+                      style: TextStyle(
+                        color: VoidTheme.solarGold,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ] else ...[
+                    Text(
+                      'ACCUMULATE: M=${p.finalMass} (MIN 4 FOR LANCE)',
+                      style: const TextStyle(
+                        color: VoidTheme.textSecondary,
+                        fontSize: 11.0,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -174,13 +174,22 @@ class CombatCoordinator extends ChangeNotifier {
       6,
       'CombatCoordinator: Initializing sector ${sector?.sectorId ?? "custom"} difficulty $_currentDifficulty doctrine $doctrine',
     );
-    engine.initialize(startingCores: startingCores, boundaryY: boundaryY);
+    final initialCores = (sector != null && sector.sectorId == 1)
+        ? 36
+        : startingCores;
+    engine.initialize(startingCores: initialCores, boundaryY: boundaryY);
     engine.setLateralDrift(doctrine == SectorCombatDoctrine.phantomDrift);
+    final int waveSeed = sector != null
+        ? (sector.sectorId == 1 ? 8 : (sector.sectorId * 7919))
+        : 8;
+    final double initialVel = _currentDifficulty == 0
+        ? 0.010
+        : (0.02 + (_currentDifficulty * 0.008));
     engine.generateWave(
       difficulty: _currentDifficulty,
-      randomSeed: DateTime.now().millisecondsSinceEpoch % 100000,
+      randomSeed: waveSeed,
       coreBudget: 16 + (_currentDifficulty * 4),
-      initialVelocityY: 0.02 + (_currentDifficulty * 0.008),
+      initialVelocityY: initialVel,
     );
     _syncDomainState();
 
@@ -229,6 +238,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Grants emergency auxiliary plasma cores (e.g. from a rewarded ad transmission).
   void grantEmergencyCores(int bonusCores) {
     if (_isDisposed) return;
+    engine.grantCores(bonusCores);
     dreadnought = dreadnought.copyWith(
       reserveCores: dreadnought.reserveCores + bonusCores,
     );
@@ -375,6 +385,7 @@ class CombatCoordinator extends ChangeNotifier {
       enemies: enemies,
       lances: lances,
       flaks: flaks,
+      bays: bays,
     );
 
     // 6. Reactive audio triggers on newly active lances and flak detonations

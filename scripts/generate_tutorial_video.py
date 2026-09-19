@@ -26,13 +26,15 @@ import edge_tts
 import numpy as np
 
 NARRATION_TEXT = (
-    "Welcome Commander to Void Sower, where ancient African Bao Mancala meets intense orbital arcade defense. "
-    "Alien assault wings advance down eight corridors toward your planetary shield. "
-    "Slide laterally to evade incoming plasma bombs and align your prow. "
-    "Discharge devastating axial particle lances or sow plasma cores across the sixteen-bay capacitor ring to trigger explosive quadratic cascades! "
-    "Conquer three distinct orbital campaigns: defend Kilwa Basin, intercept evasive craft with lateral thrusters in Phantom Drift, and survive relentless respawning hordes in the Void Swarm! "
-    "Upgrade to Pro Commander for just one dollar and twenty-nine cents lifetime: unlock all twenty-seven sectors instantly, command four capital dreadnoughts, deploy our native C++ MCTS AI solver, and play completely ad-free. "
-    "Master ancient mathematics and liberate the cosmos!"
+    "Welcome, Commander. "
+    "Alien assault craft are descending along eight orbital corridors to breach your planetary line. "
+    "Tap corridor notches C1 through C8, or slide your ship laterally, to align your prow directly beneath incoming targets. "
+    "Beneath your hull lies a sixteen-bay capacitor ring. "
+    "Sow plasma cores across the bays to build explosive energy and trigger continuous Bao cascades. "
+    "Tap Axial Discharge to fire! "
+    "Frontline capacitors unleash devastating beam strikes that scale quadratically with stored mass to disintegrate hostile armor. "
+    "Hostile plasma bombs are deflected by charged capacitor bays, converting enemy attacks into bonus energy while shielding your orbital perimeter. "
+    "Activate the native C++ AI Tactical Advisor to execute Grandmaster cascades, secure the sector, and master the orbital art of Bao!"
 )
 
 VOICE = "en-US-ChristopherNeural"
@@ -168,8 +170,8 @@ def vtt_to_ass(vtt_file: str, ass_file: str):
           " Alignment, MarginL, MarginR, MarginV, Encoding"
       ),
       (
-          "Style: Default,DejaVu Sans,44,&H00FFFFFF,&H0000FFFF,&H0008080A,"
-          "&H90000000,-1,0,0,0,100,100,1.2,0,1,3.5,2.0,2,60,60,1250,1"
+          "Style: Default,DejaVu Sans,38,&H00FFFFFF,&H0000FFFF,&H0008080A,"
+          "&H90000000,-1,0,0,0,100,100,1.2,0,1,3.5,2.0,2,60,60,800,1"
       ),
       "",
       "[Events]",
@@ -237,37 +239,43 @@ def generate_sfx_mix(output_path: str, duration_sec: float = 60.0):
       chunk_len = end_idx - start_idx
       mix[start_idx:end_idx] += sfx[:chunk_len] * volume
 
-  # 1. Opening sequence (Command deck, hangar, dossier inspection)
-  place_sfx(inject_core, 0.8, 0.8)
-  place_sfx(inject_core, 2.0, 0.8)
-  place_sfx(inject_core, 5.8, 0.8)
-  place_sfx(inject_core, 9.5, 0.8)
-  place_sfx(inject_core, 13.2, 0.8)
+  # 1. Phase 1 (0s..8.0s) Threat & 8 Corridors
+  place_sfx(inject_core, 1.0, 0.7)
 
-  # 2. Briefing progression & combat launch
-  place_sfx(sow_step, 15.5, 0.8)
-  place_sfx(inject_core, 18.0, 0.9)
+  # 2. Phase 2 (8.0s..16.5s) Aiming & Corridor Alignment
+  place_sfx(inject_core, 8.2, 0.8)    # Align C2
+  place_sfx(inject_core, 11.0, 0.8)   # Align C7
+  place_sfx(sow_step, 13.5, 0.7)      # Lateral ship slide
 
-  # 3. Double-tap axial prow fire & axial discharge
-  place_sfx(lance_fire, 22.5, 1.25)
-  place_sfx(flak_burst, 23.0, 0.9)
-  place_sfx(lance_fire, 25.0, 1.2)
-  place_sfx(bullet_deflect, 25.8, 0.8)
+  # 3. Phase 3 (16.5s..26.0s) 16-Bay Capacitor Ring & Sowing Cascades
+  place_sfx(sow_step, 18.0, 0.75)     # Swipe Bay 9 clockwise
+  place_sfx(sow_step, 18.25, 0.8)
+  place_sfx(sow_step, 18.5, 0.85)
+  place_sfx(inject_core, 21.5, 0.8)   # Reservoir bay tap
+  place_sfx(sow_step, 21.8, 0.8)      # Reservoir sow cascade
+  place_sfx(sow_step, 22.05, 0.85)
+  place_sfx(sow_step, 22.3, 0.9)
 
-  # 4. First kinetic Mancala sow cadence
-  for i, t_offset in enumerate([27.5, 27.75, 28.0]):
-    place_sfx(sow_step, t_offset, 0.75 + i * 0.08)
-  place_sfx(lance_fire, 28.5, 1.2)
-  place_sfx(flak_burst, 29.1, 0.85)
+  # 4. Phase 4 (26.0s..36.0s) Axial Particle Lance Discharge
+  place_sfx(lance_fire, 26.0, 1.25)   # Tap Axial Discharge (C2)
+  place_sfx(flak_burst, 26.6, 0.9)    # Invader destroyed
+  place_sfx(inject_core, 30.5, 0.8)   # Align C7
+  place_sfx(lance_fire, 32.0, 1.25)   # Tap Axial Discharge (C7)
+  place_sfx(flak_burst, 32.6, 0.9)    # Invader destroyed
 
-  # 5. Continuous active AI combat loops throughout 30s-56s
+  # 5. Phase 5 (36.0s..43.5s) Harmonic Shield Deflection
+  place_sfx(inject_core, 37.0, 0.8)   # Align C4 under bomb
+  place_sfx(bullet_deflect, 38.5, 1.1) # Bomb hits emerald shield canopy!
+  place_sfx(lance_fire, 41.0, 1.15)   # Counter-strike lance
+  place_sfx(flak_burst, 41.6, 0.85)
+
+  # 6. Phase 6 (43.5s..60.0s) AI Tactical Advisor & Sector Victory
+  place_sfx(inject_core, 44.0, 0.85)  # Engage AI Advisor
   combat_events = [
-      (31.0, "inject"), (32.0, "sow"), (32.2, "sow"), (32.4, "lance"), (33.0, "flak"),
-      (35.0, "inject"), (36.0, "sow"), (36.2, "sow"), (36.5, "lance"), (37.2, "deflect"),
-      (39.0, "sow"), (39.2, "sow"), (39.5, "lance"), (40.2, "flak"), (41.0, "shield"),
-      (43.5, "inject"), (44.2, "sow"), (44.4, "sow"), (44.7, "lance"), (45.3, "flak"),
-      (47.5, "sow"), (47.7, "sow"), (48.0, "lance"), (48.7, "deflect"), (49.5, "deflect"),
-      (52.0, "sow"), (52.2, "sow"), (52.4, "sow"), (52.7, "lance"), (53.5, "flak"),
+      (45.2, "sow"), (45.4, "sow"), (45.7, "lance"), (46.2, "flak"),
+      (47.0, "sow"), (47.2, "sow"), (47.5, "lance"), (48.0, "deflect"),
+      (49.2, "sow"), (49.6, "lance"), (50.1, "flak"),
+      (51.5, "sow"), (51.8, "lance"), (52.3, "flak"),
   ]
   for t_sec, ev in combat_events:
     if ev == "sow":
@@ -276,15 +284,11 @@ def generate_sfx_mix(output_path: str, duration_sec: float = 60.0):
       place_sfx(lance_fire, t_sec, 1.15)
     elif ev == "flak":
       place_sfx(flak_burst, t_sec, 0.85)
-    elif ev == "inject":
-      place_sfx(inject_core, t_sec, 0.8)
     elif ev == "deflect":
-      place_sfx(bullet_deflect, t_sec, 0.75)
-    elif ev == "shield":
-      place_sfx(shield_hit, t_sec, 0.8)
+      place_sfx(bullet_deflect, t_sec, 0.8)
 
-  # 6. Grand victory fanfare finale
-  place_sfx(victory, 56.5, 1.2)
+  # Sector Victory fanfare
+  place_sfx(victory, 53.0, 1.3)
 
   peak = np.max(np.abs(mix))
   if peak > 0:

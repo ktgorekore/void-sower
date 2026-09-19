@@ -14,6 +14,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:void_sower/domain/models/bay_state.dart';
 import 'package:void_sower/domain/models/enemy_craft.dart';
 import 'package:void_sower/domain/models/floating_damage_number.dart';
 import 'package:void_sower/domain/models/lance_beam.dart';
@@ -182,5 +183,74 @@ void main() {
         isTrue,
       );
     });
+
+    test(
+      'Direct hit on charged bay canopy deflects bullet and shields core',
+      () {
+        final enemies = [
+          const EnemyCraft(
+            entityId: 1,
+            assignedCorridor: 4,
+            worldPosX: 0.5625,
+            worldPosY: 0.9,
+            velocityY: 0.05,
+            currentShields: 100,
+            maxShields: 100,
+            currentHull: 100,
+            maxHull: 100,
+            vesselType: 0,
+            isDestroyed: false,
+          ),
+        ];
+
+        // Spawn bullet in corridor 4
+        manager.update(
+          dt: 1.5,
+          viewportSize: const Size(800, 1000),
+          boundaryY: 880,
+          dreadX: 450,
+          enemies: enemies,
+          lances: const [],
+          flaks: const [],
+        );
+        expect(manager.bullets.isNotEmpty, isTrue);
+
+        // Create bays with charged bay 12 (corridor 4 = bay 8 + 4 = 12)
+        final bays = List<BayState>.generate(
+          16,
+          (i) => BayState(
+            bayIndex: i,
+            tier: 0,
+            gridColumn: i % 8,
+            chargeUnits: i == 12 ? 3 : 0,
+            radialPositionRad: 0.0,
+            isFrontline: i >= 8,
+            isNyumba: false,
+            isKichwa: false,
+            isKimbi: false,
+          ),
+        );
+
+        // Advance bullet to strike dreadnought canopy
+        manager.update(
+          dt: 5.0,
+          viewportSize: const Size(800, 1000),
+          boundaryY: 880,
+          dreadX: 450,
+          enemies: const [],
+          lances: const [],
+          flaks: const [],
+          bays: bays,
+        );
+
+        // Successfully deflected by charged canopy!
+        expect(conduitBreachCount, equals(0));
+        expect(bulletDeflectCount, equals(1));
+        expect(
+          damageNumbers.any((d) => d.text.contains('CANOPY DEFLECT')),
+          isTrue,
+        );
+      },
+    );
   });
 }
