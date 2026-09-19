@@ -26,20 +26,17 @@ import edge_tts
 import numpy as np
 
 NARRATION_TEXT = (
-    "Welcome Commander to Void Sower. From your redesigned Orbital Command Deck, "
-    "review your Pilot Telemetry Dossier, configure flagship armaments in the Fleet Hangar, "
-    "and inspect the Bao Codex. "
-    "Flight Academy briefings freeze active combat, letting you study tactical maneuvers at your own pace. "
-    "Once deployed, alien assault craft advance down eight corridors, dropping deadly plasma bombs toward your flagship. "
-    "Slide laterally to evade bombs while locking onto target corridors. "
-    "Double-tap your dreadnought or tap Axial Discharge to fire devastating particle lances straight from your ship's prow! "
-    "Sow plasma cores sequentially across the sixteen-bay Bao Mancala capacitor ring to unleash massive quadratic destruction. "
-    "Bank energy in inner reservoir bays to prime multi-lap cascade relays. "
-    "Master ancient African sowing mathematics to liberate the cosmos!"
+    "Welcome Commander to Void Sower, where ancient African Bao Mancala meets intense orbital arcade defense. "
+    "Alien assault wings advance down eight corridors toward your planetary shield. "
+    "Slide laterally to evade incoming plasma bombs and align your prow. "
+    "Discharge devastating axial particle lances or sow plasma cores across the sixteen-bay capacitor ring to trigger explosive quadratic cascades! "
+    "Conquer three distinct orbital campaigns: defend Kilwa Basin, intercept evasive craft with lateral thrusters in Phantom Drift, and survive relentless respawning hordes in the Void Swarm! "
+    "Upgrade to Pro Commander for just one dollar and twenty-nine cents lifetime: unlock all twenty-seven sectors instantly, command four capital dreadnoughts, deploy our native C++ MCTS AI solver, and play completely ad-free. "
+    "Master ancient mathematics and liberate the cosmos!"
 )
 
 VOICE = "en-US-ChristopherNeural"
-RATE = "+5%"
+RATE = "+6%"
 
 SCRATCH_DIR = "/tmp/void_sower_tutorial"
 
@@ -555,10 +552,14 @@ def main():
   # 4. Master 60s How-to-Play Video
   target_docs_60s = "/home/kelvingorekore/projects/void-sower/docs/media/void_sower_how_to_play_60s.mp4"
   target_store_60s = "/home/kelvingorekore/projects/void-sower/store_listing/assets/how_to_play_60s.mp4"
+  target_inapp_60s = "/home/kelvingorekore/projects/void-sower/assets/video/how_to_play.mp4"
 
   build_final_video(local_raw_video, narration_wav, synth_wav, sfx_wav, narration_ass, target_docs_60s)
   shutil.copyfile(target_docs_60s, target_store_60s)
   print(f"[Deploy] Copied to store assets: {target_store_60s}")
+  os.makedirs(os.path.dirname(target_inapp_60s), exist_ok=True)
+  shutil.copyfile(target_docs_60s, target_inapp_60s)
+  print(f"[Deploy] Copied to in-app assets: {target_inapp_60s}")
 
   # 5. Pull & Master 30s Showcase Video if available
   local_showcase_video = os.path.join(SCRATCH_DIR, "raw_solver_30s.mp4")

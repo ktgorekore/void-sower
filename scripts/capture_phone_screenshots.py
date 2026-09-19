@@ -20,6 +20,8 @@ import shutil
 import subprocess
 import sys
 import time
+import numpy as np
+from PIL import Image
 
 DEVICE = "emulator-5554"
 SCREENSHOTS_DIR = "/home/kelvingorekore/projects/void-sower/store_listing/screenshots/phone"
@@ -48,14 +50,8 @@ def capture(dest_name):
   return dest_path
 
 
-def main():
-  os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
-  os.makedirs(ASSETS_DIR, exist_ok=True)
-
+def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=12480):
   adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
-
-  # 1. Reset state: force-stop app, clear data, and seed persistent Pro unlock
-  print("[Init] Resetting app state & seeding Pro entitlement...")
   adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
   time.sleep(0.5)
   adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
@@ -64,9 +60,9 @@ def main():
   pref_xml = (
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
       '<map>\n'
-      '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
-      '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
-      '    <int name="flutter.void_sower_high_score" value="12480" />\n'
+      f'    <boolean name="flutter.void_sower_pro_unlocked" value="{"true" if pro_unlocked else "false"}" />\n'
+      f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
+      f'    <int name="flutter.void_sower_high_score" value="{high_score}" />\n'
       '</map>\n'
   )
   with open("/tmp/prefs.xml", "w") as f:
@@ -77,7 +73,17 @@ def main():
   adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"])
   time.sleep(0.5)
 
-  # Launch App directly into Combat Arena
+
+def main():
+  os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+  os.makedirs(ASSETS_DIR, exist_ok=True)
+
+  # =========================================================================
+  # Phase 1: Pro Unlocked Suite
+  # =========================================================================
+  print("\n[Phase 1] Seeding Pro Entitlement & Initializing App...")
+  seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=12480)
+
   print("[Launch] Starting Void Sower main activity...")
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.5)
@@ -95,7 +101,7 @@ def main():
   tap(210, 2060)
   time.sleep(1.5)
 
-  # Screenshot 01: Tactical Combat Grid (Active combat corridor with enemies, dreadnought, capacitor ring)
+  # Screenshot 01: Tactical Combat Grid (Active combat corridor with enemies, aligned dreadnought, capacitor ring)
   print("[Combat] Capturing 01_tactical_combat_grid.png...")
   capture("01_tactical_combat_grid.png")
   shutil.copyfile(
@@ -103,111 +109,118 @@ def main():
       os.path.join(ASSETS_DIR, "phone_01_tactical_combat_grid.png"),
   )
 
-  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=1215, y=335, then RULES at x=672, y=1820)
+  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=889, y=330, then RULES at x=671, y=1740)
   print("[Codex] Opening Tactical Pause menu...")
-  tap(1215, 335)
-  time.sleep(0.8)
+  tap(889, 330)
+  time.sleep(1.0)
   print("[Codex] Opening Bao Codex dialog...")
-  tap(672, 1820)
+  tap(671, 1740)
   time.sleep(1.2)
   capture("07_bao_orbital_codex.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "07_bao_orbital_codex.png"),
       os.path.join(ASSETS_DIR, "phone_03_bao_codex.png"),
   )
-  # Close Bao Codex dialog via Back keyevent (single pop returns directly to CombatScreen)
   print("[Codex] Dismissing Bao Codex...")
   keyevent(4)
   time.sleep(0.8)
 
-  # Navigate to Star Map: Tap PAUSE at x=1215, y=335, then MAP at x=320, y=1820
+  # Navigate to Star Map: Tap PAUSE at x=889, y=330, then MAP at x=310, y=1740
   print("[Map] Opening Tactical Pause to navigate to Star Map...")
-  tap(1215, 335)
-  time.sleep(0.8)
-  tap(320, 1820)
+  tap(889, 330)
+  time.sleep(1.0)
+  tap(310, 1740)
   time.sleep(2.0)
 
-  # Screenshot 05: Kilwa Basin Campaign Map
+  # Screenshot 05: Multi-Theater Campaign Map (Kilwa Basin, Phantom Drift, Void Swarm)
   print("[Map] Capturing 05_kilwa_basin_campaign_map.png...")
   capture("05_kilwa_basin_campaign_map.png")
 
-  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=700, y=240 in Map AppBar)
+  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=690, y=240 in Map AppBar)
   print("[Hangar] Opening Fleet Hangar dialog...")
-  tap(700, 240)
+  tap(690, 240)
   time.sleep(1.2)
   capture("04_orbital_fleet_hangar.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "04_orbital_fleet_hangar.png"),
       os.path.join(ASSETS_DIR, "phone_06_hangar.png"),
   )
-  # Close Hangar dialog via Back keyevent
   keyevent(4)
   time.sleep(0.8)
 
-  # Screenshot 08: Pilot Telemetry Dashboard (Tap Profile icon at x=830, y=240 in Map AppBar)
+  # Screenshot 08: Pilot Telemetry Dashboard (Tap Profile icon at x=1050, y=240 in Map AppBar)
   print("[Profile] Opening Pilot Dossier modal...")
-  tap(830, 240)
+  tap(1050, 240)
   time.sleep(1.2)
   capture("08_pilot_telemetry_dashboard.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "08_pilot_telemetry_dashboard.png"),
       os.path.join(ASSETS_DIR, "phone_04_pilot_dossier.png"),
   )
-  # Close Pilot Dossier modal via Back keyevent
   keyevent(4)
   time.sleep(0.8)
 
-  # Return to CombatScreen: Back keyevent on Campaign Map
-  print("[Combat] Returning to Combat Arena...")
-  keyevent(4)
+  # Switch to Phantom Drift Theater (tap tab at x=670, y=500) and launch Sector 10
+  print("[Theater] Switching to Phantom Drift theater (x=670, y=500)...")
+  tap(670, 500)
+  time.sleep(1.0)
+  print("[Theater] Tapping ENGAGE on Sector 10 (x=830, y=1280)...")
+  tap(830, 1280)
+  time.sleep(0.8)
+  print("[Theater] Launching battle (x=500, y=2800)...")
+  tap(500, 2800)
   time.sleep(1.5)
 
-  # Screenshot 02: Quadratic Lance Discharge (Discharge particle lance up corridor)
-  print("[Combat] Discharging Axial Particle Lance...")
-  tap(500, 2770)  # AXIAL DISCHARGE button
+  # Screenshot 02: Quadratic Lance Discharge
+  # Select Bay 10 (has cores) and fire Axial Discharge
+  print("[Combat] Discharging Axial Particle Lance in Phantom Drift...")
+  tap(440, 2520)  # Select Bay 10
+  time.sleep(0.3)
+  tap(500, 2800)  # AXIAL DISCHARGE
   time.sleep(0.15)
   capture("02_quadratic_lance_discharge.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "02_quadratic_lance_discharge.png"),
       os.path.join(ASSETS_DIR, "phone_02_quadratic_lances.png"),
   )
-  time.sleep(0.5)
+  time.sleep(1.0)
 
-  # Restart combat fresh before activating AI solver: Pause -> Restart
-  print("[Combat] Restarting combat for clean AI victory sequence...")
-  tap(1215, 335)  # PAUSE
+  # Return to Map and launch Sector 1 for clean AI victory sequence
+  print("[Victory] Returning to Star Map to launch Kilwa Basin S1...")
+  tap(889, 330)  # Pause
+  time.sleep(1.0)
+  tap(310, 1740) # Map
+  time.sleep(1.5)
+  tap(250, 500)  # Kilwa Basin tab
   time.sleep(0.8)
-  tap(350, 1670)  # RESTART
-  time.sleep(1.2)
+  tap(830, 1265) # Sector 1 REPLAY / ENGAGE
+  time.sleep(0.8)
+  tap(675, 2850) # Launch battle
+  time.sleep(1.8)
 
-  # Activate AI Solver in Right Wing (x=1050, y=335) to eliminate invaders and achieve Victory
+  # Activate AI Solver in right HUD (x=1020, y=230) to eliminate invaders and achieve Victory
   print("[Solver] Activating AI Tactical Solver to clear sector...")
-  tap(1050, 335)
+  tap(1020, 230)
 
-  # Poll every 0.25s for victory modal
+  # Poll for victory modal
   print("[Victory] Waiting for Sector Liberation modal...")
-  import numpy as np
-  from PIL import Image
-
   modal_captured = False
-  for attempt in range(160):
-    time.sleep(0.25)
+  for attempt in range(40):
+    time.sleep(0.5)
     dest_path = os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png")
     with open(dest_path, "wb") as f:
       subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f)
-    if attempt < 12:
-      # Victory takes at least 3-5 seconds of solver execution
+    if attempt < 4:
       continue
     try:
       im = Image.open(dest_path)
       arr = np.array(im)
-      # Check for gold/amber victory modal card around center (y: 800..1800, x: 200..1100)
-      gold_mask = (
-          (arr[800:1800, 200:1100, 0] > 200)
-          & (arr[800:1800, 200:1100, 1] > 160)
-          & (arr[800:1800, 200:1100, 2] < 60)
+      # Check for gold military crest in center: y: 800..1200, x: 550..800
+      crop = arr[800:1200, 550:800]
+      gold_pts = np.where(
+          (crop[:, :, 0] > 220) & (crop[:, :, 1] > 160) & (crop[:, :, 2] < 50)
       )
-      if np.sum(gold_mask) > 300:
+      if len(gold_pts[0]) > 400:
         print(f"[Victory] Captured 06_sector_liberation_victory.png (attempt {attempt + 1})!")
         modal_captured = True
         break
@@ -222,7 +235,35 @@ def main():
       os.path.join(ASSETS_DIR, "phone_05_sector_liberation.png"),
   )
 
-  print("\n[Complete] All 8 Play Store phone screenshots recaptured successfully!")
+  # =========================================================================
+  # Phase 2: Free Tier -> Capture Pro Upgrade Modal
+  # =========================================================================
+  print("\n[Phase 2] Seeding Free Tier & Capturing Pro Commander Modal...")
+  seed_prefs(pro_unlocked=False, completed_tutorial=True, high_score=3400)
+  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+  time.sleep(3.5)
+
+  # Tap PAUSE at x=889, y=330, then MAP at x=310, y=1740
+  tap(889, 330)
+  time.sleep(1.0)
+  tap(310, 1740)
+  time.sleep(2.0)
+
+  # In Free Tier, tapping Phantom Drift tab at x=670, y=500 directly opens ProUpgradeModal!
+  print("[Pro Modal] Tapping locked Phantom Drift tab to trigger Pro Upgrade Modal...")
+  tap(670, 500)
+  time.sleep(1.2)
+  capture("09_pro_commander_upgrade.png")
+  shutil.copyfile(
+      os.path.join(SCREENSHOTS_DIR, "09_pro_commander_upgrade.png"),
+      os.path.join(ASSETS_DIR, "phone_07_pro_commander.png"),
+  )
+
+  # Re-seed Pro entitlement so device remains unlocked for general usage
+  print("\n[Cleanup] Re-seeding Pro entitlement...")
+  seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=12480)
+
+  print("\n[Complete] All Play Store phone screenshots recaptured successfully!")
 
 
 if __name__ == "__main__":
