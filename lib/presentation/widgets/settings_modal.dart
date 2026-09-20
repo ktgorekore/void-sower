@@ -44,6 +44,8 @@ class _SettingsModalState extends State<SettingsModal>
   late TabController _tabController;
 
   // Audio State
+  late bool _isSoundEnabled;
+  late bool _isMusicEnabled;
   late double _sfxVolume;
   late double _bgmVolume;
   late bool _isSfxMuted;
@@ -65,6 +67,8 @@ class _SettingsModalState extends State<SettingsModal>
     _tabController = TabController(length: 4, vsync: this);
     final p = PersistenceService.instance;
 
+    _isSoundEnabled = p.isSoundEnabled;
+    _isMusicEnabled = p.isMusicEnabled;
     _sfxVolume = p.sfxVolume;
     _bgmVolume = p.bgmVolume;
     _isSfxMuted = p.isSfxMuted;
@@ -223,134 +227,217 @@ class _SettingsModalState extends State<SettingsModal>
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        // SFX Controls
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'SOUND EFFECTS (SFX)',
-              style: TextStyle(
-                color: VoidTheme.plasmaCyan,
-                fontSize: 12.0,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-              ),
+        // Master Sound FX Switch
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          activeThumbColor: VoidTheme.plasmaCyan,
+          title: const Text(
+            'SOUND EFFECTS (SFX)',
+            style: TextStyle(
+              color: VoidTheme.plasmaCyan,
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
             ),
-            Row(
-              children: [
-                Text(
-                  _isSfxMuted ? 'MUTED' : '${(_sfxVolume * 100).round()}%',
-                  style: const TextStyle(
-                    color: VoidTheme.starWhite,
-                    fontSize: 11.0,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                IconButton(
-                  icon: Icon(
-                    _isSfxMuted ? Icons.volume_off : Icons.volume_up,
-                    color: _isSfxMuted
-                        ? VoidTheme.crimsonFlare
-                        : VoidTheme.plasmaCyan,
-                    size: 20.0,
-                  ),
-                  onPressed: () async {
-                    final newMuted = !_isSfxMuted;
-                    setState(() => _isSfxMuted = newMuted);
-                    await AudioService.instance.setSfxMuted(newMuted);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: VoidTheme.plasmaCyan,
-            thumbColor: VoidTheme.plasmaCyan,
-            inactiveTrackColor: VoidTheme.cardSurface,
           ),
-          child: Slider(
-            value: _sfxVolume,
-            min: 0.0,
-            max: 1.0,
-            onChanged: (val) {
-              setState(() => _sfxVolume = val);
-              AudioService.instance.setSfxVolume(val);
-            },
+          subtitle: const Text(
+            'Spatial audio feedback for lances, flak, shield hits, and sowing ticks.',
+            style: TextStyle(color: VoidTheme.starWhite, fontSize: 11.0),
           ),
-        ),
-        TactileButton(
-          label: 'TEST SFX DISCHARGE',
-          icon: Icons.play_arrow,
-          accentColor: VoidTheme.plasmaCyan,
-          height: 36.0,
-          onPressed: () {
-            AudioService.instance.playLanceFire();
+          value: _isSoundEnabled,
+          onChanged: (val) async {
+            setState(() => _isSoundEnabled = val);
+            await AudioService.instance.setSoundEnabled(val);
           },
+        ),
+        const SizedBox(height: 6.0),
+
+        // SFX Controls
+        Opacity(
+          opacity: _isSoundEnabled ? 1.0 : 0.4,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'SFX VOLUME',
+                    style: TextStyle(
+                      color: VoidTheme.starWhite,
+                      fontSize: 11.0,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        _isSfxMuted
+                            ? 'MUTED'
+                            : '${(_sfxVolume * 100).round()}%',
+                        style: const TextStyle(
+                          color: VoidTheme.starWhite,
+                          fontSize: 11.0,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      IconButton(
+                        icon: Icon(
+                          _isSfxMuted ? Icons.volume_off : Icons.volume_up,
+                          color: _isSfxMuted
+                              ? VoidTheme.crimsonFlare
+                              : VoidTheme.plasmaCyan,
+                          size: 20.0,
+                        ),
+                        onPressed: !_isSoundEnabled
+                            ? null
+                            : () async {
+                                final newMuted = !_isSfxMuted;
+                                setState(() => _isSfxMuted = newMuted);
+                                await AudioService.instance.setSfxMuted(
+                                  newMuted,
+                                );
+                              },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: VoidTheme.plasmaCyan,
+                  thumbColor: VoidTheme.plasmaCyan,
+                  inactiveTrackColor: VoidTheme.cardSurface,
+                ),
+                child: Slider(
+                  value: _sfxVolume,
+                  min: 0.0,
+                  max: 1.0,
+                  onChanged: !_isSoundEnabled
+                      ? null
+                      : (val) {
+                          setState(() => _sfxVolume = val);
+                          AudioService.instance.setSfxVolume(val);
+                        },
+                ),
+              ),
+              TactileButton(
+                label: 'TEST SFX DISCHARGE',
+                icon: Icons.play_arrow,
+                accentColor: VoidTheme.plasmaCyan,
+                height: 36.0,
+                onPressed:
+                    (_isSoundEnabled && !_isSfxMuted && _sfxVolume > 0.001)
+                    ? () {
+                        AudioService.instance.playLanceFire();
+                      }
+                    : null,
+              ),
+            ],
+          ),
         ),
 
         const SizedBox(height: 20.0),
         const Divider(color: VoidTheme.cardSurface),
         const SizedBox(height: 10.0),
 
-        // BGM Controls
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'BACKGROUND MUSIC (BGM)',
-              style: TextStyle(
-                color: VoidTheme.solarGold,
-                fontSize: 12.0,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-              ),
+        // Master BGM Switch
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          activeThumbColor: VoidTheme.solarGold,
+          title: const Text(
+            'BACKGROUND MUSIC (BGM)',
+            style: TextStyle(
+              color: VoidTheme.solarGold,
+              fontSize: 12.5,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
             ),
-            Row(
-              children: [
-                Text(
-                  _isBgmMuted ? 'MUTED' : '${(_bgmVolume * 100).round()}%',
-                  style: const TextStyle(
-                    color: VoidTheme.starWhite,
-                    fontSize: 11.0,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                IconButton(
-                  icon: Icon(
-                    _isBgmMuted ? Icons.music_off : Icons.music_note,
-                    color: _isBgmMuted
-                        ? VoidTheme.crimsonFlare
-                        : VoidTheme.solarGold,
-                    size: 20.0,
-                  ),
-                  onPressed: () async {
-                    final newMuted = !_isBgmMuted;
-                    setState(() => _isBgmMuted = newMuted);
-                    await AudioService.instance.setBgmMuted(newMuted);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: VoidTheme.solarGold,
-            thumbColor: VoidTheme.solarGold,
-            inactiveTrackColor: VoidTheme.cardSurface,
           ),
-          child: Slider(
-            value: _bgmVolume,
-            min: 0.0,
-            max: 1.0,
-            onChanged: (val) {
-              setState(() => _bgmVolume = val);
-              AudioService.instance.setBgmVolume(val);
-            },
+          subtitle: const Text(
+            'Ambient orbital synthesizer soundtrack and tactical choir.',
+            style: TextStyle(color: VoidTheme.starWhite, fontSize: 11.0),
+          ),
+          value: _isMusicEnabled,
+          onChanged: (val) async {
+            setState(() => _isMusicEnabled = val);
+            await AudioService.instance.setMusicEnabled(val);
+          },
+        ),
+        const SizedBox(height: 6.0),
+
+        // BGM Controls
+        Opacity(
+          opacity: _isMusicEnabled ? 1.0 : 0.4,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'BGM VOLUME',
+                    style: TextStyle(
+                      color: VoidTheme.starWhite,
+                      fontSize: 11.0,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        _isBgmMuted
+                            ? 'MUTED'
+                            : '${(_bgmVolume * 100).round()}%',
+                        style: const TextStyle(
+                          color: VoidTheme.starWhite,
+                          fontSize: 11.0,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      const SizedBox(width: 8.0),
+                      IconButton(
+                        icon: Icon(
+                          _isBgmMuted ? Icons.music_off : Icons.music_note,
+                          color: _isBgmMuted
+                              ? VoidTheme.crimsonFlare
+                              : VoidTheme.solarGold,
+                          size: 20.0,
+                        ),
+                        onPressed: !_isMusicEnabled
+                            ? null
+                            : () async {
+                                final newMuted = !_isBgmMuted;
+                                setState(() => _isBgmMuted = newMuted);
+                                await AudioService.instance.setBgmMuted(
+                                  newMuted,
+                                );
+                              },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: VoidTheme.solarGold,
+                  thumbColor: VoidTheme.solarGold,
+                  inactiveTrackColor: VoidTheme.cardSurface,
+                ),
+                child: Slider(
+                  value: _bgmVolume,
+                  min: 0.0,
+                  max: 1.0,
+                  onChanged: !_isMusicEnabled
+                      ? null
+                      : (val) {
+                          setState(() => _bgmVolume = val);
+                          AudioService.instance.setBgmVolume(val);
+                        },
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -380,6 +467,44 @@ class _SettingsModalState extends State<SettingsModal>
             await PersistenceService.instance.setHapticsEnabled(val);
             if (val) HapticService.instance.injectionClick();
           },
+        ),
+
+        const SizedBox(height: 16.0),
+        const Divider(color: VoidTheme.cardSurface),
+        const SizedBox(height: 8.0),
+
+        // External Media Notice Card
+        Container(
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: VoidTheme.cardSurface.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(
+              color: VoidTheme.plasmaCyan.withValues(alpha: 0.25),
+              width: 1.0,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: VoidTheme.plasmaCyan,
+                size: 18.0,
+              ),
+              const SizedBox(width: 10.0),
+              Expanded(
+                child: Text(
+                  'Disabling sound/music or setting volume to 0% releases device audio focus so you can listen to external media (YouTube, Spotify, Podcasts) without interruption.',
+                  style: TextStyle(
+                    color: VoidTheme.starWhite.withValues(alpha: 0.75),
+                    fontSize: 10.5,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

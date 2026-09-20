@@ -97,6 +97,8 @@ void main() {
           insignia: PilotInsignia.zuluAegis,
           lifetimeScore: 42000,
         );
+        await p.setSoundEnabled(false);
+        await p.setMusicEnabled(false);
         await p.saveUserProfile(testProfile);
 
         final exported = p.exportSaveJson();
@@ -106,6 +108,8 @@ void main() {
         await p.wipeAllData();
         expect(p.highScore, 0);
         expect(p.userProfile.callsign, 'Vanguard-01');
+        expect(p.isSoundEnabled, isTrue); // Default after wipe
+        expect(p.isMusicEnabled, isTrue);
 
         // Import back
         final success = await p.importSaveJson(exported);
@@ -113,6 +117,8 @@ void main() {
         expect(p.highScore, 42000);
         expect(p.liberatedSectors, 5);
         expect(p.isProUnlocked, isTrue);
+        expect(p.isSoundEnabled, isFalse);
+        expect(p.isMusicEnabled, isFalse);
         expect(p.userProfile.callsign, 'Titan-07');
         expect(p.userProfile.insignia, PilotInsignia.zuluAegis);
       },
@@ -176,6 +182,115 @@ void main() {
         AudioService.gameAudioContext.android.audioFocus,
         equals(AndroidAudioFocus.gain),
       );
+    });
+
+    test(
+      'Configures ambient audio focus with AndroidAudioFocus.none and iOS ambient category',
+      () {
+        final ctx = AudioService.ambientAudioContext;
+
+        // Android verification: requests NO focus with game usage & music content
+        expect(ctx.android.audioFocus, equals(AndroidAudioFocus.none));
+        expect(ctx.android.usageType, equals(AndroidUsageType.game));
+        expect(ctx.android.contentType, equals(AndroidContentType.music));
+        expect(ctx.android.isSpeakerphoneOn, isFalse);
+        expect(ctx.android.stayAwake, isFalse);
+
+        // iOS verification: ambient category (mixes with other apps by default)
+        expect(ctx.iOS.category, equals(AVAudioSessionCategory.ambient));
+        expect(ctx.iOS.options, isEmpty);
+      },
+    );
+
+    test(
+      'Manages sound and music toggles and dynamically tracks activity',
+      () async {
+        final audio = AudioService.instance;
+        final p = PersistenceService.instance;
+
+        await audio.setSoundEnabled(true);
+        await audio.setMusicEnabled(true);
+        await audio.setSfxMuted(false);
+        await audio.setBgmMuted(false);
+        await audio.setSfxVolume(0.8);
+        await audio.setBgmVolume(0.6);
+
+        expect(audio.isSoundEnabled, isTrue);
+        expect(audio.isMusicEnabled, isTrue);
+        expect(audio.isSoundActive, isTrue);
+        expect(audio.isMusicActive, isTrue);
+        expect(audio.isAudioActive, isTrue);
+
+        // Disable sound FX
+        await audio.setSoundEnabled(false);
+        expect(audio.isSoundEnabled, isFalse);
+        expect(audio.isSoundActive, isFalse);
+        expect(p.isSoundEnabled, isFalse);
+        // Music is still active, so overall audio is active
+        expect(audio.isAudioActive, isTrue);
+
+        // Disable BGM as well
+        await audio.setMusicEnabled(false);
+        expect(audio.isMusicEnabled, isFalse);
+        expect(audio.isMusicActive, isFalse);
+        expect(p.isMusicEnabled, isFalse);
+        // Both channels disabled => completely inactive (focus released)
+        expect(audio.isAudioActive, isFalse);
+
+        // Re-enable
+        await audio.setSoundEnabled(true);
+        await audio.setMusicEnabled(true);
+        expect(audio.isSoundActive, isTrue);
+        expect(audio.isMusicActive, isTrue);
+        expect(audio.isAudioActive, isTrue);
+      },
+    );
+
+    test(
+      'Marks audio inactive when volume is reduced to zero or muted',
+      () async {
+        final audio = AudioService.instance;
+
+        await audio.setSoundEnabled(true);
+        await audio.setMusicEnabled(true);
+        await audio.setSfxMuted(false);
+        await audio.setBgmMuted(false);
+        await audio.setSfxVolume(0.8);
+        await audio.setBgmVolume(0.6);
+        expect(audio.isAudioActive, isTrue);
+
+        // Reduce SFX volume to 0.0
+        await audio.setSfxVolume(0.0);
+        expect(audio.isSoundActive, isFalse);
+
+        // Reduce BGM volume to 0.0
+        await audio.setBgmVolume(0.0);
+        expect(audio.isMusicActive, isFalse);
+
+        // When both volumes are 0, audio is completely inactive and focus is released
+        expect(audio.isAudioActive, isFalse);
+
+        // Calling play methods when sound is inactive should complete safely
+        await audio.playLanceFire();
+        await audio.playFlakBurst();
+        await audio.playSowStep(cascadeDepth: 2);
+        await audio.startBgm();
+
+        // Restore volumes
+        await audio.setSfxVolume(0.8);
+        await audio.setBgmVolume(0.6);
+        expect(audio.isAudioActive, isTrue);
+      },
+    );
+
+    test('releaseAudioFocus completes gracefully without throwing', () async {
+      final audio = AudioService.instance;
+      await audio.initialize();
+      await audio.releaseAudioFocus();
+      expect(
+        audio.isAudioActive,
+        isTrue,
+      ); // settings unchanged, just focus released
     });
   });
 
@@ -249,6 +364,47 @@ void main() {
       expect(find.text('DIAGNOSTICS'), findsOneWidget);
       expect(find.text('LEGAL & ABOUT'), findsOneWidget);
     });
+
+    testWidgets(
+      'SettingsModal displays SOUND EFFECTS and BACKGROUND MUSIC switches and toggles them',
+      (tester) async {
+        final p = PersistenceService.instance;
+        await p.setSoundEnabled(true);
+        await p.setMusicEnabled(true);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: SettingsModal())),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('SOUND EFFECTS (SFX)'), findsOneWidget);
+        expect(find.text('BACKGROUND MUSIC (BGM)'), findsOneWidget);
+
+        // Toggle Sound Effects switch
+        await tester.tap(find.text('SOUND EFFECTS (SFX)'));
+        await tester.pumpAndSettle();
+        expect(p.isSoundEnabled, isFalse);
+
+        // Toggle Background Music switch
+        await tester.tap(find.text('BACKGROUND MUSIC (BGM)'));
+        await tester.pumpAndSettle();
+        expect(p.isMusicEnabled, isFalse);
+
+        // Scroll down to check haptics and the note
+        await tester.drag(
+          find.text('SOUND EFFECTS (SFX)'),
+          const Offset(0, -350),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Haptic Vibration Feedback'), findsOneWidget);
+        expect(
+          find.text(
+            'Disabling sound/music or setting volume to 0% releases device audio focus so you can listen to external media (YouTube, Spotify, Podcasts) without interruption.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets(
       'SettingsModal renders FLIGHT ACADEMY button when onLaunchAcademy is provided',

@@ -218,7 +218,6 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     }
 
     // Update enemies
-    var destroyedCount = 0;
     for (var i = 0; i < _enemies.length; i++) {
       final e = _enemies[i];
       if (e.isDestroyed) continue;
@@ -266,10 +265,6 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
             );
           }
         }
-      }
-
-      if (destroyed) {
-        destroyedCount++;
       }
 
       _enemies[i] = EnemyCraft(

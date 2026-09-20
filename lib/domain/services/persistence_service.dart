@@ -56,6 +56,7 @@ class PersistenceService {
   static const String _kLiberatedSectors = 'void_sower_liberated_sectors';
   static const String _kProUnlocked = 'void_sower_pro_unlocked';
   static const String _kSoundEnabled = 'void_sower_sound_enabled';
+  static const String _kMusicEnabled = 'void_sower_music_enabled';
   static const String _kHapticsEnabled = 'void_sower_haptics_enabled';
 
   static const String _kSfxVolume = 'void_sower_sfx_volume';
@@ -390,6 +391,11 @@ class PersistenceService {
     await _prefs?.setBool(_kSoundEnabled, enabled);
   }
 
+  bool get isMusicEnabled => _prefs?.getBool(_kMusicEnabled) ?? true;
+  Future<void> setMusicEnabled(bool enabled) async {
+    await _prefs?.setBool(_kMusicEnabled, enabled);
+  }
+
   double get sfxVolume => _prefs?.getDouble(_kSfxVolume) ?? 0.8;
   Future<void> setSfxVolume(double volume) async {
     await _prefs?.setDouble(_kSfxVolume, volume.clamp(0.0, 1.0));
@@ -591,6 +597,8 @@ class PersistenceService {
       'highScore': highScore,
       'liberatedSectors': liberatedSectors,
       'isProUnlocked': isProUnlocked,
+      'isSoundEnabled': isSoundEnabled,
+      'isMusicEnabled': isMusicEnabled,
       'sfxVolume': sfxVolume,
       'bgmVolume': bgmVolume,
       'isSfxMuted': isSfxMuted,
@@ -642,6 +650,18 @@ class PersistenceService {
       }
       if (payload['isProUnlocked'] is bool) {
         await _prefs?.setBool(_kProUnlocked, payload['isProUnlocked'] as bool);
+      }
+      if (payload['isSoundEnabled'] is bool) {
+        await _prefs?.setBool(
+          _kSoundEnabled,
+          payload['isSoundEnabled'] as bool,
+        );
+      }
+      if (payload['isMusicEnabled'] is bool) {
+        await _prefs?.setBool(
+          _kMusicEnabled,
+          payload['isMusicEnabled'] as bool,
+        );
       }
       if (payload['sfxVolume'] is num) {
         await _prefs?.setDouble(
