@@ -237,4 +237,59 @@ TEST(CombatSimulationTest, ReinforcementEnemySpawning) {
   EXPECT_TRUE(found_c7);
 }
 
+TEST(CombatSimulationTest,
+     ReinforcementSpawningRestoresVictoryStateAndAdvances) {
+  Engine engine;
+  engine.Initialize(24, 0.2f);
+
+  // Spawn an initial enemy
+  EXPECT_TRUE(engine.SpawnEnemy(2, 0.80f, 0.05f, 0.0f, 10.0f, 0));
+  auto& registry = engine.GetRegistry();
+  auto view = registry.view<EnemyVesselComponent>();
+  ASSERT_NE(view.begin(), view.end());
+
+  // Mark enemy destroyed
+  for (auto entity : view) {
+    registry.get<EnemyVesselComponent>(entity).is_destroyed = 1;
+  }
+
+  // Advance simulation: match should transition to Victory since all enemies
+  // destroyed
+  engine.Update(0.1f);
+  auto dread = engine.GetDreadnoughtState();
+  EXPECT_EQ(dread.current_sim_state,
+            static_cast<uint8_t>(SimulationState::Victory));
+
+  // Now spawn a reinforcement enemy into corridor 5
+  EXPECT_TRUE(engine.SpawnEnemy(5, 0.95f, 0.05f, 50.0f, 100.0f, 1));
+
+  // The dreadnought simulation state MUST be restored to OrbitalIdle!
+  dread = engine.GetDreadnoughtState();
+  EXPECT_EQ(dread.current_sim_state,
+            static_cast<uint8_t>(SimulationState::OrbitalIdle));
+
+  // Step simulation: the reinforcement enemy MUST advance downwards
+  std::array<EnemyVesselComponent, 16> enemies{};
+  uint32_t count = engine.GetEnemies(absl::MakeSpan(enemies));
+  EXPECT_EQ(count, 2);  // 1 destroyed + 1 alive reinforcement
+
+  float initial_reinforcement_y = 0.0f;
+  for (uint32_t i = 0; i < count; ++i) {
+    if (enemies[i].assigned_corridor == 5) {
+      initial_reinforcement_y = enemies[i].world_pos_y;
+      EXPECT_EQ(enemies[i].is_destroyed, 0);
+    } else {
+      EXPECT_EQ(enemies[i].is_destroyed, 1);
+    }
+  }
+
+  engine.Update(0.2f);
+  engine.GetEnemies(absl::MakeSpan(enemies));
+  for (uint32_t i = 0; i < count; ++i) {
+    if (enemies[i].assigned_corridor == 5) {
+      EXPECT_LT(enemies[i].world_pos_y, initial_reinforcement_y);
+    }
+  }
+}
+
 }  // namespace void_sower::ecs

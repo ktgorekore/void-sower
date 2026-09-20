@@ -123,9 +123,7 @@ uint32_t Engine::GetEnemies(
   for (auto entity : view) {
     if (count >= out_enemies.size()) break;
     const auto& enemy = view.get<const EnemyVesselComponent>(entity);
-    if (enemy.is_destroyed == 0) {
-      out_enemies[count++] = enemy;
-    }
+    out_enemies[count++] = enemy;
   }
   return count;
 }

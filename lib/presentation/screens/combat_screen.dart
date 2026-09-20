@@ -686,7 +686,8 @@ class _CombatScreenState extends State<CombatScreen>
     final isSecured =
         matchState.status == CombatMatchStatus.victory ||
         (_coordinator.enemies.isNotEmpty &&
-            _coordinator.enemies.every((e) => e.isDestroyed));
+            _coordinator.enemies.every((e) => e.isDestroyed) &&
+            _coordinator.remainingReinforcements <= 0);
 
     return Scaffold(
       backgroundColor: VoidTheme.obsidianBlack,
@@ -742,10 +743,14 @@ class _CombatScreenState extends State<CombatScreen>
                             sectorName: CampaignService.instance
                                 .getSector(_currentSectorId)
                                 .name,
-                            totalInvaders: _coordinator.enemies.length,
-                            invadersRemaining: _coordinator.enemies
-                                .where((e) => !e.isDestroyed)
-                                .length,
+                            totalInvaders:
+                                _coordinator.enemies.length +
+                                _coordinator.remainingReinforcements,
+                            invadersRemaining:
+                                _coordinator.enemies
+                                    .where((e) => !e.isDestroyed)
+                                    .length +
+                                _coordinator.remainingReinforcements,
                             isPaused:
                                 matchState.status == CombatMatchStatus.paused ||
                                 _overlayState == CombatOverlayState.paused,

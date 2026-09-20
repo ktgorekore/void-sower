@@ -204,6 +204,15 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                                               .is_destroyed = 0,
                                           });
   RebuildSpatialGrid();
+  if (dreadnought_entity_ != entt::null &&
+      registry_.valid(dreadnought_entity_)) {
+    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    if (dread.current_sim_state ==
+        static_cast<uint8_t>(SimulationState::Victory)) {
+      dread.current_sim_state =
+          static_cast<uint8_t>(SimulationState::OrbitalIdle);
+    }
+  }
   return true;
 }
 

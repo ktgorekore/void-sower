@@ -200,6 +200,9 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         isDestroyed: false,
       ),
     );
+    if (_simState == 7) {
+      _simState = 0; // OrbitalIdle
+    }
     return true;
   }
 
@@ -284,7 +287,8 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       );
     }
 
-    if (destroyedCount == _enemies.length && _enemies.isNotEmpty) {
+    final bool anyAlive = _enemies.any((e) => !e.isDestroyed);
+    if (!anyAlive && _enemies.isNotEmpty) {
       _simState = 7; // Victory
     }
 
@@ -394,6 +398,16 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   @override
   void reset() {
     initialize(startingCores: 32, boundaryY: _boundaryY);
+  }
+
+  /// Test-only hook to set an enemy's destroyed state directly.
+  void setEnemyDestroyedForTesting(int entityId, bool destroyed) {
+    for (var i = 0; i < _enemies.length; i++) {
+      if (_enemies[i].entityId == entityId) {
+        _enemies[i] = _enemies[i].copyWith(isDestroyed: destroyed);
+        break;
+      }
+    }
   }
 
   @override

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:void_sower/domain/models/campaign_sector.dart';
@@ -20,6 +22,7 @@ import 'package:void_sower/domain/models/swarm_wave_phase.dart';
 import 'package:void_sower/domain/services/campaign_service.dart';
 import 'package:void_sower/domain/services/entitlement_service.dart';
 import 'package:void_sower/domain/services/persistence_service.dart';
+import 'package:void_sower/domain/state/combat_match_state.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/presentation/controllers/combat_coordinator.dart';
 import 'package:void_sower/presentation/controllers/combat_overlay_state.dart';
@@ -141,6 +144,76 @@ void main() {
         final initialCores = coordinator.dreadnought.reserveCores;
         coordinator.grantEmergencyCores(3);
         expect(coordinator.dreadnought.reserveCores, initialCores + 3);
+      },
+    );
+
+    test(
+      'Void Swarm dynamic reinforcement horde respawns invaders on kill and prevents premature freeze',
+      () {
+        const sector = CampaignSector(
+          sectorId: 19,
+          name: 'Comoros Hive Gate',
+          region: 'Swarm Ingress',
+          difficultyTier: 0,
+          starsEarned: 0,
+          bestScore: 0,
+          doctrine: SectorCombatDoctrine.voidSwarm,
+          reinforcementQuota: 2,
+          coreSiphonPerKill: 2,
+        );
+
+        coordinator.initialize(sector: sector, startingCores: 20);
+        coordinator.dismissTutorial();
+        expect(coordinator.remainingReinforcements, 2);
+        expect(coordinator.swarmPhase, SwarmWavePhase.initialAssault);
+
+        final initialEnemiesCount = coordinator.enemies.length;
+        expect(initialEnemiesCount, greaterThan(0));
+
+        final initialCores = coordinator.dreadnought.reserveCores;
+        final targetEnemy = coordinator.enemies.first;
+
+        // Simulate destroying the first enemy
+        engine.setEnemyDestroyedForTesting(targetEnemy.entityId, true);
+
+        // Step coordinator
+        coordinator.update(0.016, const Size(400, 800));
+
+        // 1. Quota decremented by 1
+        expect(coordinator.remainingReinforcements, 1);
+        // 2. Swarm phase advanced to reinforcementWaves
+        expect(coordinator.swarmPhase, SwarmWavePhase.reinforcementWaves);
+        // 3. Tactical core siphon awarded
+        expect(coordinator.dreadnought.reserveCores, initialCores + 2);
+        // 4. A new enemy was spawned
+        expect(coordinator.enemies.length, initialEnemiesCount + 1);
+        // 5. Match is still active, not prematurely frozen or victorious
+        expect(coordinator.state.status, CombatMatchStatus.activeCombat);
+
+        // Destroy another enemy
+        final livingEnemies = coordinator.enemies
+            .where((e) => !e.isDestroyed)
+            .toList();
+        expect(livingEnemies.isNotEmpty, isTrue);
+        engine.setEnemyDestroyedForTesting(livingEnemies.first.entityId, true);
+
+        coordinator.update(0.016, const Size(400, 800));
+
+        // Quota is now 0, phase is finalStand
+        expect(coordinator.remainingReinforcements, 0);
+        expect(coordinator.swarmPhase, SwarmWavePhase.finalStand);
+        expect(coordinator.state.status, CombatMatchStatus.activeCombat);
+
+        // Finally, destroy all remaining living enemies
+        for (final enemy in coordinator.enemies) {
+          engine.setEnemyDestroyedForTesting(enemy.entityId, true);
+        }
+
+        coordinator.update(0.016, const Size(400, 800));
+
+        // All reinforcements exhausted and all enemies eliminated -> Victory!
+        expect(coordinator.state.status, CombatMatchStatus.victory);
+        expect(coordinator.swarmPhase, SwarmWavePhase.secured);
       },
     );
 

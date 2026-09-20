@@ -130,6 +130,7 @@ class CombatCoordinator extends ChangeNotifier {
   int get remainingReinforcements => _remainingReinforcements;
 
   final Set<int> _neutralizedEnemyIds = <int>{};
+  final Set<int> _activeEnemyIds = <int>{};
 
   int _currentDifficulty = 0;
   int get currentDifficulty => _currentDifficulty;
@@ -158,6 +159,7 @@ class CombatCoordinator extends ChangeNotifier {
     _highScore = PersistenceService.instance.highScore;
     _currentDifficulty = difficulty ?? sector?.difficultyTier ?? difficultyTier;
     _neutralizedEnemyIds.clear();
+    _activeEnemyIds.clear();
     _sessionLancesFired = 0;
     _sessionFlakBursts = 0;
     _sessionSeedsSown = 0;
@@ -192,6 +194,9 @@ class CombatCoordinator extends ChangeNotifier {
       initialVelocityY: initialVel,
     );
     _syncDomainState();
+    _activeEnemyIds.addAll(
+      enemies.where((e) => !e.isDestroyed).map((e) => e.entityId),
+    );
 
     damageNumbers.clear();
     bulletManager.clear();
@@ -245,6 +250,68 @@ class CombatCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Handles enemy neutralization, awards tactical core siphon, and spawns swarm reinforcements.
+  void _handleEnemyNeutralized({
+    required int entityId,
+    required int vesselType,
+    required double worldPosX,
+    required int assignedCorridor,
+    required SectorCombatDoctrine doctrine,
+    required Size viewportSize,
+  }) {
+    if (_neutralizedEnemyIds.contains(entityId)) return;
+    _neutralizedEnemyIds.add(entityId);
+
+    // Tactical Core Siphon (grantEmergencyCores already forwards to engine)
+    final siphonAmount =
+        _sector?.coreSiphonPerKill ??
+        (vesselType == 2 ? 3 : (vesselType == 1 ? 2 : 1));
+    grantEmergencyCores(siphonAmount);
+
+    final enemyCorridorX = (worldPosX > 0.0 && worldPosX <= 1.0)
+        ? worldPosX * viewportSize.width
+        : (assignedCorridor + 0.5) * (viewportSize.width / 8.0);
+
+    damageNumbers.add(
+      FloatingDamageNumber(
+        text: '+$siphonAmount CORES (SIPHON)',
+        x: enemyCorridorX,
+        y: viewportSize.height * 0.40,
+        color: VoidTheme.solarGold,
+        isCritical: siphonAmount >= 2,
+      ),
+    );
+    HapticService.instance.sowTick();
+
+    // Void Swarm horde reinforcement spawning
+    if (doctrine == SectorCombatDoctrine.voidSwarm &&
+        _remainingReinforcements > 0) {
+      _remainingReinforcements--;
+      final respawnCorridor = _random.nextInt(8);
+      final vType = (_remainingReinforcements % 4 == 0)
+          ? 1
+          : ((_remainingReinforcements == 0) ? 2 : 0);
+      final shields = (vType == 2) ? 150.0 : (vType == 1 ? 60.0 : 0.0);
+      final hull = (vType == 2) ? 250.0 : (vType == 1 ? 100.0 : 40.0);
+      final velY = 0.02 + (_currentDifficulty * 0.006);
+
+      engine.spawnEnemy(
+        corridor: respawnCorridor,
+        worldPosY: 0.96,
+        velocityY: velY,
+        shields: shields,
+        hull: hull,
+        vesselType: vType,
+      );
+
+      if (_remainingReinforcements == 0) {
+        _swarmPhase = SwarmWavePhase.finalStand;
+      } else if (_swarmPhase == SwarmWavePhase.initialAssault) {
+        _swarmPhase = SwarmWavePhase.reinforcementWaves;
+      }
+    }
+  }
+
   /// Core 60 Hz update step driving physics, FSM, and rendering state.
   void update(double dt, Size viewportSize) {
     if (_isDisposed) return;
@@ -252,12 +319,16 @@ class CombatCoordinator extends ChangeNotifier {
 
     // If game is in tactical tutorial briefing, paused, defeated, or victorious, freeze combat simulation!
     // This guarantees enemies stop moving and shooting when the match reaches a terminal state.
+    final bool allEnemiesDestroyed =
+        enemies.isNotEmpty && enemies.every((e) => e.isDestroyed);
     if (_state.status == CombatMatchStatus.briefing ||
         _state.status == CombatMatchStatus.paused ||
         _state.status == CombatMatchStatus.defeat ||
         _state.status == CombatMatchStatus.victory ||
         dreadnought.isGameOver ||
-        (dreadnought.isVictory && _remainingReinforcements <= 0)) {
+        (dreadnought.isVictory &&
+            _remainingReinforcements <= 0 &&
+            allEnemiesDestroyed)) {
       particleService.update(clampedDt * 0.2);
       return;
     }
@@ -268,60 +339,48 @@ class CombatCoordinator extends ChangeNotifier {
 
     // Check for newly neutralized enemies for Tactical Core Siphon & Horde Reinforcements
     final doctrine = _sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
+    final currentLivingEnemyIds = <int>{};
+    bool spawnedReinforcements = false;
+
     for (final enemy in enemies) {
-      if (enemy.isDestroyed && !_neutralizedEnemyIds.contains(enemy.entityId)) {
-        _neutralizedEnemyIds.add(enemy.entityId);
-
-        // Tactical Core Siphon
-        final siphonAmount =
-            _sector?.coreSiphonPerKill ??
-            (enemy.vesselType == 2 ? 3 : (enemy.vesselType == 1 ? 2 : 1));
-        engine.grantCores(siphonAmount);
-        grantEmergencyCores(siphonAmount);
-
-        final enemyCorridorX = (enemy.worldPosX > 0.0 && enemy.worldPosX <= 1.0)
-            ? enemy.worldPosX * viewportSize.width
-            : (enemy.assignedCorridor + 0.5) * (viewportSize.width / 8.0);
-
-        damageNumbers.add(
-          FloatingDamageNumber(
-            text: '+$siphonAmount CORES (SIPHON)',
-            x: enemyCorridorX,
-            y: viewportSize.height * 0.40,
-            color: VoidTheme.solarGold,
-            isCritical: siphonAmount >= 2,
-          ),
+      if (!enemy.isDestroyed) {
+        currentLivingEnemyIds.add(enemy.entityId);
+      } else if (!_neutralizedEnemyIds.contains(enemy.entityId)) {
+        _handleEnemyNeutralized(
+          entityId: enemy.entityId,
+          vesselType: enemy.vesselType,
+          worldPosX: enemy.worldPosX,
+          assignedCorridor: enemy.assignedCorridor,
+          doctrine: doctrine,
+          viewportSize: viewportSize,
         );
-        HapticService.instance.sowTick();
-
-        // Void Swarm horde reinforcement spawning
-        if (doctrine == SectorCombatDoctrine.voidSwarm &&
-            _remainingReinforcements > 0) {
-          _remainingReinforcements--;
-          final respawnCorridor = _random.nextInt(8);
-          final vType = (_remainingReinforcements % 4 == 0)
-              ? 1
-              : ((_remainingReinforcements == 0) ? 2 : 0);
-          final shields = (vType == 2) ? 150.0 : (vType == 1 ? 60.0 : 0.0);
-          final hull = (vType == 2) ? 250.0 : (vType == 1 ? 100.0 : 40.0);
-          final velY = 0.02 + (_currentDifficulty * 0.006);
-
-          engine.spawnEnemy(
-            corridor: respawnCorridor,
-            worldPosY: 0.96,
-            velocityY: velY,
-            shields: shields,
-            hull: hull,
-            vesselType: vType,
-          );
-
-          if (_remainingReinforcements == 0) {
-            _swarmPhase = SwarmWavePhase.finalStand;
-          } else if (_swarmPhase == SwarmWavePhase.initialAssault) {
-            _swarmPhase = SwarmWavePhase.reinforcementWaves;
-          }
-        }
+        spawnedReinforcements = true;
       }
+    }
+
+    // Defensive fallback: check if any previously active enemy disappeared from the enemies snapshot
+    for (final activeId in _activeEnemyIds) {
+      if (!currentLivingEnemyIds.contains(activeId) &&
+          !_neutralizedEnemyIds.contains(activeId)) {
+        _handleEnemyNeutralized(
+          entityId: activeId,
+          vesselType: 0,
+          worldPosX: 0.5,
+          assignedCorridor: 4,
+          doctrine: doctrine,
+          viewportSize: viewportSize,
+        );
+        spawnedReinforcements = true;
+      }
+    }
+    _activeEnemyIds
+      ..clear()
+      ..addAll(currentLivingEnemyIds);
+
+    // If reinforcements were spawned, re-sync domain state immediately so dreadnought state (restored to OrbitalIdle)
+    // and enemies (new reinforcement craft) are immediately available.
+    if (spawnedReinforcements) {
+      _syncDomainState();
     }
 
     // Check if orbital was breached, ammo exhausted, or victory achieved during simulation step
@@ -340,7 +399,9 @@ class CombatCoordinator extends ChangeNotifier {
       bulletManager.clear();
       particleService.update(clampedDt * 0.2);
       return;
-    } else if (dreadnought.isVictory && _remainingReinforcements <= 0) {
+    } else if (dreadnought.isVictory &&
+        _remainingReinforcements <= 0 &&
+        enemies.every((e) => e.isDestroyed)) {
       if (_state.status != CombatMatchStatus.victory) {
         _swarmPhase = SwarmWavePhase.secured;
         _state = _state.copyWith(status: CombatMatchStatus.victory);

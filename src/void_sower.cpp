@@ -252,20 +252,18 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI* out_enemies,
       if (count >= max_count) break;
       const auto& enemy =
           view.get<const void_sower::ecs::EnemyVesselComponent>(entity);
-      if (enemy.is_destroyed == 0) {
-        out_enemies[count].entity_id = enemy.entity_id;
-        out_enemies[count].assigned_corridor = enemy.assigned_corridor;
-        out_enemies[count].world_pos_x = enemy.world_pos_x;
-        out_enemies[count].world_pos_y = enemy.world_pos_y;
-        out_enemies[count].velocity_y = enemy.velocity_y;
-        out_enemies[count].current_shields = enemy.current_shields;
-        out_enemies[count].max_shields = enemy.max_shields;
-        out_enemies[count].current_hull = enemy.current_hull;
-        out_enemies[count].max_hull = enemy.max_hull;
-        out_enemies[count].vessel_type = enemy.vessel_type;
-        out_enemies[count].is_destroyed = enemy.is_destroyed;
-        count++;
-      }
+      out_enemies[count].entity_id = enemy.entity_id;
+      out_enemies[count].assigned_corridor = enemy.assigned_corridor;
+      out_enemies[count].world_pos_x = enemy.world_pos_x;
+      out_enemies[count].world_pos_y = enemy.world_pos_y;
+      out_enemies[count].velocity_y = enemy.velocity_y;
+      out_enemies[count].current_shields = enemy.current_shields;
+      out_enemies[count].max_shields = enemy.max_shields;
+      out_enemies[count].current_hull = enemy.current_hull;
+      out_enemies[count].max_hull = enemy.max_hull;
+      out_enemies[count].vessel_type = enemy.vessel_type;
+      out_enemies[count].is_destroyed = enemy.is_destroyed;
+      count++;
     }
     return count;
   } catch (const std::exception& e) {
