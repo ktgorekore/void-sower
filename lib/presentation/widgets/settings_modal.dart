@@ -93,7 +93,7 @@ class _SettingsModalState extends State<SettingsModal>
     showLicensePage(
       context: context,
       applicationName: 'Void Sower: Bao Orbital Batteries',
-      applicationVersion: 'v0.2.15+17 (Production Release)',
+      applicationVersion: 'v0.2.16+18 (Production Release)',
       applicationIcon: const Padding(
         padding: EdgeInsets.all(8.0),
         child: Icon(Icons.shield, color: VoidTheme.solarGold, size: 36),
