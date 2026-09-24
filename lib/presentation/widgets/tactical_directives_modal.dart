@@ -360,15 +360,19 @@ class TacticalDirectivesModal extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '$stepNumber. $title',
-                      style: TextStyle(
-                        color: accentColor,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
+                    Expanded(
+                      child: Text(
+                        '$stepNumber. $title',
+                        style: TextStyle(
+                          color: accentColor,
+                          fontSize: 12.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.8,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    const SizedBox(width: 6.0),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 5.0,

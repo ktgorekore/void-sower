@@ -63,18 +63,19 @@ void main() {
       expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
       expect(find.text('ORBITAL COMMAND DECK'), findsOneWidget);
 
-      // Verify prominent greeting command cards
-      expect(find.text('USER PROFILE'), findsOneWidget);
-      expect(find.text('ACTIVE FLEET'), findsOneWidget);
-      expect(find.text('Vanguard-01'), findsOneWidget);
-      expect(find.text('MK-I Bastion'), findsOneWidget);
+      // Verify streamlined top nav bar tabs
+      expect(find.text('SECTORS'), findsOneWidget);
+      expect(find.text('FLEET'), findsOneWidget);
+      expect(find.text('PILOT'), findsOneWidget);
+      expect(find.text('DIRECTIVES'), findsOneWidget);
+      expect(find.text('SETTINGS'), findsOneWidget);
 
       // Verify sectors & engage buttons
       expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
       expect(find.text('ENGAGE'), findsWidgets);
 
-      // Tap USER PROFILE card -> Opens Profile Dossier Modal
-      await tester.tap(find.text('USER PROFILE'));
+      // Tap PILOT tab -> Opens Profile Dossier Modal
+      await tester.tap(find.text('PILOT'));
       await tester.pumpAndSettle();
       expect(find.text('PILOT FLIGHT DOSSIER'), findsOneWidget);
 
@@ -83,8 +84,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('PILOT FLIGHT DOSSIER'), findsNothing);
 
-      // Tap ACTIVE FLEET card -> Opens Fleet Hangar Modal
-      await tester.tap(find.text('ACTIVE FLEET'));
+      // Tap FLEET tab -> Opens Fleet Hangar Modal
+      await tester.tap(find.text('FLEET'));
       await tester.pumpAndSettle();
       expect(find.text('ORBITAL FLEET HANGAR'), findsOneWidget);
 

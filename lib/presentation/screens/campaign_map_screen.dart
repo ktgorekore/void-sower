@@ -18,7 +18,6 @@ import '../../domain/models/campaign_operation.dart';
 import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/models/sector_combat_doctrine.dart';
-import '../../domain/models/user_profile.dart';
 import '../../domain/services/campaign_service.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
@@ -33,7 +32,6 @@ import '../widgets/settings_modal.dart';
 import '../widgets/tactical_directives_modal.dart';
 import '../widgets/tactile_button.dart';
 import 'combat_screen.dart';
-import 'stats_dashboard_screen.dart';
 
 /// Interactive Star Map Screen for the Kilwa Nebula Basin Campaign.
 class CampaignMapScreen extends StatefulWidget {
@@ -137,6 +135,39 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
         ),
       ),
     );
+  }
+
+  void _launchSectorWithAi(CampaignSector sector) {
+    HapticService.instance.injectionClick();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => CombatScreen(
+          engine: widget.engine,
+          difficultyTier: sector.difficultyTier,
+          sectorId: sector.sectorId,
+          sector: sector,
+          autoStartSolver: true,
+          onReturnToMap: () {
+            Navigator.of(context).pop();
+            setState(() {
+              _sectors = CampaignService.instance.getSectors(_activeCampaignId);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  void _launchAiSolver() {
+    HapticService.instance.injectionClick();
+    final targetSector = _sectors.firstWhere(
+      (s) => s.isUnlocked && !s.isLiberated,
+      orElse: () => _sectors.firstWhere(
+        (s) => s.isUnlocked,
+        orElse: () => _sectors.first,
+      ),
+    );
+    _launchSectorWithAi(targetSector);
   }
 
   void _openCodex() {
@@ -661,404 +692,276 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profile = PersistenceService.instance.userProfile;
     final activeOp = CampaignService.instance.getOperation(_activeCampaignId);
 
     return Scaffold(
       backgroundColor: VoidTheme.obsidianBlack,
-      appBar: AppBar(
-        backgroundColor: VoidTheme.obsidianBlack,
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'VOID SOWER',
-                style: TextStyle(
-                  color: VoidTheme.solarGold,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2.0,
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth > constraints.maxHeight &&
+                constraints.maxHeight < 520.0) {
+              return const LandscapeOrientationShield();
+            }
+
+            return Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 640.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 1. Top Navigation Bar (5 tabs matching Home Screen mockup)
+                    _buildTopNavBar(),
+
+                    // 2. Large Centered Title & Liberation Progress Bar
+                    _buildCampaignHeader(activeOp),
+
+                    // 3. Theater Switcher Tabs (Kilwa Basin, Phantom Drift, Void Swarm)
+                    _buildTheaterSwitcher(),
+
+                    // 4. Tactical Doctrine & Mission Briefing Banner
+                    _buildDoctrineBanner(),
+
+                    // 5. Campaign Sector Mission Cards List
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 6.0,
+                        ),
+                        itemCount: _sectors.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 8.0),
+                        itemBuilder: (context, index) {
+                          final s = _sectors[index];
+                          return _buildSectorCard(s);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                activeOp.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: VoidTheme.plasmaCyan,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
-                ),
-              ),
-            ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Builds the 5-tab top navigation bar exactly matching home_screen_redesign mockup:
+  /// [ SECTORS ] [ FLEET ] [ PILOT ] [ DIRECTIVES ] [ SETTINGS ]
+  Widget _buildTopNavBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+      decoration: BoxDecoration(
+        color: VoidTheme.obsidianBlack,
+        border: Border(
+          bottom: BorderSide(
+            color: VoidTheme.plasmaCyan.withValues(alpha: 0.15),
+            width: 1.0,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.school, color: VoidTheme.solarGold),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildTopNavTab(
+            icon: Icons.map_outlined,
+            label: 'SECTORS',
+            isActive: true,
+            tooltip: 'Campaign Sectors',
+            onTap: () {},
+          ),
+          _buildTopNavTab(
+            icon: Icons.rocket_launch,
+            label: 'FLEET',
+            isActive: false,
+            tooltip: 'Fleet Hangar',
+            onTap: _openHangar,
+          ),
+          _buildTopNavTab(
+            icon: Icons.account_circle_outlined,
+            label: 'PILOT',
+            isActive: false,
+            tooltip: 'Pilot Profile',
+            onTap: _openProfile,
+          ),
+          _buildTopNavTab(
+            icon: Icons.school,
+            label: 'DIRECTIVES',
+            isActive: false,
             tooltip: 'Flight Academy',
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
-            onPressed: _launchAcademy,
+            onTap: _openCodex,
           ),
-          IconButton(
-            icon: const Icon(
-              Icons.leaderboard_rounded,
-              color: VoidTheme.starWhite,
-            ),
-            tooltip: 'Combat Telemetry',
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (context) => const StatsDashboardScreen(),
-                ),
-              );
-            },
+          _buildTopNavTab(
+            icon: Icons.smart_toy,
+            label: 'AI',
+            isActive: false,
+            tooltip: 'AI Tactical Auto-Solver',
+            onTap: _launchAiSolver,
           ),
-          IconButton(
-            icon: const Icon(
-              Icons.settings_rounded,
-              color: VoidTheme.solarGold,
-            ),
+          _buildTopNavTab(
+            icon: Icons.settings_outlined,
+            label: 'SETTINGS',
+            isActive: false,
             tooltip: 'Fleet Settings',
-            visualDensity: VisualDensity.compact,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 38.0, minHeight: 38.0),
-            onPressed: _openSettings,
+            onTap: _openSettings,
           ),
-          if (!EntitlementService.instance.isProUnlocked)
-            IconButton(
-              icon: const Icon(
-                Icons.workspace_premium,
-                color: VoidTheme.solarGold,
-              ),
-              tooltip: 'Upgrade to Pro',
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(
-                minWidth: 38.0,
-                minHeight: 38.0,
-              ),
-              onPressed: () => _openProUpgrade(),
-            ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth > constraints.maxHeight &&
-              constraints.maxHeight < 520.0) {
-            return const LandscapeOrientationShield();
-          }
-
-          return Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 640.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Command Deck Status Row
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 8.0,
-                              height: 8.0,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: VoidTheme.emeraldShield,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: VoidTheme.emeraldShield,
-                                    blurRadius: 6.0,
-                                    spreadRadius: 1.0,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8.0),
-                            const Text(
-                              'ORBITAL COMMAND DECK',
-                              style: TextStyle(
-                                color: VoidTheme.emeraldShield,
-                                fontSize: 10.0,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.0,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Builder(
-                          builder: (context) {
-                            final liberatedCount = _sectors
-                                .where((s) => s.isLiberated)
-                                .length;
-                            final totalSectors = _sectors.length;
-                            final percent = totalSectors > 0
-                                ? liberatedCount / totalSectors
-                                : 0.0;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
-                                  style: const TextStyle(
-                                    color: VoidTheme.solarGold,
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const SizedBox(height: 3.0),
-                                SizedBox(
-                                  width: 100.0,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(2.0),
-                                    child: LinearProgressIndicator(
-                                      value: percent,
-                                      backgroundColor: VoidTheme.cardSurface,
-                                      valueColor:
-                                          const AlwaysStoppedAnimation<Color>(
-                                            VoidTheme.emeraldShield,
-                                          ),
-                                      minHeight: 3.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Theater Switcher Tabs (Kilwa Basin, Phantom Drift, Void Swarm)
-                  _buildTheaterSwitcher(),
-
-                  // Tactical Doctrine & Mission Briefing Banner
-                  _buildDoctrineBanner(),
-
-                  // Streamlined Command Deck Navigation Bar
-                  _buildCommandDeckNavBar(profile),
-
-                  // Campaign Sector List Header
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.radar,
-                          color: VoidTheme.solarGold,
-                          size: 14.0,
-                        ),
-                        SizedBox(width: 6.0),
-                        Text(
-                          'MISSION TARGETS • SELECT SECTOR',
-                          style: TextStyle(
-                            color: VoidTheme.solarGold,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Sector List
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 6.0,
-                      ),
-                      itemCount: _sectors.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 10.0),
-                      itemBuilder: (context, index) {
-                        final s = _sectors[index];
-                        return _buildSectorCard(s);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 
-  Widget _buildCommandDeckNavBar(UserProfile profile) {
-    final chassisName = _selectedChassisId == 'mk1_bastion'
-        ? 'MK-I Bastion'
-        : (_selectedChassisId == 'mk2_monsoon'
-              ? 'MK-II Monsoon'
-              : 'MK-III Singularity');
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: VoidTheme.cardSurface.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: VoidTheme.plasmaCyan.withValues(alpha: 0.35),
-          width: 1.0,
-        ),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 1. SECTORS (Active Target View)
-            _buildNavTab(
-              icon: Icons.radar,
-              label: 'SECTORS',
-              subtitle: '${_sectors.length} TARGETS',
-              isActive: true,
-              accentColor: VoidTheme.emeraldShield,
-              tooltip: 'Campaign Sectors',
-              onTap: () {},
-            ),
-            const SizedBox(width: 6.0),
-
-            // 2. ACTIVE FLEET
-            _buildNavTab(
-              icon: Icons.rocket_launch,
-              label: 'ACTIVE FLEET',
-              subtitle: chassisName,
-              isActive: false,
-              accentColor: VoidTheme.plasmaCyan,
-              tooltip: 'Fleet Hangar',
-              onTap: _openHangar,
-            ),
-            const SizedBox(width: 6.0),
-
-            // 3. USER PROFILE
-            _buildNavTab(
-              icon: Icons.account_circle,
-              label: 'USER PROFILE',
-              subtitle: profile.callsign,
-              isActive: false,
-              accentColor: profile.isGoogleLinked
-                  ? VoidTheme.plasmaCyan
-                  : VoidTheme.solarGold,
-              tooltip: 'Pilot Profile',
-              onTap: _openProfile,
-            ),
-            const SizedBox(width: 6.0),
-
-            // 4. DIRECTIVES
-            _buildNavTab(
-              icon: Icons.military_tech,
-              label: 'DIRECTIVES',
-              subtitle: 'RULES & SIM',
-              isActive: false,
-              accentColor: VoidTheme.solarGoldLight,
-              tooltip: 'Tactical Directives',
-              onTap: _openCodex,
-            ),
-            const SizedBox(width: 6.0),
-
-            // 5. SETTINGS
-            _buildNavTab(
-              icon: Icons.settings,
-              label: 'SETTINGS',
-              subtitle: 'PREFERENCES',
-              isActive: false,
-              accentColor: VoidTheme.textSecondary,
-              tooltip: 'Fleet Settings',
-              onTap: _openSettings,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavTab({
+  Widget _buildTopNavTab({
     required IconData icon,
     required String label,
-    required String subtitle,
     required bool isActive,
-    required Color accentColor,
     required String tooltip,
     required VoidCallback onTap,
   }) {
     return Tooltip(
       message: tooltip,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8.0),
-          child: Container(
-            constraints: const BoxConstraints(minHeight: 46.0),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10.0,
-              vertical: 5.0,
-            ),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? accentColor.withValues(alpha: 0.18)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(
+      child: InkWell(
+        onTap: () {
+          HapticService.instance.sowTick();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(8.0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
                 color: isActive
-                    ? accentColor.withValues(alpha: 0.8)
-                    : VoidTheme.plasmaCyan.withValues(alpha: 0.15),
-                width: 1.0,
+                    ? VoidTheme.plasmaCyan
+                    : VoidTheme.textSecondary,
+                size: 22.0,
               ),
+              const SizedBox(height: 3.0),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isActive
+                      ? VoidTheme.plasmaCyan
+                      : VoidTheme.textSecondary,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 3.0),
+              Container(
+                height: 2.8,
+                width: 32.0,
+                decoration: BoxDecoration(
+                  color: isActive ? VoidTheme.plasmaCyan : Colors.transparent,
+                  borderRadius: BorderRadius.circular(1.4),
+                  boxShadow: isActive
+                      ? [
+                          BoxShadow(
+                            color: VoidTheme.plasmaCyan.withValues(alpha: 0.7),
+                            blurRadius: 4.0,
+                          ),
+                        ]
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the centered campaign title, liberation subtitle, and glowing progress bar.
+  Widget _buildCampaignHeader(CampaignOperation activeOp) {
+    final liberatedCount = _sectors.where((s) => s.isLiberated).length;
+    final totalSectors = _sectors.length;
+    final percent = totalSectors > 0 ? liberatedCount / totalSectors : 0.0;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+      child: Column(
+        children: [
+          const Text(
+            'VOID SOWER',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: VoidTheme.plasmaCyan,
+              fontSize: 10.0,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2.5,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: accentColor, size: 16.0),
-                const SizedBox(width: 6.0),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        color: isActive ? VoidTheme.starWhite : accentColor,
-                        fontSize: 9.0,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: isActive ? accentColor : VoidTheme.textSecondary,
-                        fontSize: 8.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+          ),
+          const SizedBox(height: 2.0),
+          Text(
+            activeOp.title.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: VoidTheme.solarGold,
+              fontSize: 18.0,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.8,
+              shadows: [Shadow(color: Color(0x66FFB300), blurRadius: 8.0)],
+            ),
+          ),
+          const SizedBox(height: 2.0),
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4.0,
+            children: [
+              const Text(
+                'ORBITAL COMMAND DECK',
+                style: TextStyle(
+                  color: VoidTheme.plasmaCyanLight,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const Text(
+                '•',
+                style: TextStyle(color: VoidTheme.textMuted, fontSize: 9.5),
+              ),
+              Text(
+                'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
+                style: const TextStyle(
+                  color: VoidTheme.solarGoldLight,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6.0),
+          Container(
+            height: 5.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2.5),
+              boxShadow: [
+                BoxShadow(
+                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.45),
+                  blurRadius: 6.0,
                 ),
               ],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(2.5),
+              child: LinearProgressIndicator(
+                value: percent,
+                backgroundColor: VoidTheme.cardSurface,
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  VoidTheme.plasmaCyan,
+                ),
+                minHeight: 5.0,
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -1161,19 +1064,68 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
             ),
         ],
       );
-      trailingWidget = ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: VoidTheme.cardSurface,
-          foregroundColor: VoidTheme.emeraldShield,
-          side: const BorderSide(color: VoidTheme.emeraldShield, width: 1.0),
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
-        ),
-        icon: const Icon(Icons.refresh, size: 14.0),
-        onPressed: () => _launchSector(sector),
-        label: const Text(
-          'REPLAY',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.0),
-        ),
+      trailingWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Tooltip(
+            message: 'Auto-Solve with AI',
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.5),
+                  width: 1.0,
+                ),
+                backgroundColor: VoidTheme.cardSurface,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6.0,
+                  vertical: 4.0,
+                ),
+                minimumSize: const Size(36.0, 30.0),
+              ),
+              onPressed: () => _launchSectorWithAi(sector),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.smart_toy,
+                    size: 13.0,
+                    color: VoidTheme.plasmaCyan,
+                  ),
+                  SizedBox(width: 2.0),
+                  Text(
+                    'AI',
+                    style: TextStyle(
+                      color: VoidTheme.plasmaCyan,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 6.0),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: VoidTheme.cardSurface,
+              foregroundColor: VoidTheme.emeraldShield,
+              side: const BorderSide(
+                color: VoidTheme.emeraldShield,
+                width: 1.0,
+              ),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 6.0,
+              ),
+            ),
+            icon: const Icon(Icons.refresh, size: 14.0),
+            onPressed: () => _launchSector(sector),
+            label: const Text(
+              'REPLAY',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.0),
+            ),
+          ),
+        ],
       );
     } else if (isUnlocked) {
       borderColor = VoidTheme.solarGold;
@@ -1230,18 +1182,64 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           letterSpacing: 0.4,
         ),
       );
-      trailingWidget = ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: VoidTheme.solarGold,
-          foregroundColor: VoidTheme.obsidianBlack,
-          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-        ),
-        icon: const Icon(Icons.rocket_launch, size: 14.0),
-        onPressed: () => _launchSector(sector),
-        label: const Text(
-          'ENGAGE',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
-        ),
+      trailingWidget = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Tooltip(
+            message: 'Auto-Solve with AI',
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(
+                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.7),
+                  width: 1.0,
+                ),
+                backgroundColor: VoidTheme.cardSurface,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6.0,
+                  vertical: 4.0,
+                ),
+                minimumSize: const Size(36.0, 30.0),
+              ),
+              onPressed: () => _launchSectorWithAi(sector),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.smart_toy,
+                    size: 13.0,
+                    color: VoidTheme.plasmaCyan,
+                  ),
+                  SizedBox(width: 2.0),
+                  Text(
+                    'AI',
+                    style: TextStyle(
+                      color: VoidTheme.plasmaCyan,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10.0,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 6.0),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: VoidTheme.solarGold,
+              foregroundColor: VoidTheme.obsidianBlack,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12.0,
+                vertical: 6.0,
+              ),
+            ),
+            icon: const Icon(Icons.rocket_launch, size: 14.0),
+            onPressed: () => _launchSector(sector),
+            label: const Text(
+              'ENGAGE',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11.5),
+            ),
+          ),
+        ],
       );
     } else {
       borderColor = VoidTheme.crimsonFlare.withValues(alpha: 0.35);

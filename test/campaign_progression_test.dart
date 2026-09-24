@@ -286,13 +286,19 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Verify Flight Academy icon button exists in AppBar actions
+        // Verify Flight Academy / Directives tab exists
         final academyIcon = find.byTooltip('Flight Academy');
         expect(academyIcon, findsOneWidget);
         expect(find.byIcon(Icons.school), findsOneWidget);
 
-        // Tap Flight Academy icon button to launch CombatScreen with tutorial active
+        // Tap Directives tab to open Tactical Directives modal
         await tester.tap(academyIcon);
+        await tester.pumpAndSettle();
+
+        // Tap HANDS-ON SIM to launch Flight Academy tutorial
+        final simButton = find.text('HANDS-ON SIM');
+        expect(simButton, findsOneWidget);
+        await tester.tap(simButton);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 400));
 

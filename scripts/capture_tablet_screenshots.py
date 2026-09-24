@@ -137,9 +137,9 @@ def main():
   print("[Tablet Academy] Capturing 05_tablet_flight_academy.png...")
   capture("05_tablet_flight_academy.png", device)
 
-  # Dismiss tutorial overlay: tap SKIP at x=970, y=1175
-  print("[Tablet Combat] Dismissing Flight Academy tutorial overlay (tap SKIP at x=970, y=1175)...")
-  tap(970, 1175, device)
+  # Dismiss tutorial overlay: tap SKIP at x=1115, y=1070
+  print("[Tablet Combat] Dismissing Flight Academy tutorial overlay (tap SKIP at x=1115, y=1070)...")
+  tap(1115, 1070, device)
   time.sleep(1.5)
 
   # 2. Screenshot 01: Tactical Combat Grid on Tablet (Centered 580 dp viewport)
@@ -147,40 +147,40 @@ def main():
   capture("01_tablet_tactical_combat.png", device)
 
   # 3. Screenshot 02: Sowing Trajectory & Axial Lance
-  print("[Tablet Combat] Discharging Axial Particle Lance (tap x=1280, y=1484)...")
-  tap(1280, 1484, device)
+  print("[Tablet Combat] Discharging Axial Particle Lance (tap x=1280, y=1520)...")
+  tap(1280, 1520, device)
   time.sleep(0.20)
   capture("02_tablet_sowing_trajectory.png", device)
   time.sleep(1.0)
 
-  # 4. Screenshot 06: Bao Codex on Tablet (Tap PAUSE at x=1788, y=128, then RULES at x=1280, y=989)
+  # 4. Screenshot 06: Bao Codex / Directives on Tablet (Tap PAUSE at x=1780, y=125, then DIRECTIVES at x=1280, y=990)
   print("[Tablet Codex] Opening Tactical Pause menu...")
-  tap(1788, 128, device)
-  time.sleep(1.0)
-  print("[Tablet Codex] Opening Bao Codex dialog (tap RULES at x=1280, y=989)...")
-  tap(1280, 989, device)
+  tap(1780, 125, device)
+  time.sleep(1.2)
+  print("[Tablet Codex] Opening Tactical Directives dialog (tap DIRECTIVES at x=1280, y=990)...")
+  tap(1280, 990, device)
   time.sleep(1.8)
   capture("06_tablet_bao_codex.png", device)
-  # Close Bao Codex dialog via Back keyevent (returns directly to CombatScreen)
-  print("[Tablet Codex] Dismissing Bao Codex...")
+  # Close Directives dialog via Back keyevent (returns directly to CombatScreen)
+  print("[Tablet Codex] Dismissing Tactical Directives...")
   keyevent(4, device)
   time.sleep(1.0)
 
-  # 5. Navigate to Star Map: Tap PAUSE at x=1788, y=128, then MAP at x=1058, y=989
+  # 5. Navigate to Star Map: Tap PAUSE at x=1780, y=125, then MAP at x=1030, y=990
   print("[Tablet Map] Opening Tactical Pause to navigate to Star Map...")
-  tap(1788, 128, device)
-  time.sleep(1.0)
-  print("[Tablet Map] Tapping MAP button at x=1058, y=989...")
-  tap(1058, 989, device)
+  tap(1780, 125, device)
+  time.sleep(1.2)
+  print("[Tablet Map] Tapping MAP button at x=1030, y=990...")
+  tap(1030, 990, device)
   time.sleep(2.5)
 
   # Screenshot 03: Tablet Campaign Map
   print("[Tablet Map] Capturing 03_tablet_campaign_map.png...")
   capture("03_tablet_campaign_map.png", device)
 
-  # 6. Screenshot 04: Tablet Fleet Hangar (tap Rocket icon at x=1440, y=109 in Map AppBar)
-  print("[Tablet Hangar] Opening Fleet Hangar (tap Rocket at x=1440, y=109)...")
-  tap(1440, 109, device)
+  # 6. Screenshot 04: Tablet Fleet Hangar (tap FLEET at x=960, y=80 in top nav bar)
+  print("[Tablet Hangar] Opening Fleet Hangar (tap FLEET at x=960, y=80)...")
+  tap(960, 80, device)
   time.sleep(1.8)
   capture("04_tablet_fleet_hangar.png", device)
   keyevent(4, device)

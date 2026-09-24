@@ -126,8 +126,8 @@ def record_60s_tutorial():
 
   # Phase 4: 25.2s..35.2s — Axial Particle Lance Discharge
   wait_until(25.5)
-  print("[Timeline 25.5s] Tap Axial Discharge bar (tap x=672, y=2860)")
-  tap(672, 2860)
+  print("[Timeline 25.5s] Tap Axial Discharge bar (tap x=672, y=2830)")
+  tap(672, 2830)
 
   wait_until(28.0)
   print("[Timeline 28.0s] Quick-fire secondary prow pulse (tap arena x=252, y=1500)")
@@ -144,8 +144,16 @@ def record_60s_tutorial():
 
   # Phase 6: 43.3s..60.0s — Autonomous AI Tactical Advisor & Sector Victory
   wait_until(43.5)
-  print("[Timeline 43.5s] Engage AI Tactical Advisor (tap AI button at x=1030, y=236)")
-  tap(1030, 236)
+  print("[Timeline 43.5s] Open Tactical Pause menu (tap x=1240, y=225)")
+  tap(1240, 225)
+
+  wait_until(44.3)
+  print("[Timeline 44.3s] Engage AI Tactical Auto-Solver in Pause Dialog (tap x=672, y=1630)")
+  tap(672, 1630)
+
+  wait_until(45.0)
+  print("[Timeline 45.0s] Resume Sortie with AI Solver Active (tap x=250, y=1520)")
+  tap(250, 1520)
 
   print("[Record 60s] AI Solver active, executing Grandmaster cascades toward victory...")
   rec_proc.wait()
@@ -162,15 +170,13 @@ def record_30s_showcase():
 
   # Navigate to Phantom Drift (Sector 10: Evasive Invaders)
   print("[Record 30s] Navigating to Phantom Drift (Sector 10)...")
-  tap(889, 330)  # Pause
+  tap(1240, 225) # Pause
   time.sleep(0.8)
-  tap(310, 1740) # Map
+  tap(310, 1820) # Map
   time.sleep(1.5)
-  tap(670, 500)  # Phantom Drift tab
+  tap(672, 680)  # Phantom Drift theater tab
   time.sleep(0.8)
-  tap(830, 1280) # Sector 10 ENGAGE
-  time.sleep(0.8)
-  tap(675, 2850) # ENGAGE BATTLE
+  tap(915, 1040) # Sector 10 AI launch
   time.sleep(1.8)
 
   print("[Record 30s] Launching 30s showcase recording...")
@@ -189,35 +195,27 @@ def record_30s_showcase():
       time.sleep(rem)
 
   # Part 1: Phantom Drift (0s..14s) - Evasive Invaders with lateral thrusters
-  wait_until(1.0)
-  print("[Showcase 1.0s] Engage AI Tactical Solver in Phantom Drift (tap x=1020, y=230)")
-  tap(1020, 230)
+  print("[Showcase 0s..14s] Autonomous AI executing evasion intercepts in Phantom Drift...")
 
   # Part 2: Transition to Void Swarm (14s..17s) - Respawning Swarm Invaders
   wait_until(14.0)
-  print("[Showcase 14.0s] Open Tactical Pause (tap x=889, y=330)")
-  tap(889, 330)
+  print("[Showcase 14.0s] Open Tactical Pause (tap x=1240, y=225)")
+  tap(1240, 225)
 
   wait_until(14.8)
-  print("[Showcase 14.8s] Open Star Map (tap MAP at x=310, y=1740)")
-  tap(310, 1740)
+  print("[Showcase 14.8s] Open Star Map (tap MAP at x=310, y=1820)")
+  tap(310, 1820)
 
   wait_until(16.0)
-  print("[Showcase 16.0s] Switch to Void Swarm tab (tap x=1090, y=500)")
-  tap(1090, 500)
+  print("[Showcase 16.0s] Switch to Void Swarm tab (tap x=1090, y=680)")
+  tap(1090, 680)
 
   wait_until(16.8)
-  print("[Showcase 16.8s] Select Sector 19 (tap ENGAGE at x=830, y=1280)")
-  tap(830, 1280)
-
-  wait_until(17.5)
-  print("[Showcase 17.5s] Launch Void Swarm Battle (tap ENGAGE BATTLE at x=675, y=2850)")
-  tap(675, 2850)
+  print("[Showcase 16.8s] Launch Sector 19 Void Swarm with AI (tap AI at x=915, y=1040)")
+  tap(915, 1040)
 
   # Part 3: Void Swarm (18s..30s) - Dense Respawning Horde with Tactical Core Siphon
-  wait_until(19.5)
-  print("[Showcase 19.5s] Engage AI Tactical Solver in Void Swarm (tap x=1020, y=230)")
-  tap(1020, 230)
+  print("[Showcase 18s..30s] Autonomous AI managing dense swarm horde and core siphon...")
 
   rec_proc.wait()
   print("[Record 30s] Showcase recording completed successfully!")

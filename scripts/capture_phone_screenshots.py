@@ -43,11 +43,17 @@ def keyevent(code):
 
 def capture(dest_name):
   dest_path = os.path.join(SCREENSHOTS_DIR, dest_name)
+  temp_path = os.path.join("/tmp", f"cap_{dest_name}")
   print(f"[Capture] Grabbing {dest_name}...")
-  with open(dest_path, "wb") as f:
-    subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f)
-  print(f"[Saved] -> {dest_path}")
-  return dest_path
+  with open(temp_path, "wb") as f:
+    subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f, check=True)
+  if os.path.exists(temp_path) and os.path.getsize(temp_path) > 10000:
+    shutil.copyfile(temp_path, dest_path)
+    print(f"[Saved] -> {dest_path} ({os.path.getsize(dest_path)} bytes)")
+    return dest_path
+  else:
+    print(f"[Error] Failed to capture valid screenshot for {dest_name}")
+    return None
 
 
 def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6):
@@ -134,36 +140,38 @@ def main():
       os.path.join(ASSETS_DIR, "phone_01_tactical_combat_grid.png"),
   )
 
-  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=1250, y=230, then RULES at x=672, y=1839)
-  print("[Codex] Opening Tactical Pause menu...")
-  tap(1250, 230)
+  # Screenshot 07: Bao Tactical Directives (Tap PAUSE at x=1240, y=225, then DIRECTIVES at x=672, y=1820)
+  print("[Directives] Opening Tactical Pause menu...")
+  tap(1240, 225)
   time.sleep(1.0)
-  print("[Codex] Opening Bao Codex dialog (tap RULES at x=672, y=1839)...")
-  tap(672, 1839)
+  print("[Directives] Opening Tactical Directives modal (tap DIRECTIVES at x=672, y=1820)...")
+  tap(672, 1820)
   time.sleep(1.2)
   capture("07_bao_orbital_codex.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "07_bao_orbital_codex.png"),
       os.path.join(ASSETS_DIR, "phone_03_bao_codex.png"),
   )
-  print("[Codex] Dismissing Bao Codex...")
+  # Dismiss Directives and open Pause menu to reach Star Map
+  print("[Directives] Dismissing Tactical Directives...")
   keyevent(4)
-  time.sleep(0.8)
-
-  # Navigate to Star Map: Tap PAUSE at x=1250, y=230, then MAP at x=325, y=1839
-  print("[Map] Opening Tactical Pause to navigate to Star Map...")
-  tap(1250, 230)
   time.sleep(1.0)
-  tap(325, 1839)
+
+  # Navigate to Star Map: Must open Pause first because Directives closed pause menu
+  print("[Map] Opening Pause menu to navigate to Star Map...")
+  tap(1240, 225)
+  time.sleep(1.2)
+  print("[Map] Navigating to Campaign Star Map from Pause menu (tap MAP at x=310, y=1820)...")
+  tap(310, 1820)
   time.sleep(2.0)
 
   # Screenshot 05: Multi-Theater Campaign Map (Kilwa Basin, Phantom Drift, Void Swarm)
   print("[Map] Capturing 05_kilwa_basin_campaign_map.png...")
   capture("05_kilwa_basin_campaign_map.png")
 
-  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=685, y=240 in Map AppBar)
-  print("[Hangar] Opening Fleet Hangar dialog...")
-  tap(685, 240)
+  # Screenshot 04: Orbital Fleet Hangar (Tap FLEET tab at x=336, y=250 in top nav bar)
+  print("[Hangar] Opening Fleet Hangar modal from top nav bar...")
+  tap(336, 250)
   time.sleep(1.2)
   capture("04_orbital_fleet_hangar.png")
   shutil.copyfile(
@@ -173,9 +181,9 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Screenshot 08: Pilot Telemetry Dashboard (Tap Leaderboard icon at x=1165, y=240 in Map AppBar)
-  print("[Telemetry] Opening Combat Telemetry dashboard...")
-  tap(1165, 240)
+  # Screenshot 08: Pilot Telemetry Dashboard (Tap PILOT tab at x=560, y=250 in top nav bar)
+  print("[Telemetry] Opening Pilot Dossier dashboard from top nav bar...")
+  tap(560, 250)
   time.sleep(1.5)
   capture("08_pilot_telemetry_dashboard.png")
   shutil.copyfile(
@@ -185,24 +193,15 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Switch to Phantom Drift Theater (tap tab at x=670, y=500) and launch Sector 10
-  print("[Theater] Switching to Phantom Drift theater (x=670, y=500)...")
-  tap(670, 500)
-  time.sleep(1.0)
-  print("[Theater] Tapping ENGAGE on Sector 10 (x=830, y=1280)...")
-  tap(830, 1280)
-  time.sleep(0.8)
-  print("[Theater] Launching battle (x=500, y=2850)...")
-  tap(500, 2850)
-  time.sleep(1.8)
+  # Launch Sector 6 (Lindi Ridge Objective) to capture quadratic lance discharge
+  print("[Combat] Launching Lindi Ridge Sector 6 (tap ENGAGE at x=1100, y=2430)...")
+  tap(1100, 2430)
+  time.sleep(2.0)
 
   # Screenshot 02: Quadratic Lance Discharge
-  # Select Bay 10 (has cores) and fire Axial Discharge
-  print("[Combat] Discharging Axial Particle Lance in Phantom Drift...")
-  tap(440, 2520)  # Select Bay 10
-  time.sleep(0.3)
-  tap(500, 2800)  # AXIAL DISCHARGE
-  time.sleep(0.15)
+  print("[Combat] Discharging Axial Particle Lance (tap AXIAL DISCHARGE at x=672, y=2800)...")
+  tap(672, 2800)
+  time.sleep(0.18)
   capture("02_quadratic_lance_discharge.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "02_quadratic_lance_discharge.png"),
@@ -210,53 +209,45 @@ def main():
   )
   time.sleep(1.0)
 
-  # Return to Map and launch Sector 1 for clean AI victory sequence
-  print("[Victory] Returning to Star Map to launch Kilwa Basin S1...")
-  tap(1250, 230)  # Pause
+  # Return to Map and launch Sector 1 with AI auto-solver for clean victory sequence
+  print("[Victory] Returning to Star Map...")
+  tap(1240, 225)  # Pause
   time.sleep(1.0)
-  tap(325, 1839)  # Map
+  tap(310, 1820)  # Map
   time.sleep(1.5)
-  tap(250, 500)   # Kilwa Basin tab
-  time.sleep(0.8)
-  tap(830, 1265)  # Sector 1 REPLAY / ENGAGE
-  time.sleep(0.8)
-  tap(675, 2850)  # Launch battle
-  time.sleep(1.8)
 
-  # Activate AI Solver via Tactical Pause Menu to eliminate invaders and achieve Victory
-  print("[Solver] Activating AI Tactical Solver to clear sector...")
-  tap(1250, 230)
-  time.sleep(0.8)
-  tap(672, 1680)  # Toggle AI Solver
-  time.sleep(0.5)
-  tap(311, 1508)  # Resume
-  time.sleep(1.0)
+  print("[Victory] Launching Sector 1 with AI Auto-Solver (tap AI button at x=890, y=1040)...")
+  tap(890, 1040)
+  time.sleep(4.0)
 
-  # Poll for victory modal
+  # Poll for victory modal (Sector 1 clears in ~4-6 seconds with AI auto-solve)
   print("[Victory] Waiting for Sector Liberation modal...")
   modal_captured = False
-  for attempt in range(60):
-    time.sleep(0.25)
-    dest_path = os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png")
-    with open(dest_path, "wb") as f:
+  for attempt in range(25):
+    time.sleep(0.5)
+    temp_path = os.path.join("/tmp", "temp_victory.png")
+    with open(temp_path, "wb") as f:
       subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f)
-    try:
-      im = Image.open(dest_path)
-      arr = np.array(im)
-      # Check for gold military crest in center: y: 750..1300, x: 500..850
-      crop = arr[750:1300, 500:850]
-      gold_pts = np.where(
-          (crop[:, :, 0] > 200) & (crop[:, :, 1] > 140) & (crop[:, :, 2] < 60)
-      )
-      if len(gold_pts[0]) > 250:
-        print(f"[Victory] Captured 06_sector_liberation_victory.png (attempt {attempt + 1})!")
-        modal_captured = True
-        break
-    except Exception as e:
-      pass
+    if os.path.exists(temp_path) and os.path.getsize(temp_path) > 10000:
+      try:
+        im = Image.open(temp_path)
+        arr = np.array(im)
+        # Check center region where VictoryDialog sits (y: 800..1800, x: 200..1144)
+        crop = arr[800:1800, 200:1144]
+        # Look for gold and cyan accents of the victory card
+        gold_pts = np.where((crop[:, :, 0] > 180) & (crop[:, :, 1] > 140) & (crop[:, :, 2] < 70))
+        if len(gold_pts[0]) > 300:
+          dest_path = os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png")
+          shutil.copyfile(temp_path, dest_path)
+          print(f"[Victory] Captured 06_sector_liberation_victory.png (attempt {attempt + 1}, {os.path.getsize(dest_path)} bytes)!")
+          modal_captured = True
+          break
+      except Exception as e:
+        pass
 
   if not modal_captured:
-    print("[Victory] Reached timeout, keeping latest frame for 06_sector_liberation_victory.png")
+    print("[Victory] Timeout reached, capturing current state as fallback for 06_sector_liberation_victory.png")
+    capture("06_sector_liberation_victory.png")
 
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png"),
@@ -271,18 +262,22 @@ def main():
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.5)
 
-  # Tap PAUSE at x=1250, y=230, then MAP at x=325, y=1839
-  tap(1250, 230)
+  # Tap PAUSE at x=1240, y=225, then MAP at x=310, y=1820
+  tap(1240, 225)
   time.sleep(1.0)
-  tap(325, 1839)
+  tap(310, 1820)
   time.sleep(2.0)
 
-  # In Free Tier, the Pro upgrade icon in AppBar is at x=1283, y=240
-  # Opening via this badge opens ProUpgradeModal with highlightedFeature=null,
-  # displaying only the $1.29 Lifetime purchase CTA and zero rewarded ad buttons.
-  print("[Pro Modal] Tapping Pro icon in AppBar (x=1283, y=240)...")
-  tap(1283, 240)
+  # In Free Tier, switch to Phantom Drift (locked theater) at x=670, y=680
+  print("[Pro Modal] Switching to locked Phantom Drift theater (x=670, y=680)...")
+  tap(670, 680)
   time.sleep(1.2)
+  print("[Pro Modal] Tapping locked Sector 11 card (x=672, y=1340)...")
+  tap(672, 1340)
+  time.sleep(1.2)
+  print("[Pro Modal] Tapping INSTANTLY UNLOCK ALL SECTORS • PRO (x=672, y=2710)...")
+  tap(672, 2710)
+  time.sleep(1.5)
   capture("09_pro_commander_upgrade.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "09_pro_commander_upgrade.png"),

@@ -50,30 +50,24 @@ def ensure_solver_running():
     adb(["shell", "am", "start", "-n", f"{PKG}/.MainActivity"])
     time.sleep(3.0)
 
-  print("[Setup] Navigating into active combat...")
-  # Tap ENGAGE on Sector 1
-  tap(1105, 957)
-  time.sleep(1.0)
-  # Dismiss tutorial if open
-  tap(294, 2131)
+  print("[Setup] Navigating into active combat with AI Auto-Solver...")
+  # Tap advance if victory dialog is showing, or tap AI button on Sector 1
+  tap(500, 1520)
   time.sleep(0.5)
-  # Activate AI Solver
-  tap(624, 332)
-  time.sleep(0.5)
+  tap(890, 1050)
+  time.sleep(1.5)
 
 
 def gameplay_watchdog(stop_event):
   """Periodically advances sectors or taps buttons if a wave clears or needs retry during profiling."""
   while not stop_event.is_set():
-    time.sleep(1.0)
-    # Tap advance sector if victory dialog is showing (672, 1950)
-    tap(672, 1950)
-    # Tap try again if defeat dialog is showing (980, 1850)
-    tap(980, 1850)
-    # Tap skip tutorial if briefing is showing
-    tap(294, 2131)
-    # Re-engage sector if on map screen
-    tap(1105, 957)
+    time.sleep(1.5)
+    # Tap advance sector if victory dialog is showing (500, 1520)
+    tap(500, 1520)
+    # Tap try again if defeat dialog is showing (500, 1520)
+    tap(500, 1520)
+    # Re-engage sector with AI if on map screen
+    tap(890, 1050)
 
 
 def main():

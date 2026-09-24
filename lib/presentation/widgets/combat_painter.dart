@@ -51,19 +51,41 @@ class CombatBackgroundPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final corridorWidth = size.width / 8.0;
 
-    // 1. Draw 8 Tactical Combat Corridors
+    // 1. Draw 8 Tactical Combat Corridors (Dashed Futuristic Guides)
     for (var i = 1; i < 8; i++) {
       final x = i * corridorWidth;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), _corridorPaint);
+      var y = 0.0;
+      while (y < size.height) {
+        canvas.drawLine(
+          Offset(x, y),
+          Offset(x, math.min(y + 4.0, size.height)),
+          _corridorPaint,
+        );
+        y += 8.0;
+      }
     }
 
-    // 2. Draw Atmospheric Defense Boundary Line
+    // 2. Draw Atmospheric Defense Boundary Line & Futuristic Label
     final boundaryY = size.height - 48.0;
     canvas.drawLine(
       Offset(0, boundaryY),
       Offset(size.width, boundaryY),
       _boundaryPaint,
     );
+
+    final thresholdPainter = TextPainter(
+      text: TextSpan(
+        text: 'ATMOSPHERIC THRESHOLD',
+        style: TextStyle(
+          color: VoidTheme.crimsonFlare.withValues(alpha: 0.85),
+          fontSize: 7.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    thresholdPainter.paint(canvas, Offset(14.0, boundaryY - 12.0));
 
     // 3. Draw Planetary Defense Horizon Line
     canvas.drawLine(
@@ -268,8 +290,13 @@ class CombatPainter extends CustomPainter {
     ..style = PaintingStyle.fill;
 
   static final Paint _shieldArcPaint = Paint()
-    ..color = VoidTheme.emeraldShield.withValues(alpha: 0.6)
-    ..strokeWidth = 2.2
+    ..color = VoidTheme.plasmaCyan
+    ..strokeWidth = 2.4
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _shieldGlowPaint = Paint()
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35)
+    ..strokeWidth = 5.0
     ..style = PaintingStyle.stroke;
 
   static final Paint _portNavPaint = Paint()..style = PaintingStyle.fill;
@@ -435,9 +462,12 @@ class CombatPainter extends CustomPainter {
     for (var i = 0; i < damageNumbers.length; i++) {
       final num = damageNumbers[i];
       if (num.remainingLifetime <= 0.0) continue;
+      final px = (num.x <= 1.0 && num.x > 0.0) ? num.x * size.width : num.x;
+      final py = (num.y <= 1.0 && num.y > 0.0) ? num.y * size.height : num.y;
+      if (py < 40.0) continue;
       num.textPainter.paint(
         canvas,
-        Offset(num.x - (num.textPainter.width / 2), num.y),
+        Offset(px - (num.textPainter.width / 2), py),
       );
     }
   }
@@ -776,12 +806,19 @@ class CombatPainter extends CustomPainter {
     canvas.drawCircle(const Offset(0, 3.0), 14.0, _coreOuterGlowPaint);
     canvas.drawCircle(const Offset(0, 3.0), 5.0, _coreCenterPaint);
 
-    // Forward Kinetic Energy Shield Arc
+    // Forward Kinetic Energy Canopy Shield Arc (Glow + Core)
     const shieldRect = Rect.fromLTRB(
       -shipW * 1.15 / 2,
       -34.0,
       shipW * 1.15 / 2,
       14.0,
+    );
+    canvas.drawArc(
+      shieldRect,
+      math.pi * 1.15,
+      math.pi * 0.7,
+      false,
+      _shieldGlowPaint,
     );
     canvas.drawArc(
       shieldRect,

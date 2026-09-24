@@ -329,6 +329,8 @@ class CombatCoordinator extends ChangeNotifier {
         (dreadnought.isVictory &&
             _remainingReinforcements <= 0 &&
             allEnemiesDestroyed)) {
+      lances = const [];
+      damageNumbers.clear();
       particleService.update(clampedDt * 0.2);
       return;
     }
@@ -409,6 +411,8 @@ class CombatCoordinator extends ChangeNotifier {
         notifyListeners();
       }
       bulletManager.clear();
+      lances = const [];
+      damageNumbers.clear();
       particleService.update(clampedDt * 0.2);
       return;
     }
