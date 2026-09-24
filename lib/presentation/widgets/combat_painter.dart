@@ -203,14 +203,27 @@ class CombatPainter extends CustomPainter {
     ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.08)
     ..style = PaintingStyle.fill;
 
+  static final Paint _aimGlowPaint = Paint()
+    ..strokeWidth = 4.5
+    ..style = PaintingStyle.stroke;
+
   static final Paint _aimPaint = Paint()
-    ..strokeWidth = 1.5
+    ..strokeWidth = 1.8
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _corridorBorderPaint = Paint()
+    ..strokeWidth = 1.0
     ..style = PaintingStyle.stroke;
 
   static final Paint _lockPaint = Paint()
     ..color = VoidTheme.solarGold.withValues(alpha: 0.85)
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.8;
+
+  static final Paint _lockCrosshairPaint = Paint()
+    ..color = VoidTheme.crimsonFlare
+    ..strokeWidth = 1.4
+    ..style = PaintingStyle.stroke;
 
   static final Paint _flamePaint = Paint()
     ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.75)
@@ -523,25 +536,44 @@ class CombatPainter extends CustomPainter {
     // Active corridor highlight under dreadnought (Energized Runway Track)
     final activeCorridor = (centerX / (size.width / 8.0)).floor().clamp(0, 7);
     final corridorWidth = size.width / 8.0;
+    final corridorLeft = activeCorridor * corridorWidth;
+    final corridorRight = corridorLeft + corridorWidth;
 
-    _highlightPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.14);
+    _highlightPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.12);
     canvas.drawRect(
-      Rect.fromLTWH(
-        activeCorridor * corridorWidth,
-        0,
-        corridorWidth,
-        boundaryY,
-      ),
+      Rect.fromLTWH(corridorLeft, 0, corridorWidth, boundaryY),
       _highlightPaint,
     );
 
-    // Targeting Alignment Laser Beam (Pulsing high-visibility beam aligned with ship prow)
+    // Active corridor energetic boundary guide lines
+    _corridorBorderPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.28);
+    canvas.drawLine(
+      Offset(corridorLeft, 0),
+      Offset(corridorLeft, boundaryY),
+      _corridorBorderPaint,
+    );
+    canvas.drawLine(
+      Offset(corridorRight, 0),
+      Offset(corridorRight, boundaryY),
+      _corridorBorderPaint,
+    );
+
+    // Targeting Alignment Laser Beam (Pulsing high-visibility dual-core beam aligned with ship prow)
     final aimPulse = 0.40 + 0.25 * math.sin(animationTime * 10.0);
-    _aimPaint.color = VoidTheme.plasmaCyan.withValues(alpha: aimPulse);
-    _aimPaint.strokeWidth = 2.0;
+    _aimGlowPaint.color = VoidTheme.plasmaCyan.withValues(
+      alpha: aimPulse * 0.45,
+    );
+    canvas.drawLine(
+      Offset(centerX, boundaryY),
+      Offset(centerX, 0),
+      _aimGlowPaint,
+    );
+
+    _aimPaint.color = Colors.white.withValues(alpha: aimPulse * 0.90);
+    _aimPaint.strokeWidth = 1.8;
     canvas.drawLine(Offset(centerX, boundaryY), Offset(centerX, 0), _aimPaint);
 
-    // Lock-on reticles on descending enemies in active corridor
+    // Holographic corner-bracket lock-on reticles on descending enemies in active corridor
     final topMargin = size.height * 0.06;
     for (var i = 0; i < enemies.length; i++) {
       final enemy = enemies[i];
@@ -555,13 +587,64 @@ class CombatPainter extends CustomPainter {
                       (boundaryY - topMargin)
             : enemy.worldPosY;
         final lockSize = 16.0 + 2.0 * math.sin(animationTime * 8.0);
-        canvas.drawRect(
-          Rect.fromCenter(
-            center: Offset(enemyX, ey),
-            width: lockSize * 2,
-            height: lockSize * 2,
-          ),
+        final cornerLen = lockSize * 0.45;
+
+        // 4 High-tech Corner Brackets
+        // Top-left
+        canvas.drawLine(
+          Offset(enemyX - lockSize, ey - lockSize),
+          Offset(enemyX - lockSize + cornerLen, ey - lockSize),
           _lockPaint,
+        );
+        canvas.drawLine(
+          Offset(enemyX - lockSize, ey - lockSize),
+          Offset(enemyX - lockSize, ey - lockSize + cornerLen),
+          _lockPaint,
+        );
+        // Top-right
+        canvas.drawLine(
+          Offset(enemyX + lockSize, ey - lockSize),
+          Offset(enemyX + lockSize - cornerLen, ey - lockSize),
+          _lockPaint,
+        );
+        canvas.drawLine(
+          Offset(enemyX + lockSize, ey - lockSize),
+          Offset(enemyX + lockSize, ey - lockSize + cornerLen),
+          _lockPaint,
+        );
+        // Bottom-left
+        canvas.drawLine(
+          Offset(enemyX - lockSize, ey + lockSize),
+          Offset(enemyX - lockSize + cornerLen, ey + lockSize),
+          _lockPaint,
+        );
+        canvas.drawLine(
+          Offset(enemyX - lockSize, ey + lockSize),
+          Offset(enemyX - lockSize, ey + lockSize - cornerLen),
+          _lockPaint,
+        );
+        // Bottom-right
+        canvas.drawLine(
+          Offset(enemyX + lockSize, ey + lockSize),
+          Offset(enemyX + lockSize - cornerLen, ey + lockSize),
+          _lockPaint,
+        );
+        canvas.drawLine(
+          Offset(enemyX + lockSize, ey + lockSize),
+          Offset(enemyX + lockSize, ey + lockSize - cornerLen),
+          _lockPaint,
+        );
+
+        // Center crosshair pips
+        canvas.drawLine(
+          Offset(enemyX - 3.5, ey),
+          Offset(enemyX + 3.5, ey),
+          _lockCrosshairPaint,
+        );
+        canvas.drawLine(
+          Offset(enemyX, ey - 3.5),
+          Offset(enemyX, ey + 3.5),
+          _lockCrosshairPaint,
         );
       }
     }

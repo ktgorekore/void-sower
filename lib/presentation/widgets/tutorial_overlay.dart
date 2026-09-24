@@ -342,15 +342,38 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                       isPrimary: false,
                     )
                   else
-                    TextButton(
+                    OutlinedButton.icon(
                       onPressed: widget.onDismiss,
-                      child: const Text(
+                      icon: const Icon(
+                        Icons.fast_forward_rounded,
+                        size: 14.0,
+                        color: VoidTheme.plasmaCyan,
+                      ),
+                      label: const Text(
                         'SKIP',
                         style: TextStyle(
-                          color: VoidTheme.textMuted,
+                          color: VoidTheme.textPrimary,
                           fontSize: 11.0,
-                          letterSpacing: 0.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8,
                         ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                          width: 1.0,
+                        ),
+                        backgroundColor: VoidTheme.plasmaCyan.withValues(
+                          alpha: 0.08,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10.0,
+                          vertical: 8.0,
+                        ),
+                        minimumSize: const Size(60.0, 36.0),
                       ),
                     ),
                   Row(

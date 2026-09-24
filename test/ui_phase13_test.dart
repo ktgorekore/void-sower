@@ -119,6 +119,31 @@ void main() {
       },
     );
 
+    testWidgets('TutorialOverlay SKIP button dismisses overlay immediately', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1080, 2400);
+      tester.view.devicePixelRatio = 2.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      bool dismissed = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TutorialOverlay(onDismiss: () => dismissed = true),
+          ),
+        ),
+      );
+
+      final skipFinder = find.text('SKIP');
+      expect(skipFinder, findsOneWidget);
+
+      await tester.tap(skipFinder);
+      await tester.pumpAndSettle();
+      expect(dismissed, isTrue);
+    });
+
     testWidgets('TutorialVideoDialog renders title and fallback cleanly', (
       tester,
     ) async {
