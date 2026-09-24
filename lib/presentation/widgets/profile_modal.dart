@@ -445,7 +445,7 @@ class _ProfileModalState extends State<ProfileModal> {
 
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 48.0),
                   children: [
                     // Active Pilot Holographic ID Card
                     Container(

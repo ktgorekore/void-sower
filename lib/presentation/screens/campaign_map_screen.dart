@@ -667,29 +667,35 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
       backgroundColor: VoidTheme.obsidianBlack,
       appBar: AppBar(
         backgroundColor: VoidTheme.obsidianBlack,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'VOID SOWER',
-              style: TextStyle(
-                color: VoidTheme.solarGold,
-                fontSize: 16.0,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2.0,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'VOID SOWER',
+                style: TextStyle(
+                  color: VoidTheme.solarGold,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                ),
               ),
-            ),
-            Text(
-              activeOp.title,
-              style: const TextStyle(
-                color: VoidTheme.plasmaCyan,
-                fontSize: 9.5,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
+              Text(
+                activeOp.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: VoidTheme.plasmaCyan,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           IconButton(

@@ -36,7 +36,6 @@ import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/pause_menu_dialog.dart';
 import '../widgets/profile_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
-import '../widgets/projection_shelf.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/tutorial_overlay.dart';
@@ -451,6 +450,9 @@ class _CombatScreenState extends State<CombatScreen>
     _overlayState = CombatOverlayState.codex;
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
+    if (_coordinator.state.status == CombatMatchStatus.briefing) {
+      _coordinator.dismissTutorial();
+    }
 
     showDialog<void>(
       context: context,
@@ -651,6 +653,11 @@ class _CombatScreenState extends State<CombatScreen>
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.none;
           _openSettings();
+        },
+        isAutoSolving: _coordinator.state.isAutoSolving,
+        onToggleAutoSolve: () {
+          _toggleAutoSolve();
+          (dialogContext as Element).markNeedsBuild();
         },
       ),
     ).then((_) {
@@ -1207,14 +1214,6 @@ class _CombatScreenState extends State<CombatScreen>
                                   ),
                               ],
                             ),
-                          ),
-                        ),
-
-                        // Middle Dynamic Projection Shelf (Isolated RepaintBoundary)
-                        RepaintBoundary(
-                          child: ProjectionShelf(
-                            prediction: _coordinator.prediction,
-                            selectedBay: matchState.selectedBay,
                           ),
                         ),
 

@@ -23,7 +23,7 @@ import 'package:void_sower/presentation/widgets/victory_dialog.dart';
 void main() {
   group('Split-Wing Tactical HUD & Pause Menu Tests', () {
     testWidgets(
-      'HudHeader renders Split-Wing layout with Left Wing, Right Wing, and open center',
+      'HudHeader renders Minimal Orbit layout with Left Wing, Right Wing, and open center corridor',
       (tester) async {
         tester.view.physicalSize = const Size(1080, 2400);
         tester.view.devicePixelRatio = 2.0;
@@ -31,7 +31,6 @@ void main() {
         addTearDown(tester.view.resetDevicePixelRatio);
 
         bool pauseTapped = false;
-        bool aiTapped = false;
 
         await tester.pumpWidget(
           MaterialApp(
@@ -47,45 +46,41 @@ void main() {
                 totalInvaders: 6,
                 invadersRemaining: 4,
                 isPaused: false,
-                isAutoSolving: false,
                 onTogglePause: () => pauseTapped = true,
-                onToggleAutoSolve: () => aiTapped = true,
               ),
             ),
           ),
         );
 
-        // Left Wing: Mission badge, SCORE & HI-SCORE with 6-digit typography, Callsign
+        // Left Wing: Sector badge, SCORE with 6-digit typography, Sector Name
         expect(find.text('S3 • SIEGE'), findsOneWidget);
         expect(find.text('SCORE'), findsOneWidget);
         expect(find.text('001,420'), findsOneWidget);
-        expect(find.text('HI-SCORE'), findsOneWidget);
-        expect(find.text('005,000'), findsOneWidget);
-        expect(find.text('KILIMA_ONE'), findsOneWidget);
+        expect(find.text('Kipumbwi Trench'), findsOneWidget);
+        // Clutter removed: Callsign and HI-SCORE are shifted off live HUD
+        expect(find.text('HI-SCORE'), findsNothing);
+        expect(find.text('KILIMA_ONE'), findsNothing);
 
-        // Right Wing: Cores micro-gauge, progress bar label, Hostiles, AI, and icon controls
-        expect(find.text('16/50'), findsOneWidget);
-        expect(find.text('ENERGY CORES'), findsOneWidget);
+        // Right Wing: Cores fuel gauge (16 CORES), Hostile elimination tracker (2/6), single pause icon
+        expect(find.text('16'), findsOneWidget);
+        expect(find.text('CORES'), findsOneWidget);
         expect(find.text('2/6'), findsOneWidget);
-        expect(find.text('AI'), findsOneWidget);
         expect(find.byIcon(Icons.pause), findsOneWidget);
         expect(find.text('PAUSE'), findsNothing);
 
-        // Meta buttons are cleanly shifted off live screen to preserve center sightline
+        // Meta buttons and AI toggles are cleanly shifted into PauseMenuDialog
         expect(find.text('MAP'), findsNothing);
         expect(find.text('RULES'), findsNothing);
         expect(find.text('SETTINGS'), findsNothing);
         expect(find.text('ABORT'), findsNothing);
+        expect(find.text('AI'), findsNothing);
+        expect(find.byIcon(Icons.replay), findsNothing);
+        expect(find.byIcon(Icons.stop_circle_outlined), findsNothing);
 
         // Tap PAUSE icon
         await tester.tap(find.byIcon(Icons.pause));
         await tester.pumpAndSettle();
         expect(pauseTapped, isTrue);
-
-        // Tap AI
-        await tester.tap(find.text('AI'));
-        await tester.pumpAndSettle();
-        expect(aiTapped, isTrue);
       },
     );
 
@@ -283,11 +278,11 @@ void main() {
       },
     );
 
-    testWidgets('HudHeader reflects new record when score exceeds highScore', (
+    testWidgets('HudHeader formats score with 6-digit grouped typography', (
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: HudHeader(
               reserveCores: 20,
@@ -301,10 +296,30 @@ void main() {
       );
 
       expect(find.text('SCORE'), findsOneWidget);
-      // Both score and effective high score show 008,500
-      expect(find.text('008,500'), findsNWidgets(2));
-      expect(find.text('HI-SCORE ★'), findsOneWidget);
+      expect(find.text('008,500'), findsOneWidget);
     });
+
+    testWidgets(
+      'HudHeader displays AI SIM and UNRANKED when isAiAssisted is true',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 20,
+                score: 8500,
+                isAiAssisted: true,
+                difficultyTier: 2,
+                sectorId: 5,
+              ),
+            ),
+          ),
+        );
+
+        expect(find.text('AI SIM'), findsOneWidget);
+        expect(find.text('UNRANKED'), findsOneWidget);
+      },
+    );
 
     testWidgets(
       'VictoryDialog displays mission score, high score, and cores saved',
@@ -416,7 +431,7 @@ void main() {
     );
 
     testWidgets(
-      'HudHeader displays person icon and PRO badge when isPro is true',
+      'HudHeader eliminates callsign and Pro badge clutter during active combat to preserve sightline',
       (tester) async {
         await tester.pumpWidget(
           const MaterialApp(
@@ -434,43 +449,17 @@ void main() {
           ),
         );
 
-        expect(find.text('COMMANDER_Z'), findsOneWidget);
-        expect(find.byIcon(Icons.person), findsOneWidget);
-        expect(find.text('PRO'), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'HudHeader displays person icon and no PRO badge when isPro is false',
-      (tester) async {
-        await tester.pumpWidget(
-          const MaterialApp(
-            home: Scaffold(
-              body: HudHeader(
-                reserveCores: 20,
-                score: 1500,
-                highScore: 5000,
-                isPro: false,
-                difficultyTier: 1,
-                sectorId: 2,
-                userProfile: UserProfile(callsign: 'RECRUIT_X'),
-              ),
-            ),
-          ),
-        );
-
-        expect(find.text('RECRUIT_X'), findsOneWidget);
-        expect(find.byIcon(Icons.person), findsOneWidget);
+        // In HUD 2.0 Minimal Orbit, callsign and pro badge are shifted off live combat viewport
+        expect(find.text('COMMANDER_Z'), findsNothing);
         expect(find.text('PRO'), findsNothing);
+        expect(find.byIcon(Icons.person), findsNothing);
       },
     );
 
     testWidgets(
-      'HudHeader renders icon-only simulation controls for pause, restart, and abort with no text',
+      'HudHeader renders single streamlined pause button while secondary controls reside in PauseMenuDialog',
       (tester) async {
         bool pauseTapped = false;
-        bool restartTapped = false;
-        bool stopTapped = false;
 
         await tester.pumpWidget(
           MaterialApp(
@@ -485,19 +474,18 @@ void main() {
                 invadersRemaining: 3,
                 isPaused: false,
                 onTogglePause: () => pauseTapped = true,
-                onRestartTap: () => restartTapped = true,
-                onStopTap: () => stopTapped = true,
               ),
             ),
           ),
         );
 
-        // Verify icon-only simulation controls exist
+        // Verify single streamlined pause button exists
         expect(find.byIcon(Icons.pause), findsOneWidget);
-        expect(find.byIcon(Icons.replay), findsOneWidget);
-        expect(find.byIcon(Icons.stop_circle_outlined), findsOneWidget);
+        // Verify secondary controls (replay, stop) are NOT on the live HUD
+        expect(find.byIcon(Icons.replay), findsNothing);
+        expect(find.byIcon(Icons.stop_circle_outlined), findsNothing);
 
-        // Verify NO text labels are used for simulation controls
+        // Verify NO text labels are used on live HUD controls
         expect(find.text('PAUSE'), findsNothing);
         expect(find.text('RESUME'), findsNothing);
         expect(find.text('RESTART'), findsNothing);
@@ -507,115 +495,50 @@ void main() {
         await tester.tap(find.byIcon(Icons.pause));
         await tester.pumpAndSettle();
         expect(pauseTapped, isTrue);
-
-        // Tap Restart icon
-        await tester.tap(find.byIcon(Icons.replay));
-        await tester.pumpAndSettle();
-        expect(restartTapped, isTrue);
-
-        // Tap Stop/Abort icon
-        await tester.tap(find.byIcon(Icons.stop_circle_outlined));
-        await tester.pumpAndSettle();
-        expect(stopTapped, isTrue);
       },
     );
 
     testWidgets(
-      'HudHeader positions AI and invaders count at the top and expands pause, restart, and abort at the bottom',
+      'PauseMenuDialog integrates AI Auto-Solve toggle alongside tactical controls',
       (tester) async {
-        tester.view.physicalSize = const Size(1080, 2400);
-        tester.view.devicePixelRatio = 2.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-
-        bool pauseTapped = false;
-        bool restartTapped = false;
-        bool abortTapped = false;
         bool aiTapped = false;
+        bool resumeTapped = false;
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: HudHeader(
-                reserveCores: 25,
-                score: 2400,
-                highScore: 8000,
-                difficultyTier: 1,
+              body: PauseMenuDialog(
                 sectorId: 2,
                 sectorName: 'Zanzibar Reef Gate',
-                totalInvaders: 8,
-                invadersRemaining: 5,
-                isPaused: false,
+                difficultyTier: 1,
+                score: 2400,
+                highScore: 8000,
                 isAutoSolving: false,
-                onTogglePause: () => pauseTapped = true,
-                onRestartTap: () => restartTapped = true,
-                onStopTap: () => abortTapped = true,
+                onResume: () => resumeTapped = true,
+                onRestart: () {},
+                onAbort: () {},
                 onToggleAutoSolve: () => aiTapped = true,
               ),
             ),
           ),
         );
 
-        // Verify elements exist
-        final invadersFinder = find.text('3/8');
-        final aiFinder = find.text('AI');
-        final pauseFinder = find.byIcon(Icons.pause);
-        final restartFinder = find.byIcon(Icons.replay);
-        final abortFinder = find.byIcon(Icons.stop_circle_outlined);
+        // AI tactical assist button is accessible within PauseMenuDialog
+        expect(find.text('AI AUTO-SOLVER: STANDBY'), findsOneWidget);
+        expect(find.byIcon(Icons.smart_toy), findsOneWidget);
 
-        expect(invadersFinder, findsOneWidget);
-        expect(aiFinder, findsOneWidget);
-        expect(pauseFinder, findsOneWidget);
-        expect(restartFinder, findsOneWidget);
-        expect(abortFinder, findsOneWidget);
-
-        // Verify vertical hierarchy: AI & invaders count are positioned ABOVE pause, restart, and abort
-        final invadersY = tester.getTopLeft(invadersFinder).dy;
-        final aiY = tester.getTopLeft(aiFinder).dy;
-        final pauseY = tester.getTopLeft(pauseFinder).dy;
-        final restartY = tester.getTopLeft(restartFinder).dy;
-        final abortY = tester.getTopLeft(abortFinder).dy;
-
-        expect(invadersY, lessThan(pauseY));
-        expect(aiY, lessThan(pauseY));
-        expect(invadersY, lessThan(restartY));
-        expect(aiY, lessThan(restartY));
-        expect(invadersY, lessThan(abortY));
-        expect(aiY, lessThan(abortY));
-
-        // Verify bottom simulation controls are expanded (width >= 46 dp, height >= 32 dp)
-        final pauseSize = tester.getSize(find.byTooltip('Pause Sortie'));
-        final restartSize = tester.getSize(find.byTooltip('Restart Sector'));
-        final abortSize = tester.getSize(find.byTooltip('Abort to Map'));
-
-        expect(pauseSize.width, greaterThanOrEqualTo(46.0));
-        expect(pauseSize.height, greaterThanOrEqualTo(32.0));
-        expect(restartSize.width, greaterThanOrEqualTo(46.0));
-        expect(restartSize.height, greaterThanOrEqualTo(32.0));
-        expect(abortSize.width, greaterThanOrEqualTo(46.0));
-        expect(abortSize.height, greaterThanOrEqualTo(32.0));
-
-        // Verify all interactive controls trigger their delegates
-        await tester.tap(aiFinder);
+        await tester.tap(find.text('AI AUTO-SOLVER: STANDBY'));
         await tester.pumpAndSettle();
         expect(aiTapped, isTrue);
 
-        await tester.tap(pauseFinder);
+        await tester.tap(find.byIcon(Icons.play_arrow));
         await tester.pumpAndSettle();
-        expect(pauseTapped, isTrue);
-
-        await tester.tap(restartFinder);
-        await tester.pumpAndSettle();
-        expect(restartTapped, isTrue);
-
-        await tester.tap(abortFinder);
-        await tester.pumpAndSettle();
-        expect(abortTapped, isTrue);
+        expect(resumeTapped, isTrue);
       },
     );
 
     testWidgets(
-      'HudHeader horizontally aligns bounding boxes and aligns controls left-to-right',
+      'HudHeader horizontally aligns bounding boxes and preserves center corridor sightline',
       (tester) async {
         tester.view.physicalSize = const Size(1080, 2400);
         tester.view.devicePixelRatio = 2.0;
@@ -632,31 +555,20 @@ void main() {
                 highScore: 5000,
                 difficultyTier: 0,
                 sectorId: 1,
+                sectorName: 'Zanzibar Reef Gate',
                 userProfile: const UserProfile(callsign: 'VIPER_ONE'),
-                isPro: true,
                 totalInvaders: 2,
                 invadersRemaining: 2,
                 onTogglePause: () {},
-                onRestartTap: () {},
-                onStopTap: () {},
-                onToggleAutoSolve: () {},
               ),
             ),
           ),
         );
 
-        // Verify profile comes before sector element in the left box
-        final profileFinder = find.text('VIPER_ONE');
+        final scoreFinder = find.text('001,200');
         final sectorFinder = find.text('S1 • PATROL');
-        expect(profileFinder, findsOneWidget);
+        expect(scoreFinder, findsOneWidget);
         expect(sectorFinder, findsOneWidget);
-        final profileX = tester.getTopLeft(profileFinder).dx;
-        final sectorX = tester.getTopLeft(sectorFinder).dx;
-        expect(
-          profileX,
-          lessThan(sectorX),
-          reason: 'Profile must come before sector',
-        );
 
         // Verify Left Wing and Right Wing containers have matching heights and top Y during gameplay
         final containers = tester
@@ -685,22 +597,6 @@ void main() {
           reason: 'Bounding box heights must match during gameplay',
         );
 
-        // Verify simulation buttons are left and right aligned with top elements in Right Wing
-        final shieldFinder = find.byIcon(Icons.shield_outlined);
-        final energyCoresFinder = find.text('ENERGY CORES');
-        final pauseFinder = find.byTooltip('Pause Sortie');
-        final abortFinder = find.byTooltip('Abort to Map');
-
-        final shieldLeft = tester.getTopLeft(shieldFinder).dx;
-        final pauseLeft = tester.getTopLeft(pauseFinder).dx;
-        final coresRight = tester.getTopRight(energyCoresFinder).dx;
-        final abortRight = tester.getTopRight(abortFinder).dx;
-
-        // Pause starts within 8dp (the inner padding + border) of shield icon
-        expect((pauseLeft - shieldLeft).abs(), lessThanOrEqualTo(8.0));
-        // Abort ends within 10dp of energy cores right edge
-        expect((abortRight - coresRight).abs(), lessThanOrEqualTo(10.0));
-
         // 2. Test after victory / sector secured
         await tester.pumpWidget(
           MaterialApp(
@@ -712,7 +608,6 @@ void main() {
                 difficultyTier: 0,
                 sectorId: 1,
                 userProfile: const UserProfile(callsign: 'VIPER_ONE'),
-                isPro: true,
                 isSecured: true,
                 totalInvaders: 2,
                 invadersRemaining: 0,

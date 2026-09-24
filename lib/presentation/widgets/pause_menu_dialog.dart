@@ -36,6 +36,8 @@ class PauseMenuDialog extends StatelessWidget {
     this.onCodex,
     this.onAcademy,
     this.onSettings,
+    this.isAutoSolving = false,
+    this.onToggleAutoSolve,
   });
 
   final int sectorId;
@@ -50,6 +52,8 @@ class PauseMenuDialog extends StatelessWidget {
   final VoidCallback? onCodex;
   final VoidCallback? onAcademy;
   final VoidCallback? onSettings;
+  final bool isAutoSolving;
+  final VoidCallback? onToggleAutoSolve;
 
   String get _tierName {
     switch (difficultyTier) {
@@ -295,6 +299,22 @@ class PauseMenuDialog extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (onToggleAutoSolve != null) ...[
+                  const SizedBox(height: 10.0),
+                  TactileButton(
+                    label: isAutoSolving
+                        ? 'AI AUTO-SOLVER: ENGAGED'
+                        : 'AI AUTO-SOLVER: STANDBY',
+                    icon: Icons.smart_toy,
+                    accentColor: isAutoSolving
+                        ? VoidTheme.crimsonFlare
+                        : VoidTheme.plasmaCyan,
+                    isPrimary: isAutoSolving,
+                    onPressed: onToggleAutoSolve,
+                    minWidth: double.infinity,
+                    height: 40.0,
+                  ),
+                ],
                 const SizedBox(height: 10.0),
 
                 // Tertiary Row: Map / Codex / Academy

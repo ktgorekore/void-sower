@@ -104,6 +104,7 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
             // Chassis List
             Expanded(
               child: ListView.separated(
+                padding: const EdgeInsets.only(bottom: 24.0),
                 itemCount: _chassisList.length,
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 12.0),

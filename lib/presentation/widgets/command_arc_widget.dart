@@ -77,7 +77,7 @@ class CommandArcWidget extends StatelessWidget {
                         ),
                         const SizedBox(width: 3.0),
                         Text(
-                          '▲ BAYS 8–15 (FRONTLINE)',
+                          '▲ BAYS 8–15 (FRONTLINE TURRETS)',
                           style: TextStyle(
                             color: VoidTheme.plasmaCyan.withValues(alpha: 0.95),
                             fontSize: 7.2,
@@ -102,7 +102,7 @@ class CommandArcWidget extends StatelessWidget {
             ),
           ),
 
-          // Corridor Alignment Badges C1–C8
+          // Corridor Alignment Badges C1–C8 (Direct Aiming Channels)
           Padding(
             padding: const EdgeInsets.only(bottom: 3.0),
             child: Row(
@@ -113,48 +113,54 @@ class CommandArcWidget extends StatelessWidget {
                 final isSelected = selectedBay == frontlineBay;
 
                 return Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      HapticService.instance.sowTick();
-                      onBaySelected(frontlineBay);
-                      final normX = (corridor + 0.5) / 8.0;
-                      onSlidePosition?.call(normX);
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 1.0),
-                      padding: const EdgeInsets.symmetric(vertical: 2.5),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? VoidTheme.plasmaCyan.withValues(alpha: 0.3)
-                            : VoidTheme.cardSurface.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(4.0),
-                        border: Border.all(
+                  child: Semantics(
+                    label: 'Corridor ${i + 1}',
+                    button: true,
+                    selected: isSelected,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        HapticService.instance.sowTick();
+                        onBaySelected(frontlineBay);
+                        final normX = (corridor + 0.5) / 8.0;
+                        onSlidePosition?.call(normX);
+                      },
+                      child: Container(
+                        height: 28.0,
+                        margin: const EdgeInsets.symmetric(horizontal: 1.0),
+                        padding: const EdgeInsets.symmetric(vertical: 2.5),
+                        decoration: BoxDecoration(
                           color: isSelected
-                              ? VoidTheme.plasmaCyan
-                              : VoidTheme.cardSurface,
-                          width: isSelected ? 1.2 : 0.8,
-                        ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: VoidTheme.plasmaCyan.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                  blurRadius: 4.0,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Center(
-                        child: Text(
-                          'C${i + 1}',
-                          style: TextStyle(
+                              ? VoidTheme.plasmaCyan.withValues(alpha: 0.3)
+                              : VoidTheme.cardSurface.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(4.0),
+                          border: Border.all(
                             color: isSelected
                                 ? VoidTheme.plasmaCyan
-                                : VoidTheme.textSecondary,
-                            fontSize: 9.0,
-                            fontWeight: FontWeight.w900,
+                                : VoidTheme.cardSurface,
+                            width: isSelected ? 1.2 : 0.8,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: VoidTheme.plasmaCyan.withValues(
+                                      alpha: 0.4,
+                                    ),
+                                    blurRadius: 4.0,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: Text(
+                            'C${i + 1}',
+                            style: TextStyle(
+                              color: isSelected
+                                  ? VoidTheme.plasmaCyan
+                                  : VoidTheme.textSecondary,
+                              fontSize: 9.0,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
                       ),
@@ -169,7 +175,7 @@ class CommandArcWidget extends StatelessWidget {
           _buildBayRow(frontlineBays, isFrontline: true),
           const SizedBox(height: 4.0),
 
-          // Backline Tier Header (Sub-Deck Reservoir)
+          // Backline Tier Header (Sub-Deck Reactor Core)
           Padding(
             padding: const EdgeInsets.only(bottom: 2.0, left: 3.0, right: 3.0),
             child: Row(
@@ -189,7 +195,7 @@ class CommandArcWidget extends StatelessWidget {
                         ),
                         const SizedBox(width: 3.0),
                         Text(
-                          '▼ BAYS 0–7 (RESERVOIR)',
+                          '▼ BAYS 0–7 (SUB-DECK REACTOR)',
                           style: TextStyle(
                             color: VoidTheme.solarGold.withValues(alpha: 0.95),
                             fontSize: 7.0,
@@ -213,11 +219,11 @@ class CommandArcWidget extends StatelessWidget {
             ),
           ),
 
-          // Backline Tier (Bays 0 to 7) - Streamlined 38 dp height
+          // Backline Sub-Deck Reservoir (Bays 0 to 7) - Streamlined 38 dp height
           _buildBayRow(backlineBays, isFrontline: false),
           const SizedBox(height: 4.0),
 
-          // Tactical Flagship Axial Discharge Action Deck
+          // Tactical Flagship Axial Discharge Action Deck (TAP TO FIRE LANCE)
           Builder(
             builder: (context) {
               final selected = selectedBay;
@@ -229,54 +235,74 @@ class CommandArcWidget extends StatelessWidget {
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 2.0),
-                child: GestureDetector(
-                  onTap: () {
-                    HapticService.instance.injectionClick();
-                    final dir = (activeCorridor >= 4) ? -1 : 1;
-                    onInjectCore(activeBay, dir);
-                  },
-                  child: Container(
-                    height: 38.0,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          VoidTheme.plasmaCyan,
-                          VoidTheme.plasmaCyanLight,
+                child: Semantics(
+                  label:
+                      'Axial Discharge Corridor ${activeCorridor + 1}, Tap to Fire Lance',
+                  button: true,
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticService.instance.injectionClick();
+                      final dir = (activeCorridor >= 4) ? -1 : 1;
+                      onInjectCore(activeBay, dir);
+                    },
+                    child: Container(
+                      height: 42.0,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            VoidTheme.plasmaCyan,
+                            VoidTheme.plasmaCyanLight,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                            blurRadius: 8.0,
+                            offset: const Offset(0, 2),
+                          ),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(8.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                          blurRadius: 8.0,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.bolt,
-                          color: VoidTheme.obsidianBlack,
-                          size: 16.0,
-                        ),
-                        const SizedBox(width: 4.0),
-                        Flexible(
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'AXIAL DISCHARGE C${activeCorridor + 1} (INJECT CORE • BAY $activeBay)',
-                              style: const TextStyle(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.bolt,
                                 color: VoidTheme.obsidianBlack,
-                                fontSize: 11.0,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
+                                size: 16.0,
                               ),
+                              const SizedBox(width: 4.0),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'AXIAL DISCHARGE C${activeCorridor + 1} • TAP TO FIRE LANCE',
+                                    style: const TextStyle(
+                                      color: VoidTheme.obsidianBlack,
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 1.0),
+                          const Text(
+                            'SWIPE BATTERY TO SOW • TAP TO FIRE',
+                            style: TextStyle(
+                              color: VoidTheme.obsidianBlack,
+                              fontSize: 7.0,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -319,171 +345,174 @@ class CommandArcWidget extends StatelessWidget {
     }
 
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () {
-          HapticService.instance.sowTick();
-          if (selectedBay == bay.bayIndex) {
-            HapticService.instance.injectionClick();
-            onInjectCore(bay.bayIndex, 1);
-          } else {
-            onBaySelected(bay.bayIndex);
-            if (bay.bayIndex >= 8) {
-              final corridor = bay.bayIndex - 8;
-              final normX = (corridor + 0.5) / 8.0;
-              onSlidePosition?.call(normX);
+      child: Semantics(
+        label:
+            '${isFrontline ? "Frontline" : "Sub-deck"} Bay ${bay.bayIndex}, ${bay.chargeUnits} charges',
+        button: true,
+        selected: isSelected,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticService.instance.sowTick();
+            if (selectedBay == bay.bayIndex) {
+              HapticService.instance.injectionClick();
+              onInjectCore(bay.bayIndex, 1);
+            } else {
+              onBaySelected(bay.bayIndex);
+              if (bay.bayIndex >= 8) {
+                final corridor = bay.bayIndex - 8;
+                final normX = (corridor + 0.5) / 8.0;
+                onSlidePosition?.call(normX);
+              }
             }
-          }
-        },
-        onDoubleTap: () {
-          HapticService.instance.injectionClick();
-          onInjectCore(bay.bayIndex, 1);
-        },
-        onPanEnd: (details) {
-          final vx = details.velocity.pixelsPerSecond.dx;
-          final vy = details.velocity.pixelsPerSecond.dy;
-          if (vy < -120 && vy.abs() > vx.abs()) {
-            // Upward flick = Core Injection (namua)
+          },
+          onDoubleTap: () {
             HapticService.instance.injectionClick();
             onInjectCore(bay.bayIndex, 1);
-          } else if (vx > 100) {
-            // Swipe right = Clockwise (+1)
-            HapticService.instance.sowTick();
-            onSowAction(bay.bayIndex, 1);
-          } else if (vx < -100) {
-            // Swipe left = Counter-Clockwise (-1)
-            HapticService.instance.sowTick();
-            onSowAction(bay.bayIndex, -1);
-          }
-        },
-        child: AnimatedScale(
-          scale: isSowHop ? 1.12 : 1.0,
-          duration: const Duration(milliseconds: 140),
-          child: Container(
-            height: isFrontline ? 48.0 : 38.0,
-            margin: const EdgeInsets.symmetric(horizontal: 1.0),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? (isFrontline
-                        ? VoidTheme.plasmaCyan.withValues(alpha: 0.25)
-                        : VoidTheme.solarGold.withValues(alpha: 0.22))
-                  : (bayGlow != Colors.transparent
-                        ? bayGlow
-                        : (isFrontline
-                              ? VoidTheme.cardSurface
-                              : VoidTheme.obsidianBlack.withValues(
-                                  alpha: 0.6,
-                                ))),
-              borderRadius: BorderRadius.circular(6.0),
-              border: Border.all(
-                color: borderColor,
-                width: isSelected || bay.isNyumba ? 1.5 : 0.9,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color:
-                            (isFrontline
-                                    ? VoidTheme.plasmaCyan
-                                    : VoidTheme.solarGold)
-                                .withValues(alpha: 0.35),
-                        blurRadius: 6.0,
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Bay Index label & Special badges
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${bay.bayIndex}',
-                      style: TextStyle(
-                        color: isSelected
-                            ? (isFrontline
-                                  ? VoidTheme.plasmaCyan
-                                  : VoidTheme.solarGold)
-                            : (isFrontline
-                                  ? VoidTheme.textSecondary
-                                  : VoidTheme.textMuted),
-                        fontSize: isFrontline ? 9.5 : 8.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (bay.isNyumba)
-                      const Text(
-                        '★',
-                        style: TextStyle(
-                          color: VoidTheme.solarGold,
-                          fontSize: 8.0,
-                        ),
-                      ),
-                    if (bay.isKichwa)
-                      const Text(
-                        '♦',
-                        style: TextStyle(
-                          color: VoidTheme.nebulaAmethyst,
-                          fontSize: 8.0,
-                        ),
-                      ),
-                    if (bay.isKimbi)
-                      const Text(
-                        '▲',
-                        style: TextStyle(
-                          color: VoidTheme.emeraldShield,
-                          fontSize: 8.0,
-                        ),
-                      ),
-                  ],
+          },
+          onPanEnd: (details) {
+            final vx = details.velocity.pixelsPerSecond.dx;
+            final vy = details.velocity.pixelsPerSecond.dy;
+            if (vy < -120 && vy.abs() > vx.abs()) {
+              HapticService.instance.injectionClick();
+              onInjectCore(bay.bayIndex, 1);
+            } else if (vx > 100) {
+              HapticService.instance.sowTick();
+              onSowAction(bay.bayIndex, 1);
+            } else if (vx < -100) {
+              HapticService.instance.sowTick();
+              onSowAction(bay.bayIndex, -1);
+            }
+          },
+          child: AnimatedScale(
+            scale: isSowHop ? 1.12 : 1.0,
+            duration: const Duration(milliseconds: 140),
+            child: Container(
+              height: isFrontline ? 48.0 : 38.0,
+              margin: const EdgeInsets.symmetric(horizontal: 1.0),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? (isFrontline
+                          ? VoidTheme.plasmaCyan.withValues(alpha: 0.25)
+                          : VoidTheme.solarGold.withValues(alpha: 0.22))
+                    : (bayGlow != Colors.transparent
+                          ? bayGlow
+                          : (isFrontline
+                                ? VoidTheme.cardSurface
+                                : VoidTheme.obsidianBlack.withValues(
+                                    alpha: 0.6,
+                                  ))),
+                borderRadius: BorderRadius.circular(6.0),
+                border: Border.all(
+                  color: borderColor,
+                  width: isSelected || bay.isNyumba ? 1.5 : 0.9,
                 ),
-
-                // Accumulated Plasma Units (M)
-                Text(
-                  '${bay.chargeUnits}',
-                  style: TextStyle(
-                    color: bay.chargeUnits >= 4
-                        ? (isFrontline
-                              ? VoidTheme.plasmaCyan
-                              : VoidTheme.solarGold)
-                        : (isFrontline
-                              ? VoidTheme.textPrimary
-                              : VoidTheme.textSecondary),
-                    fontSize: isFrontline ? 13.5 : 11.5,
-                    fontWeight: FontWeight.bold,
-                    height: 1.05,
-                  ),
-                ),
-
-                // Concentric Charge Pips (Up to 4 pips)
-                if (bay.chargeUnits > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 1.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        bay.chargeUnits.clamp(1, 4),
-                        (i) => Container(
-                          width: isFrontline ? 3.2 : 2.6,
-                          height: isFrontline ? 3.2 : 2.6,
-                          margin: const EdgeInsets.symmetric(horizontal: 0.5),
-                          decoration: BoxDecoration(
-                            color: bay.chargeUnits >= 4
-                                ? (isFrontline
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color:
+                              (isFrontline
                                       ? VoidTheme.plasmaCyan
                                       : VoidTheme.solarGold)
-                                : (isFrontline
-                                      ? VoidTheme.plasmaCyanLight
-                                      : VoidTheme.solarGoldLight),
-                            shape: BoxShape.circle,
+                                  .withValues(alpha: 0.35),
+                          blurRadius: 6.0,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Bay Index label & Special badges
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${bay.bayIndex}',
+                        style: TextStyle(
+                          color: isSelected
+                              ? (isFrontline
+                                    ? VoidTheme.plasmaCyan
+                                    : VoidTheme.solarGold)
+                              : (isFrontline
+                                    ? VoidTheme.textSecondary
+                                    : VoidTheme.textMuted),
+                          fontSize: isFrontline ? 9.5 : 8.5,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (bay.isNyumba)
+                        const Text(
+                          '★',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 8.0,
+                          ),
+                        ),
+                      if (bay.isKichwa)
+                        const Text(
+                          '♦',
+                          style: TextStyle(
+                            color: VoidTheme.nebulaAmethyst,
+                            fontSize: 8.0,
+                          ),
+                        ),
+                      if (bay.isKimbi)
+                        const Text(
+                          '▲',
+                          style: TextStyle(
+                            color: VoidTheme.emeraldShield,
+                            fontSize: 8.0,
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  // Accumulated Plasma Units (M)
+                  Text(
+                    '${bay.chargeUnits}',
+                    style: TextStyle(
+                      color: bay.chargeUnits >= 4
+                          ? (isFrontline
+                                ? VoidTheme.plasmaCyan
+                                : VoidTheme.solarGold)
+                          : (isFrontline
+                                ? VoidTheme.textPrimary
+                                : VoidTheme.textSecondary),
+                      fontSize: isFrontline ? 13.5 : 11.5,
+                      fontWeight: FontWeight.bold,
+                      height: 1.05,
+                    ),
+                  ),
+
+                  // Concentric Charge Pips (Up to 4 pips)
+                  if (bay.chargeUnits > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          bay.chargeUnits.clamp(1, 4),
+                          (i) => Container(
+                            width: isFrontline ? 3.2 : 2.6,
+                            height: isFrontline ? 3.2 : 2.6,
+                            margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                            decoration: BoxDecoration(
+                              color: bay.chargeUnits >= 4
+                                  ? (isFrontline
+                                        ? VoidTheme.plasmaCyan
+                                        : VoidTheme.solarGold)
+                                  : (isFrontline
+                                        ? VoidTheme.plasmaCyanLight
+                                        : VoidTheme.solarGoldLight),
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

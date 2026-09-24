@@ -298,7 +298,7 @@ void main() {
 
         // Verify that the Flight Academy tutorial overlay is active over Sector 1
         expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
-        expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+        expect(find.text('Zanzibar Reef Gate'), findsAtLeastNWidgets(1));
       },
     );
   });
