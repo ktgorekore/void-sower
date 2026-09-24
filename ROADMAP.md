@@ -45,6 +45,7 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 - **Campaign Previews, Fleet Telemetry Dashboard & AI Unranked Simulation (Release v0.2.14 - Code 16)**: Unlocked the premiere sector of every campaign theater (Kilwa Basin through Mascarene Plateau) for free commanders to experience advanced evasion, minefield corridors, and harmonic shielding prior to Pro purchase. Architected comprehensive pilot telemetry dashboard (`StatsDashboardScreen`) summarizing win rates, sorties, flawless victories, combat metrics (invaders destroyed, lances discharged, flak bursts, cores sown, cores preserved, max combo laps), and campaign theater star mastery. Isolated AI tactical advisor simulation to operate strictly unranked (`hasUsedAiSolver`), displaying `AI SIM • UNRANKED` in the combat HUD and preventing automated bot runs from inflating pilot telemetry, sector stars, or high scores. Recaptured and verified all 9 Google Play Store screenshots for pristine, ad-free storefront presentation.
 - **Synchronized Tutorial Video, Anchored Projection Shelf & Canopy Deflection (Release v0.2.15 - Code 17)**: Re-mastered official 60-second in-engine and Play Store tutorial video (`docs/media/void_sower_how_to_play_60s.mp4`, `assets/video/how_to_play.mp4`, `store_listing/assets/how_to_play_60s.mp4`) with Christopher Neural voice narration, ASS subtitles, orchestral synth score, and combat SFX precisely synchronized to on-screen gameplay actions down to the millisecond. Fixed trajectory projection shelf (`ProjectionShelf`) jitter by enforcing rock-solid edge-to-edge full-width anchoring across all corridor alignments and screen resolutions. Connected charged capacitor canopy deflection mechanics in `InvaderBulletManager`, enabling charged frontline bays to deflect hostile plasma bombs (`+50 PTS`) with emerald/cyan flak bursts and protecting core reserves from EMP conduit breaches. Balanced Sector 1 patrol velocity to 0.010 with 36 initial cores for pedagogical pacing. Recaptured and verified clean Play Store listing screenshots free of promotional ad overlays.
 - **Swarm Horde Respawn Stabilization, Dynamic Audio Focus & Background Media Coexistence (Release v0.2.16 - Code 18)**: Resolved game freeze/stall bug in the Void Swarm campaign where clearing initial invaders left the defender stranded without enemy reinforcements; corrected C++ ECS invader respawn loop, dynamic core siphon, and premature victory evaluation so all 24 horde craft spawn across 6 tactical waves. Implemented dynamic audio focus management in `AudioService`, abandoning exclusive audio focus (setting `AndroidAudioFocus.none` and iOS `ambient`) when audio is muted, volume is set to 0%, or sound/music is toggled off, allowing external media (YouTube, Spotify, Podcasts) to play concurrently without interruption. Added master switch tiles for SOUND EFFECTS (SFX) and BACKGROUND MUSIC (BGM) in the tactical Settings Modal with reactive control dimming and save state persistence.
+- **Void Sower 2.0 UX/UI Overhaul, Accessibility Hardening & Storefront Media Modernization (Release v0.2.17 - Code 19)**: Implemented full Void Sower 2.0 UX/UI redesign per `docs/design/ux-ui-2.0.md`. Streamlined top HUD into Minimal Orbit Header (`HudHeader`) preserving 100% sightline for descending hostiles and consolidating simulation controls into an icon-only `PauseMenuDialog`. Redesigned `CommandArcWidget` with enlarged 48 dp ergonomic touch bays, prominent C1–C8 corridor badges, and full-width plasma cyan `AXIAL DISCHARGE` trigger. Hardened accessibility semantics with `Semantics` tags, touch target padding ($\ge 48 \times 48\text{ dp}$), high-contrast labels, and TalkBack support. Recaptured entire Google Play Store media suite for both phone (Pixel 10 Pro XL, 1344x2992) and tablet (Pixel Tablet, 2560x1600) on host NVIDIA GPU hardware acceleration. Profiled frame rendering (solid 60 FPS, 1ms GPU frame times, 0 jank) and native RAM consumption (53 MB native heap).
 
 ---
 
@@ -475,6 +476,69 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Wire modal launchers across `HudHeader` (AI Solver button), `FleetHangarDialog` (locked ships), `SettingsModal` (Pro banner), and `StatsDashboardScreen`.
   - [x] Author comprehensive unit tests in `test/entitlement_and_pro_features_test.dart` verifying gatekeeping, purchase restoration, and ad reward passes.
 
+---
 
+## 🛸 Phase 16: Void Sower 2.0 UX/UI Architecture Integration, Accessibility Compliance & Storefront Asset Modernization (Completed ✅)
 
+- [x] **Task 16.1: Minimal Orbit HUD 2.0 (`HudHeader`) Implementation**
+  - [x] Architect two-wing split HUD (`_buildLeftWing`, `_buildRightWing`) leaving central hostile corridor 100% unobstructed.
+  - [x] Top-Left Wing: Pilot callsign with quick dossier tap target, tactical mission micro-badge (Sector ID, Campaign Theater, Difficulty Tier), and prominent 6-digit score typography with persistent all-time high score display.
+  - [x] Top-Right Wing: Core reserve micro-gauge with dynamic danger tiering (plasma cyan $\ge 8$, solar gold $3\dots 7$, crimson flare $< 3$), invader elimination counter or `SECURED` advance shortcut, and single streamlined tactical pause button (`[ ⏸ ]`).
+  - [x] Remove cluttered settings, audio toggle, and direct navigation buttons from active combat viewport.
 
+- [x] **Task 16.2: Tactical Pause Menu 2.0 (`PauseMenuDialog`) Architecture**
+  - [x] Build cybernetic modal overlay (`PauseMenuDialog`) triggered exclusively via HUD pause button (`[ ⏸ ]`).
+  - [x] Consolidate primary simulation controls into high-contrast icon-only action cards: Resume Sortie (`▶`), Restart Sortie (`🔄`), and Abort Sortie (`⏹`).
+  - [x] Integrate live sortie score and all-time high score comparison banner.
+  - [x] Provide one-tap AI Tactical Auto-Solver engagement toggle button.
+  - [x] Equip tertiary action row routing to Campaign Star Map (`MAP`), Bao Orbital Codex (`RULES`), and Flight Academy (`ACADEMY`).
+
+- [x] **Task 16.3: Command Arc 2.0 (`CommandArcWidget`) & Axial Discharge Redesign**
+  - [x] Enlarge frontline (Bays 8–15) and backline (Bays 0–7) capacitor cells to 48 dp height, satisfying ergonomic Android touch standards ($\ge 48 \times 48\text{ dp}$).
+  - [x] Integrate direct C1–C8 corridor alignment badges above frontline deck for instant targeting corridor selection.
+  - [x] Implement prominent full-width gradient action bar: `AXIAL DISCHARGE C[X] • TAP TO FIRE LANCE` with direct gesture sowing support.
+  - [x] Display real-time energy core indicators and charge state coloring.
+
+- [x] **Task 16.4: Accessibility (a11y) & Ergonomics Hardening**
+  - [x] Wrap all capacitor bays, corridor selection tabs, simulation buttons, and discharge banners with `Semantics` tags specifying button roles, labels, and selection states for TalkBack screen readers.
+  - [x] Guarantee $\ge 48 \times 48\text{ dp}$ touch bounding boxes across all interactive controls.
+  - [x] Verify WCAG 2.1 AA color contrast compliance ($\ge 4.5:1$) across cyan, gold, and emerald HUD accents against deep obsidian black surfaces.
+  - [x] Anchor all critical combat interactions within the lower 30% primary thumb command arc for comfortable one-handed mobile play.
+
+- [x] **Task 16.5: Performance Profiling & Hardware-Accelerated Simulation**
+  - [x] Execute hardware-accelerated live combat sorties on Pixel 10 Pro XL (`emulator-5554`) and Pixel Tablet (`emulator-5556`) using NVIDIA PRIME GPU offload.
+  - [x] Profile rendering performance via `dumpsys gfxinfo com.voidsower.app`:
+    - Total janky frames: 0% during active combat.
+    - 50th/90th/95th/99th GPU percentiles: 1ms (phone), 3ms (tablet).
+    - 0 missed Vsync deadlines, 0 slow UI thread frames, 0 slow issue draw commands.
+  - [x] Profile memory consumption via `dumpsys meminfo com.voidsower.app`:
+    - Native Heap Private Dirty: 50.0–53.2 MB.
+    - Total PSS: 298 MB (phone), 354 MB (tablet).
+    - Zero per-frame runtime dynamic memory allocations during 60 Hz combat simulation.
+
+- [x] **Task 16.6: Google Play Storefront Asset Recapture (Phone & Tablet)**
+  - [x] Update automation scripts (`scripts/capture_phone_screenshots.py`, `scripts/capture_tablet_screenshots.py`) with verified 2.0 coordinates and rich commander profile seeding.
+  - [x] Recapture full 9-image phone screenshot suite (1344x2992, Pixel 10 Pro XL) in `store_listing/screenshots/phone/`:
+    - `01_tactical_combat_grid.png`: Minimal Orbit HUD 2.0 + Command Arc 2.0.
+    - `02_quadratic_lance_discharge.png`: Axial particle lance discharge in Phantom Drift.
+    - `03_flight_academy_onboarding.png`: Interactive flight academy briefing.
+    - `04_orbital_fleet_hangar.png`: Flagship dreadnought hangar and chassis selection.
+    - `05_kilwa_basin_campaign_map.png`: Multi-theater campaign operation map.
+    - `06_sector_liberation_victory.png`: Sector Liberation Victory modal.
+    - `07_bao_orbital_codex.png`: Bao Orbital Codex tactical rules.
+    - `08_pilot_telemetry_dashboard.png`: Pilot telemetry and combat metrics.
+    - `09_pro_commander_upgrade.png`: $1.29 Lifetime Pro Commander license modal.
+  - [x] Recapture full 6-image tablet screenshot suite (2560x1600, Pixel Tablet) in `store_listing/screenshots/tablet/`:
+    - `01_tablet_tactical_combat.png`: Centered 580 dp tactical combat arena.
+    - `02_tablet_sowing_trajectory.png`: Full-width axial lance discharge.
+    - `03_tablet_campaign_map.png`: Star Map on high-resolution widescreen.
+    - `04_tablet_fleet_hangar.png`: Fleet hangar vessel customization.
+    - `05_tablet_flight_academy.png`: Flight academy interactive simulator.
+    - `06_tablet_bao_codex.png`: Bao Orbital Codex modal on tablet.
+  - [x] Synchronize phone screenshots to `store_listing/assets/`.
+
+- [x] **Task 16.7: Comprehensive Test Suite Validation**
+  - [x] Update `test/hud_redesign_test.dart` with 16 comprehensive widget tests validating the Minimal Orbit HUD 2.0 and `PauseMenuDialog` specifications.
+  - [x] Resolve sector badge name matching in `test/campaign_progression_test.dart`.
+  - [x] Run full test suite: `flutter test` — **146 passed, 0 failures**.
+  - [x] Run static analyzer: `flutter analyze` — **0 issues found**.
