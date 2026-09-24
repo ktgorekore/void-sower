@@ -99,6 +99,10 @@ def main():
   os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
   os.makedirs(ASSETS_DIR, exist_ok=True)
 
+  # Dismiss any lingering system dialogs
+  keyevent(4)
+  time.sleep(0.5)
+
   # =========================================================================
   # Phase 1: Pro Unlocked Suite
   # =========================================================================
@@ -130,12 +134,12 @@ def main():
       os.path.join(ASSETS_DIR, "phone_01_tactical_combat_grid.png"),
   )
 
-  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=889, y=350, then RULES at x=671, y=1740)
+  # Screenshot 07: Bao Orbital Codex (Tap PAUSE at x=1250, y=230, then RULES at x=672, y=1839)
   print("[Codex] Opening Tactical Pause menu...")
-  tap(889, 350)
+  tap(1250, 230)
   time.sleep(1.0)
-  print("[Codex] Opening Bao Codex dialog...")
-  tap(671, 1740)
+  print("[Codex] Opening Bao Codex dialog (tap RULES at x=672, y=1839)...")
+  tap(672, 1839)
   time.sleep(1.2)
   capture("07_bao_orbital_codex.png")
   shutil.copyfile(
@@ -146,20 +150,20 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Navigate to Star Map: Tap PAUSE at x=889, y=350, then MAP at x=313, y=1740
+  # Navigate to Star Map: Tap PAUSE at x=1250, y=230, then MAP at x=325, y=1839
   print("[Map] Opening Tactical Pause to navigate to Star Map...")
-  tap(889, 350)
+  tap(1250, 230)
   time.sleep(1.0)
-  tap(313, 1740)
+  tap(325, 1839)
   time.sleep(2.0)
 
   # Screenshot 05: Multi-Theater Campaign Map (Kilwa Basin, Phantom Drift, Void Swarm)
   print("[Map] Capturing 05_kilwa_basin_campaign_map.png...")
   capture("05_kilwa_basin_campaign_map.png")
 
-  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=683, y=240 in Map AppBar)
+  # Screenshot 04: Orbital Fleet Hangar (Tap Rocket icon at x=685, y=240 in Map AppBar)
   print("[Hangar] Opening Fleet Hangar dialog...")
-  tap(683, 240)
+  tap(685, 240)
   time.sleep(1.2)
   capture("04_orbital_fleet_hangar.png")
   shutil.copyfile(
@@ -169,9 +173,9 @@ def main():
   keyevent(4)
   time.sleep(0.8)
 
-  # Screenshot 08: Pilot Telemetry Dashboard (Tap Leaderboard icon at x=1163, y=240 in Map AppBar)
+  # Screenshot 08: Pilot Telemetry Dashboard (Tap Leaderboard icon at x=1165, y=240 in Map AppBar)
   print("[Telemetry] Opening Combat Telemetry dashboard...")
-  tap(1163, 240)
+  tap(1165, 240)
   time.sleep(1.5)
   capture("08_pilot_telemetry_dashboard.png")
   shutil.copyfile(
@@ -208,40 +212,43 @@ def main():
 
   # Return to Map and launch Sector 1 for clean AI victory sequence
   print("[Victory] Returning to Star Map to launch Kilwa Basin S1...")
-  tap(889, 350)  # Pause
+  tap(1250, 230)  # Pause
   time.sleep(1.0)
-  tap(313, 1740) # Map
+  tap(325, 1839)  # Map
   time.sleep(1.5)
-  tap(250, 500)  # Kilwa Basin tab
+  tap(250, 500)   # Kilwa Basin tab
   time.sleep(0.8)
-  tap(830, 1265) # Sector 1 REPLAY / ENGAGE
+  tap(830, 1265)  # Sector 1 REPLAY / ENGAGE
   time.sleep(0.8)
-  tap(675, 2850) # Launch battle
+  tap(675, 2850)  # Launch battle
   time.sleep(1.8)
 
-  # Activate AI Solver in right HUD (x=1015, y=240) to eliminate invaders and achieve Victory
+  # Activate AI Solver via Tactical Pause Menu to eliminate invaders and achieve Victory
   print("[Solver] Activating AI Tactical Solver to clear sector...")
-  tap(1015, 240)
+  tap(1250, 230)
+  time.sleep(0.8)
+  tap(672, 1680)  # Toggle AI Solver
+  time.sleep(0.5)
+  tap(311, 1508)  # Resume
+  time.sleep(1.0)
 
   # Poll for victory modal
   print("[Victory] Waiting for Sector Liberation modal...")
   modal_captured = False
-  for attempt in range(40):
-    time.sleep(0.5)
+  for attempt in range(60):
+    time.sleep(0.25)
     dest_path = os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png")
     with open(dest_path, "wb") as f:
       subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f)
-    if attempt < 4:
-      continue
     try:
       im = Image.open(dest_path)
       arr = np.array(im)
-      # Check for gold military crest in center: y: 800..1200, x: 550..800
-      crop = arr[800:1200, 550:800]
+      # Check for gold military crest in center: y: 750..1300, x: 500..850
+      crop = arr[750:1300, 500:850]
       gold_pts = np.where(
-          (crop[:, :, 0] > 220) & (crop[:, :, 1] > 160) & (crop[:, :, 2] < 50)
+          (crop[:, :, 0] > 200) & (crop[:, :, 1] > 140) & (crop[:, :, 2] < 60)
       )
-      if len(gold_pts[0]) > 400:
+      if len(gold_pts[0]) > 250:
         print(f"[Victory] Captured 06_sector_liberation_victory.png (attempt {attempt + 1})!")
         modal_captured = True
         break
@@ -264,10 +271,10 @@ def main():
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.5)
 
-  # Tap PAUSE at x=889, y=350, then MAP at x=313, y=1740
-  tap(889, 350)
+  # Tap PAUSE at x=1250, y=230, then MAP at x=325, y=1839
+  tap(1250, 230)
   time.sleep(1.0)
-  tap(313, 1740)
+  tap(325, 1839)
   time.sleep(2.0)
 
   # In Free Tier, the Pro upgrade icon in AppBar is at x=1283, y=240

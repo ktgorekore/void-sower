@@ -64,21 +64,45 @@ def main():
   device = get_device()
   print(f"[Init] Targeting device: {device}")
 
+  keyevent(4, device)
+  time.sleep(0.5)
+
   adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"], device)
 
-  # 1. Reset state: force-stop app, clear data, and seed persistent Pro unlock
+  # 1. Reset state: force-stop app, clear data, and seed persistent Pro unlock with rich profile
   print("[Init] Resetting app state & seeding Pro entitlement...")
   adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"], device)
   time.sleep(0.5)
   adb_cmd(["shell", "pm", "clear", "com.voidsower.app"], device)
   time.sleep(1.0)
 
+  profile_json = (
+      '{"id":"pilot_default","callsign":"Vanguard-01","insignia":"shonaStar",'
+      '"lifetimeScore":34820,"enemiesDestroyed":142,"lancesFired":86,"maxCascadeLaps":4,'
+      '"missionsPlayed":28,"victories":22,"defeats":6,"flawlessVictories":14,"totalSeedsSown":340,'
+      '"flakBurstsTriggered":24,"totalCoresSaved":184,"currentStreak":5,"longestStreak":12,'
+      '"lastPlayedDate":"2026-09-19","totalFlightTimeSeconds":4820,'
+      '"chassisSorties":{"mk1_bastion":16,"mk2_monsoon":12},'
+      '"campaignSorties":{"kilwa_basin":18,"phantom_drift":10},'
+      '"unlockedAchievements":["first_sortie","flawless_defense","cascade_master","iron_hull"],'
+      '"isGoogleLinked":false}'
+  )
+  escaped_profile = profile_json.replace('"', '&quot;')
+
   pref_xml = (
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
       '<map>\n'
       '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
       '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
-      '    <int name="flutter.void_sower_high_score" value="12480" />\n'
+      '    <int name="flutter.void_sower_high_score" value="34820" />\n'
+      '    <int name="flutter.void_sower_liberated_sectors" value="6" />\n'
+      '    <int name="flutter.void_sower_sector_stars_1" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_2" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_3" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_4" value="2" />\n'
+      '    <int name="flutter.void_sower_sector_stars_5" value="2" />\n'
+      f'    <string name="flutter.void_sower_user_profile">{escaped_profile}</string>\n'
+      '    <string name="flutter.void_sower_active_profile_id">pilot_default</string>\n'
       '</map>\n'
   )
   with open("/tmp/prefs.xml", "w") as f:
@@ -123,18 +147,18 @@ def main():
   capture("01_tablet_tactical_combat.png", device)
 
   # 3. Screenshot 02: Sowing Trajectory & Axial Lance
-  print("[Tablet Combat] Discharging Axial Particle Lance (tap x=1280, y=1435)...")
-  tap(1280, 1435, device)
+  print("[Tablet Combat] Discharging Axial Particle Lance (tap x=1280, y=1484)...")
+  tap(1280, 1484, device)
   time.sleep(0.20)
   capture("02_tablet_sowing_trajectory.png", device)
   time.sleep(1.0)
 
-  # 4. Screenshot 06: Bao Codex on Tablet (Tap PAUSE at x=1768, y=190, then RULES at x=1270, y=995)
+  # 4. Screenshot 06: Bao Codex on Tablet (Tap PAUSE at x=1788, y=128, then RULES at x=1280, y=989)
   print("[Tablet Codex] Opening Tactical Pause menu...")
-  tap(1768, 190, device)
+  tap(1788, 128, device)
   time.sleep(1.0)
-  print("[Tablet Codex] Opening Bao Codex dialog (tap RULES at x=1270, y=995)...")
-  tap(1270, 995, device)
+  print("[Tablet Codex] Opening Bao Codex dialog (tap RULES at x=1280, y=989)...")
+  tap(1280, 989, device)
   time.sleep(1.8)
   capture("06_tablet_bao_codex.png", device)
   # Close Bao Codex dialog via Back keyevent (returns directly to CombatScreen)
@@ -142,21 +166,21 @@ def main():
   keyevent(4, device)
   time.sleep(1.0)
 
-  # 5. Navigate to Star Map: Tap PAUSE at x=1768, y=190, then MAP at x=1015, y=995
+  # 5. Navigate to Star Map: Tap PAUSE at x=1788, y=128, then MAP at x=1058, y=989
   print("[Tablet Map] Opening Tactical Pause to navigate to Star Map...")
-  tap(1768, 190, device)
+  tap(1788, 128, device)
   time.sleep(1.0)
-  print("[Tablet Map] Tapping MAP button at x=1015, y=995...")
-  tap(1015, 995, device)
+  print("[Tablet Map] Tapping MAP button at x=1058, y=989...")
+  tap(1058, 989, device)
   time.sleep(2.5)
 
   # Screenshot 03: Tablet Campaign Map
   print("[Tablet Map] Capturing 03_tablet_campaign_map.png...")
   capture("03_tablet_campaign_map.png", device)
 
-  # 6. Screenshot 04: Tablet Fleet Hangar (tap Rocket icon at x=1462, y=109 in Map AppBar)
-  print("[Tablet Hangar] Opening Fleet Hangar (tap Rocket at x=1462, y=109)...")
-  tap(1462, 109, device)
+  # 6. Screenshot 04: Tablet Fleet Hangar (tap Rocket icon at x=1440, y=109 in Map AppBar)
+  print("[Tablet Hangar] Opening Fleet Hangar (tap Rocket at x=1440, y=109)...")
+  tap(1440, 109, device)
   time.sleep(1.8)
   capture("04_tablet_fleet_hangar.png", device)
   keyevent(4, device)
