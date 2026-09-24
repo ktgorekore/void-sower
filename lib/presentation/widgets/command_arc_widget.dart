@@ -246,7 +246,7 @@ class CommandArcWidget extends StatelessWidget {
                       onInjectCore(activeBay, dir);
                     },
                     child: Container(
-                      height: 42.0,
+                      height: 52.0,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
@@ -254,11 +254,15 @@ class CommandArcWidget extends StatelessWidget {
                             VoidTheme.plasmaCyanLight,
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(8.0),
+                        borderRadius: BorderRadius.circular(26.0),
+                        border: Border.all(
+                          color: VoidTheme.starWhite.withValues(alpha: 0.6),
+                          width: 1.2,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                            blurRadius: 8.0,
+                            color: VoidTheme.plasmaCyan.withValues(alpha: 0.5),
+                            blurRadius: 12.0,
                             offset: const Offset(0, 2),
                           ),
                         ],
@@ -423,7 +427,7 @@ class CommandArcWidget extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Bay Index label & Special badges
+                  // Bay Index label & Special badges (Nyumba = 🛡️ Vault)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -442,11 +446,12 @@ class CommandArcWidget extends StatelessWidget {
                         ),
                       ),
                       if (bay.isNyumba)
-                        const Text(
-                          '★',
-                          style: TextStyle(
+                        const Padding(
+                          padding: EdgeInsets.only(left: 1.5),
+                          child: Icon(
+                            Icons.shield,
                             color: VoidTheme.solarGold,
-                            fontSize: 8.0,
+                            size: 8.5,
                           ),
                         ),
                       if (bay.isKichwa)
@@ -468,46 +473,78 @@ class CommandArcWidget extends StatelessWidget {
                     ],
                   ),
 
-                  // Accumulated Plasma Units (M)
+                  // Accumulated Plasma Units (M) or Vault Reserve
                   Text(
-                    '${bay.chargeUnits}',
+                    bay.isNyumba
+                        ? '🛡️ ${bay.chargeUnits}'
+                        : '${bay.chargeUnits}',
                     style: TextStyle(
-                      color: bay.chargeUnits >= 4
-                          ? (isFrontline
-                                ? VoidTheme.plasmaCyan
-                                : VoidTheme.solarGold)
-                          : (isFrontline
-                                ? VoidTheme.textPrimary
-                                : VoidTheme.textSecondary),
-                      fontSize: isFrontline ? 13.5 : 11.5,
-                      fontWeight: FontWeight.bold,
+                      color: bay.isNyumba
+                          ? VoidTheme.solarGold
+                          : (bay.chargeUnits >= 4
+                                ? (isFrontline
+                                      ? VoidTheme.plasmaCyan
+                                      : VoidTheme.solarGold)
+                                : (isFrontline
+                                      ? VoidTheme.textPrimary
+                                      : VoidTheme.textSecondary)),
+                      fontSize: bay.isNyumba
+                          ? (isFrontline ? 10.5 : 9.5)
+                          : (isFrontline ? 13.0 : 11.0),
+                      fontWeight: FontWeight.w900,
                       height: 1.05,
                     ),
                   ),
 
-                  // Concentric Charge Pips (Up to 4 pips)
+                  // Segmented Glowing Battery Pill Dashes (Physical Energy Cells)
                   if (bay.chargeUnits > 0)
                     Padding(
-                      padding: const EdgeInsets.only(top: 1.0),
+                      padding: const EdgeInsets.only(top: 2.0),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           bay.chargeUnits.clamp(1, 4),
                           (i) => Container(
-                            width: isFrontline ? 3.2 : 2.6,
-                            height: isFrontline ? 3.2 : 2.6,
-                            margin: const EdgeInsets.symmetric(horizontal: 0.5),
+                            width: isFrontline ? 5.5 : 4.2,
+                            height: isFrontline ? 2.8 : 2.2,
+                            margin: const EdgeInsets.symmetric(horizontal: 0.6),
                             decoration: BoxDecoration(
-                              color: bay.chargeUnits >= 4
-                                  ? (isFrontline
-                                        ? VoidTheme.plasmaCyan
-                                        : VoidTheme.solarGold)
-                                  : (isFrontline
-                                        ? VoidTheme.plasmaCyanLight
-                                        : VoidTheme.solarGoldLight),
-                              shape: BoxShape.circle,
+                              color: bay.isNyumba
+                                  ? VoidTheme.solarGold
+                                  : (bay.chargeUnits >= 4
+                                        ? (isFrontline
+                                              ? VoidTheme.plasmaCyan
+                                              : VoidTheme.solarGold)
+                                        : (isFrontline
+                                              ? VoidTheme.plasmaCyanLight
+                                              : VoidTheme.solarGoldLight)),
+                              borderRadius: BorderRadius.circular(1.2),
+                              boxShadow: bay.chargeUnits >= 2
+                                  ? [
+                                      BoxShadow(
+                                        color:
+                                            (bay.isNyumba
+                                                    ? VoidTheme.solarGold
+                                                    : VoidTheme.plasmaCyan)
+                                                .withValues(alpha: 0.45),
+                                        blurRadius: 2.0,
+                                      ),
+                                    ]
+                                  : null,
                             ),
                           ),
+                        ),
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2.0),
+                      child: Text(
+                        '-',
+                        style: TextStyle(
+                          color: VoidTheme.textMuted.withValues(alpha: 0.6),
+                          fontSize: 8.0,
+                          height: 1.0,
                         ),
                       ),
                     ),

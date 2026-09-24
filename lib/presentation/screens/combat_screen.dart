@@ -27,7 +27,6 @@ import '../controllers/combat_coordinator.dart';
 import '../controllers/combat_overlay_state.dart';
 import '../theme/void_theme.dart';
 import 'campaign_map_screen.dart';
-import '../widgets/bao_codex_dialog.dart';
 import '../widgets/combat_painter.dart';
 import '../widgets/command_arc_widget.dart';
 import '../widgets/game_over_dialog.dart';
@@ -38,6 +37,7 @@ import '../widgets/profile_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
+import '../widgets/tactical_directives_modal.dart';
 import '../widgets/tutorial_overlay.dart';
 import '../widgets/victory_dialog.dart';
 
@@ -456,7 +456,7 @@ class _CombatScreenState extends State<CombatScreen>
 
     showDialog<void>(
       context: context,
-      builder: (context) => BaoCodexDialog(
+      builder: (context) => TacticalDirectivesModal(
         onLaunchAcademy: () {
           _coordinator.showTutorial();
         },
@@ -858,6 +858,10 @@ class _CombatScreenState extends State<CombatScreen>
                                                             _coordinator
                                                                 .bulletManager
                                                                 .bullets,
+                                                        predictedDamage:
+                                                            _coordinator
+                                                                .prediction
+                                                                ?.predictedDamage,
                                                         animationTime:
                                                             _animationTime,
                                                       ),

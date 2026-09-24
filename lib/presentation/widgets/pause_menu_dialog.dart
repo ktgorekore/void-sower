@@ -342,7 +342,7 @@ class PauseMenuDialog extends StatelessWidget {
                     if (onCodex != null)
                       Expanded(
                         child: TactileButton(
-                          label: 'RULES',
+                          label: 'DIRECTIVES',
                           icon: Icons.menu_book,
                           accentColor: VoidTheme.plasmaCyanLight,
                           isPrimary: false,

@@ -91,6 +91,7 @@ class CombatPainter extends CustomPainter {
     required this.particles,
     this.damageNumbers = const [],
     this.enemyBullets = const [],
+    this.predictedDamage,
     required this.animationTime,
     super.repaint,
   });
@@ -102,6 +103,7 @@ class CombatPainter extends CustomPainter {
   final List<VisualParticle> particles;
   final List<FloatingDamageNumber> damageNumbers;
   final List<EnemyBullet> enemyBullets;
+  final double? predictedDamage;
   final double animationTime;
 
   // ---------------------------------------------------------------------------
@@ -297,6 +299,19 @@ class CombatPainter extends CustomPainter {
     )..layout();
     return painter;
   });
+
+  static final Paint _damageTagBgPaint = Paint()
+    ..color = VoidTheme.obsidianBlack.withValues(alpha: 0.92)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _damageTagBorderPaint = Paint()
+    ..color = VoidTheme.plasmaCyan
+    ..strokeWidth = 1.0
+    ..style = PaintingStyle.stroke;
+
+  static final TextPainter _damageTagTextPainter = TextPainter(
+    textDirection: TextDirection.ltr,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -645,6 +660,44 @@ class CombatPainter extends CustomPainter {
           Offset(enemyX, ey - 3.5),
           Offset(enemyX, ey + 3.5),
           _lockCrosshairPaint,
+        );
+
+        // Clean Damage Preview Tag (⚡ 16x DMG)
+        final dmgValue = (predictedDamage != null && predictedDamage! > 0)
+            ? predictedDamage!.toInt()
+            : 16;
+        final tagText = '⚡ ${dmgValue}x DMG';
+        _damageTagTextPainter.text = TextSpan(
+          text: tagText,
+          style: const TextStyle(
+            color: VoidTheme.plasmaCyan,
+            fontSize: 9.5,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        );
+        _damageTagTextPainter.layout();
+
+        final tagWidth = _damageTagTextPainter.width + 10.0;
+        const tagHeight = 18.0;
+        final tagX = (enemyX + lockSize + 4.0 + tagWidth > size.width)
+            ? enemyX - lockSize - 4.0 - tagWidth
+            : enemyX + lockSize + 4.0;
+        final tagY = ey - tagHeight / 2.0;
+
+        final tagRRect = RRect.fromRectAndRadius(
+          Rect.fromLTWH(tagX, tagY, tagWidth, tagHeight),
+          const Radius.circular(4.0),
+        );
+        canvas.drawRRect(tagRRect, _damageTagBgPaint);
+        canvas.drawRRect(tagRRect, _damageTagBorderPaint);
+
+        _damageTagTextPainter.paint(
+          canvas,
+          Offset(
+            tagX + 5.0,
+            tagY + (tagHeight - _damageTagTextPainter.height) / 2.0,
+          ),
         );
       }
     }

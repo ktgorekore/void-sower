@@ -130,7 +130,7 @@ void main() {
         expect(find.text('RESTART'), findsNothing);
         expect(find.text('ABORT'), findsNothing);
         expect(find.text('MAP'), findsOneWidget);
-        expect(find.text('RULES'), findsOneWidget);
+        expect(find.text('DIRECTIVES'), findsOneWidget);
         expect(find.text('ACADEMY'), findsOneWidget);
         expect(find.text('SYSTEM & AUDIO SETTINGS'), findsOneWidget);
 
@@ -150,7 +150,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(mapTapped, isTrue);
 
-        await tester.tap(find.text('RULES'));
+        await tester.tap(find.text('DIRECTIVES'));
         await tester.pumpAndSettle();
         expect(codexTapped, isTrue);
 

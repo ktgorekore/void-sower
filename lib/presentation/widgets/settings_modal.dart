@@ -20,6 +20,7 @@ import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'consent_preferences_dialog.dart';
 import 'legal_dialogs.dart';
+import 'tactical_directives_modal.dart';
 import 'tactile_button.dart';
 
 /// Centralized settings and preferences modal with Afrofuturistic styling.
@@ -688,6 +689,28 @@ class _SettingsModalState extends State<SettingsModal>
         const SizedBox(height: 16.0),
         const Divider(color: VoidTheme.cardSurface),
         const SizedBox(height: 12.0),
+
+        TactileButton(
+          label: 'TACTICAL DIRECTIVES (RULES & BRIEFING)',
+          icon: Icons.military_tech,
+          accentColor: VoidTheme.plasmaCyan,
+          isPrimary: false,
+          height: 40.0,
+          onPressed: () {
+            showDialog<void>(
+              context: context,
+              builder: (context) => TacticalDirectivesModal(
+                onLaunchAcademy: widget.onLaunchAcademy != null
+                    ? () {
+                        Navigator.of(context).pop();
+                        widget.onLaunchAcademy?.call();
+                      }
+                    : null,
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 8.0),
 
         if (widget.onLaunchAcademy != null) ...[
           TactileButton(

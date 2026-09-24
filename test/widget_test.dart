@@ -45,7 +45,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.pause));
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('RULES'), findsOneWidget);
+    expect(find.text('DIRECTIVES'), findsOneWidget);
     expect(find.text('MAP'), findsOneWidget);
   });
 
