@@ -239,7 +239,7 @@ class _TutorialVideoDialogState extends State<TutorialVideoDialog> {
                                 ),
                                 const SizedBox(height: 6.0),
                                 const Text(
-                                  'Native video decode is unavailable in this session.\nConsult the Bao Codex for complete orbital rules.',
+                                  'Video briefing has been unbundled to reduce package size.\nConsult the Flight Academy and Bao Codex for combat rules.',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: VoidTheme.textSecondary,

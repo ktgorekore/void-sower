@@ -14,7 +14,7 @@
 
 name: void_sower
 description: "Void Sower: Afrofuturistic space tactical combat & orbital siege engine."
-version: 0.2.17+19
+version: 0.2.18+20
 homepage: https://github.com/ktgorekore/void-sower
 
 environment:
@@ -48,7 +48,6 @@ flutter:
   assets:
     - assets/audio/
     - assets/icons/
-    - assets/video/
   shaders:
     - shaders/particle_lance.frag
     - shaders/flak_burst.frag
