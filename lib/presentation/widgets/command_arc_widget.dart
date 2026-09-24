@@ -57,27 +57,45 @@ class CommandArcWidget extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Frontline Tier Header
+          // Frontline Tier Header (Dominant Weapon Deck)
           Padding(
-            padding: const EdgeInsets.only(bottom: 1.5, left: 2.0, right: 2.0),
+            padding: const EdgeInsets.only(bottom: 2.0, left: 3.0, right: 3.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '▲ BAYS 8–15 (FRONTLINE)',
-                  style: TextStyle(
-                    color: VoidTheme.plasmaCyan.withValues(alpha: 0.9),
-                    fontSize: 7.0,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.shield,
+                          size: 9.0,
+                          color: VoidTheme.plasmaCyan,
+                        ),
+                        const SizedBox(width: 3.0),
+                        Text(
+                          '▲ BAYS 8–15 (FRONTLINE)',
+                          style: TextStyle(
+                            color: VoidTheme.plasmaCyan.withValues(alpha: 0.95),
+                            fontSize: 7.2,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Text(
                   'C1–C8 ──► LANCE',
                   style: TextStyle(
-                    color: VoidTheme.textSecondary.withValues(alpha: 0.75),
+                    color: VoidTheme.plasmaCyanLight.withValues(alpha: 0.8),
                     fontSize: 6.8,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ],
@@ -86,7 +104,7 @@ class CommandArcWidget extends StatelessWidget {
 
           // Corridor Alignment Badges C1–C8
           Padding(
-            padding: const EdgeInsets.only(bottom: 2.5),
+            padding: const EdgeInsets.only(bottom: 3.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(8, (i) {
@@ -105,18 +123,28 @@ class CommandArcWidget extends StatelessWidget {
                     },
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 1.0),
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      padding: const EdgeInsets.symmetric(vertical: 2.5),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? VoidTheme.plasmaCyan.withValues(alpha: 0.25)
-                            : VoidTheme.cardSurface.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(3.0),
+                            ? VoidTheme.plasmaCyan.withValues(alpha: 0.3)
+                            : VoidTheme.cardSurface.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(4.0),
                         border: Border.all(
                           color: isSelected
                               ? VoidTheme.plasmaCyan
-                              : VoidTheme.textMuted.withValues(alpha: 0.3),
-                          width: 0.8,
+                              : VoidTheme.cardSurface,
+                          width: isSelected ? 1.2 : 0.8,
                         ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: VoidTheme.plasmaCyan.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  blurRadius: 4.0,
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Center(
                         child: Text(
@@ -125,8 +153,8 @@ class CommandArcWidget extends StatelessWidget {
                             color: isSelected
                                 ? VoidTheme.plasmaCyan
                                 : VoidTheme.textSecondary,
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 9.0,
+                            fontWeight: FontWeight.w900,
                           ),
                         ),
                       ),
@@ -137,29 +165,46 @@ class CommandArcWidget extends StatelessWidget {
             ),
           ),
 
-          // Frontline Tier (Bays 8 to 15) - Enlarged to 48 dp height
+          // Frontline Tier (Bays 8 to 15) - Primary 48 dp height
           _buildBayRow(frontlineBays, isFrontline: true),
-          const SizedBox(height: 3.0),
+          const SizedBox(height: 4.0),
 
-          // Backline Tier Header
+          // Backline Tier Header (Sub-Deck Reservoir)
           Padding(
-            padding: const EdgeInsets.only(bottom: 1.5, left: 2.0, right: 2.0),
+            padding: const EdgeInsets.only(bottom: 2.0, left: 3.0, right: 3.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '▼ BAYS 0–7 (RESERVOIR)',
-                  style: TextStyle(
-                    color: VoidTheme.solarGold.withValues(alpha: 0.9),
-                    fontSize: 7.0,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.cyclone,
+                          size: 9.0,
+                          color: VoidTheme.solarGold,
+                        ),
+                        const SizedBox(width: 3.0),
+                        Text(
+                          '▼ BAYS 0–7 (RESERVOIR)',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold.withValues(alpha: 0.95),
+                            fontSize: 7.0,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 Text(
                   'STORAGE ──► RELAY',
                   style: TextStyle(
-                    color: VoidTheme.textSecondary.withValues(alpha: 0.75),
+                    color: VoidTheme.solarGoldLight.withValues(alpha: 0.75),
                     fontSize: 6.8,
                     fontWeight: FontWeight.bold,
                   ),
@@ -168,9 +213,9 @@ class CommandArcWidget extends StatelessWidget {
             ),
           ),
 
-          // Backline Tier (Bays 0 to 7) - Enlarged to 48 dp height
+          // Backline Tier (Bays 0 to 7) - Streamlined 38 dp height
           _buildBayRow(backlineBays, isFrontline: false),
-          const SizedBox(height: 3.5),
+          const SizedBox(height: 4.0),
 
           // Tactical Flagship Axial Discharge Action Deck
           Builder(
@@ -191,7 +236,7 @@ class CommandArcWidget extends StatelessWidget {
                     onInjectCore(activeBay, dir);
                   },
                   child: Container(
-                    height: 34.0,
+                    height: 38.0,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
                         colors: [
@@ -199,11 +244,12 @@ class CommandArcWidget extends StatelessWidget {
                           VoidTheme.plasmaCyanLight,
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(6.0),
+                      borderRadius: BorderRadius.circular(8.0),
                       boxShadow: [
                         BoxShadow(
-                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.35),
-                          blurRadius: 6.0,
+                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                          blurRadius: 8.0,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
@@ -213,7 +259,7 @@ class CommandArcWidget extends StatelessWidget {
                         const Icon(
                           Icons.bolt,
                           color: VoidTheme.obsidianBlack,
-                          size: 14.0,
+                          size: 16.0,
                         ),
                         const SizedBox(width: 4.0),
                         Flexible(
@@ -223,9 +269,9 @@ class CommandArcWidget extends StatelessWidget {
                               'AXIAL DISCHARGE C${activeCorridor + 1} (INJECT CORE • BAY $activeBay)',
                               style: const TextStyle(
                                 color: VoidTheme.obsidianBlack,
-                                fontSize: 10.0,
+                                fontSize: 11.0,
                                 fontWeight: FontWeight.w900,
-                                letterSpacing: 0.4,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
@@ -314,19 +360,37 @@ class CommandArcWidget extends StatelessWidget {
           scale: isSowHop ? 1.12 : 1.0,
           duration: const Duration(milliseconds: 140),
           child: Container(
-            height: 48.0,
+            height: isFrontline ? 48.0 : 38.0,
             margin: const EdgeInsets.symmetric(horizontal: 1.0),
             decoration: BoxDecoration(
               color: isSelected
-                  ? VoidTheme.plasmaCyan.withValues(alpha: 0.22)
+                  ? (isFrontline
+                        ? VoidTheme.plasmaCyan.withValues(alpha: 0.25)
+                        : VoidTheme.solarGold.withValues(alpha: 0.22))
                   : (bayGlow != Colors.transparent
                         ? bayGlow
-                        : VoidTheme.cardSurface),
+                        : (isFrontline
+                              ? VoidTheme.cardSurface
+                              : VoidTheme.obsidianBlack.withValues(
+                                  alpha: 0.6,
+                                ))),
               borderRadius: BorderRadius.circular(6.0),
               border: Border.all(
                 color: borderColor,
                 width: isSelected || bay.isNyumba ? 1.5 : 0.9,
               ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color:
+                            (isFrontline
+                                    ? VoidTheme.plasmaCyan
+                                    : VoidTheme.solarGold)
+                                .withValues(alpha: 0.35),
+                        blurRadius: 6.0,
+                      ),
+                    ]
+                  : null,
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -339,9 +403,13 @@ class CommandArcWidget extends StatelessWidget {
                       '${bay.bayIndex}',
                       style: TextStyle(
                         color: isSelected
-                            ? VoidTheme.plasmaCyan
-                            : VoidTheme.textSecondary,
-                        fontSize: 9.5,
+                            ? (isFrontline
+                                  ? VoidTheme.plasmaCyan
+                                  : VoidTheme.solarGold)
+                            : (isFrontline
+                                  ? VoidTheme.textSecondary
+                                  : VoidTheme.textMuted),
+                        fontSize: isFrontline ? 9.5 : 8.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -380,8 +448,10 @@ class CommandArcWidget extends StatelessWidget {
                         ? (isFrontline
                               ? VoidTheme.plasmaCyan
                               : VoidTheme.solarGold)
-                        : VoidTheme.textPrimary,
-                    fontSize: 13.5,
+                        : (isFrontline
+                              ? VoidTheme.textPrimary
+                              : VoidTheme.textSecondary),
+                    fontSize: isFrontline ? 13.5 : 11.5,
                     fontWeight: FontWeight.bold,
                     height: 1.05,
                   ),
@@ -390,19 +460,23 @@ class CommandArcWidget extends StatelessWidget {
                 // Concentric Charge Pips (Up to 4 pips)
                 if (bay.chargeUnits > 0)
                   Padding(
-                    padding: const EdgeInsets.only(top: 1.2),
+                    padding: const EdgeInsets.only(top: 1.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
                         bay.chargeUnits.clamp(1, 4),
                         (i) => Container(
-                          width: 3.2,
-                          height: 3.2,
-                          margin: const EdgeInsets.symmetric(horizontal: 0.6),
+                          width: isFrontline ? 3.2 : 2.6,
+                          height: isFrontline ? 3.2 : 2.6,
+                          margin: const EdgeInsets.symmetric(horizontal: 0.5),
                           decoration: BoxDecoration(
                             color: bay.chargeUnits >= 4
-                                ? VoidTheme.plasmaCyan
-                                : VoidTheme.solarGold,
+                                ? (isFrontline
+                                      ? VoidTheme.plasmaCyan
+                                      : VoidTheme.solarGold)
+                                : (isFrontline
+                                      ? VoidTheme.plasmaCyanLight
+                                      : VoidTheme.solarGoldLight),
                             shape: BoxShape.circle,
                           ),
                         ),

@@ -428,32 +428,32 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   String _getStepBody() {
     switch (_currentStep) {
       case 0:
-        return 'Your dreadnought carries 28 Reserve Cores per sector. Sowing from any bay draws 1 core from reserves (Bao "Namua" rule) to seed the capacitors. Energy is finite!';
+        return 'Your dreadnought carries 28 Reserve Cores per sector. Sowing from any bay draws 1 core from reserves to seed the capacitors. Conserve your fuel to survive the assault!';
       case 1:
-        return 'Pick up plasma from a bay and sow it pit-to-pit along the 16-bay orbital ring. Landing in an already-occupied bay triggers a Bao Cascade Relay—circulating energy for free!';
+        return 'Swipe on any battery to sow plasma pit-to-pit along the 16-bay orbital ring. Landing on an occupied bay triggers a Bao Cascade Relay—circulating energy for free!';
       case 2:
-        return 'When sowing finishes in a frontline bay, it unleashes an axial Particle Lance! Damage scales quadratically with mass (D = 100 · M²). Single taps deal 100 DMG; M=6 deals 3,600 DMG!';
+        return 'When sowing finishes in a frontline bay, it unleashes an axial Particle Lance! Damage scales quadratically with mass (D = 100 · M²). Build mass to vaporize capital ships!';
       case 3:
         return 'Slide the orbital platform (or tap C1–C8 notches) to align your dreadnought prow with descending invaders. Aligning locks that corridor\'s emitter bay automatically.';
       case 4:
       default:
-        return 'Invaders drop plasma bombs. Bays with stored plasma deflect bombs (+50 PTS). If a bomb strikes an empty conduit, it causes an EMP breach (-1 core penalty).';
+        return 'Invaders drop plasma bombs. Conduits holding plasma deflect bombs safely (+50 PTS). Keep your batteries charged to avoid dangerous EMP breaches!';
     }
   }
 
   String _getStepTip() {
     switch (_currentStep) {
       case 0:
-        return 'Watch your core reserves! If reserves hit 0 and no shots are left, the match ends immediately.';
+        return 'Tip: Conserve fuel! If reserves reach 0 and no shots remain, the mission fails.';
       case 1:
-        return 'Sowing existing cores redistributes plasma for FREE without burning reactor reserves.';
+        return 'Tip: Sowing existing cores redistributes plasma for FREE without burning fuel.';
       case 2:
-        return 'Single shots drain ammunition fast. Build mass along the backline to vaporize capital ships!';
+        return 'Tip: Single shots tickle cruisers; high-mass lances vaporize them in one blast!';
       case 3:
-        return 'Slide under enemy clusters to pierce multiple craft in a single axial corridor.';
+        return 'Tip: Slide directly beneath enemy clusters to pierce multiple ships in one line.';
       case 4:
       default:
-        return 'Keep frontline batteries charged to shield your conduits against bombardment!';
+        return 'Tip: Charged batteries form an energy shield that deflects bombardment!';
     }
   }
 
