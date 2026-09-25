@@ -407,39 +407,64 @@ class HudHeader extends StatelessWidget {
 
           const SizedBox(width: 8.0),
 
-          // 2. Integrated Core Fuel Gauge: ⚡ 28 CORES
+          // 2. Integrated Core Fuel Gauge: ⚡ 28 CORES Pill
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: onEmergencyFlareTap,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.bolt, size: 14.0, color: coreColor),
-                const SizedBox(width: 1.0),
-                Text(
-                  '$reserveCores',
-                  style: TextStyle(
-                    color: coreColor,
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.3,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10.0,
+                vertical: 4.0,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(14.0),
+                border: Border.all(color: const Color(0xFF0284C7), width: 1.2),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7.0,
+                    height: 7.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: coreColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: coreColor.withValues(alpha: 0.8),
+                          blurRadius: 4.0,
+                          spreadRadius: 0.5,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 2.0),
-                Text(
-                  'CORES',
-                  style: TextStyle(
-                    color: coreColor.withValues(alpha: 0.75),
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+                  const SizedBox(width: 5.0),
+                  Text(
+                    '$reserveCores',
+                    style: TextStyle(
+                      color: coreColor,
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.3,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 4.0),
+                  Text(
+                    'CORES',
+                    style: TextStyle(
+                      color: coreColor.withValues(alpha: 0.75),
+                      fontSize: 8.0,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
-          // 3. Single Streamlined Pause Button [ ⏸ ]
+          // 3. Single Streamlined Circular Pause Button [ ⏸ ]
           if (onTogglePause != null) ...[
             const SizedBox(width: 8.0),
             Tooltip(
@@ -448,13 +473,13 @@ class HudHeader extends StatelessWidget {
                 behavior: HitTestBehavior.opaque,
                 onTap: onTogglePause,
                 child: Container(
-                  width: 34.0,
-                  height: 34.0,
+                  width: 30.0,
+                  height: 30.0,
                   decoration: BoxDecoration(
                     color: isPaused
                         ? VoidTheme.emeraldShield.withValues(alpha: 0.25)
-                        : VoidTheme.cardSurface.withValues(alpha: 0.75),
-                    borderRadius: BorderRadius.circular(6.0),
+                        : const Color(0xFF1E293B).withValues(alpha: 0.7),
+                    shape: BoxShape.circle,
                     border: Border.all(
                       color: isPaused
                           ? VoidTheme.emeraldShield
@@ -465,7 +490,7 @@ class HudHeader extends StatelessWidget {
                   child: Center(
                     child: Icon(
                       isPaused ? Icons.play_arrow : Icons.pause,
-                      size: 18.0,
+                      size: 16.0,
                       color: isPaused
                           ? VoidTheme.emeraldShield
                           : VoidTheme.solarGold,

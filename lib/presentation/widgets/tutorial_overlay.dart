@@ -104,12 +104,12 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
           padding: const EdgeInsets.all(18.0),
           decoration: VoidTheme.glassmorphic(
             borderColor: _getStepAccent(),
-            borderWidth: 2.0,
-            borderRadius: 16.0,
+            borderWidth: 1.8,
+            borderRadius: 20.0,
             extraShadows: [
               BoxShadow(
-                color: _getStepAccent().withValues(alpha: 0.25),
-                blurRadius: 20.0,
+                color: _getStepAccent().withValues(alpha: 0.3),
+                blurRadius: 24.0,
                 spreadRadius: 2.0,
               ),
             ],
@@ -118,56 +118,82 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header: Title & Step Counter with Close 'X'
+              // Header: Step Pill & Flight Academy Title with Close 'X'
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(_getStepIcon(), color: _getStepAccent(), size: 18.0),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        'FLIGHT ACADEMY',
-                        style: TextStyle(
-                          color: _getStepAccent(),
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1.2,
-                        ),
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                              vertical: 3.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF082F49),
+                              borderRadius: BorderRadius.circular(11.0),
+                              border: Border.all(
+                                color: const Color(0xFF0284C7),
+                                width: 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _getStepIcon(),
+                                  color: const Color(0xFF38BDF8),
+                                  size: 11.0,
+                                ),
+                                const SizedBox(width: 4.0),
+                                Text(
+                                  'STEP ${_currentStep + 1} OF 5',
+                                  style: const TextStyle(
+                                    color: Color(0xFF38BDF8),
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8.0),
+                          Text(
+                            'FLIGHT ACADEMY',
+                            style: TextStyle(
+                              color: _getStepAccent(),
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${_currentStep + 1} / 5',
-                        style: const TextStyle(
-                          color: VoidTheme.textSecondary,
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4.0),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          color: VoidTheme.textSecondary,
-                          size: 20.0,
-                        ),
-                        tooltip: 'Dismiss Flight Academy',
-                        padding: const EdgeInsets.all(8.0),
-                        constraints: const BoxConstraints(
-                          minWidth: 40.0,
-                          minHeight: 40.0,
-                        ),
-                        onPressed: () {
-                          HapticService.instance.sowTick();
-                          widget.onDismiss();
-                        },
-                      ),
-                    ],
+                  const SizedBox(width: 4.0),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close,
+                      color: VoidTheme.textSecondary,
+                      size: 20.0,
+                    ),
+                    tooltip: 'Dismiss Flight Academy',
+                    padding: const EdgeInsets.all(8.0),
+                    constraints: const BoxConstraints(
+                      minWidth: 40.0,
+                      minHeight: 40.0,
+                    ),
+                    onPressed: () {
+                      HapticService.instance.sowTick();
+                      widget.onDismiss();
+                    },
                   ),
                 ],
               ),
@@ -609,48 +635,154 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface,
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(
-          color: VoidTheme.plasmaCyan.withValues(alpha: 0.5),
-          width: 1.0,
-        ),
+        color: const Color(0xFF0B1329),
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
       ),
       child: Column(
         children: [
-          Row(
-            children: List.generate(8, (i) {
-              final bay = i + 8;
-              final isActive = _demoActiveBay == bay;
-              return Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                  height: 26.0,
-                  decoration: BoxDecoration(
-                    color: isActive
-                        ? VoidTheme.plasmaCyan
-                        : VoidTheme.obsidianBlack,
-                    borderRadius: BorderRadius.circular(4.0),
-                    border: Border.all(
-                      color: isActive
-                          ? VoidTheme.plasmaCyanLight
-                          : VoidTheme.textMuted.withValues(alpha: 0.4),
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'B$bay',
-                    style: TextStyle(
-                      color: isActive
-                          ? VoidTheme.obsidianBlack
-                          : VoidTheme.textSecondary,
-                      fontSize: 8.0,
-                      fontWeight: FontWeight.bold,
+          // Holographic Swipe Visualization Track
+          SizedBox(
+            height: 72.0,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // 8 Bay Capsules Track
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: List.generate(8, (i) {
+                    final bayNum = i + 1;
+                    final isSource = bayNum == 2;
+                    final isWaypoint = bayNum == 3;
+                    final isTarget = bayNum == 4;
+                    final isDim = bayNum > 4 || bayNum == 1;
+
+                    Color bg = const Color(0xFF0F172A);
+                    Color border = const Color(0xFF1E293B);
+                    double bWidth = 1.0;
+
+                    if (isSource) {
+                      bg = const Color(0xFF082F49);
+                      border = const Color(0xFF00E5FF);
+                      bWidth = 1.8;
+                    } else if (isWaypoint) {
+                      border = const Color(0xFF334155);
+                    } else if (isTarget) {
+                      bg = const Color(0xFF1E1B4B);
+                      border = const Color(0xFFA855F7);
+                      bWidth = 1.8;
+                    }
+
+                    return Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 2.0),
+                        decoration: BoxDecoration(
+                          color: isDim ? bg.withValues(alpha: 0.35) : bg,
+                          borderRadius: BorderRadius.circular(6.0),
+                          border: Border.all(
+                            color: isDim
+                                ? border.withValues(alpha: 0.3)
+                                : border,
+                            width: bWidth,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (isSource) ...[
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    width: 6.0,
+                                    height: 6.0,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF00E5FF),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0xFF00E5FF),
+                                          blurRadius: 4.0,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 2.0),
+                                  Container(
+                                    width: 6.0,
+                                    height: 6.0,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Color(0xFF00E5FF),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Color(0xFF00E5FF),
+                                          blurRadius: 4.0,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4.0),
+                              const Text(
+                                'SOW',
+                                style: TextStyle(
+                                  color: Color(0xFF00E5FF),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ] else if (isTarget) ...[
+                              const Icon(
+                                Icons.bolt,
+                                color: Color(0xFFA855F7),
+                                size: 14.0,
+                              ),
+                              const SizedBox(height: 2.0),
+                              const Text(
+                                'BURST',
+                                style: TextStyle(
+                                  color: Color(0xFFC084FC),
+                                  fontSize: 8.0,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ] else ...[
+                              Text(
+                                'C$bayNum',
+                                style: TextStyle(
+                                  color: isDim
+                                      ? VoidTheme.textMuted.withValues(
+                                          alpha: 0.4,
+                                        )
+                                      : VoidTheme.textSecondary,
+                                  fontSize: 8.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+
+                // Holographic Arc Overlay
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: HolographicSwipePainter(
+                        startFraction: 1.5 / 8.0,
+                        endFraction: 3.5 / 8.0,
+                        accentColor: const Color(0xFF00E5FF),
+                      ),
                     ),
                   ),
                 ),
-              );
-            }),
+              ],
+            ),
           ),
           const SizedBox(height: 10.0),
           Row(
@@ -926,4 +1058,89 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       ),
     );
   }
+}
+
+/// Custom painter rendering a glowing curved holographic swipe trajectory vector.
+class HolographicSwipePainter extends CustomPainter {
+  const HolographicSwipePainter({
+    required this.startFraction,
+    required this.endFraction,
+    this.accentColor = const Color(0xFF00E5FF),
+  });
+
+  final double startFraction;
+  final double endFraction;
+  final Color accentColor;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final startX = size.width * startFraction;
+    final endX = size.width * endFraction;
+    final baseY = size.height * 0.7;
+    final peakY = size.height * 0.15;
+    final midX = (startX + endX) / 2.0;
+
+    final path = Path()
+      ..moveTo(startX, baseY)
+      ..quadraticBezierTo(midX, peakY, endX, baseY);
+
+    // Glow underlay
+    final glowPaint = Paint()
+      ..color = accentColor.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+    canvas.drawPath(path, glowPaint);
+
+    // Dashed trajectory path
+    final arcPaint = Paint()
+      ..color = accentColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..strokeCap = StrokeCap.round;
+
+    for (final metric in path.computeMetrics()) {
+      var distance = 0.0;
+      const dashLength = 6.0;
+      const dashSpace = 4.0;
+      while (distance < metric.length) {
+        final length = (distance + dashLength < metric.length)
+            ? dashLength
+            : metric.length - distance;
+        final extract = metric.extractPath(distance, distance + length);
+        canvas.drawPath(extract, arcPaint);
+        distance += dashLength + dashSpace;
+      }
+    }
+
+    // Arrowhead at destination
+    final arrowPaint = Paint()
+      ..color = accentColor
+      ..style = PaintingStyle.fill;
+    final arrowPath = Path()
+      ..moveTo(endX + 2, baseY)
+      ..lineTo(endX - 7, baseY - 5)
+      ..lineTo(endX - 4, baseY)
+      ..lineTo(endX - 7, baseY + 5)
+      ..close();
+    canvas.drawPath(arrowPath, arrowPaint);
+
+    // Touch gesture indicator at start
+    final touchRing = Paint()
+      ..color = accentColor.withValues(alpha: 0.25)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(startX, baseY), 14.0, touchRing);
+
+    final touchCenter = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2.0);
+    canvas.drawCircle(Offset(startX, baseY), 5.5, touchCenter);
+  }
+
+  @override
+  bool shouldRepaint(covariant HolographicSwipePainter oldDelegate) =>
+      oldDelegate.startFraction != startFraction ||
+      oldDelegate.endFraction != endFraction ||
+      oldDelegate.accentColor != accentColor;
 }
