@@ -295,8 +295,8 @@ void main() {
         await tester.tap(academyIcon);
         await tester.pumpAndSettle();
 
-        // Tap HANDS-ON SIM to launch Flight Academy tutorial
-        final simButton = find.text('HANDS-ON SIM');
+        // Tap Flight Academy button to launch Flight Academy tutorial
+        final simButton = find.text('LAUNCH FLIGHT ACADEMY');
         expect(simButton, findsOneWidget);
         await tester.tap(simButton);
         await tester.pump();
