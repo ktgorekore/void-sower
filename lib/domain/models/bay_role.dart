@@ -49,4 +49,18 @@ enum BayRole {
       this == BayRole.standardFrontline ||
       this == BayRole.kichwaVectorConduit ||
       this == BayRole.kimbiDeflectionChamber;
+
+  /// Resolves the effective sowing direction for a bay, honoring the Kichwa
+  /// Vector Conduit rule: frontline boundary bays 8 & 15 enforce inward momentum
+  /// along the frontline battery deck: Bay 15 sows counter-clockwise/left (-1),
+  /// Bay 8 sows clockwise/right (+1).
+  static int resolveSowDirection(int bayIndex, int desiredDirection) {
+    if (bayIndex == 15 && desiredDirection == 1) {
+      return -1;
+    }
+    if (bayIndex == 8 && desiredDirection == -1) {
+      return 1;
+    }
+    return desiredDirection;
+  }
 }

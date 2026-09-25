@@ -139,6 +139,8 @@ class InvaderBulletManager {
             ? (lance.firingBayIndex - 8)
             : lance.firingBayIndex;
         lanceCorridors.add(c);
+        final originCorridor = (lance.originX * 8.0).floor().clamp(0, 7);
+        lanceCorridors.add(originCorridor);
       }
     }
 

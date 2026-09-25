@@ -22,7 +22,9 @@
 
 namespace void_sower::ecs {
 
-CombatSystem::CombatSystem(entt::registry& registry) : registry_(registry) {}
+CombatSystem::CombatSystem(entt::registry& registry) : registry_(registry) {
+  bay_entities_.fill(entt::null);
+}
 
 void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
                                          float boundary_y) {

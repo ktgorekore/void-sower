@@ -279,5 +279,56 @@ void main() {
         expect(coordinator.competitiveScore, equals(0));
       },
     );
+
+    test('selectBay on Bay 15 with direction 1 resolves inward to -1', () {
+      coordinator.selectBay(15, 1);
+      expect(coordinator.state.selectedBay, equals(15));
+      expect(coordinator.sowDirection, equals(-1));
+      expect(coordinator.prediction, isNotNull);
+      // Bay 15 has 2 charges + 1 injected = 3 units. Sowing -1: 14 -> 13 -> 12.
+      expect(coordinator.prediction!.terminalBay, equals(12));
+    });
+
+    test('selectBay on Bay 8 with direction -1 resolves inward to 1', () {
+      coordinator.selectBay(8, -1);
+      expect(coordinator.state.selectedBay, equals(8));
+      expect(coordinator.sowDirection, equals(1));
+      expect(coordinator.prediction, isNotNull);
+      // Bay 8 has 2 charges + 1 injected = 3 units. Sowing +1: 9 -> 10 -> 11.
+      expect(coordinator.prediction!.terminalBay, equals(11));
+    });
+
+    test(
+      'quickFireActiveCorridor from Bay 15 resolves direction to -1 and fires lance',
+      () {
+        // Slide to Corridor 7 (aligned with Bay 15: (7 + 0.5) / 8.0 = 0.9375)
+        coordinator.slidePosition(0.9375);
+        expect(coordinator.state.selectedBay, equals(15));
+        expect(coordinator.sowDirection, equals(-1));
+
+        final initialLances = coordinator.lances.length;
+        coordinator.quickFireActiveCorridor();
+
+        expect(coordinator.sowDirection, equals(-1));
+        expect(coordinator.lances.length, greaterThan(initialLances));
+      },
+    );
+
+    test('slidePosition to corridor 7 (bay 15) forces direction to -1', () {
+      coordinator.slidePosition(0.95);
+      expect(coordinator.state.selectedBay, equals(15));
+      expect(coordinator.sowDirection, equals(-1));
+    });
+
+    test(
+      'slidePosition to corridor 0 (bay 8) preserves or forces inward direction 1',
+      () {
+        coordinator.selectBay(8, -1);
+        expect(coordinator.sowDirection, equals(1));
+        coordinator.slidePosition(0.05);
+        expect(coordinator.state.selectedBay, equals(8));
+        expect(coordinator.sowDirection, equals(1));
+      },
+    );
   });
 }

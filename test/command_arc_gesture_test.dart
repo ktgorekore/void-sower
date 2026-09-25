@@ -269,5 +269,180 @@ void main() {
         expect(lastSowDir, equals(1));
       },
     );
+
+    testWidgets(
+      'AXIAL DISCHARGE button on Bay 15 (Kichwa) enforces inward direction -1 even if sowDirection is 1',
+      (tester) async {
+        int? injectedBay;
+        int? injectedDir;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CommandArcWidget(
+                bays: testBays,
+                selectedBay: 15,
+                sowDirection: 1,
+                onBaySelected: (_) {},
+                onSowAction: (_, _) {},
+                onInjectCore: (bay, dir) {
+                  injectedBay = bay;
+                  injectedDir = dir;
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.textContaining('AXIAL DISCHARGE'));
+        await tester.pumpAndSettle();
+
+        expect(injectedBay, equals(15));
+        expect(injectedDir, equals(-1));
+      },
+    );
+
+    testWidgets(
+      'AXIAL DISCHARGE button on Bay 8 (Kichwa) enforces inward direction 1 even if sowDirection is -1',
+      (tester) async {
+        int? injectedBay;
+        int? injectedDir;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CommandArcWidget(
+                bays: testBays,
+                selectedBay: 8,
+                sowDirection: -1,
+                onBaySelected: (_) {},
+                onSowAction: (_, _) {},
+                onInjectCore: (bay, dir) {
+                  injectedBay = bay;
+                  injectedDir = dir;
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.textContaining('AXIAL DISCHARGE'));
+        await tester.pumpAndSettle();
+
+        expect(injectedBay, equals(8));
+        expect(injectedDir, equals(1));
+      },
+    );
+
+    testWidgets(
+      'Flicking upward on Bay 15 enforces inward direction -1 even if sowDirection is 1',
+      (tester) async {
+        int? injectedBay;
+        int? injectedDir;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CommandArcWidget(
+                bays: testBays,
+                selectedBay: 8,
+                sowDirection: 1,
+                onBaySelected: (_) {},
+                onSowAction: (_, _) {},
+                onInjectCore: (bay, dir) {
+                  injectedBay = bay;
+                  injectedDir = dir;
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final bay15Finder = find.text('15');
+        expect(bay15Finder, findsOneWidget);
+
+        await tester.drag(bay15Finder, const Offset(0.0, -50.0));
+        await tester.pumpAndSettle();
+
+        expect(injectedBay, equals(15));
+        expect(injectedDir, equals(-1));
+      },
+    );
+
+    testWidgets(
+      'Swiping right on Bay 15 (Kichwa) is overridden to inward direction -1',
+      (tester) async {
+        int? lastSowBay;
+        int? lastSowDir;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CommandArcWidget(
+                bays: testBays,
+                selectedBay: 8,
+                sowDirection: 1,
+                onBaySelected: (_) {},
+                onSowAction: (bay, dir) {
+                  lastSowBay = bay;
+                  lastSowDir = dir;
+                },
+                onInjectCore: (_, _) {},
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final bay15Finder = find.text('15');
+        expect(bay15Finder, findsOneWidget);
+
+        await tester.drag(bay15Finder, const Offset(40.0, 0.0));
+        await tester.pumpAndSettle();
+
+        expect(lastSowBay, equals(15));
+        expect(lastSowDir, equals(-1));
+      },
+    );
+
+    testWidgets(
+      'Tapping already-selected Bay 15 triggers onInjectCore with inward direction -1',
+      (tester) async {
+        int? injectedBay;
+        int? injectedDir;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CommandArcWidget(
+                bays: testBays,
+                selectedBay: 15,
+                sowDirection: 1,
+                onBaySelected: (_) {},
+                onSowAction: (_, _) {},
+                onInjectCore: (bay, dir) {
+                  injectedBay = bay;
+                  injectedDir = dir;
+                },
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Selected bay with 3 charge units shows '3 ⚡'
+        final bay15SelectedFinder = find.text('3 ⚡');
+        expect(bay15SelectedFinder, findsOneWidget);
+
+        await tester.tap(bay15SelectedFinder);
+        await tester.pumpAndSettle();
+
+        expect(injectedBay, equals(15));
+        expect(injectedDir, equals(-1));
+      },
+    );
   });
 }

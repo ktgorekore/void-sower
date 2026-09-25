@@ -71,6 +71,27 @@ inline constexpr BayRole GetBayRole(uint8_t bay_index) {
                                    : BayRole::StandardInner;
 }
 
+/**
+ * @brief Resolves the effective sowing direction for a bay, honoring the Kichwa
+ * Vector Conduit rule: frontline boundary bays 8 & 15 enforce inward momentum
+ * along the frontline battery deck: Bay 15 sows counter-clockwise/left (-1),
+ * Bay 8 sows clockwise/right (+1).
+ *
+ * @param bay_index Capacitor bay index (0..15).
+ * @param desired_direction Requested direction (+1 or -1).
+ * @return Resolved direction (+1 or -1).
+ */
+inline constexpr int8_t ResolveSowDirection(uint8_t bay_index,
+                                            int8_t desired_direction) {
+  if (bay_index == 15 && desired_direction == 1) {
+    return -1;
+  }
+  if (bay_index == 8 && desired_direction == -1) {
+    return 1;
+  }
+  return desired_direction;
+}
+
 }  // namespace void_sower::ecs
 
 #endif  // VOID_SOWER_ECS_COMBAT_RULES_H_

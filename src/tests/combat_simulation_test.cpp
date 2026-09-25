@@ -292,4 +292,200 @@ TEST(CombatSimulationTest,
   }
 }
 
+TEST(CombatSimulationTest, Bay15KichwaLanceDischarge) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought(12, 0.2f);
+
+  // Position dreadnought in Corridor 7 (aligned with Bay 15)
+  combat.SetTargetPositionX(0.9375f);
+  for (int i = 0; i < 40; ++i) {
+    combat.Update(kFixedTimeStep);
+  }
+
+  // Spawn enemy in Corridor 6 (aligned with Bay 14)
+  auto enemy = registry.create();
+  registry.emplace<EnemyVesselComponent>(enemy, EnemyVesselComponent{
+                                                    .entity_id = 201,
+                                                    .assigned_corridor = 6,
+                                                    .world_pos_x = 0.8125f,
+                                                    .world_pos_y = 0.7f,
+                                                    .velocity_y = 0.0f,
+                                                    .current_shields = 0.0f,
+                                                    .max_shields = 0.0f,
+                                                    .current_hull = 200.0f,
+                                                    .max_hull = 200.0f,
+                                                    .vessel_type = 0,
+                                                    .is_destroyed = 0,
+                                                });
+
+  // Inject core into Bay 15 with desired direction +1 (clockwise).
+  // Under Kichwa rule, direction MUST resolve inward to -1 (towards Bay 14).
+  EXPECT_TRUE(combat.InjectCore(15, 1));
+  combat.Update(kFixedTimeStep);  // SowingTraversal: steps 15 -> 14
+
+  // Frontline Bay 14 must have received the deposited unit, NOT reservoir Bay 0
+  auto bay_view = registry.view<BatteryComponent>();
+  for (auto b_entity : bay_view) {
+    const auto& b = bay_view.get<BatteryComponent>(b_entity);
+    if (b.bay_index == 14) {
+      EXPECT_EQ(b.charge_units, 1);
+    } else if (b.bay_index == 0) {
+      EXPECT_EQ(b.charge_units, 0);
+    }
+  }
+
+  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
+
+  // Verify particle lance fired and damaged enemy in Corridor 6
+  bool found_lance = false;
+  auto lance_view = registry.view<ParticleLanceComponent>();
+  for (auto l_entity : lance_view) {
+    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    if (lance.active == 0) continue;
+    found_lance = true;
+  }
+  EXPECT_TRUE(found_lance);
+
+  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
+}
+
+TEST(CombatSimulationTest, Bay8KichwaLanceDischarge) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought(12, 0.2f);
+
+  // Position dreadnought in Corridor 0 (aligned with Bay 8)
+  combat.SetTargetPositionX(0.0625f);
+  for (int i = 0; i < 40; ++i) {
+    combat.Update(kFixedTimeStep);
+  }
+
+  // Spawn enemy in Corridor 1 (aligned with Bay 9)
+  auto enemy = registry.create();
+  registry.emplace<EnemyVesselComponent>(enemy, EnemyVesselComponent{
+                                                    .entity_id = 202,
+                                                    .assigned_corridor = 1,
+                                                    .world_pos_x = 0.1875f,
+                                                    .world_pos_y = 0.7f,
+                                                    .velocity_y = 0.0f,
+                                                    .current_shields = 0.0f,
+                                                    .max_shields = 0.0f,
+                                                    .current_hull = 200.0f,
+                                                    .max_hull = 200.0f,
+                                                    .vessel_type = 0,
+                                                    .is_destroyed = 0,
+                                                });
+
+  // Inject core into Bay 8 with desired direction -1 (counter-clockwise).
+  // Under Kichwa rule, direction MUST resolve inward to +1 (towards Bay 9).
+  EXPECT_TRUE(combat.InjectCore(8, -1));
+  combat.Update(kFixedTimeStep);  // SowingTraversal: steps 8 -> 9
+
+  // Frontline Bay 9 must have received the deposited unit, NOT reservoir Bay 7
+  auto bay_view = registry.view<BatteryComponent>();
+  for (auto b_entity : bay_view) {
+    const auto& b = bay_view.get<BatteryComponent>(b_entity);
+    if (b.bay_index == 9) {
+      EXPECT_EQ(b.charge_units, 1);
+    } else if (b.bay_index == 7) {
+      EXPECT_EQ(b.charge_units, 0);
+    }
+  }
+
+  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
+
+  // Verify particle lance fired and damaged enemy in Corridor 1
+  bool found_lance = false;
+  auto lance_view = registry.view<ParticleLanceComponent>();
+  for (auto l_entity : lance_view) {
+    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    if (lance.active == 0) continue;
+    found_lance = true;
+  }
+  EXPECT_TRUE(found_lance);
+
+  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
+}
+
+TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought(12, 0.2f);
+
+  // Position dreadnought in Corridor 6 (aligned with Bay 14)
+  combat.SetTargetPositionX(0.8125f);
+  for (int i = 0; i < 40; ++i) {
+    combat.Update(kFixedTimeStep);
+  }
+
+  // Spawn enemy in Corridor 6
+  auto enemy = registry.create();
+  registry.emplace<EnemyVesselComponent>(enemy, EnemyVesselComponent{
+                                                    .entity_id = 203,
+                                                    .assigned_corridor = 6,
+                                                    .world_pos_x = 0.8125f,
+                                                    .world_pos_y = 0.7f,
+                                                    .velocity_y = 0.0f,
+                                                    .current_shields = 0.0f,
+                                                    .max_shields = 0.0f,
+                                                    .current_hull = 500.0f,
+                                                    .max_hull = 500.0f,
+                                                    .vessel_type = 0,
+                                                    .is_destroyed = 0,
+                                                });
+  combat.RebuildSpatialGrid();
+
+  // Pre-charge Bay 13 with 2 units via RestoreSnapshot
+  std::array<uint32_t, kTotalBays> charges{};
+  charges[13] = 2;
+  combat.RestoreSnapshot(charges, 12, 0);
+
+  // Dry-run forward prediction:
+  // From Bay 13 (+1), sows 3 units: 14 (+1) -> 15 (+1) [reverses to -1] -> 14
+  // (-1). Lands on frontline Bay 14 with final_mass 2, triggering lance in
+  // Corridor 6!
+  auto pred = combat.PredictSow(13, 1);
+  EXPECT_EQ(pred.terminal_bay, 14);
+  EXPECT_EQ(pred.terminal_corridor, 6);
+  EXPECT_TRUE(pred.triggers_lance);
+  EXPECT_EQ(pred.final_mass, 2);
+
+  // Inject core into Bay 13 (+1): Total units to sow = 2 + 1 = 3
+  // Step 1: Bay 14 (remaining 2)
+  // Step 2: Bay 15 (remaining 1). Reaches Kichwa! Direction inverts: +1 -> -1
+  // Step 3: Bay 14 (remaining 0). Lands back on Bay 14!
+  EXPECT_TRUE(combat.InjectCore(13, 1));
+  combat.Update(kFixedTimeStep);  // Step 1 -> Bay 14
+  combat.Update(kFixedTimeStep);  // Step 2 -> Bay 15 (reversal triggered)
+  combat.Update(kFixedTimeStep);  // Step 3 -> Bay 14
+  combat.Update(
+      kFixedTimeStep);  // EvaluateDestination -> CrossDischarge on Bay 14
+
+  // Verify terminal bay distribution after CrossDischarge:
+  // Bay 13: 0
+  // Bay 14: 0 (discharged as axial particle lance)
+  // Bay 15: 1 (deposited on step 2, untouched by discharge)
+  // Bay 0:  0 (never entered inner reservoir)
+  auto bay_view = registry.view<BatteryComponent>();
+  for (auto b_entity : bay_view) {
+    const auto& b = bay_view.get<BatteryComponent>(b_entity);
+    if (b.bay_index == 13) {
+      EXPECT_EQ(b.charge_units, 0);
+    } else if (b.bay_index == 14) {
+      EXPECT_EQ(b.charge_units, 0);
+    } else if (b.bay_index == 15) {
+      EXPECT_EQ(b.charge_units, 1);
+    } else if (b.bay_index == 0) {
+      EXPECT_EQ(b.charge_units, 0);
+    }
+  }
+
+  // Verify enemy in Corridor 6 took damage from 2-unit lance: D(2) = 400.0f
+  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
+}
+
 }  // namespace void_sower::ecs

@@ -76,6 +76,7 @@ MctsEvaluationResult MctsSolver::EvaluateSolvability(uint32_t max_simulations,
       // Pick action (greedy priority on frontline non-empty bays)
       uint8_t bay = bay_dist(rng);
       int8_t dir = dir_dist(rng) == 0 ? -1 : 1;
+      dir = ResolveSowDirection(bay, dir);
       sequence.push_back({bay, dir});
 
       // Simulate sowing step
@@ -83,10 +84,18 @@ MctsEvaluationResult MctsSolver::EvaluateSolvability(uint32_t max_simulations,
       sim_bays[bay] = 0;
 
       uint8_t current = bay;
+      int8_t step_dir = dir;
       while (carried > 0) {
-        current = StepBayIndex(current, dir);
+        current = StepBayIndex(current, step_dir);
         sim_bays[current]++;
         carried--;
+        if (carried > 0 && IsKichwaBay(current)) {
+          if (current == 15 && step_dir == 1) {
+            step_dir = -1;
+          } else if (current == 8 && step_dir == -1) {
+            step_dir = 1;
+          }
+        }
       }
 
       // Check frontline lance discharge
@@ -175,16 +184,25 @@ int32_t MctsSolver::SolveTacticalStep(uint8_t* out_bay, int8_t* out_direction,
     }
 
     for (int8_t dir : {-1, 1}) {
+      const int8_t resolved_dir = ResolveSowDirection(bay, dir);
       // Simulate 1-ply sowing step
       auto sim_bays = initial_bays;
       uint32_t carried = sim_bays[bay] + 1;
       sim_bays[bay] = 0;
       uint8_t cur = bay;
+      int8_t step_dir = resolved_dir;
 
       while (carried > 0) {
-        cur = StepBayIndex(cur, dir);
+        cur = StepBayIndex(cur, step_dir);
         sim_bays[cur]++;
         carried--;
+        if (carried > 0 && IsKichwaBay(cur)) {
+          if (cur == 15 && step_dir == 1) {
+            step_dir = -1;
+          } else if (cur == 8 && step_dir == -1) {
+            step_dir = 1;
+          }
+        }
       }
 
       float move_score = 0.0f;
@@ -214,7 +232,7 @@ int32_t MctsSolver::SolveTacticalStep(uint8_t* out_bay, int8_t* out_direction,
       if (move_score > best_score) {
         best_score = move_score;
         best_bay = bay;
-        best_dir = dir;
+        best_dir = resolved_dir;
         best_damage = move_damage;
       }
     }

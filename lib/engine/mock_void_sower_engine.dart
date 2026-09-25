@@ -13,6 +13,7 @@
 // limitations under the License.
 import 'dart:math' as math;
 
+import '../domain/models/bay_role.dart';
 import '../domain/models/bay_state.dart';
 import '../domain/models/dreadnought_state.dart';
 import '../domain/models/enemy_craft.dart';
@@ -104,16 +105,24 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     _reserveCores--;
     _coresUsed++;
 
+    var effectiveDirection = BayRole.resolveSowDirection(bayIndex, direction);
     var currentBay = bayIndex & 0x0F;
     var carriedMass = _bayCharges[currentBay] + 1;
     _bayCharges[currentBay] = 0;
 
     var steps = 0;
     while (carriedMass > 0) {
-      currentBay = (currentBay + direction + 16) & 0x0F;
+      currentBay = (currentBay + effectiveDirection + 16) & 0x0F;
       _bayCharges[currentBay]++;
       carriedMass--;
       steps++;
+      if (carriedMass > 0 && (currentBay == 8 || currentBay == 15)) {
+        if (currentBay == 15 && effectiveDirection == 1) {
+          effectiveDirection = -1;
+        } else if (currentBay == 8 && effectiveDirection == -1) {
+          effectiveDirection = 1;
+        }
+      }
     }
 
     final finalMass = _bayCharges[currentBay];
@@ -329,8 +338,20 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   PredictionResult predictSow(int startBay, int direction) {
-    final carried = _bayCharges[startBay & 0x0F] + 1;
-    final term = (startBay + (carried * direction) + 160) & 0x0F;
+    var effectiveDirection = BayRole.resolveSowDirection(startBay, direction);
+    var carried = _bayCharges[startBay & 0x0F] + 1;
+    var term = startBay & 0x0F;
+    while (carried > 0) {
+      term = (term + effectiveDirection + 16) & 0x0F;
+      carried--;
+      if (carried > 0 && (term == 8 || term == 15)) {
+        if (term == 15 && effectiveDirection == 1) {
+          effectiveDirection = -1;
+        } else if (term == 8 && effectiveDirection == -1) {
+          effectiveDirection = 1;
+        }
+      }
+    }
     final finalMass = _bayCharges[term] + 1;
     final isFrontline = term >= 8;
 
@@ -341,7 +362,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       predictedDamage: isFrontline
           ? finalMass * finalMass * 100.0 * _lanceAlphaMultiplier
           : 0.0,
-      totalCascadeLaps: carried ~/ 16,
+      totalCascadeLaps: (_bayCharges[startBay & 0x0F] + 1) ~/ 16,
       triggersLance: isFrontline,
       triggersRelay: !isFrontline && finalMass >= 4,
     );

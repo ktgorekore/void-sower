@@ -14,6 +14,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../domain/models/bay_role.dart';
 import '../../domain/models/bay_state.dart';
 import '../controllers/tactical_solver_controller.dart';
 import '../services/haptic_service.dart';
@@ -278,11 +279,17 @@ class CommandArcWidget extends StatelessWidget {
                     tacticalAdvice: tacticalAdvice,
                     onTap: () {
                       HapticService.instance.sowTick();
+                      final resolvedDir = BayRole.resolveSowDirection(
+                        bay.bayIndex,
+                        sowDirection,
+                      );
                       if (isSelected) {
                         HapticService.instance.injectionClick();
-                        onInjectCore(bay.bayIndex, sowDirection);
+                        onDirectionChanged?.call(resolvedDir);
+                        onInjectCore(bay.bayIndex, resolvedDir);
                       } else {
                         onBaySelected(bay.bayIndex);
+                        onDirectionChanged?.call(resolvedDir);
                         final normX = (corridor + 0.5) / 8.0;
                         onSlidePosition?.call(normX);
                       }
@@ -511,7 +518,12 @@ class CommandArcWidget extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 HapticService.instance.injectionClick();
-                onInjectCore(activeBay, sowDirection);
+                final resolvedDir = BayRole.resolveSowDirection(
+                  activeBay,
+                  sowDirection,
+                );
+                onDirectionChanged?.call(resolvedDir);
+                onInjectCore(activeBay, resolvedDir);
               },
               child: Container(
                 height: 38.0,
@@ -702,17 +714,23 @@ class _FrontlineBayCylinderState extends State<_FrontlineBayCylinder> {
         // 1. Upward flick -> Inject Core (Namua)
         if ((_dragDy < -16.0 || vy < -60.0) && _dragDy.abs() > _dragDx.abs()) {
           HapticService.instance.injectionClick();
-          widget.onInjectCore(bay.bayIndex, widget.activeDirection);
+          final resolvedDir = BayRole.resolveSowDirection(
+            bay.bayIndex,
+            widget.activeDirection,
+          );
+          widget.onInjectCore(bay.bayIndex, resolvedDir);
         }
         // 2. Swiped RIGHT (Clockwise)
         else if (_dragDx > 6.0 || vx > 20.0) {
           HapticService.instance.sowTick();
-          widget.onSowAction(bay.bayIndex, 1);
+          final resolvedDir = BayRole.resolveSowDirection(bay.bayIndex, 1);
+          widget.onSowAction(bay.bayIndex, resolvedDir);
         }
         // 3. Swiped LEFT (Counter-Clockwise)
         else if (_dragDx < -6.0 || vx < -20.0) {
           HapticService.instance.sowTick();
-          widget.onSowAction(bay.bayIndex, -1);
+          final resolvedDir = BayRole.resolveSowDirection(bay.bayIndex, -1);
+          widget.onSowAction(bay.bayIndex, resolvedDir);
         }
       },
       child: Container(
@@ -892,10 +910,12 @@ class _ReturnOrbitBayCellState extends State<_ReturnOrbitBayCell> {
         final vx = details.velocity.pixelsPerSecond.dx;
         if (_dragDx > 6.0 || vx > 20.0) {
           HapticService.instance.sowTick();
-          widget.onSowAction(bay.bayIndex, 1);
+          final resolvedDir = BayRole.resolveSowDirection(bay.bayIndex, 1);
+          widget.onSowAction(bay.bayIndex, resolvedDir);
         } else if (_dragDx < -6.0 || vx < -20.0) {
           HapticService.instance.sowTick();
-          widget.onSowAction(bay.bayIndex, -1);
+          final resolvedDir = BayRole.resolveSowDirection(bay.bayIndex, -1);
+          widget.onSowAction(bay.bayIndex, resolvedDir);
         }
       },
       child: Container(

@@ -17,6 +17,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/logging.dart';
+import '../../domain/models/bay_role.dart';
 import '../../domain/models/bay_state.dart';
 import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/dreadnought_state.dart';
@@ -121,8 +122,8 @@ class CombatCoordinator extends ChangeNotifier {
   /// Changes the active sowing direction and updates the forward prediction.
   void setSowDirection(int direction) {
     if (direction != 1 && direction != -1) return;
-    _sowDirection = direction;
     final bay = _state.selectedBay ?? 8;
+    _sowDirection = BayRole.resolveSowDirection(bay, direction);
     prediction = engine.predictSow(bay, _sowDirection);
     notifyListeners();
   }
@@ -775,9 +776,11 @@ class CombatCoordinator extends ChangeNotifier {
   /// Selects a bay for aiming and forward prediction with optional direction.
   void selectBay(int bayIndex, [int? direction]) {
     if (!_state.canReceiveInput) return;
-    if (direction != null && (direction == 1 || direction == -1)) {
-      _sowDirection = direction;
-    }
+    final desiredDir =
+        (direction != null && (direction == 1 || direction == -1))
+        ? direction
+        : _sowDirection;
+    _sowDirection = BayRole.resolveSowDirection(bayIndex, desiredDir);
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, _sowDirection);
     notifyListeners();
@@ -786,9 +789,10 @@ class CombatCoordinator extends ChangeNotifier {
   /// Sows from the currently selected bay in the specified direction.
   void sowDirectional(int direction) {
     if (direction != 1 && direction != -1) return;
-    _sowDirection = direction;
     final bay = _state.selectedBay ?? 8;
-    sow(bay, direction);
+    final resolvedDir = BayRole.resolveSowDirection(bay, direction);
+    _sowDirection = resolvedDir;
+    sow(bay, resolvedDir);
   }
 
   /// Finalizes any active sowing sequence immediately into the native engine
@@ -827,11 +831,13 @@ class CombatCoordinator extends ChangeNotifier {
       _sessionSeedsSown += mass;
     }
 
+    final resolvedDirection = BayRole.resolveSowDirection(bayIndex, direction);
+
     _sowAnimationGeneration++;
     final generation = _sowAnimationGeneration;
     _pendingSowBay = bayIndex;
-    _pendingSowDirection = direction;
-    _sowDirection = direction;
+    _pendingSowDirection = resolvedDirection;
+    _sowDirection = resolvedDirection;
 
     _state = _state.copyWith(
       status: CombatMatchStatus.sowingSequence,
@@ -846,6 +852,7 @@ class CombatCoordinator extends ChangeNotifier {
     _sowAnimationCompleter = Completer<void>();
 
     int currentBay = bayIndex;
+    int currentDir = resolvedDirection;
     int remainingHops = mass + 1;
     int hopIndex = 0;
 
@@ -857,10 +864,10 @@ class CombatCoordinator extends ChangeNotifier {
       if (remainingHops <= 0) {
         HapticService.instance.sowTick();
         audio.onSowStep(cascadeDepth: 0);
-        engine.injectCore(bayIndex, direction);
+        engine.injectCore(bayIndex, resolvedDirection);
         vlog(
           6,
-          'CombatCoordinator: Sow completed for bay $bayIndex dir $direction',
+          'CombatCoordinator: Sow completed for bay $bayIndex dir $resolvedDirection',
         );
         _syncDomainState();
         _pendingSowBay = null;
@@ -875,7 +882,7 @@ class CombatCoordinator extends ChangeNotifier {
           clearActiveSowBay: true,
           selectedBay: bayIndex,
         );
-        prediction = engine.predictSow(bayIndex, direction);
+        prediction = engine.predictSow(bayIndex, resolvedDirection);
         notifyListeners();
 
         if (_sowAnimationCompleter != null &&
@@ -885,9 +892,16 @@ class CombatCoordinator extends ChangeNotifier {
         return;
       }
 
-      currentBay = (currentBay + direction + 16) & 0x0F;
+      currentBay = (currentBay + currentDir + 16) & 0x0F;
       remainingHops--;
       hopIndex++;
+      if (remainingHops > 0 && (currentBay == 8 || currentBay == 15)) {
+        if (currentBay == 15 && currentDir == 1) {
+          currentDir = -1;
+        } else if (currentBay == 8 && currentDir == -1) {
+          currentDir = 1;
+        }
+      }
 
       _state = _state.copyWith(activeSowBay: currentBay);
       HapticService.instance.sowTick();
@@ -905,12 +919,14 @@ class CombatCoordinator extends ChangeNotifier {
     if (!_state.canReceiveInput) return;
     _captureTurnSnapshot();
     _sessionSeedsSown++;
+    final resolvedDirection = BayRole.resolveSowDirection(bayIndex, direction);
+    _sowDirection = resolvedDirection;
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
-    engine.injectCore(bayIndex, direction);
+    engine.injectCore(bayIndex, resolvedDirection);
     vlog(
       6,
-      'CombatCoordinator: Injected core into bay $bayIndex dir $direction',
+      'CombatCoordinator: Injected core into bay $bayIndex dir $resolvedDirection',
     );
     damageNumbers.add(
       FloatingDamageNumber(
@@ -923,7 +939,7 @@ class CombatCoordinator extends ChangeNotifier {
     );
     _syncDomainState();
     _state = _state.copyWith(selectedBay: bayIndex);
-    prediction = engine.predictSow(bayIndex, direction);
+    prediction = engine.predictSow(bayIndex, resolvedDirection);
     notifyListeners();
   }
 
@@ -937,8 +953,9 @@ class CombatCoordinator extends ChangeNotifier {
     }
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final activeBay = corridor + 8;
-    // Quick-fire axial lance honors active sowing direction
-    final direction = _sowDirection;
+    // Quick-fire axial lance honors active sowing direction with Kichwa boundary resolution
+    final direction = BayRole.resolveSowDirection(activeBay, _sowDirection);
+    _sowDirection = direction;
 
     _sessionSeedsSown++;
     HapticService.instance.injectionClick();
@@ -985,6 +1002,7 @@ class CombatCoordinator extends ChangeNotifier {
     final frontlineBay = corridor + 8;
     if (_state.selectedBay != frontlineBay &&
         _state.status != CombatMatchStatus.sowingSequence) {
+      _sowDirection = BayRole.resolveSowDirection(frontlineBay, _sowDirection);
       _state = _state.copyWith(selectedBay: frontlineBay);
       prediction = engine.predictSow(frontlineBay, _sowDirection);
     }

@@ -59,13 +59,15 @@ bool BaoCascadeSystem::InjectCore(
   const uint32_t units_to_sow = bay.charge_units;
   bay.charge_units = 0;
 
+  const int8_t resolved_direction = ResolveSowDirection(target_bay, direction);
+
   // Initialize SowingStateComponent on dreadnought entity
   registry.emplace_or_replace<SowingStateComponent>(
       dreadnought_entity, SowingStateComponent{
                               .origin_bay = target_bay,
                               .current_bay = target_bay,
                               .remaining_units = units_to_sow,
-                              .step_direction = direction,
+                              .step_direction = resolved_direction,
                               .step_accumulator = 0.0f,
                               .cascade_depth = 0,
                               .flak_triggered = 0,
@@ -111,6 +113,18 @@ void BaoCascadeSystem::StepFSM(
       auto& bay = registry.get<BatteryComponent>(bay_entities[next_bay]);
       bay.charge_units += 1;
       sowing.remaining_units -= 1;
+
+      // Kichwa vector conduit reversal check:
+      // If the wave entered a Kichwa conduit (bay 8 or 15) and still has
+      // remaining plasma units, reverse angular momentum inward along the
+      // frontline battery deck.
+      if (sowing.remaining_units > 0 && IsKichwaBay(next_bay)) {
+        if (next_bay == 15 && sowing.step_direction == 1) {
+          sowing.step_direction = -1;
+        } else if (next_bay == 8 && sowing.step_direction == -1) {
+          sowing.step_direction = 1;
+        }
+      }
 
       // If this is an active relay cycle (> 0 laps), emit intermediate flak
       // trail
@@ -209,6 +223,8 @@ void BaoCascadeSystem::StepFSM(
       bay.charge_units = 0;
       sowing.remaining_units = scooped_mass;
       sowing.cascade_depth++;
+      sowing.step_direction =
+          ResolveSowDirection(term_bay, sowing.step_direction);
 
       const float col_x = IsFrontlineBay(term_bay)
                               ? (static_cast<float>(term_bay - 8) + 0.5f) /
@@ -266,6 +282,8 @@ BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
     return result;
   }
 
+  int8_t current_direction = ResolveSowDirection(start_bay, direction);
+
   std::array<uint32_t, kTotalBays> temp_bays{};
   for (uint8_t i = 0; i < kTotalBays; ++i) {
     temp_bays[i] = registry.get<BatteryComponent>(bay_entities[i]).charge_units;
@@ -277,19 +295,30 @@ BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
   uint16_t laps = 0;
 
   while (hand > 0) {
-    cur_bay = StepBayIndex(cur_bay, direction);
+    cur_bay = StepBayIndex(cur_bay, current_direction);
     temp_bays[cur_bay] += 1;
     hand -= 1;
+
+    // Mid-traversal Kichwa momentum reversal check
+    if (hand > 0 && IsKichwaBay(cur_bay)) {
+      if (cur_bay == 15 && current_direction == 1) {
+        current_direction = -1;
+      } else if (cur_bay == 8 && current_direction == -1) {
+        current_direction = 1;
+      }
+    }
 
     if (hand == 0) {
       const uint32_t term_mass = temp_bays[cur_bay];
       if (IsFrontlineBay(cur_bay)) {
         const int8_t corridor = CorridorForFrontlineBay(cur_bay);
-        if (corridor >= 0 && spatial_grid.GetCorridorCount(corridor) > 0 &&
+        if (corridor >= 0 &&
+            (spatial_grid.GetCorridorCount(corridor) > 0 || term_mass == 1) &&
             term_mass > 0) {
           result.triggers_lance = true;
           result.terminal_bay = cur_bay;
           result.terminal_corridor = corridor;
+          result.final_mass = term_mass;
           result.predicted_damage = ComputeLanceDamage(
               term_mass, kAlphaLanceDamage * lance_alpha_multiplier_);
           result.total_cascade_laps = laps;
@@ -302,6 +331,7 @@ BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
         temp_bays[cur_bay] = 0;
         laps++;
         result.triggers_relay = true;
+        current_direction = ResolveSowDirection(cur_bay, current_direction);
       } else {
         break;
       }
@@ -314,6 +344,9 @@ BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
   result.predicted_damage =
       IsFrontlineBay(cur_bay) ? ComputeLanceDamage(result.final_mass) : 0.0f;
   result.total_cascade_laps = laps;
+  if (IsFrontlineBay(cur_bay) && result.final_mass > 0) {
+    result.triggers_lance = true;
+  }
   return result;
 }
 
