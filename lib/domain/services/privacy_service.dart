@@ -12,19 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-enum ConsentStatus { unknown, required, obtained, notRequired, denied }
+/// User privacy and tracking consent states compliant with GDPR, CCPA, and COPPA.
+enum ConsentStatus {
+  /// Consent status has not yet been determined.
+  unknown,
+
+  /// User consent is legally required before requesting personalized resources.
+  required,
+
+  /// User explicitly granted privacy consent.
+  obtained,
+
+  /// Region does not require explicit affirmative consent.
+  notRequired,
+
+  /// User denied or revoked privacy consent.
+  denied,
+}
 
 /// Service managing user consent and privacy regulations (GDPR, CCPA, COPPA).
 class PrivacyService {
   PrivacyService._();
+
+  /// Singleton access instance.
   static final PrivacyService instance = PrivacyService._();
 
   ConsentStatus _status = ConsentStatus.notRequired;
+
+  /// Current user consent status.
   ConsentStatus get status => _status;
 
+  /// Indicates whether advertising and analytics requests are legally permitted.
   bool get canRequestAds =>
       _status == ConsentStatus.obtained || _status == ConsentStatus.notRequired;
 
+  /// Requests user consent dialog from the User Messaging Platform.
   Future<void> requestConsent() async {
     // In production, interfaces with google_mobile_ads UserMessagingPlatform
     _status = ConsentStatus.obtained;

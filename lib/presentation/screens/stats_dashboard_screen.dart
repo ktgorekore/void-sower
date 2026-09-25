@@ -57,90 +57,96 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     final controller = TextEditingController();
     String? errorText;
 
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (ctx, setModalState) => AlertDialog(
-          backgroundColor: VoidTheme.cardSurface,
-          title: const Text(
-            'RESTORE TELEMETRY SAVE',
-            style: TextStyle(
-              color: VoidTheme.solarGold,
-              fontSize: 14.0,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Paste your base64 encoded save string with embedded checksum verification.',
-                style: TextStyle(
-                  color: VoidTheme.textSecondary,
-                  fontSize: 12.0,
-                ),
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (ctx, setModalState) => AlertDialog(
+            backgroundColor: VoidTheme.cardSurface,
+            title: const Text(
+              'RESTORE TELEMETRY SAVE',
+              style: TextStyle(
+                color: VoidTheme.solarGold,
+                fontSize: 14.0,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
               ),
-              const SizedBox(height: 12.0),
-              TextField(
-                controller: controller,
-                maxLines: 4,
-                style: const TextStyle(color: Colors.white, fontSize: 12.0),
-                decoration: InputDecoration(
-                  hintText: 'Paste export payload...',
-                  hintStyle: const TextStyle(color: VoidTheme.textMuted),
-                  errorText: errorText,
-                  filled: true,
-                  fillColor: VoidTheme.deepSpaceVoid,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(color: VoidTheme.plasmaCyan),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Paste your base64 encoded save string with embedded checksum verification.',
+                  style: TextStyle(
+                    color: VoidTheme.textSecondary,
+                    fontSize: 12.0,
                   ),
                 ),
+                const SizedBox(height: 12.0),
+                TextField(
+                  controller: controller,
+                  maxLines: 4,
+                  style: const TextStyle(color: Colors.white, fontSize: 12.0),
+                  decoration: InputDecoration(
+                    hintText: 'Paste export payload...',
+                    hintStyle: const TextStyle(color: VoidTheme.textMuted),
+                    errorText: errorText,
+                    filled: true,
+                    fillColor: VoidTheme.deepSpaceVoid,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: const BorderSide(color: VoidTheme.plasmaCyan),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: const Text(
+                  'CANCEL',
+                  style: TextStyle(color: VoidTheme.textMuted),
+                ),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: VoidTheme.solarGold,
+                  foregroundColor: Colors.black,
+                ),
+                child: const Text('RESTORE'),
+                onPressed: () async {
+                  final success = await _persistence.importSaveJson(
+                    controller.text,
+                  );
+                  if (success) {
+                    if (dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                    _refresh();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Save telemetry successfully restored.',
+                          ),
+                        ),
+                      );
+                    }
+                  } else {
+                    setModalState(() {
+                      errorText = 'Invalid or corrupted save payload';
+                    });
+                  }
+                },
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              child: const Text(
-                'CANCEL',
-                style: TextStyle(color: VoidTheme.textMuted),
-              ),
-              onPressed: () => Navigator.of(dialogContext).pop(),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: VoidTheme.solarGold,
-                foregroundColor: Colors.black,
-              ),
-              child: const Text('RESTORE'),
-              onPressed: () async {
-                final success = await _persistence.importSaveJson(
-                  controller.text,
-                );
-                if (success) {
-                  if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                  _refresh();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Save telemetry successfully restored.'),
-                      ),
-                    );
-                  }
-                } else {
-                  setModalState(() {
-                    errorText = 'Invalid or corrupted save payload';
-                  });
-                }
-              },
-            ),
-          ],
         ),
-      ),
-    );
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   Future<void> _confirmEraseData() async {

@@ -87,11 +87,18 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
   // Benchmark State
   bool _isBenchmarking = false;
   MctsBenchmarkResult? _benchmarkResult;
+  Timer? _benchmarkTimer;
 
   @override
   void initState() {
     super.initState();
     _selectedChassisId = PersistenceService.instance.selectedChassisId;
+  }
+
+  @override
+  void dispose() {
+    _benchmarkTimer?.cancel();
+    super.dispose();
   }
 
   void _runMctsBenchmark() {
@@ -104,7 +111,8 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
     });
 
     // Run benchmark in delayed microtask to allow progress spinner to prime
-    Timer(const Duration(milliseconds: 50), () {
+    _benchmarkTimer?.cancel();
+    _benchmarkTimer = Timer(const Duration(milliseconds: 50), () {
       final latencies = <int>[];
       int validCount = 0;
       int cwCount = 0;

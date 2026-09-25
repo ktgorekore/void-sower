@@ -24,9 +24,13 @@ import '../../domain/models/lance_beam.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
 
-/// Callbacks dispatched on bullet collision events.
+/// Callback invoked when an enemy projectile breaches a frontline capacitor conduit.
 typedef OnConduitBreached = void Function(int corridor, double x, double y);
+
+/// Callback invoked when an enemy projectile breaches the atmospheric defense perimeter.
 typedef OnAtmosphereBreached = void Function(double x, double y);
+
+/// Callback invoked when an enemy projectile is deflected by kinetic shielding or Kimbi bays.
 typedef OnBulletDeflected = void Function(double x, double y, Color color);
 
 /// Encapsulates enemy projectile firing, descent physics, and raycasting

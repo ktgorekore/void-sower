@@ -63,6 +63,7 @@ class ParticleService {
 
   bool get hasActiveParticles => _activeList.isNotEmpty;
 
+  /// Spawns a radial burst of particle fragments simulating a flak detonation at ([x], [y]).
   void spawnFlakBurst(double x, double y, Color color, {int count = 24}) {
     var spawned = 0;
     for (final p in _pool) {
@@ -85,6 +86,7 @@ class ParticleService {
     }
   }
 
+  /// Spawns upward kinetic sparks at ([x], [y]) simulating particle lance beam contact.
   void spawnLanceSparks(double x, double y, Color color, {int count = 12}) {
     var spawned = 0;
     for (final p in _pool) {
@@ -107,6 +109,7 @@ class ParticleService {
     }
   }
 
+  /// Emits transient plasma seed trail particles at ([x], [y]) during capacitor sowing hops.
   void spawnSowTrail(double x, double y, Color color, {int count = 4}) {
     var spawned = 0;
     for (final p in _pool) {
@@ -127,6 +130,7 @@ class ParticleService {
     }
   }
 
+  /// Advances active particle positions, ages life counters, and prunes expired particles.
   void update(double dt) {
     _activeList.clear();
     for (final p in _pool) {
@@ -143,6 +147,7 @@ class ParticleService {
     }
   }
 
+  /// Deactivates all particles in the pool and clears the active particle list.
   void clear() {
     for (final p in _pool) {
       p.active = false;

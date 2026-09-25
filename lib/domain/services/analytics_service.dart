@@ -17,16 +17,21 @@ import 'package:flutter/foundation.dart';
 /// Telemetry logging service for combat milestones and session events.
 class AnalyticsService {
   AnalyticsService._();
+
+  /// Singleton access instance.
   static final AnalyticsService instance = AnalyticsService._();
 
+  /// Logs a custom analytical telemetry event with optional key-value [parameters].
   void logEvent(String name, [Map<String, dynamic>? parameters]) {
     debugPrint('[Analytics] $name: $parameters');
   }
 
+  /// Records combat sortie initiation for [sectorId] at the specified difficulty [tier].
   void logCombatStart(int sectorId, int tier) {
     logEvent('combat_start', {'sector_id': sectorId, 'tier': tier});
   }
 
+  /// Records mission victory for [sectorId] with final [score] and [remainingCores].
   void logCombatVictory(int sectorId, int score, int remainingCores) {
     logEvent('combat_victory', {
       'sector_id': sectorId,
@@ -35,6 +40,7 @@ class AnalyticsService {
     });
   }
 
+  /// Records mission defeat for [sectorId] with achieved [score].
   void logCombatDefeat(int sectorId, int score) {
     logEvent('combat_defeat', {'sector_id': sectorId, 'score': score});
   }
