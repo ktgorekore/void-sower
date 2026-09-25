@@ -25,7 +25,7 @@
 <en-US>
 🚀 Void Sower v0.2.20 — Pro Suite & Bidirectional Control!
 • Full Pro Suite: Autonomous AI Solver, Move Advisor, MK-III Singularity hull, and 27 campaign sectors.
-• Rewarded Passes: Watch Ad unlocks instant passes for Pro features and ship rentals without cooldown lockouts.
+• Rewarded Passes: Instant passes for Pro features and ship rentals without cooldown lockouts.
 • Bidirectional Sowing: Smooth thumb swiping (Left/Right) across all bays + highlighted directional buttons.
 • Direction Memory: Axial discharge honors your chosen sowing trajectory.
 • Zero-alloc 60 FPS combat.

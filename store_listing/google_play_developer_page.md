@@ -45,7 +45,7 @@ To configure the developer page in Google Play Console (**Developer page** secti
 
 ## 💳 Merchant Account Configuration
 
-To enable the `$0.99` In-App Purchase (`void_sower_pro_lifetime`):
+To enable the `$1.29` In-App Purchase (`void_sower_pro_lifetime`):
 
 1. Navigate to **Google Play Console** > **Setup** > **Payments profile**.
 2. Link or create a Google Payments Merchant Profile.
