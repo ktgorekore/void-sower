@@ -50,6 +50,11 @@ struct MctsEvaluationResult {
  */
 class MctsSolver {
  public:
+  /**
+   * @brief Constructs an MctsSolver bound to the target combat simulation
+   * registry.
+   * @param registry Reference to the active EnTT registry.
+   */
   explicit MctsSolver(entt::registry& registry);
   ~MctsSolver() = default;
 

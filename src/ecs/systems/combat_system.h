@@ -40,6 +40,10 @@ namespace void_sower::ecs {
  */
 class CombatSystem {
  public:
+  /**
+   * @brief Constructs a CombatSystem managing the given EnTT entity registry.
+   * @param registry Reference to the active EnTT registry.
+   */
   explicit CombatSystem(entt::registry& registry);
   ~CombatSystem() = default;
 

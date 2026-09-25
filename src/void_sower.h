@@ -136,51 +136,201 @@ typedef struct {
 #define VOID_SOWER_NOEXCEPT
 #endif
 
+/**
+ * @brief Configures Abseil global VLOG verbosity level.
+ * @param level Verbosity level integer (0 to disable, higher for verbose).
+ */
 FFI_PLUGIN_EXPORT void void_sower_set_vlog_level(int32_t level)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Initializes the native simulation engine and clears entity state.
+ * @param starting_cores Initial count of reserve reactor cores.
+ * @param boundary_y Normalized Y coordinate for the atmospheric breach boundary
+ * line.
+ */
 FFI_PLUGIN_EXPORT void void_sower_init(uint32_t starting_cores,
                                        float boundary_y) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Procedurally generates an assault wave based on difficulty and seed.
+ * @param config Pointer to wave generation parameters.
+ * @return 1 on successful wave generation, 0 on failure or null config.
+ */
 FFI_PLUGIN_EXPORT int32_t void_sower_generate_wave(
     const VoidSowerWaveConfigFFI* config) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Injects a core from the reactor into a bay and executes the sowing
+ * cascade.
+ * @param bay_index Origin bay index (0 to 15).
+ * @param direction Step direction (+1 for CW, -1 for CCW).
+ * @return 1 if sowing cycle was initiated, 0 on invalid bay or empty reactor.
+ */
 FFI_PLUGIN_EXPORT int32_t
 void_sower_inject_core(uint8_t bay_index, int8_t direction) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Sets the target lateral slide position of the dreadnought flagship.
+ * @param target_x Normalized X coordinate along the orbital horizon [0.0, 1.0].
+ */
 FFI_PLUGIN_EXPORT void void_sower_slide_dreadnought(float target_x)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Advances the deterministic physics, spatial grid, and combat
+ * simulation.
+ * @param delta_time Elapsed step time in seconds (e.g. 1/60s).
+ */
 FFI_PLUGIN_EXPORT void void_sower_step_simulation(float delta_time)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Damages a specific capacitor conduit, deducting 1 core and discharging
+ * energy.
+ * @param bay_index Damaged capacitor bay index (0 to 15).
+ */
 FFI_PLUGIN_EXPORT void void_sower_damage_conduit(uint8_t bay_index)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Damages planetary atmosphere when hostile ordnance breaches the
+ * perimeter.
+ * @param penalty Core deduction penalty applied directly to the reactor.
+ */
 FFI_PLUGIN_EXPORT void void_sower_damage_atmosphere(uint32_t penalty)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Grants bonus reserve cores directly to the reactor core bank.
+ * @param count Number of plasma cores to add to reactor reserve.
+ */
 FFI_PLUGIN_EXPORT void void_sower_grant_cores(uint32_t count)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Enables or disables evasive lateral drift behavior on descending
+ * craft.
+ * @param enabled 1 to activate lateral drift evasion, 0 to disable.
+ */
 FFI_PLUGIN_EXPORT void void_sower_set_lateral_drift(uint8_t enabled)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Deploys a single reinforcement hostile craft into an active corridor.
+ * @param corridor Tactical grid corridor (0 to 7).
+ * @param world_pos_y Initial vertical position along corridor.
+ * @param velocity_y Descent speed in units per second.
+ * @param shields Initial kinetic shield capacity.
+ * @param hull Initial hull integrity points.
+ * @param vessel_type Craft classification (0: Scout, 1: Raider, 2: Flagship).
+ * @return 1 on successful deployment, 0 on capacity exhaustion.
+ */
 FFI_PLUGIN_EXPORT int32_t void_sower_spawn_enemy(
     uint16_t corridor, float world_pos_y, float velocity_y, float shields,
     float hull, uint8_t vessel_type) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Simulates a dry-run trajectory projection without mutating live match
+ * state.
+ * @param start_bay Origin capacitor bay index (0 to 15).
+ * @param direction Sowing direction (+1 for CW, -1 for CCW).
+ * @param out_prediction Pointer to output telemetry prediction struct.
+ */
 FFI_PLUGIN_EXPORT void void_sower_predict_sow(
     uint8_t start_bay, int8_t direction,
     VoidSowerPredictionFFI* out_prediction) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Exports current battery ring charges and role states into
+ * pre-allocated memory.
+ * @param out_bays Pointer to contiguous array of VoidSowerBayFFI structures.
+ * @param max_count Maximum number of bay structures to write.
+ */
 FFI_PLUGIN_EXPORT void void_sower_get_bays(
     VoidSowerBayFFI* out_bays, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Exports active enemy craft into pre-allocated memory buffer.
+ * @param out_enemies Pointer to contiguous array of VoidSowerEnemyFFI
+ * structures.
+ * @param max_count Maximum buffer capacity for craft entries.
+ * @return Total number of active enemy craft written to out_enemies.
+ */
 FFI_PLUGIN_EXPORT uint32_t void_sower_get_enemies(
     VoidSowerEnemyFFI* out_enemies, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Exports active particle lance beam vectors into pre-allocated buffer.
+ * @param out_lances Pointer to contiguous array of VoidSowerLanceFFI
+ * structures.
+ * @param max_count Maximum buffer capacity for lance entries.
+ * @return Total number of active lances written to out_lances.
+ */
 FFI_PLUGIN_EXPORT uint32_t void_sower_get_lances(
     VoidSowerLanceFFI* out_lances, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Exports active secondary flak burst zones into pre-allocated buffer.
+ * @param out_flaks Pointer to contiguous array of VoidSowerFlakFFI structures.
+ * @param max_count Maximum buffer capacity for flak entries.
+ * @return Total number of active flaks written to out_flaks.
+ */
 FFI_PLUGIN_EXPORT uint32_t void_sower_get_flaks(
     VoidSowerFlakFFI* out_flaks, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Exports overall dreadnought state, reserve cores, and simulation FSM
+ * status.
+ * @param out_state Pointer to output VoidSowerDreadnoughtFFI struct.
+ */
 FFI_PLUGIN_EXPORT void void_sower_get_dreadnought_state(
     VoidSowerDreadnoughtFFI* out_state) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Sets the chassis particle lance alpha multiplier for fleet damage
+ * scaling.
+ * @param alpha_multiplier Scaling factor applied to quadratic lance output.
+ */
 FFI_PLUGIN_EXPORT void void_sower_set_lance_alpha(float alpha_multiplier)
     VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Restores combat simulation state from an archived turn snapshot.
+ * @param bay_charges Pointer to 16-element array of bay charge values.
+ * @param reserve_cores Restored reserve plasma core count.
+ * @param total_score Restored match score.
+ */
 FFI_PLUGIN_EXPORT void void_sower_restore_snapshot(
     const uint32_t* bay_charges, uint32_t reserve_cores,
     uint32_t total_score) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Solves the optimal tactical move using native Monte Carlo Tree Search
+ * lookahead.
+ * @param out_bay Output pointer for recommended bay index (0 to 15).
+ * @param out_direction Output pointer for recommended direction (+1 for CW, -1
+ * for CCW).
+ * @param out_confidence Output pointer for search confidence (0.0 to 1.0), or
+ * nullptr.
+ * @param out_predicted_damage Output pointer for estimated damage, or nullptr.
+ * @return 1 on successful tactical solution found, 0 on failure or null
+ * parameters.
+ */
 FFI_PLUGIN_EXPORT int32_t void_sower_solve_tactical_step(
     uint8_t* out_bay, int8_t* out_direction, float* out_confidence,
     float* out_predicted_damage) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Reinitializes the simulation engine with default baseline
+ * configuration.
+ */
 FFI_PLUGIN_EXPORT void void_sower_reset(void) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Releases the global native simulation engine instance and frees
+ * memory.
+ */
 FFI_PLUGIN_EXPORT void void_sower_free(void) VOID_SOWER_NOEXCEPT;
 
 #ifdef __cplusplus

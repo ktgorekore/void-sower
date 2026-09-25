@@ -49,6 +49,11 @@ struct WaveGeneratorConfig {
  */
 class WaveGenerator {
  public:
+  /**
+   * @brief Constructs a WaveGenerator operating on the given EnTT entity
+   * registry.
+   * @param registry Reference to the active EnTT registry.
+   */
   explicit WaveGenerator(entt::registry& registry);
   ~WaveGenerator() = default;
 

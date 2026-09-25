@@ -34,7 +34,8 @@ namespace {
 std::unique_ptr<void_sower::ecs::Engine> g_engine = nullptr;
 std::shared_mutex g_engine_mutex;
 
-void_sower::ecs::Engine& GetOrCreateEngine() {
+// Must be called with a unique_lock holding g_engine_mutex.
+void_sower::ecs::Engine& GetOrCreateEngineLocked() {
   if (!g_engine) {
     g_engine = std::make_unique<void_sower::ecs::Engine>();
   }
@@ -60,7 +61,7 @@ void void_sower_set_vlog_level(int32_t level) noexcept {
 void void_sower_init(uint32_t starting_cores, float boundary_y) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().Initialize(starting_cores, boundary_y);
+    GetOrCreateEngineLocked().Initialize(starting_cores, boundary_y);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_init: " << e.what();
   } catch (...) {
@@ -81,7 +82,7 @@ int32_t void_sower_generate_wave(
         .initial_velocity_y = config->initial_velocity_y,
         .target_corridors_mask = 0xFF,
     };
-    return GetOrCreateEngine().GenerateWave(cfg) ? 1 : 0;
+    return GetOrCreateEngineLocked().GenerateWave(cfg) ? 1 : 0;
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_generate_wave: " << e.what();
     return 0;
@@ -94,7 +95,7 @@ int32_t void_sower_generate_wave(
 int32_t void_sower_inject_core(uint8_t bay_index, int8_t direction) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    return GetOrCreateEngine().InjectCore(bay_index, direction) ? 1 : 0;
+    return GetOrCreateEngineLocked().InjectCore(bay_index, direction) ? 1 : 0;
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_inject_core: " << e.what();
     return 0;
@@ -107,7 +108,7 @@ int32_t void_sower_inject_core(uint8_t bay_index, int8_t direction) noexcept {
 void void_sower_slide_dreadnought(float target_x) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().SetTargetPositionX(target_x);
+    GetOrCreateEngineLocked().SetTargetPositionX(target_x);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_slide_dreadnought: " << e.what();
   } catch (...) {
@@ -118,7 +119,7 @@ void void_sower_slide_dreadnought(float target_x) noexcept {
 void void_sower_step_simulation(float delta_time) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().Update(delta_time);
+    GetOrCreateEngineLocked().Update(delta_time);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_step_simulation: " << e.what();
   } catch (...) {
@@ -129,7 +130,7 @@ void void_sower_step_simulation(float delta_time) noexcept {
 void void_sower_damage_conduit(uint8_t bay_index) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().DamageConduit(bay_index);
+    GetOrCreateEngineLocked().DamageConduit(bay_index);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_damage_conduit: " << e.what();
   } catch (...) {
@@ -140,7 +141,7 @@ void void_sower_damage_conduit(uint8_t bay_index) noexcept {
 void void_sower_damage_atmosphere(uint32_t penalty) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().DamageAtmosphere(penalty);
+    GetOrCreateEngineLocked().DamageAtmosphere(penalty);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_damage_atmosphere: " << e.what();
   } catch (...) {
@@ -151,7 +152,7 @@ void void_sower_damage_atmosphere(uint32_t penalty) noexcept {
 void void_sower_grant_cores(uint32_t count) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().GrantCores(count);
+    GetOrCreateEngineLocked().GrantCores(count);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_grant_cores: " << e.what();
   } catch (...) {
@@ -162,7 +163,7 @@ void void_sower_grant_cores(uint32_t count) noexcept {
 void void_sower_set_lateral_drift(uint8_t enabled) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().SetLateralDrift(enabled != 0);
+    GetOrCreateEngineLocked().SetLateralDrift(enabled != 0);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_set_lateral_drift: " << e.what();
   } catch (...) {
@@ -175,8 +176,8 @@ int32_t void_sower_spawn_enemy(uint16_t corridor, float world_pos_y,
                                uint8_t vessel_type) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    return GetOrCreateEngine().SpawnEnemy(corridor, world_pos_y, velocity_y,
-                                          shields, hull, vessel_type)
+    return GetOrCreateEngineLocked().SpawnEnemy(
+               corridor, world_pos_y, velocity_y, shields, hull, vessel_type)
                ? 1
                : 0;
   } catch (const std::exception& e) {
@@ -193,7 +194,8 @@ void void_sower_predict_sow(uint8_t start_bay, int8_t direction,
   if (!out_prediction) return;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    auto res = GetOrCreateEngine().PredictSow(start_bay, direction);
+    if (!g_engine) return;
+    auto res = g_engine->PredictSow(start_bay, direction);
     out_prediction->terminal_bay = res.terminal_bay;
     out_prediction->terminal_corridor = res.terminal_corridor;
     out_prediction->final_mass = res.final_mass;
@@ -213,11 +215,10 @@ void void_sower_get_bays(VoidSowerBayFFI* out_bays,
   if (!out_bays || max_count == 0) return;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    const auto& reg = GetOrCreateEngine().GetRegistry();
+    if (!g_engine) return;
+    const auto& reg = g_engine->GetRegistry();
     auto view = reg.view<const void_sower::ecs::BatteryComponent>();
-    uint32_t written = 0;
     for (auto entity : view) {
-      if (written >= max_count) break;
       const auto& bay =
           view.get<const void_sower::ecs::BatteryComponent>(entity);
       if (bay.bay_index < max_count) {
@@ -230,7 +231,6 @@ void void_sower_get_bays(VoidSowerBayFFI* out_bays,
         out_bays[bay.bay_index].is_nyumba = bay.is_nyumba;
         out_bays[bay.bay_index].is_kichwa = bay.is_kichwa;
         out_bays[bay.bay_index].is_kimbi = bay.is_kimbi;
-        written++;
       }
     }
   } catch (const std::exception& e) {
@@ -245,7 +245,8 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI* out_enemies,
   if (!out_enemies || max_count == 0) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    const auto& reg = GetOrCreateEngine().GetRegistry();
+    if (!g_engine) return 0;
+    const auto& reg = g_engine->GetRegistry();
     auto view = reg.view<const void_sower::ecs::EnemyVesselComponent>();
     uint32_t count = 0;
     for (auto entity : view) {
@@ -280,7 +281,8 @@ uint32_t void_sower_get_lances(VoidSowerLanceFFI* out_lances,
   if (!out_lances || max_count == 0) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    const auto& reg = GetOrCreateEngine().GetRegistry();
+    if (!g_engine) return 0;
+    const auto& reg = g_engine->GetRegistry();
     auto view = reg.view<const void_sower::ecs::ParticleLanceComponent>();
     uint32_t count = 0;
     for (auto entity : view) {
@@ -314,7 +316,8 @@ uint32_t void_sower_get_flaks(VoidSowerFlakFFI* out_flaks,
   if (!out_flaks || max_count == 0) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    const auto& reg = GetOrCreateEngine().GetRegistry();
+    if (!g_engine) return 0;
+    const auto& reg = g_engine->GetRegistry();
     auto view = reg.view<const void_sower::ecs::FlakBurstComponent>();
     uint32_t count = 0;
     for (auto entity : view) {
@@ -347,7 +350,8 @@ void void_sower_get_dreadnought_state(
   if (!out_state) return;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    auto dread = GetOrCreateEngine().GetDreadnoughtState();
+    if (!g_engine) return;
+    auto dread = g_engine->GetDreadnoughtState();
     out_state->orbital_position_x = dread.orbital_position_x;
     out_state->target_position_x = dread.target_position_x;
     out_state->reserve_cores = dread.reserve_cores;
@@ -366,7 +370,7 @@ void void_sower_get_dreadnought_state(
 void void_sower_set_lance_alpha(float alpha_multiplier) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().SetLanceAlphaMultiplier(alpha_multiplier);
+    GetOrCreateEngineLocked().SetLanceAlphaMultiplier(alpha_multiplier);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_set_lance_alpha: " << e.what();
   } catch (...) {
@@ -386,7 +390,7 @@ void void_sower_restore_snapshot(const uint32_t* bay_charges,
     for (size_t i = 0; i < void_sower::ecs::kTotalBays; ++i) {
       arr[i] = charges_span[i];
     }
-    GetOrCreateEngine().RestoreSnapshot(arr, reserve_cores, total_score);
+    GetOrCreateEngineLocked().RestoreSnapshot(arr, reserve_cores, total_score);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_restore_snapshot: " << e.what();
   } catch (...) {
@@ -400,8 +404,9 @@ int32_t void_sower_solve_tactical_step(uint8_t* out_bay, int8_t* out_direction,
   if (!out_bay || !out_direction) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
-    return GetOrCreateEngine().SolveTacticalStep(
-        out_bay, out_direction, out_confidence, out_predicted_damage);
+    if (!g_engine) return 0;
+    return g_engine->SolveTacticalStep(out_bay, out_direction, out_confidence,
+                                       out_predicted_damage);
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_solve_tactical_step: " << e.what();
     return 0;
@@ -414,7 +419,11 @@ int32_t void_sower_solve_tactical_step(uint8_t* out_bay, int8_t* out_direction,
 void void_sower_reset(void) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngine().Reset();
+    if (g_engine) {
+      g_engine->Reset();
+    } else {
+      g_engine = std::make_unique<void_sower::ecs::Engine>();
+    }
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_reset: " << e.what();
   } catch (...) {

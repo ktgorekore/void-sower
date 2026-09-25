@@ -78,6 +78,11 @@ class DischargeSystem {
    */
   void Reset(entt::registry& registry);
 
+  /**
+   * @brief Checks if any particle lance beams are currently discharging.
+   * @param registry Reference to the active EnTT registry.
+   * @return true if at least one active lance beam exists, false otherwise.
+   */
   bool HasActiveLances(const entt::registry& registry) const;
 
   /**
