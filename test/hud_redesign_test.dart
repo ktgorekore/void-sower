@@ -428,7 +428,7 @@ void main() {
     );
 
     testWidgets(
-      'HudHeader eliminates callsign and Pro badge clutter during active combat to preserve sightline',
+      'HudHeader eliminates callsign clutter while displaying compact Pro status badge',
       (tester) async {
         await tester.pumpWidget(
           const MaterialApp(
@@ -446,10 +446,12 @@ void main() {
           ),
         );
 
-        // In HUD 2.0 Minimal Orbit, callsign and pro badge are shifted off live combat viewport
+        // In HUD 2.0 Minimal Orbit, callsign is shifted off live combat viewport
         expect(find.text('COMMANDER_Z'), findsNothing);
-        expect(find.text('PRO'), findsNothing);
         expect(find.byIcon(Icons.person), findsNothing);
+        // Compact PRO badge is present in the Top-Left Wing
+        expect(find.text('PRO'), findsOneWidget);
+        expect(find.byIcon(Icons.workspace_premium), findsOneWidget);
       },
     );
 

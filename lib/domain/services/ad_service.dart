@@ -31,12 +31,25 @@ class AdService {
   RewardedAd? _rewardedAd;
   bool _isAdLoading = false;
   bool _initialized = false;
+  bool _simulateMobileForTesting = false;
   Completer<RewardedAd?>? _loadingCompleter;
 
   /// Resets the rewarded ad cooldown timer for unit tests.
   @visibleForTesting
   void resetCooldownForTesting() {
     _lastEmergencyFlareTime = null;
+  }
+
+  /// Sets whether the service simulates a mobile platform environment for unit testing.
+  @visibleForTesting
+  void setSimulateMobileForTesting(bool simulate) {
+    _simulateMobileForTesting = simulate;
+  }
+
+  /// Sets a cached rewarded ad for unit tests.
+  @visibleForTesting
+  void setRewardedAdForTesting(RewardedAd? ad) {
+    _rewardedAd = ad;
   }
 
   /// Initializes AdMob SDK and pre-loads the initial rewarded ad with timeout protection.
@@ -148,7 +161,7 @@ class AdService {
     }
 
     // Graceful fallback for non-mobile development & testing environments
-    if (!Platform.isAndroid && !Platform.isIOS) {
+    if (!_simulateMobileForTesting && !Platform.isAndroid && !Platform.isIOS) {
       if (isEmergencyFlare) {
         _lastEmergencyFlareTime = DateTime.now();
       }
@@ -173,12 +186,11 @@ class AdService {
     }
 
     if (adToShow == null) {
-      debugPrint('[AdService] No ad available; executing fallback grant.');
-      loadRewardedAd();
-      if (isEmergencyFlare) {
-        _lastEmergencyFlareTime = DateTime.now();
-      }
-      return true;
+      debugPrint(
+        '[AdService] No ad available; cannot grant reward without viewing.',
+      );
+      unawaited(loadRewardedAd());
+      return false;
     }
 
     final completer = Completer<bool>();
@@ -194,7 +206,7 @@ class AdService {
         );
         ad.dispose();
         _rewardedAd = null;
-        loadRewardedAd();
+        unawaited(loadRewardedAd());
         if (!completer.isCompleted) {
           completer.complete(rewardEarned);
         }
@@ -203,10 +215,9 @@ class AdService {
         debugPrint('[AdService] RewardedAd playback error: $error');
         ad.dispose();
         _rewardedAd = null;
-        loadRewardedAd();
+        unawaited(loadRewardedAd());
         if (!completer.isCompleted) {
-          // Graceful fallback on playback error
-          completer.complete(true);
+          completer.complete(false);
         }
       },
     );

@@ -494,15 +494,43 @@ class CombatCoordinator extends ChangeNotifier {
     // This guarantees enemies stop moving and shooting when the match reaches a terminal state.
     final bool allEnemiesDestroyed =
         enemies.isNotEmpty && enemies.every((e) => e.isDestroyed);
-    if (_state.status == CombatMatchStatus.briefing ||
-        _state.status == CombatMatchStatus.paused ||
+    final bool isTerminalState =
         _state.status == CombatMatchStatus.defeat ||
         _state.status == CombatMatchStatus.victory ||
         dreadnought.isGameOver ||
         (dreadnought.isVictory &&
             _remainingReinforcements <= 0 &&
-            allEnemiesDestroyed)) {
-      lances = const [];
+            allEnemiesDestroyed);
+
+    if (_state.status == CombatMatchStatus.briefing ||
+        _state.status == CombatMatchStatus.paused ||
+        isTerminalState) {
+      if (isTerminalState && lances.any((l) => l.active)) {
+        // Sustain active particle lance beam so the killing strike renders
+        // completely instead of vanishing on the victory frame.
+        final updatedLances = <LanceBeam>[];
+        for (final lance in lances) {
+          if (!lance.active) continue;
+          final rem = lance.remainingDuration - clampedDt;
+          if (rem > 0.0) {
+            updatedLances.add(
+              LanceBeam(
+                firingBayIndex: lance.firingBayIndex,
+                originX: lance.originX,
+                originY: lance.originY,
+                beamWidth: lance.beamWidth,
+                sustainedDuration: lance.sustainedDuration,
+                remainingDuration: rem,
+                totalDamage: lance.totalDamage,
+                active: true,
+              ),
+            );
+          }
+        }
+        lances = updatedLances;
+      } else {
+        lances = const [];
+      }
       damageNumbers.clear();
       particleService.update(clampedDt * 0.2);
       return;
@@ -584,7 +612,9 @@ class CombatCoordinator extends ChangeNotifier {
         notifyListeners();
       }
       bulletManager.clear();
-      lances = const [];
+      if (!lances.any((l) => l.active)) {
+        lances = const [];
+      }
       damageNumbers.clear();
       particleService.update(clampedDt * 0.2);
       return;
@@ -1083,6 +1113,12 @@ class CombatCoordinator extends ChangeNotifier {
       _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
       notifyListeners();
     }
+  }
+
+  /// Sets the match status directly for unit testing.
+  @visibleForTesting
+  void setMatchStatusForTesting(CombatMatchStatus status) {
+    _state = _state.copyWith(status: status);
   }
 
   @override

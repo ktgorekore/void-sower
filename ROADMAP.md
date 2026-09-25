@@ -54,6 +54,7 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   Recorded 236,653 Simpleperf call-graph CPU samples with 0 samples lost. Confirmed native C++ EnTT ECS engine (`libvoid_sower.so`) sustains ultra-lean 0.29%–0.56% CPU overhead and zero runtime heap allocations, while autonomous AI solver (`libapp.so`) operates smoothly at 4.79%–5.36% CPU overhead. Verified rock-solid memory stability across all three theaters: Native Heap PSS 56.08–58.83 MB (delta < 2.8 MB), Total PSS 225.07–230.06 MB, and 0 jank / 0 dropped frame deadlines.
 - **Phase 15 Pro Gameplay Suite, Bidirectional Gestures & Ad Monetization Hardening (Release v0.2.20 - Code 22)**: Completed full production release of the Phase 15 Pro gameplay suite across all 10 premium capabilities (Autonomous AI MCTS Solver, Holographic Move Advisor, MK-III Singularity Chassis, MK-IV Golden Sovereign Hull, Deep Sensor Telemetry, Chrono-Anchor Rewind, Tactical Time Dilation, Expanded 27-Sector Theaters, Orbital Simulation Lab Sandbox, and Ad-Free Flares). Hardened rewarded ad lifecycle (`AdService`) with proactive pre-caching, 4s await guards, and isolation of cooldowns strictly to emergency flares, ensuring instant unblocked access to rewarded Pro feature passes and ship rentals. Standardized storefront and in-game copy to concise "Watch Ad" terminology. Refined bidirectional bay gesture recognition in `CommandArcWidget` with cumulative displacement tracking ($\ge 6\text{ dp}$), making thumb swipe/flick left and right 100% reliable across both frontline and return orbit decks. Added active direction indicator with bright plasma cyan border and glow on SOW LEFT and SOW RIGHT, and aligned axial discharge to honor the player's chosen direction. 163/163 unit and widget tests passing with 0 analyzer issues.
 - **Storefront Media Remastering, Clean UI Declutter & Play Store Suite (Release v0.2.21 - Code 23)**: Recaptured and verified all 9 phone screenshots (`1344 x 2992`, Pixel 10 Pro XL) and all 6 tablet screenshots (`2560 x 1600`, Pixel Tablet) on host NVIDIA GPU PRIME offload with 100% genuine in-game views (Sector Liberation Victory, Pilot Telemetry Dashboard, and Pro Commander Upgrade modal). Enforced route barriers with `PopScope` on `CombatScreen` and `CampaignMapScreen` to prevent Android launcher exit on back press. Implemented `void_sower_ads_disabled` preference guard in `PersistenceService` and `AdService` to completely eliminate ad interstitials or test popups during gameplay recordings and screenshot capture. Remastered official 60s narrated tutorial video (`docs/media/void_sower_how_to_play_60s.mp4`), 30s live tactical solver showcase video (`docs/media/void_sower_solver_showcase_30s.mp4`, 1,742 frames @ 30 FPS across Phantom Drift and Void Swarm), and 150-frame animated GIF preview (`docs/media/void_sower_solver_showcase.gif`). Updated Google Play Store listing package metadata (`google_play_metadata.md`, `google_play_developer_page.md`, `release_notes_v0.2.21.md`) across 5 languages detailing all 3 campaign theaters (27 sectors), the native C++ AI Tactical Solver, the Orbital Simulation Lab, and updated `$1.29` Pro Commander lifetime pricing. 179/179 unit and widget tests passing with 0 analyzer issues.
+- **Non-Pro Ad Hardening, Pro Discovery, Screen Unfreeze & Tactical Combat Polish (Phase 20)**: Eliminated unearned feature unlock bypasses in `AdService` by strictly binding reward delivery to confirmed user completion (`rewardEarned`). Embedded an uncluttered, compact Pro badge directly into the combat HUD (`HudHeader`) allowing non-Pro pilots to discover Pro upgrades and Pro pilots to verify active status. Resolved combat viewport freezing by resetting `_lastTickMicros` upon ticker resumption following external ad or dialog dismissal and adding `WidgetsBindingObserver` lifecycle handling. Fixed laser lance disappearance when neutralizing isolated sector targets by aligning beam origin in native `DischargeSystem` and sustaining beam decay across victory transitions in `CombatCoordinator`. Standardized post-victory star map navigation to route directly to starter theater `kilwa_basin`. 190/190 tests passing with 0 analyzer issues.
 
 ---
 
@@ -675,5 +676,40 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Author multi-threaded C++ concurrency tests in `src/tests/ffi_boundary_test.cpp` verifying concurrent readers and engine reinitialization without data races.
   - [x] Author comprehensive Flutter unit/widget tests in `test/phase19_memory_safety_audit_test.dart` verifying controller disposal, timer cancellation, and engine lifecycle robustness.
   - [x] Verify zero analyzer warnings (`flutter analyze`), 100% test pass rate (`flutter test`, `ctest`), and Google code formatting compliance.
+
+---
+
+## 💎 Phase 20: Non-Pro Ad Lifecycle Hardening, In-Engine Pro Discovery, Screen Unfreeze & Tactical Combat Polish (Completed ✅)
+
+- [x] **Task 20.1: Non-Pro Rewarded Ad Bypass Elimination & Reward Integrity (`AdService`)**
+  - [x] Eliminate unearned bypass `return true;` in `AdService.showRewardedAd` when `adToShow == null` or on playback failures (`onAdFailedToShowFullScreenContent`).
+  - [x] Enforce strict completion gate where `showRewardedAd` resolves `true` only when `rewardEarned == true` via `onUserEarnedReward`.
+  - [x] Add `@visibleForTesting` simulation hooks (`setSimulateMobileForTesting`, `setRewardedAdForTesting`) to verify unadulterated reward integrity on mobile and desktop environments.
+
+- [x] **Task 20.2: In-Engine Pro Discovery & Minimalist Status Telemetry (`HudHeader` & `CombatScreen`)**
+  - [x] Implement compact, clutter-free `_buildProBadge()` in `HudHeader` Top-Left Wing score row preserving central corridor sightlines.
+  - [x] Non-Pro pilots receive an interactive cyan outline `[ 👑 PRO ]` badge; tapping opens the `ProUpgradeModal` without cluttering the screen or blocking central sightlines.
+  - [x] Pro Commanders display radiant solar gold `[ 👑 PRO ]` badge indicating active premium rank.
+  - [x] Wire `proUpgrade` overlay state in `CombatOverlayState` and `CombatScreen` with seamless ticker suspension and resumption.
+
+- [x] **Task 20.3: Combat Viewport Unfreeze & App Lifecycle Resumption (`CombatScreen`)**
+  - [x] Diagnose and resolve post-ad/modal frame freeze: resetting ticker elapsed time while preserving stale `_lastTickMicros` resulted in massive negative time deltas that perpetually dropped frame deadlines.
+  - [x] Introduce `_resumeTicker()` in `CombatScreen` resetting `_lastTickMicros = 0` and `_lastElapsed = Duration.zero`.
+  - [x] Integrate `WidgetsBindingObserver` (`didChangeAppLifecycleState`) to cleanly handle Android `AdActivity` app focus loss and resumption without frame stalls.
+
+- [x] **Task 20.4: Tactical Lance Laser Continuity & Sector Clearance Targeting (`DischargeSystem` & `CombatCoordinator`)**
+  - [x] Enhance native ECS `DischargeSystem`: when clearing isolated enemies toward sector end, evaluate spatial corridor occupancy and pin `lance_origin_x` to the flanking bay corridor if the primary bay corridor has no hostiles, guaranteeing direct line-of-sight laser rendering on the surviving enemy.
+  - [x] Preserve active particle lance rendering and decay throughout sector victory and match state transitions in `CombatCoordinator`, preventing premature destruction of the winning beam.
+
+- [x] **Task 20.5: Post-Victory Map Campaign Routing & Non-Pro Guardrails (`CampaignMapScreen`, `PersistenceService`, `CombatScreen`)**
+  - [x] Add `initialCampaignId` support to `CampaignMapScreen` and configure post-match victory/game over navigation to route directly to starter theater `kilwa_basin`.
+  - [x] Hardened `PersistenceService.activeCampaignId` with non-Pro fallback checking to enforce `'kilwa_basin'` access for non-Pro pilots.
+
+- [x] **Task 20.6: Automated Regression Verification & Test Suite Coverage**
+  - [x] Author comprehensive unit and widget test suite `test/phase20_fixes_test.dart` covering all 5 core bug fixes.
+  - [x] Update `test/hud_redesign_test.dart` to verify compact Pro badge presence.
+  - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 190/190).
+  - [x] 0 issues found in `flutter analyze`.
+
 
 

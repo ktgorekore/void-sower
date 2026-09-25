@@ -50,6 +50,7 @@ class HudHeader extends StatelessWidget {
     this.onCodexTap,
     this.onTutorialTap,
     this.onEmergencyFlareTap,
+    this.onProTap,
   });
 
   final int reserveCores;
@@ -79,6 +80,7 @@ class HudHeader extends StatelessWidget {
   final VoidCallback? onCodexTap;
   final VoidCallback? onTutorialTap;
   final VoidCallback? onEmergencyFlareTap;
+  final VoidCallback? onProTap;
 
   String get tierName {
     switch (difficultyTier) {
@@ -182,11 +184,10 @@ class HudHeader extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Primary Current Score: "SCORE" micro-label + 6-digit score (or AI SIM / UNRANKED)
+          // Primary Current Score: "SCORE" micro-label + 6-digit score (or AI SIM / UNRANKED) + PRO status/discovery badge
           Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 isAiAssisted ? 'AI SIM' : 'SCORE',
@@ -219,6 +220,8 @@ class HudHeader extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(width: 6.0),
+              _buildProBadge(),
             ],
           ),
           const SizedBox(height: 2.0),
@@ -287,6 +290,55 @@ class HudHeader extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  /// Builds a compact, clutter-free Pro status and discovery badge for the Top-Left Wing.
+  Widget _buildProBadge() {
+    final proColor = isPro ? VoidTheme.solarGold : VoidTheme.plasmaCyan;
+    return Tooltip(
+      message: isPro ? 'Pro Commander Active' : 'Discover Pro Commander',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onProTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+          decoration: BoxDecoration(
+            color: isPro
+                ? VoidTheme.solarGold.withValues(alpha: 0.15)
+                : const Color(0xFF1E293B).withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(4.0),
+            border: Border.all(
+              color: isPro
+                  ? VoidTheme.solarGold.withValues(alpha: 0.7)
+                  : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+              width: 0.8,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isPro
+                    ? Icons.workspace_premium
+                    : Icons.workspace_premium_outlined,
+                size: 10.0,
+                color: proColor,
+              ),
+              const SizedBox(width: 2.5),
+              Text(
+                'PRO',
+                style: TextStyle(
+                  color: proColor,
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

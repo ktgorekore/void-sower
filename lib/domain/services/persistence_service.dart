@@ -121,8 +121,16 @@ class PersistenceService {
       'void_sower_campaign_liberated_';
 
   /// Currently selected campaign operation ('kilwa_basin', 'phantom_drift', 'void_swarm').
-  String get activeCampaignId =>
-      _prefs?.getString(_kActiveCampaignId) ?? 'kilwa_basin';
+  String get activeCampaignId {
+    final saved = _prefs?.getString(_kActiveCampaignId);
+    if (saved != null && saved.isNotEmpty) {
+      if (!isProUnlocked && saved != 'kilwa_basin') {
+        return 'kilwa_basin';
+      }
+      return saved;
+    }
+    return 'kilwa_basin';
+  }
 
   Future<void> setActiveCampaignId(String campaignId) async {
     await _prefs?.setString(_kActiveCampaignId, campaignId);

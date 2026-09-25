@@ -70,7 +70,7 @@ class CombatScreen extends StatefulWidget {
 }
 
 class _CombatScreenState extends State<CombatScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final CombatCoordinator _coordinator;
   late final Ticker _ticker;
   late final ValueNotifier<double> _renderNotifier;
@@ -97,6 +97,7 @@ class _CombatScreenState extends State<CombatScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _renderNotifier = ValueNotifier<double>(0.0);
     final isLowBattery = PersistenceService.instance.lowBatteryMode;
     _targetFps = isLowBattery ? 30 : PersistenceService.instance.targetFps;
@@ -117,13 +118,39 @@ class _CombatScreenState extends State<CombatScreen>
     );
 
     _ticker = createTicker(_onTick);
-    _ticker.start();
+    _resumeTicker();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (mounted &&
+          _overlayState == CombatOverlayState.none &&
+          !_ticker.isTicking) {
+        _resumeTicker();
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      if (_ticker.isTicking) {
+        _ticker.stop();
+      }
+    }
+  }
+
+  /// Safely starts or resumes the 60 Hz ticker, resetting microsecond offsets
+  /// to eliminate any frame-dropping freezes when returning from dialogs or external ad activities.
+  void _resumeTicker() {
+    _lastTickMicros = 0;
+    _lastElapsed = Duration.zero;
+    if (!_ticker.isTicking) {
+      _ticker.start();
+    }
   }
 
   void _onTick(Duration elapsed) {
     try {
       final nowMicros = elapsed.inMicroseconds;
-      if (_lastTickMicros > 0) {
+      if (_lastTickMicros > 0 && nowMicros >= _lastTickMicros) {
         final frameIntervalMicros = (1000000 / _targetFps).round();
         if ((nowMicros - _lastTickMicros) < (frameIntervalMicros - 1500)) {
           return;
@@ -131,7 +158,8 @@ class _CombatScreenState extends State<CombatScreen>
       }
       _lastTickMicros = nowMicros;
 
-      final dtSeconds = (_lastElapsed == Duration.zero)
+      final dtSeconds =
+          (_lastElapsed == Duration.zero || elapsed < _lastElapsed)
           ? 0.016
           : (elapsed - _lastElapsed).inMicroseconds / 1000000.0;
       _lastElapsed = elapsed;
@@ -261,10 +289,7 @@ class _CombatScreenState extends State<CombatScreen>
           Navigator.of(dialogContext).pop();
           _coordinator.triggerChronoRewind();
           _overlayState = CombatOverlayState.none;
-          if (!_ticker.isTicking) {
-            _lastElapsed = Duration.zero;
-            _ticker.start();
-          }
+          _resumeTicker();
           if (mounted) setState(() {});
         },
         onRetry: () {
@@ -276,7 +301,7 @@ class _CombatScreenState extends State<CombatScreen>
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.none;
-          _openMap();
+          _openMap(campaignId: 'kilwa_basin');
         },
       ),
     );
@@ -397,7 +422,7 @@ class _CombatScreenState extends State<CombatScreen>
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.none;
-          _openMap();
+          _openMap(campaignId: 'kilwa_basin');
         },
         onDismiss: () {
           _autoAdvanceTimer?.cancel();
@@ -427,10 +452,7 @@ class _CombatScreenState extends State<CombatScreen>
       sector: sector,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
-    if (!_ticker.isTicking) {
-      _lastElapsed = Duration.zero;
-      _ticker.start();
-    }
+    _resumeTicker();
     if (mounted) setState(() {});
   }
 
@@ -452,10 +474,7 @@ class _CombatScreenState extends State<CombatScreen>
       sector: sector,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
-    if (!_ticker.isTicking) {
-      _lastElapsed = Duration.zero;
-      _ticker.start();
-    }
+    _resumeTicker();
     if (mounted) setState(() {});
   }
 
@@ -480,7 +499,7 @@ class _CombatScreenState extends State<CombatScreen>
       if (mounted &&
           wasTicking &&
           _coordinator.state.status != CombatMatchStatus.briefing) {
-        _ticker.start();
+        _resumeTicker();
       }
     });
   }
@@ -506,7 +525,7 @@ class _CombatScreenState extends State<CombatScreen>
       if (mounted &&
           wasTicking &&
           _coordinator.state.status != CombatMatchStatus.briefing) {
-        _ticker.start();
+        _resumeTicker();
       }
     });
   }
@@ -527,7 +546,7 @@ class _CombatScreenState extends State<CombatScreen>
     ).then((_) {
       _overlayState = CombatOverlayState.none;
       if (mounted && wasTicking) {
-        _ticker.start();
+        _resumeTicker();
       }
     });
   }
@@ -549,13 +568,14 @@ class _CombatScreenState extends State<CombatScreen>
     ).then((_) {
       _overlayState = CombatOverlayState.none;
       if (mounted && wasTicking) {
-        _ticker.start();
+        _resumeTicker();
       }
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoAdvanceTimer?.cancel();
     _ticker.dispose();
     _renderNotifier.dispose();
@@ -587,13 +607,37 @@ class _CombatScreenState extends State<CombatScreen>
         ),
       ).then((_) {
         if (mounted && wasTicking) {
-          _ticker.start();
+          _resumeTicker();
         }
       });
     }
   }
 
-  void _openMap() {
+  void _openProUpgradeModal() {
+    if (_overlayState != CombatOverlayState.none) return;
+    _overlayState = CombatOverlayState.proUpgrade;
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (context) => ProUpgradeModal(
+        onUnlocked: () {
+          if (mounted) setState(() {});
+        },
+      ),
+    ).then((_) {
+      _overlayState = CombatOverlayState.none;
+      if (mounted && wasTicking) {
+        _resumeTicker();
+      }
+    });
+  }
+
+  void _openMap({String? campaignId}) {
+    final targetCampaign = campaignId ?? 'kilwa_basin';
+    PersistenceService.instance.setActiveCampaignId(targetCampaign);
     if (widget.onReturnToMap != null) {
       widget.onReturnToMap!();
     } else {
@@ -602,12 +646,15 @@ class _CombatScreenState extends State<CombatScreen>
       Navigator.of(context)
           .push(
             MaterialPageRoute<void>(
-              builder: (context) => CampaignMapScreen(engine: widget.engine),
+              builder: (context) => CampaignMapScreen(
+                engine: widget.engine,
+                initialCampaignId: targetCampaign,
+              ),
             ),
           )
           .then((_) {
             if (mounted && wasTicking) {
-              _ticker.start();
+              _resumeTicker();
             }
           });
     }
@@ -638,10 +685,7 @@ class _CombatScreenState extends State<CombatScreen>
           _coordinator.triggerChronoRewind();
           _coordinator.resumeCombat();
           _overlayState = CombatOverlayState.none;
-          if (!_ticker.isTicking) {
-            _lastElapsed = Duration.zero;
-            _ticker.start();
-          }
+          _resumeTicker();
           if (mounted) setState(() {});
         },
         onResume: () {
@@ -656,13 +700,13 @@ class _CombatScreenState extends State<CombatScreen>
           shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.none;
-          _openMap();
+          _openMap(campaignId: 'kilwa_basin');
         },
         onMap: () {
           shouldResumeOnClose = false;
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.none;
-          _openMap();
+          _openMap(campaignId: 'kilwa_basin');
         },
         onCodex: () {
           shouldResumeOnClose = false;
@@ -701,10 +745,7 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _resumeCombat() {
-    if (!_ticker.isTicking) {
-      _lastElapsed = Duration.zero;
-      _ticker.start();
-    }
+    _resumeTicker();
     _coordinator.resumeCombat();
     if (mounted) setState(() {});
   }
@@ -813,6 +854,7 @@ class _CombatScreenState extends State<CombatScreen>
                               onCodexTap: _openCodex,
                               onTutorialTap: _coordinator.showTutorial,
                               onEmergencyFlareTap: _openEmergencyFlare,
+                              onProTap: _openProUpgradeModal,
                               isAutoSolving: matchState.isAutoSolving,
                               onToggleAutoSolve: _toggleAutoSolve,
                             ),

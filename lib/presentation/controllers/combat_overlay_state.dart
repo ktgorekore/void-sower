@@ -35,6 +35,9 @@ enum CombatOverlayState {
   /// Emergency auxiliary core rewarded ad modal open.
   emergencyFlare,
 
+  /// Pro Commander upgrade & discovery modal open.
+  proUpgrade,
+
   /// Post-breach explosion delay (400ms) before defeat modal appears.
   defeatGrace,
 

@@ -36,9 +36,14 @@ import 'simulation_lab_screen.dart';
 
 /// Interactive Star Map Screen for the Kilwa Nebula Basin Campaign.
 class CampaignMapScreen extends StatefulWidget {
-  const CampaignMapScreen({super.key, required this.engine});
+  const CampaignMapScreen({
+    super.key,
+    required this.engine,
+    this.initialCampaignId,
+  });
 
   final IVoidSowerEngine engine;
+  final String? initialCampaignId;
 
   @override
   State<CampaignMapScreen> createState() => _CampaignMapScreenState();
@@ -52,7 +57,13 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   @override
   void initState() {
     super.initState();
-    _activeCampaignId = PersistenceService.instance.activeCampaignId;
+    if (widget.initialCampaignId != null &&
+        widget.initialCampaignId!.isNotEmpty) {
+      _activeCampaignId = widget.initialCampaignId!;
+      PersistenceService.instance.setActiveCampaignId(_activeCampaignId);
+    } else {
+      _activeCampaignId = PersistenceService.instance.activeCampaignId;
+    }
     _selectedChassisId = PersistenceService.instance.selectedChassisId;
     _sectors = CampaignService.instance.getSectors(_activeCampaignId);
   }
@@ -97,6 +108,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           onReturnToMap: () {
             Navigator.of(context).pop();
             setState(() {
+              _activeCampaignId = PersistenceService.instance.activeCampaignId;
               _sectors = CampaignService.instance.getSectors(_activeCampaignId);
             });
           },
@@ -130,6 +142,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           onReturnToMap: () {
             Navigator.of(context).pop();
             setState(() {
+              _activeCampaignId = PersistenceService.instance.activeCampaignId;
               _sectors = CampaignService.instance.getSectors(_activeCampaignId);
             });
           },
@@ -151,6 +164,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           onReturnToMap: () {
             Navigator.of(context).pop();
             setState(() {
+              _activeCampaignId = PersistenceService.instance.activeCampaignId;
               _sectors = CampaignService.instance.getSectors(_activeCampaignId);
             });
           },
