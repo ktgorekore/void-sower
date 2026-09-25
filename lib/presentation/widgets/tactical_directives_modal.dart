@@ -17,26 +17,17 @@ import 'package:flutter/material.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
-import 'tutorial_video_dialog.dart';
 
 /// Consolidated, ultra-fast (<20 seconds) Tactical Combat Directives modal.
 ///
 /// Merges the Bao Orbital Codex and Flight Academy into 4 illustrated visual flashcards,
 /// completely eliminating instructional wall-of-text fatigue while giving commanders
-/// immediate one-tap access to the 60s narrated video briefing and hands-on academy simulator.
+/// immediate one-tap access to the hands-on academy simulator.
 class TacticalDirectivesModal extends StatelessWidget {
   const TacticalDirectivesModal({super.key, this.onLaunchAcademy});
 
   /// Optional callback to trigger hands-on Flight Academy interactive simulation.
   final VoidCallback? onLaunchAcademy;
-
-  void _openVideoTutorial(BuildContext context) {
-    HapticService.instance.injectionClick();
-    showDialog<void>(
-      context: context,
-      builder: (context) => const TutorialVideoDialog(),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,96 +194,49 @@ class TacticalDirectivesModal extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Secondary Row: Watch 60s Video & Interactive Simulator
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _openVideoTutorial(context),
-                          icon: const Icon(
-                            Icons.play_circle_filled,
-                            color: VoidTheme.solarGold,
-                            size: 16.0,
-                          ),
-                          label: const FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'WATCH 60s VIDEO',
-                              style: TextStyle(
-                                color: VoidTheme.solarGold,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: VoidTheme.solarGold.withValues(alpha: 0.6),
-                              width: 1.2,
-                            ),
-                            backgroundColor: VoidTheme.solarGold.withValues(
-                              alpha: 0.08,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 10.0,
-                            ),
+                  // Secondary Action: Interactive Flight Academy Simulator (if available)
+                  if (onLaunchAcademy != null) ...[
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onLaunchAcademy?.call();
+                      },
+                      icon: const Icon(
+                        Icons.school,
+                        color: VoidTheme.plasmaCyan,
+                        size: 16.0,
+                      ),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'LAUNCH FLIGHT ACADEMY',
+                          style: TextStyle(
+                            color: VoidTheme.plasmaCyan,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.6,
                           ),
                         ),
                       ),
-                      if (onLaunchAcademy != null) ...[
-                        const SizedBox(width: 8.0),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              onLaunchAcademy?.call();
-                            },
-                            icon: const Icon(
-                              Icons.school,
-                              color: VoidTheme.plasmaCyan,
-                              size: 16.0,
-                            ),
-                            label: const FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                'HANDS-ON SIM',
-                                style: TextStyle(
-                                  color: VoidTheme.plasmaCyan,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.6,
-                                ),
-                              ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(
-                                color: VoidTheme.plasmaCyan.withValues(
-                                  alpha: 0.6,
-                                ),
-                                width: 1.2,
-                              ),
-                              backgroundColor: VoidTheme.plasmaCyan.withValues(
-                                alpha: 0.08,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 10.0,
-                              ),
-                            ),
-                          ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.6),
+                          width: 1.2,
                         ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 10.0),
+                        backgroundColor: VoidTheme.plasmaCyan.withValues(
+                          alpha: 0.08,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 10.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10.0),
+                  ],
 
                   // Primary Engage Combat Button
                   TactileButton(

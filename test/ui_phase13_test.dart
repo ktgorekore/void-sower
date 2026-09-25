@@ -108,7 +108,8 @@ void main() {
 
         // Verify Flight Academy and close button are visible
         expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
-        expect(find.text('WATCH VIDEO (60s)'), findsOneWidget);
+        expect(find.text('WATCH VIDEO (60s)'), findsNothing);
+        expect(find.text('TAP OUTSIDE TO SKIP'), findsOneWidget);
 
         final closeFinder = find.byTooltip('Dismiss Flight Academy');
         expect(closeFinder, findsOneWidget);
@@ -172,7 +173,7 @@ void main() {
         find.text('3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)'),
         findsOneWidget,
       );
-      expect(find.text('WATCH VIDEO TUTORIAL (60s)'), findsOneWidget);
+      expect(find.text('WATCH VIDEO TUTORIAL (60s)'), findsNothing);
       expect(find.text('DISMISS CODEX'), findsOneWidget);
     });
 

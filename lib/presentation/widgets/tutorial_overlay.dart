@@ -19,7 +19,6 @@ import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'bao_codex_dialog.dart';
 import 'tactile_button.dart';
-import 'tutorial_video_dialog.dart';
 
 /// Interactive hands-on Flight Academy onboarding overlay teaching Bao orbital mechanics.
 class TutorialOverlay extends StatefulWidget {
@@ -84,354 +83,335 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     }
   }
 
-  void _openVideoTutorial() {
-    HapticService.instance.injectionClick();
-    showDialog<void>(
-      context: context,
-      builder: (context) => const TutorialVideoDialog(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: VoidTheme.obsidianBlack.withValues(alpha: 0.85),
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 14.0),
-      child: SingleChildScrollView(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 420.0),
-          padding: const EdgeInsets.all(18.0),
-          decoration: VoidTheme.glassmorphic(
-            borderColor: _getStepAccent(),
-            borderWidth: 1.8,
-            borderRadius: 20.0,
-            extraShadows: [
-              BoxShadow(
-                color: _getStepAccent().withValues(alpha: 0.3),
-                blurRadius: 24.0,
-                spreadRadius: 2.0,
-              ),
-            ],
-          ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: widget.onDismiss,
+      child: Container(
+        color: VoidTheme.obsidianBlack.withValues(alpha: 0.85),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 14.0),
+        child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header: Step Pill & Flight Academy Title with Close 'X'
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+              GestureDetector(
+                onTap: () {}, // Absorb taps inside the card
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 420.0),
+                  padding: const EdgeInsets.all(18.0),
+                  decoration: VoidTheme.glassmorphic(
+                    borderColor: _getStepAccent(),
+                    borderWidth: 1.8,
+                    borderRadius: 20.0,
+                    extraShadows: [
+                      BoxShadow(
+                        color: _getStepAccent().withValues(alpha: 0.3),
+                        blurRadius: 24.0,
+                        spreadRadius: 2.0,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Header: Step Pill & Flight Academy Title with Close 'X'
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 3.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF082F49),
-                              borderRadius: BorderRadius.circular(11.0),
-                              border: Border.all(
-                                color: const Color(0xFF0284C7),
-                                width: 1.0,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _getStepIcon(),
-                                  color: const Color(0xFF38BDF8),
-                                  size: 11.0,
-                                ),
-                                const SizedBox(width: 4.0),
-                                Text(
-                                  'STEP ${_currentStep + 1} OF 5',
-                                  style: const TextStyle(
-                                    color: Color(0xFF38BDF8),
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.8,
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                      vertical: 3.5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF082F49),
+                                      borderRadius: BorderRadius.circular(11.0),
+                                      border: Border.all(
+                                        color: const Color(0xFF0284C7),
+                                        width: 1.0,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _getStepIcon(),
+                                          color: const Color(0xFF38BDF8),
+                                          size: 11.0,
+                                        ),
+                                        const SizedBox(width: 4.0),
+                                        Text(
+                                          'STEP ${_currentStep + 1} OF 5',
+                                          style: const TextStyle(
+                                            color: Color(0xFF38BDF8),
+                                            fontSize: 9.5,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8.0),
-                          Text(
-                            'FLIGHT ACADEMY',
-                            style: TextStyle(
-                              color: _getStepAccent(),
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: VoidTheme.textSecondary,
-                      size: 20.0,
-                    ),
-                    tooltip: 'Dismiss Flight Academy',
-                    padding: const EdgeInsets.all(8.0),
-                    constraints: const BoxConstraints(
-                      minWidth: 40.0,
-                      minHeight: 40.0,
-                    ),
-                    onPressed: () {
-                      HapticService.instance.sowTick();
-                      widget.onDismiss();
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6.0),
-
-              // Tactical Briefing Badge & Video Option
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VoidTheme.emeraldShield.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4.0),
-                        border: Border.all(
-                          color: VoidTheme.emeraldShield.withValues(alpha: 0.4),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.touch_app,
-                            color: VoidTheme.emeraldShield,
-                            size: 13.0,
-                          ),
-                          SizedBox(width: 5.0),
-                          Flexible(
-                            child: Text(
-                              'INTERACTIVE LESSON',
-                              style: TextStyle(
-                                color: VoidTheme.emeraldShield,
-                                fontSize: 9.0,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.4,
+                                  const SizedBox(width: 8.0),
+                                  Text(
+                                    'FLIGHT ACADEMY',
+                                    style: TextStyle(
+                                      color: _getStepAccent(),
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
+                          ),
+                          const SizedBox(width: 4.0),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.close,
+                              color: VoidTheme.textSecondary,
+                              size: 20.0,
+                            ),
+                            tooltip: 'Dismiss Flight Academy',
+                            padding: const EdgeInsets.all(8.0),
+                            constraints: const BoxConstraints(
+                              minWidth: 40.0,
+                              minHeight: 40.0,
+                            ),
+                            onPressed: () {
+                              HapticService.instance.sowTick();
+                              widget.onDismiss();
+                            },
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 8.0),
-                  GestureDetector(
-                    onTap: _openVideoTutorial,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: VoidTheme.solarGold.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(4.0),
-                        border: Border.all(
-                          color: VoidTheme.solarGold.withValues(alpha: 0.6),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
+                      const SizedBox(height: 6.0),
+
+                      // Tactical Briefing Badge & Video Option
+                      Row(
                         children: [
-                          Icon(
-                            Icons.play_circle_filled,
-                            color: VoidTheme.solarGold,
-                            size: 14.0,
-                          ),
-                          SizedBox(width: 4.0),
-                          Text(
-                            'WATCH VIDEO (60s)',
-                            style: TextStyle(
-                              color: VoidTheme.solarGold,
-                              fontSize: 9.0,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.4,
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                                vertical: 4.0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: VoidTheme.emeraldShield.withValues(
+                                  alpha: 0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(4.0),
+                                border: Border.all(
+                                  color: VoidTheme.emeraldShield.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.touch_app,
+                                    color: VoidTheme.emeraldShield,
+                                    size: 13.0,
+                                  ),
+                                  SizedBox(width: 5.0),
+                                  Flexible(
+                                    child: Text(
+                                      'INTERACTIVE LESSON',
+                                      style: TextStyle(
+                                        color: VoidTheme.emeraldShield,
+                                        fontSize: 9.0,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 0.4,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(color: VoidTheme.cardSurface, height: 16.0),
+                      const Divider(color: VoidTheme.cardSurface, height: 16.0),
 
-              // Step Title & Body
-              Text(
-                _getStepTitle(),
-                style: const TextStyle(
-                  color: VoidTheme.textPrimary,
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const SizedBox(height: 4.0),
-              Text(
-                _getStepSubtitle(),
-                style: TextStyle(
-                  color: _getStepAccent().withValues(alpha: 0.9),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 10.0),
-              Text(
-                _getStepBody(),
-                style: const TextStyle(
-                  color: VoidTheme.textSecondary,
-                  fontSize: 12.5,
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 14.0),
-
-              // Interactive Hands-On Simulation Widget
-              _buildInteractiveWidget(),
-              const SizedBox(height: 14.0),
-
-              // Pro Tip Box
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10.0,
-                  vertical: 8.0,
-                ),
-                decoration: BoxDecoration(
-                  color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(8.0),
-                  border: Border.all(
-                    color: _getStepAccent().withValues(alpha: 0.35),
-                    width: 0.8,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.lightbulb_outline,
-                      color: VoidTheme.solarGold,
-                      size: 15.0,
-                    ),
-                    const SizedBox(width: 6.0),
-                    Expanded(
-                      child: Text(
-                        _getStepTip(),
+                      // Step Title & Body
+                      Text(
+                        _getStepTitle(),
                         style: const TextStyle(
-                          color: VoidTheme.solarGoldLight,
-                          fontSize: 10.5,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18.0),
-
-              // Navigation Controls
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (_currentStep > 0)
-                    TactileButton(
-                      label: 'PREV',
-                      onPressed: _prevStep,
-                      accentColor: VoidTheme.textSecondary,
-                      minWidth: 70.0,
-                      height: 38.0,
-                      isPrimary: false,
-                    )
-                  else
-                    OutlinedButton.icon(
-                      onPressed: widget.onDismiss,
-                      icon: const Icon(
-                        Icons.fast_forward_rounded,
-                        size: 14.0,
-                        color: VoidTheme.plasmaCyan,
-                      ),
-                      label: const Text(
-                        'SKIP',
-                        style: TextStyle(
                           color: VoidTheme.textPrimary,
-                          fontSize: 11.0,
+                          fontSize: 15.0,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.8,
                         ),
                       ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(
-                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                          width: 1.0,
+                      const SizedBox(height: 4.0),
+                      Text(
+                        _getStepSubtitle(),
+                        style: TextStyle(
+                          color: _getStepAccent().withValues(alpha: 0.9),
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
                         ),
-                        backgroundColor: VoidTheme.plasmaCyan.withValues(
-                          alpha: 0.08,
+                      ),
+                      const SizedBox(height: 10.0),
+                      Text(
+                        _getStepBody(),
+                        style: const TextStyle(
+                          color: VoidTheme.textSecondary,
+                          fontSize: 12.5,
+                          height: 1.4,
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6.0),
-                        ),
+                      ),
+                      const SizedBox(height: 14.0),
+
+                      // Interactive Hands-On Simulation Widget
+                      _buildInteractiveWidget(),
+                      const SizedBox(height: 14.0),
+
+                      // Pro Tip Box
+                      Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10.0,
                           vertical: 8.0,
                         ),
-                        minimumSize: const Size(60.0, 36.0),
-                      ),
-                    ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      TextButton.icon(
-                        onPressed: _openCodex,
-                        icon: const Icon(
-                          Icons.menu_book,
-                          size: 13.0,
-                          color: VoidTheme.plasmaCyan,
-                        ),
-                        label: const Text(
-                          'CODEX',
-                          style: TextStyle(
-                            color: VoidTheme.plasmaCyan,
-                            fontSize: 10.0,
-                            fontWeight: FontWeight.bold,
+                        decoration: BoxDecoration(
+                          color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(8.0),
+                          border: Border.all(
+                            color: _getStepAccent().withValues(alpha: 0.35),
+                            width: 0.8,
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.lightbulb_outline,
+                              color: VoidTheme.solarGold,
+                              size: 15.0,
+                            ),
+                            const SizedBox(width: 6.0),
+                            Expanded(
+                              child: Text(
+                                _getStepTip(),
+                                style: const TextStyle(
+                                  color: VoidTheme.solarGoldLight,
+                                  fontSize: 10.5,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 6.0),
-                      TactileButton(
-                        label: _currentStep == 4 ? 'LAUNCH!' : 'NEXT',
-                        onPressed: _nextStep,
-                        accentColor: _getStepAccent(),
-                        minWidth: 95.0,
-                        height: 38.0,
+                      const SizedBox(height: 18.0),
+
+                      // Navigation Controls
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (_currentStep > 0)
+                            TactileButton(
+                              label: 'PREV',
+                              onPressed: _prevStep,
+                              accentColor: VoidTheme.textSecondary,
+                              minWidth: 70.0,
+                              height: 38.0,
+                              isPrimary: false,
+                            )
+                          else
+                            OutlinedButton.icon(
+                              onPressed: widget.onDismiss,
+                              icon: const Icon(
+                                Icons.fast_forward_rounded,
+                                size: 14.0,
+                                color: VoidTheme.plasmaCyan,
+                              ),
+                              label: const Text(
+                                'SKIP',
+                                style: TextStyle(
+                                  color: VoidTheme.textPrimary,
+                                  fontSize: 11.0,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: VoidTheme.plasmaCyan.withValues(
+                                    alpha: 0.4,
+                                  ),
+                                  width: 1.0,
+                                ),
+                                backgroundColor: VoidTheme.plasmaCyan
+                                    .withValues(alpha: 0.08),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6.0),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10.0,
+                                  vertical: 8.0,
+                                ),
+                                minimumSize: const Size(60.0, 36.0),
+                              ),
+                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextButton.icon(
+                                onPressed: _openCodex,
+                                icon: const Icon(
+                                  Icons.menu_book,
+                                  size: 13.0,
+                                  color: VoidTheme.plasmaCyan,
+                                ),
+                                label: const Text(
+                                  'CODEX',
+                                  style: TextStyle(
+                                    color: VoidTheme.plasmaCyan,
+                                    fontSize: 10.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6.0),
+                              TactileButton(
+                                label: _currentStep == 4 ? 'LAUNCH!' : 'NEXT',
+                                onPressed: _nextStep,
+                                accentColor: _getStepAccent(),
+                                minWidth: 95.0,
+                                height: 38.0,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
+              ),
+              const SizedBox(height: 10.0),
+              const Text(
+                'TAP OUTSIDE TO SKIP',
+                style: TextStyle(
+                  color: VoidTheme.textMuted,
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.0,
+                ),
               ),
             ],
           ),
@@ -479,7 +459,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       case 0:
         return 'Your dreadnought carries 28 Reserve Cores per sector. Sowing from any bay draws 1 core from reserves to seed the capacitors. Conserve your fuel to survive the assault!';
       case 1:
-        return 'Swipe on any battery to sow plasma pit-to-pit along the 16-bay orbital ring. Landing on an occupied bay triggers a Bao Cascade Relay—circulating energy for free!';
+        return 'Swipe Left or Right (or use direction buttons) to sow plasma pit-to-pit along the 16-bay orbital ring. Landing on an occupied bay triggers a Bao Cascade Relay—circulating energy for free!';
       case 2:
         return 'When sowing finishes in a frontline bay, it unleashes an axial Particle Lance! Damage scales quadratically with mass (D = 100 · M²). Build mass to vaporize capital ships!';
       case 3:
