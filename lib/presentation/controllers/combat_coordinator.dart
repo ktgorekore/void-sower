@@ -937,8 +937,8 @@ class CombatCoordinator extends ChangeNotifier {
     }
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final activeBay = corridor + 8;
-    // Sowing inward along the frontline keeps single-hop shots on the frontline batteries
-    final direction = (corridor >= 4) ? -1 : 1;
+    // Quick-fire axial lance honors active sowing direction
+    final direction = _sowDirection;
 
     _sessionSeedsSown++;
     HapticService.instance.injectionClick();
