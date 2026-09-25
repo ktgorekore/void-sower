@@ -417,7 +417,7 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 
 ---
 
-## 👑 Phase 15: Pro Tier Architecture, Premium Feature Gatekeeping, Hybrid Monetization ($1.29 IAP & Rewarded Ads) & Deep MCTS Solver Upgrade (In Progress [/])
+## 👑 Phase 15: Pro Tier Architecture, Premium Feature Gatekeeping, Hybrid Monetization ($1.29 IAP & Rewarded Ads) & Deep MCTS Solver Upgrade (Completed ✅)
 
 - [x] **Task 15.1: Pro Entitlement Engine & Hybrid Ad/IAP Access Control**
   - [x] Implement `ProFeature` enum in `lib/domain/models/pro_feature.dart` categorizing all gated capabilities:
@@ -428,50 +428,50 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
     - Expose clean reactive stream and synchronous `isFeatureAccessible(ProFeature)` checks.
   - [x] Update `IapService` with production $1.29 USD pricing metadata for `void_sower_pro_lifetime`.
 
-- [ ] **Task 15.2: Complete Multi-Ply C++ MCTS Tactical Solver & Flat C ABI**
-  - [ ] Upgrade `MctsSolver` in `src/ecs/systems/mcts_solver.h` and `mcts_solver.cpp`:
+- [x] **Task 15.2: Complete Multi-Ply C++ MCTS Tactical Solver & Flat C ABI**
+  - [x] Upgrade `MctsSolver` in `src/ecs/systems/mcts_solver.h` and `mcts_solver.cpp`:
     - Implement Upper Confidence Bound for Trees (UCT) with contiguous node memory pooling (zero runtime heap allocations on hot path).
     - Multi-ply lookahead evaluating quadratic lance discharges, multi-lap cascade relays, threat proximity, and boundary distance.
     - Return optimal step sequence, predicted damage, and search confidence.
-  - [ ] Expose flat C ABI endpoint `void_sower_solve_tactical_step` in `src/void_sower.h` and `src/void_sower.cpp`.
-  - [ ] Bind endpoint in `lib/engine/void_sower_bindings_generated.dart` and `lib/engine/ffi_void_sower_engine.dart`.
-  - [ ] Offload long-horizon solvability rollouts to background isolates via `IsolateRunner`.
+  - [x] Expose flat C ABI endpoint `void_sower_solve_tactical_step` in `src/void_sower.h` and `src/void_sower.cpp`.
+  - [x] Bind endpoint in `lib/engine/void_sower_bindings_generated.dart` and `lib/engine/ffi_void_sower_engine.dart`.
+  - [x] Offload long-horizon solvability rollouts to background isolates via `IsolateRunner`.
 
-- [ ] **Task 15.3: Autonomous Autopilot & Holographic AI Move Advisor**
-  - [ ] Implement dual-mode AI controller in `lib/presentation/controllers/tactical_solver_controller.dart`:
+- [x] **Task 15.3: Autonomous Autopilot & Holographic AI Move Advisor**
+  - [x] Implement dual-mode AI controller in `lib/presentation/controllers/tactical_solver_controller.dart`:
     - *Autonomous Autopilot Mode*: Plays combat turns automatically with observable cadence (e.g. 350ms) and learning visual cues.
     - *Tactical Move Advisor (Smart Hints)*: Projects a pulsing holographic marker and directional swipe glyph on the recommended bay without taking player control.
-  - [ ] Gate both modes behind `ProFeature.aiTacticalSolver` and `ProFeature.aiMoveAdvisor`.
-  - [ ] Provide "Tactical Overclock" rewarded ad prompt: watch 1 ad to unlock 3 AI solver moves or 1 full wave of tactical advice.
+  - [x] Gate both modes behind `ProFeature.aiTacticalSolver` and `ProFeature.aiMoveAdvisor`.
+  - [x] Provide "Tactical Overclock" rewarded ad prompt: watch 1 ad to unlock 3 AI solver moves or 1 full wave of tactical advice.
 
-- [ ] **Task 15.4: Fleet Hangar Chassis Enforcement & Combat Stat Multipliers**
-  - [ ] Enforce chassis unlock rules in `lib/presentation/widgets/fleet_hangar_dialog.dart`:
+- [x] **Task 15.4: Fleet Hangar Chassis Enforcement & Combat Stat Multipliers**
+  - [x] Enforce chassis unlock rules in `lib/presentation/widgets/fleet_hangar_dialog.dart`:
     - MK-I Bastion: Free default.
     - MK-II Monsoon: Free progression unlock (liberate Sector 2).
     - MK-III Singularity Sovereign: Pro exclusive (+30% lance alpha, 40 cores).
     - MK-IV Golden Sovereign: Pro lifetime exclusive gilded hull shader & solar engine trails.
-  - [ ] Wire selected chassis parameters into `CombatCoordinator` and C++ `Engine` to actively apply core capacity and damage multipliers during combat.
-  - [ ] Provide "Flagship Rental" rewarded ad prompt: watch 1 ad to pilot MK-III Singularity for a single combat mission.
+  - [x] Wire selected chassis parameters into `CombatCoordinator` and C++ `Engine` to actively apply core capacity and damage multipliers during combat (`void_sower_set_lance_alpha`).
+  - [x] Provide "Flagship Rental" rewarded ad prompt: watch 1 ad to pilot MK-III Singularity for a single combat mission.
 
-- [ ] **Task 15.5: Deep Sensor Telemetry & Multi-Lap Cascade Projection**
-  - [ ] Partition `ProjectionShelf` telemetry into Basic vs. Deep:
+- [x] **Task 15.5: Deep Sensor Telemetry & Multi-Lap Cascade Projection**
+  - [x] Partition `ProjectionShelf` telemetry into Basic vs. Deep:
     - *Basic (Free)*: Immediate terminal corridor raycast and frontline bay impact.
     - *Deep Sensor Telemetry (Pro)*: Full multi-lap cascade spline visualization, exact $\alpha \cdot M^2$ damage preview, shield fracture probabilities, and flak burst radius.
-  - [ ] Provide "Deep Scan Satellite" rewarded ad prompt: watch 1 ad to enable deep telemetry for the current sector.
+  - [x] Provide "Deep Scan Satellite" rewarded ad prompt: watch 1 ad to enable deep telemetry for the current sector.
 
-- [ ] **Task 15.6: Tactical Chrono-Anchor (In-Combat Rewind / Undo)**
-  - [ ] Implement deterministic circular snapshot ring buffer in `CombatCoordinator` storing the last 3 turns of match state (bay charge units, dreadnought cores, and enemy positions).
-  - [ ] Free tier: 0 rewinds (hardcore arcade permadeath).
-  - [ ] Pro tier: 3 Chrono-Anchor rewinds per sector run.
-  - [ ] Provide "Emergency Chrono-Rewind" rewarded ad prompt: watch 1 ad to undo a fatal mistake upon reactor depletion or boundary breach.
+- [x] **Task 15.6: Tactical Chrono-Anchor (In-Combat Rewind / Undo)**
+  - [x] Implement deterministic circular snapshot ring buffer in `CombatCoordinator` storing the last 10 turns of match state (`CombatTurnSnapshot`) and native C++ state restoration (`void_sower_restore_snapshot`).
+  - [x] Free tier: 0 rewinds (hardcore arcade permadeath) with emergency ad rewind pass available upon reactor depletion or boundary breach.
+  - [x] Pro tier: 3 Chrono-Anchor rewinds per sector run with dedicated pause menu and game over rewind triggers.
+  - [x] Provide "Emergency Chrono-Rewind" rewarded ad prompt: watch 1 ad to undo a fatal mistake upon reactor depletion or boundary breach.
 
-- [ ] **Task 15.7: Orbital Simulation Lab & Endless Skirmish Arena**
-  - [ ] Build `SimulationLabScreen`:
+- [x] **Task 15.7: Orbital Simulation Lab & Endless Skirmish Arena**
+  - [x] Build `SimulationLabScreen`:
     - Custom wave formation editor (enemy count, speed, shields, descending corridors).
     - Custom capacitor ring seed allocator for testing complex multi-lap cascade chains.
-    - Autonomous solver benchmark arena (watch the C++ MCTS solver solve arbitrary user-defined board states).
+    - Autonomous solver benchmark arena (runs 100-iteration C++ MCTS solver stress-tests with microsecond telemetry).
     - Endless Horde Skirmish mode with escalating difficulty and infinite wave survival.
-  - [ ] Gate mode behind `ProFeature.orbitalSimulationLab` with a 1-run rewarded ad trial option.
+  - [x] Gate mode behind `ProFeature.orbitalSimulationLab` with a 1-run rewarded ad trial option.
 
 - [x] **Task 15.8: Afrofuturistic Glassmorphic Pro Storefront & Purchase Hardening**
   - [x] Create `lib/presentation/widgets/pro_upgrade_modal.dart`:
