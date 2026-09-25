@@ -93,6 +93,20 @@ class CombatCoordinator extends ChangeNotifier {
     }
   }
 
+  int _sowDirection = 1;
+
+  /// Active sowing direction (+1 for clockwise/right, -1 for counter-clockwise/left).
+  int get sowDirection => _sowDirection;
+
+  /// Changes the active sowing direction and updates the forward prediction.
+  void setSowDirection(int direction) {
+    if (direction != 1 && direction != -1) return;
+    _sowDirection = direction;
+    final bay = _state.selectedBay ?? 8;
+    prediction = engine.predictSow(bay, _sowDirection);
+    notifyListeners();
+  }
+
   int _sessionLancesFired = 0;
   int get sessionLancesFired => _sessionLancesFired;
 
@@ -552,12 +566,23 @@ class CombatCoordinator extends ChangeNotifier {
     }
   }
 
-  /// Selects a bay for aiming and forward prediction.
-  void selectBay(int bayIndex) {
+  /// Selects a bay for aiming and forward prediction with optional direction.
+  void selectBay(int bayIndex, [int? direction]) {
     if (!_state.canReceiveInput) return;
+    if (direction != null && (direction == 1 || direction == -1)) {
+      _sowDirection = direction;
+    }
     _state = _state.copyWith(selectedBay: bayIndex);
-    prediction = engine.predictSow(bayIndex, 1);
+    prediction = engine.predictSow(bayIndex, _sowDirection);
     notifyListeners();
+  }
+
+  /// Sows from the currently selected bay in the specified direction.
+  void sowDirectional(int direction) {
+    if (direction != 1 && direction != -1) return;
+    _sowDirection = direction;
+    final bay = _state.selectedBay ?? 8;
+    sow(bay, direction);
   }
 
   /// Finalizes any active sowing sequence immediately into the native engine
@@ -599,6 +624,7 @@ class CombatCoordinator extends ChangeNotifier {
     final generation = _sowAnimationGeneration;
     _pendingSowBay = bayIndex;
     _pendingSowDirection = direction;
+    _sowDirection = direction;
 
     _state = _state.copyWith(
       status: CombatMatchStatus.sowingSequence,
@@ -751,7 +777,7 @@ class CombatCoordinator extends ChangeNotifier {
     if (_state.selectedBay != frontlineBay &&
         _state.status != CombatMatchStatus.sowingSequence) {
       _state = _state.copyWith(selectedBay: frontlineBay);
-      prediction = engine.predictSow(frontlineBay, 1);
+      prediction = engine.predictSow(frontlineBay, _sowDirection);
     }
     notifyListeners();
   }
