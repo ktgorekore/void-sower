@@ -91,6 +91,7 @@ void main() {
         bool restartTapped = false;
         bool abortTapped = false;
         bool mapTapped = false;
+        bool codexTapped = false;
         bool academyTapped = false;
         bool settingsTapped = false;
 
@@ -107,6 +108,7 @@ void main() {
                 onRestart: () => restartTapped = true,
                 onAbort: () => abortTapped = true,
                 onMap: () => mapTapped = true,
+                onCodex: () => codexTapped = true,
                 onAcademy: () => academyTapped = true,
                 onSettings: () => settingsTapped = true,
               ),
@@ -125,6 +127,7 @@ void main() {
         expect(find.byIcon(Icons.replay), findsOneWidget);
         expect(find.byIcon(Icons.stop_circle_outlined), findsOneWidget);
         expect(find.byIcon(Icons.map_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.menu_book), findsOneWidget);
         expect(find.byIcon(Icons.school), findsOneWidget);
         expect(find.byIcon(Icons.settings), findsOneWidget);
 
@@ -143,6 +146,10 @@ void main() {
         await tester.tap(find.byIcon(Icons.map_outlined));
         await tester.pumpAndSettle();
         expect(mapTapped, isTrue);
+
+        await tester.tap(find.byIcon(Icons.menu_book));
+        await tester.pumpAndSettle();
+        expect(codexTapped, isTrue);
 
         await tester.tap(find.byIcon(Icons.school));
         await tester.pumpAndSettle();
@@ -515,6 +522,7 @@ void main() {
 
         // AI tactical assist button is accessible within PauseMenuDialog
         expect(find.byIcon(Icons.smart_toy), findsOneWidget);
+        expect(find.text('PRO'), findsOneWidget);
 
         await tester.tap(find.byIcon(Icons.smart_toy));
         await tester.pumpAndSettle();

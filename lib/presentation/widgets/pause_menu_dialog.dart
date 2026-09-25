@@ -70,9 +70,6 @@ class PauseMenuDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Unify Academy and Directives callback:
-    final unifiedDirectivesCallback = onAcademy ?? onCodex;
-
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -298,7 +295,7 @@ class PauseMenuDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 12.0),
 
-                // Secondary Utility Icon Strip: Map, Directives/Academy (Merged!), Settings, AI Solver
+                // Secondary Utility Icon Strip: Map, Directives, Academy, Settings, PRO AI Solver
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -309,12 +306,19 @@ class PauseMenuDialog extends StatelessWidget {
                         tooltip: 'Star Map',
                         onPressed: onMap!,
                       ),
-                    if (unifiedDirectivesCallback != null)
+                    if (onCodex != null)
+                      _buildUtilityIconButton(
+                        icon: Icons.menu_book,
+                        color: VoidTheme.solarGold,
+                        tooltip: 'Directives',
+                        onPressed: onCodex!,
+                      ),
+                    if (onAcademy != null)
                       _buildUtilityIconButton(
                         icon: Icons.school,
-                        color: VoidTheme.solarGold,
-                        tooltip: 'Directives & Flight Academy',
-                        onPressed: unifiedDirectivesCallback,
+                        color: VoidTheme.plasmaCyanLight,
+                        tooltip: 'Flight Academy',
+                        onPressed: onAcademy!,
                       ),
                     if (onSettings != null)
                       _buildUtilityIconButton(
@@ -324,16 +328,9 @@ class PauseMenuDialog extends StatelessWidget {
                         onPressed: onSettings!,
                       ),
                     if (onToggleAutoSolve != null)
-                      _buildUtilityIconButton(
-                        icon: Icons.smart_toy,
-                        color: isAutoSolving
-                            ? VoidTheme.crimsonFlare
-                            : VoidTheme.textMuted,
-                        tooltip: isAutoSolving
-                            ? 'AI Solver Active'
-                            : 'AI Solver Standby',
+                      _buildProButton(
+                        isAutoSolving: isAutoSolving,
                         onPressed: onToggleAutoSolve!,
-                        isActive: isAutoSolving,
                       ),
                   ],
                 ),
@@ -454,6 +451,82 @@ class PauseMenuDialog extends StatelessWidget {
                   : null,
             ),
             child: Center(child: Icon(icon, color: color, size: 20.0)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProButton({
+    required VoidCallback onPressed,
+    required bool isAutoSolving,
+  }) {
+    final activeColor = isAutoSolving
+        ? VoidTheme.crimsonFlare
+        : VoidTheme.solarGold;
+    return Semantics(
+      label: isAutoSolving ? 'AI Solver Active (PRO)' : 'AI Solver (PRO)',
+      button: true,
+      child: Tooltip(
+        message: isAutoSolving
+            ? 'AI Solver: ACTIVE'
+            : 'AI Tactical Solver (PRO)',
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticService.instance.sowTick();
+            onPressed();
+          },
+          child: Container(
+            height: 44.0,
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            decoration: BoxDecoration(
+              color: isAutoSolving
+                  ? VoidTheme.crimsonFlare.withValues(alpha: 0.2)
+                  : VoidTheme.cardSurface.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(color: activeColor, width: 1.2),
+              boxShadow: [
+                BoxShadow(
+                  color: activeColor.withValues(
+                    alpha: isAutoSolving ? 0.35 : 0.2,
+                  ),
+                  blurRadius: 6.0,
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.smart_toy, color: activeColor, size: 18.0),
+                const SizedBox(width: 4.0),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4.0,
+                    vertical: 1.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isAutoSolving
+                        ? VoidTheme.crimsonFlare.withValues(alpha: 0.3)
+                        : VoidTheme.solarGold.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(4.0),
+                    border: Border.all(
+                      color: activeColor.withValues(alpha: 0.8),
+                      width: 0.8,
+                    ),
+                  ),
+                  child: Text(
+                    isAutoSolving ? 'ACTIVE' : 'PRO',
+                    style: TextStyle(
+                      color: activeColor,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
