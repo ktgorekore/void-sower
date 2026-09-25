@@ -260,14 +260,12 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                 ),
               ),
               const Divider(color: VoidTheme.cardSurface, height: 20.0),
-              Text(
-                'Defend the orbital horizon from invading carrier wings. '
-                'Sow plasma across your 16 capacitor bays to unleash axial quadratic lances '
-                'and liberate the ${sector.name} basin.',
-                style: const TextStyle(
+              const Text(
+                'Defend the orbital perimeter and neutralize all descending hostiles.',
+                style: TextStyle(
                   color: VoidTheme.textSecondary,
-                  fontSize: 12.5,
-                  height: 1.4,
+                  fontSize: 12.0,
+                  height: 1.35,
                 ),
               ),
               const SizedBox(height: 20.0),
@@ -1336,52 +1334,24 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8.0,
-                              vertical: 2.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0284C7),
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                            child: const Text(
-                              'ACTIVE SIEGE',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7.0,
+                          vertical: 2.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0284C7),
+                          borderRadius: BorderRadius.circular(4.0),
+                        ),
+                        child: const Text(
+                          'OBJECTIVE',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
                           ),
-                          const SizedBox(width: 6.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 2.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF082F49),
-                              borderRadius: BorderRadius.circular(4.0),
-                              border: Border.all(
-                                color: const Color(0xFF00E5FF),
-                                width: 0.8,
-                              ),
-                            ),
-                            child: const Text(
-                              'OBJECTIVE',
-                              style: TextStyle(
-                                color: Color(0xFF00E5FF),
-                                fontSize: 8.0,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                       Text(
                         'TIER ${sector.difficultyTier + 1}',
@@ -1412,7 +1382,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                             ),
                             const SizedBox(height: 2.0),
                             Text(
-                              '${sector.region.toUpperCase()} • VANGUARD ASSAULT',
+                              sector.region.toUpperCase(),
                               style: const TextStyle(
                                 color: Color(0xFF93C5FD),
                                 fontSize: 10.5,
@@ -1577,7 +1547,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                         ),
                         const SizedBox(height: 3.0),
                         Text(
-                          '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1} • VANGUARD ASSAULT',
+                          '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1}',
                           style: const TextStyle(
                             color: VoidTheme.solarGoldLight,
                             fontSize: 10.0,
@@ -1695,7 +1665,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                       ),
                       const SizedBox(height: 3.0),
                       Text(
-                        '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1} [BLOCKADED]',
+                        '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1}',
                         style: TextStyle(
                           color: VoidTheme.textMuted.withValues(alpha: 0.7),
                           fontSize: 9.5,

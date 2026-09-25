@@ -253,71 +253,25 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                         _getStepTitle(),
                         style: const TextStyle(
                           color: VoidTheme.textPrimary,
-                          fontSize: 15.0,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.8,
                         ),
                       ),
                       const SizedBox(height: 4.0),
                       Text(
-                        _getStepSubtitle(),
-                        style: TextStyle(
-                          color: _getStepAccent().withValues(alpha: 0.9),
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 10.0),
-                      Text(
                         _getStepBody(),
                         style: const TextStyle(
                           color: VoidTheme.textSecondary,
-                          fontSize: 12.5,
-                          height: 1.4,
+                          fontSize: 12.0,
+                          height: 1.35,
                         ),
                       ),
-                      const SizedBox(height: 14.0),
+                      const SizedBox(height: 12.0),
 
                       // Interactive Hands-On Simulation Widget
                       _buildInteractiveWidget(),
                       const SizedBox(height: 14.0),
-
-                      // Pro Tip Box
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10.0,
-                          vertical: 8.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
-                          borderRadius: BorderRadius.circular(8.0),
-                          border: Border.all(
-                            color: _getStepAccent().withValues(alpha: 0.35),
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.lightbulb_outline,
-                              color: VoidTheme.solarGold,
-                              size: 15.0,
-                            ),
-                            const SizedBox(width: 6.0),
-                            Expanded(
-                              child: Text(
-                                _getStepTip(),
-                                style: const TextStyle(
-                                  color: VoidTheme.solarGoldLight,
-                                  fontSize: 10.5,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 18.0),
 
                       // Navigation Controls
                       Row(
@@ -438,51 +392,19 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     }
   }
 
-  String _getStepSubtitle() {
-    switch (_currentStep) {
-      case 0:
-        return '28-Core Fuel Pool & Namua Rule';
-      case 1:
-        return 'Count-and-Capture Energy Flow';
-      case 2:
-        return 'High-Mass Destructive Yield (D = 100 · M²)';
-      case 3:
-        return 'Corridor Targeting & Slider Navigation';
-      case 4:
-      default:
-        return 'Shield Deflection vs. EMP Breaches';
-    }
-  }
-
   String _getStepBody() {
     switch (_currentStep) {
       case 0:
-        return 'Your dreadnought carries 28 Reserve Cores per sector. Sowing from any bay draws 1 core from reserves to seed the capacitors. Conserve your fuel to survive the assault!';
+        return 'Tap a bay to inject 1 fuel core. Save fuel reserves to survive!';
       case 1:
-        return 'Swipe Left or Right (or use direction buttons) to sow plasma pit-to-pit along the 16-bay orbital ring. Landing on an occupied bay triggers a Bao Cascade Relay—circulating energy for free!';
+        return 'Swipe left or right to sow cores. Land on charged bays for free cascade laps!';
       case 2:
-        return 'When sowing finishes in a frontline bay, it unleashes an axial Particle Lance! Damage scales quadratically with mass (D = 100 · M²). Build mass to vaporize capital ships!';
+        return 'Frontline bays fire Particle Lances. Higher mass = quadratic damage!';
       case 3:
-        return 'Slide the orbital platform (or tap C1–C8 notches) to align your dreadnought prow with descending invaders. Aligning locks that corridor\'s emitter bay automatically.';
+        return 'Slide the platform to align your dreadnought prow with descending invaders.';
       case 4:
       default:
-        return 'Invaders drop plasma bombs. Conduits holding plasma deflect bombs safely (+50 PTS). Keep your batteries charged to avoid dangerous EMP breaches!';
-    }
-  }
-
-  String _getStepTip() {
-    switch (_currentStep) {
-      case 0:
-        return 'Tip: Conserve fuel! If reserves reach 0 and no shots remain, the mission fails.';
-      case 1:
-        return 'Tip: Sowing existing cores redistributes plasma for FREE without burning fuel.';
-      case 2:
-        return 'Tip: Single shots tickle cruisers; high-mass lances vaporize them in one blast!';
-      case 3:
-        return 'Tip: Slide directly beneath enemy clusters to pierce multiple ships in one line.';
-      case 4:
-      default:
-        return 'Tip: Charged batteries form an energy shield that deflects bombardment!';
+        return 'Charged bays deflect falling bombs safely. Empty bays take EMP breaches!';
     }
   }
 

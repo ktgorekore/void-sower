@@ -139,9 +139,9 @@ class TacticalDirectivesModal extends StatelessWidget {
                   _buildRuleCard(
                     stepNumber: '1',
                     title: 'SWIPE TO SOW',
-                    subtitle: '16-BAY CAPACITOR TRAVERSAL',
+                    subtitle: 'TRAVERSAL',
                     description:
-                        'Swipe any bay Left or Right to distribute plasma. Energy cores traverse bays; landing in a charged bay cascades and continues the lap!',
+                        'Swipe left or right to distribute cores. Land in charged bays for free cascade laps.',
                     icon: Icons.sync_alt_rounded,
                     accentColor: VoidTheme.plasmaCyan,
                   ),
@@ -151,9 +151,9 @@ class TacticalDirectivesModal extends StatelessWidget {
                   _buildRuleCard(
                     stepNumber: '2',
                     title: 'CORRIDORS C1–C8',
-                    subtitle: 'DIRECT TARGETING ALIGNMENT',
+                    subtitle: 'TARGETING',
                     description:
-                        'Frontline Bays 8–15 align directly with the 8 descending enemy attack lanes. Fill a frontline bay to aim your Dreadnought into that corridor.',
+                        'Bays C1–C8 target the 8 enemy lanes. Align your dreadnought to aim.',
                     icon: Icons.filter_center_focus,
                     accentColor: VoidTheme.plasmaCyanLight,
                   ),
@@ -163,21 +163,21 @@ class TacticalDirectivesModal extends StatelessWidget {
                   _buildRuleCard(
                     stepNumber: '3',
                     title: 'QUADRATIC LANCE',
-                    subtitle: 'AXIAL DISCHARGE (D = M²)',
+                    subtitle: 'LANCE (D = M²)',
                     description:
-                        'Tap Discharge to unleash an axial particle lance down the aligned corridor. Damage scales quadratically: 4 cores = 16x damage!',
+                        'Frontline bays fire Particle Lances. Damage scales quadratically (4 cores = 16x).',
                     icon: Icons.bolt,
                     accentColor: VoidTheme.emeraldShield,
                   ),
                   const SizedBox(height: 10.0),
 
-                  // Card 4: Nyumba & Canopy
+                  // Card 4: Shield Deflection
                   _buildRuleCard(
                     stepNumber: '4',
-                    title: 'NYUMBA & CANOPY',
-                    subtitle: 'PROTECTED VAULT & DEFLECTION',
+                    title: 'SHIELD CANOPY',
+                    subtitle: 'DEFLECTION',
                     description:
-                        'Bays 3 & 4 (Nyumba 🛡️) store reserve fuel securely. Charged frontline bays form a canopy shield that automatically deflects hostile plasma bombs (+50 PTS)!',
+                        'Charged frontline bays automatically deflect enemy bombs safely (+50 PTS).',
                     icon: Icons.shield,
                     accentColor: VoidTheme.solarGold,
                   ),
