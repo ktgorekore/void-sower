@@ -96,6 +96,17 @@ class Engine {
   entt::registry& GetRegistry() { return registry_; }
   const entt::registry& GetRegistry() const { return registry_; }
 
+  /// Sets active lance alpha multiplier (chassis bonus).
+  void SetLanceAlphaMultiplier(float multiplier);
+
+  /// Restores bay charges, reserve cores, and score from prior turn snapshot.
+  void RestoreSnapshot(const std::array<uint32_t, kTotalBays>& bay_charges,
+                       uint32_t reserve_cores, uint32_t total_score);
+
+  /// Solves single optimal tactical move using MCTS lookahead.
+  int32_t SolveTacticalStep(uint8_t* out_bay, int8_t* out_direction,
+                            float* out_confidence, float* out_predicted_damage);
+
   /// Resets the engine.
   void Reset();
 

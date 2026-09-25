@@ -172,6 +172,14 @@ FFI_PLUGIN_EXPORT uint32_t void_sower_get_flaks(
     VoidSowerFlakFFI* out_flaks, uint32_t max_count) VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_get_dreadnought_state(
     VoidSowerDreadnoughtFFI* out_state) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_set_lance_alpha(float alpha_multiplier)
+    VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT void void_sower_restore_snapshot(
+    const uint32_t* bay_charges, uint32_t reserve_cores,
+    uint32_t total_score) VOID_SOWER_NOEXCEPT;
+FFI_PLUGIN_EXPORT int32_t void_sower_solve_tactical_step(
+    uint8_t* out_bay, int8_t* out_direction, float* out_confidence,
+    float* out_predicted_damage) VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_reset(void) VOID_SOWER_NOEXCEPT;
 FFI_PLUGIN_EXPORT void void_sower_free(void) VOID_SOWER_NOEXCEPT;
 

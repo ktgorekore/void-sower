@@ -44,6 +44,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     _cachedDreadnoughtPtr = calloc<VoidSowerDreadnoughtFFI>();
     _cachedPredictionPtr = calloc<VoidSowerPredictionFFI>();
     _cachedWaveConfigPtr = calloc<VoidSowerWaveConfigFFI>();
+    _cachedSnapshotChargesPtr = calloc<ffi.Uint32>(kMaxBays);
+    _cachedSolveBayPtr = calloc<ffi.Uint8>();
+    _cachedSolveDirPtr = calloc<ffi.Int8>();
+    _cachedSolveConfPtr = calloc<ffi.Float>();
+    _cachedSolveDmgPtr = calloc<ffi.Float>();
   }
 
   static const int kMaxBays = 16;
@@ -60,6 +65,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   late final ffi.Pointer<VoidSowerDreadnoughtFFI> _cachedDreadnoughtPtr;
   late final ffi.Pointer<VoidSowerPredictionFFI> _cachedPredictionPtr;
   late final ffi.Pointer<VoidSowerWaveConfigFFI> _cachedWaveConfigPtr;
+  late final ffi.Pointer<ffi.Uint32> _cachedSnapshotChargesPtr;
+  late final ffi.Pointer<ffi.Uint8> _cachedSolveBayPtr;
+  late final ffi.Pointer<ffi.Int8> _cachedSolveDirPtr;
+  late final ffi.Pointer<ffi.Float> _cachedSolveConfPtr;
+  late final ffi.Pointer<ffi.Float> _cachedSolveDmgPtr;
 
   final List<BayState> _cachedBaysList = List<BayState>.generate(
     kMaxBays,
@@ -453,6 +463,50 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void setLanceAlphaMultiplier(double multiplier) {
+    if (_isDisposed) return;
+    _bindings.void_sower_set_lance_alpha(multiplier);
+  }
+
+  @override
+  void restoreSnapshot({
+    required List<int> bayCharges,
+    required int reserveCores,
+    required int totalScore,
+  }) {
+    if (_isDisposed) return;
+    for (var i = 0; i < kMaxBays && i < bayCharges.length; i++) {
+      _cachedSnapshotChargesPtr[i] = bayCharges[i];
+    }
+    _bindings.void_sower_restore_snapshot(
+      _cachedSnapshotChargesPtr,
+      reserveCores,
+      totalScore,
+    );
+    _cachedDreadnoughtState = null;
+  }
+
+  @override
+  TacticalStepResult? solveTacticalStep() {
+    if (_isDisposed) return null;
+    final res = _bindings.void_sower_solve_tactical_step(
+      _cachedSolveBayPtr,
+      _cachedSolveDirPtr,
+      _cachedSolveConfPtr,
+      _cachedSolveDmgPtr,
+    );
+    if (res == 1) {
+      return TacticalStepResult(
+        bayIndex: _cachedSolveBayPtr.value,
+        direction: _cachedSolveDirPtr.value,
+        confidence: _cachedSolveConfPtr.value,
+        predictedDamage: _cachedSolveDmgPtr.value,
+      );
+    }
+    return null;
+  }
+
+  @override
   void reset() {
     _checkDisposed();
     _bindings.void_sower_reset();
@@ -479,6 +533,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     calloc.free(_cachedDreadnoughtPtr);
     calloc.free(_cachedPredictionPtr);
     calloc.free(_cachedWaveConfigPtr);
+    calloc.free(_cachedSnapshotChargesPtr);
+    calloc.free(_cachedSolveBayPtr);
+    calloc.free(_cachedSolveDirPtr);
+    calloc.free(_cachedSolveConfPtr);
+    calloc.free(_cachedSolveDmgPtr);
 
     _bindings.void_sower_free();
   }

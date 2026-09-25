@@ -38,7 +38,6 @@ class VoidSowerBindings {
     ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName) lookup,
   ) : _lookup = lookup;
 
-  /// Sets the global Abseil VLOG verbosity level.
   void void_sower_set_vlog_level(int level) {
     return _void_sower_set_vlog_level(level);
   }
@@ -287,6 +286,74 @@ class VoidSowerBindings {
   late final _void_sower_get_dreadnought_state =
       _void_sower_get_dreadnought_statePtr
           .asFunction<void Function(ffi.Pointer<VoidSowerDreadnoughtFFI>)>();
+
+  void void_sower_set_lance_alpha(double alpha_multiplier) {
+    return _void_sower_set_lance_alpha(alpha_multiplier);
+  }
+
+  late final _void_sower_set_lance_alphaPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Float)>>(
+        'void_sower_set_lance_alpha',
+      );
+  late final _void_sower_set_lance_alpha = _void_sower_set_lance_alphaPtr
+      .asFunction<void Function(double)>();
+
+  void void_sower_restore_snapshot(
+    ffi.Pointer<ffi.Uint32> bay_charges,
+    int reserve_cores,
+    int total_score,
+  ) {
+    return _void_sower_restore_snapshot(
+      bay_charges,
+      reserve_cores,
+      total_score,
+    );
+  }
+
+  late final _void_sower_restore_snapshotPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<ffi.Uint32>, ffi.Uint32, ffi.Uint32)
+        >
+      >('void_sower_restore_snapshot');
+  late final _void_sower_restore_snapshot = _void_sower_restore_snapshotPtr
+      .asFunction<void Function(ffi.Pointer<ffi.Uint32>, int, int)>();
+
+  int void_sower_solve_tactical_step(
+    ffi.Pointer<ffi.Uint8> out_bay,
+    ffi.Pointer<ffi.Int8> out_direction,
+    ffi.Pointer<ffi.Float> out_confidence,
+    ffi.Pointer<ffi.Float> out_predicted_damage,
+  ) {
+    return _void_sower_solve_tactical_step(
+      out_bay,
+      out_direction,
+      out_confidence,
+      out_predicted_damage,
+    );
+  }
+
+  late final _void_sower_solve_tactical_stepPtr =
+      _lookup<
+        ffi.NativeFunction<
+          ffi.Int32 Function(
+            ffi.Pointer<ffi.Uint8>,
+            ffi.Pointer<ffi.Int8>,
+            ffi.Pointer<ffi.Float>,
+            ffi.Pointer<ffi.Float>,
+          )
+        >
+      >('void_sower_solve_tactical_step');
+  late final _void_sower_solve_tactical_step =
+      _void_sower_solve_tactical_stepPtr
+          .asFunction<
+            int Function(
+              ffi.Pointer<ffi.Uint8>,
+              ffi.Pointer<ffi.Int8>,
+              ffi.Pointer<ffi.Float>,
+              ffi.Pointer<ffi.Float>,
+            )
+          >();
 
   void void_sower_reset() {
     return _void_sower_reset();

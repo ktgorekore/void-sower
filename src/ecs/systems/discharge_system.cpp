@@ -49,7 +49,8 @@ void DischargeSystem::ExecuteCrossDischarge(
                                   static_cast<float>(kCorridorCount)),
                  0, kCorridorCount - 1));
 
-  const float damage = ComputeLanceDamage(mass);
+  const float damage =
+      ComputeLanceDamage(mass, kAlphaLanceDamage * lance_alpha_multiplier_);
 
   // Acquire slot from pre-allocated ParticleLance pool
   if (lance_pool_[0] == entt::null || !registry.valid(lance_pool_[0])) {

@@ -363,6 +363,54 @@ void void_sower_get_dreadnought_state(
   }
 }
 
+void void_sower_set_lance_alpha(float alpha_multiplier) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngine().SetLanceAlphaMultiplier(alpha_multiplier);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_set_lance_alpha: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_set_lance_alpha";
+  }
+}
+
+void void_sower_restore_snapshot(const uint32_t* bay_charges,
+                                 uint32_t reserve_cores,
+                                 uint32_t total_score) noexcept {
+  if (!bay_charges) return;
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    absl::Span<const uint32_t> charges_span(bay_charges,
+                                            void_sower::ecs::kTotalBays);
+    std::array<uint32_t, void_sower::ecs::kTotalBays> arr{};
+    for (size_t i = 0; i < void_sower::ecs::kTotalBays; ++i) {
+      arr[i] = charges_span[i];
+    }
+    GetOrCreateEngine().RestoreSnapshot(arr, reserve_cores, total_score);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_restore_snapshot: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_restore_snapshot";
+  }
+}
+
+int32_t void_sower_solve_tactical_step(uint8_t* out_bay, int8_t* out_direction,
+                                       float* out_confidence,
+                                       float* out_predicted_damage) noexcept {
+  if (!out_bay || !out_direction) return 0;
+  try {
+    std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
+    return GetOrCreateEngine().SolveTacticalStep(
+        out_bay, out_direction, out_confidence, out_predicted_damage);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_solve_tactical_step: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_solve_tactical_step";
+    return 0;
+  }
+}
+
 void void_sower_reset(void) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);

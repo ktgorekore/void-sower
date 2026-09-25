@@ -74,6 +74,16 @@ class BaoCascadeSystem {
       const std::array<entt::entity, kTotalBays>& bay_entities,
       const SpatialGrid& spatial_grid, uint8_t start_bay,
       int8_t direction) const;
+
+  /**
+   * @brief Sets the active lance alpha multiplier (chassis bonus).
+   */
+  void SetLanceAlphaMultiplier(float multiplier) {
+    lance_alpha_multiplier_ = (multiplier > 0.0f) ? multiplier : 1.0f;
+  }
+
+ private:
+  float lance_alpha_multiplier_{1.0f};
 };
 
 }  // namespace void_sower::ecs

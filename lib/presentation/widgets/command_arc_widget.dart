@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/bay_state.dart';
+import '../controllers/tactical_solver_controller.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'diamond_shield_badge.dart';
@@ -38,6 +39,7 @@ class CommandArcWidget extends StatelessWidget {
     required this.onSowAction,
     required this.onInjectCore,
     this.onSlidePosition,
+    this.tacticalAdvice,
   });
 
   final List<BayState> bays;
@@ -47,6 +49,7 @@ class CommandArcWidget extends StatelessWidget {
   final void Function(int bayIndex, int direction) onSowAction;
   final void Function(int bayIndex, int direction) onInjectCore;
   final ValueChanged<double>? onSlidePosition;
+  final TacticalAdvice? tacticalAdvice;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +92,77 @@ class CommandArcWidget extends StatelessWidget {
           // 2. Return Orbit / Backline Capacitors (Bays 0 to 7)
           // -------------------------------------------------------------------
           _buildReturnOrbitDeck(backlineBays),
-          const SizedBox(height: 8.0),
+          const SizedBox(height: 6.0),
+
+          // -------------------------------------------------------------------
+          // 2b. Holographic Tactical Advisor Banner (if primed)
+          // -------------------------------------------------------------------
+          if (tacticalAdvice != null) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 6.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 3.0,
+              ),
+              decoration: BoxDecoration(
+                color:
+                    (tacticalAdvice!.isEmergencyBreach
+                            ? VoidTheme.crimsonFlare
+                            : VoidTheme.solarGold)
+                        .withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6.0),
+                border: Border.all(
+                  color: tacticalAdvice!.isEmergencyBreach
+                      ? VoidTheme.crimsonFlare
+                      : VoidTheme.solarGold,
+                  width: 1.0,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    tacticalAdvice!.isEmergencyBreach
+                        ? Icons.warning_amber_rounded
+                        : Icons.psychology,
+                    size: 13.0,
+                    color: tacticalAdvice!.isEmergencyBreach
+                        ? VoidTheme.crimsonFlare
+                        : VoidTheme.solarGold,
+                  ),
+                  const SizedBox(width: 4.0),
+                  Expanded(
+                    child: Text(
+                      tacticalAdvice!.explanation,
+                      style: TextStyle(
+                        color: tacticalAdvice!.isEmergencyBreach
+                            ? VoidTheme.crimsonFlare
+                            : VoidTheme.solarGold,
+                        fontSize: 9.0,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 4.0),
+                  Text(
+                    'PRO ADVISOR',
+                    style: TextStyle(
+                      color:
+                          (tacticalAdvice!.isEmergencyBreach
+                                  ? VoidTheme.crimsonFlare
+                                  : VoidTheme.solarGold)
+                              .withValues(alpha: 0.8),
+                      fontSize: 7.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
 
           // -------------------------------------------------------------------
           // 3. Bidirectional Sowing & Axial Discharge Controls
@@ -132,6 +205,7 @@ class CommandArcWidget extends StatelessWidget {
 
         final isSelected = selectedBay == bay.bayIndex;
         final isSowHop = activeSowBay == bay.bayIndex;
+        final isAdvisorBay = tacticalAdvice?.recommendedBay == bay.bayIndex;
 
         return Expanded(
           child: Padding(
@@ -178,7 +252,11 @@ class CommandArcWidget extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? VoidTheme.plasmaCyan
-                          : const Color(0xFF334E68),
+                          : (isAdvisorBay
+                                ? (tacticalAdvice!.isEmergencyBreach
+                                      ? VoidTheme.crimsonFlare
+                                      : VoidTheme.solarGold)
+                                : const Color(0xFF334E68)),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(2.0),
                       ),
@@ -237,14 +315,20 @@ class CommandArcWidget extends StatelessWidget {
                         border: Border.all(
                           color: isSelected
                               ? VoidTheme.plasmaCyan
-                              : (isSowHop
-                                    ? VoidTheme.solarGold
-                                    : (bay.isKichwa
-                                          ? VoidTheme.nebulaAmethyst
-                                          : (bay.isKimbi
-                                                ? VoidTheme.emeraldShield
-                                                : const Color(0xFF1E293B)))),
-                          width: isSelected ? 1.4 : 1.0,
+                              : (isAdvisorBay
+                                    ? (tacticalAdvice!.isEmergencyBreach
+                                          ? VoidTheme.crimsonFlare
+                                          : VoidTheme.solarGold)
+                                    : (isSowHop
+                                          ? VoidTheme.solarGold
+                                          : (bay.isKichwa
+                                                ? VoidTheme.nebulaAmethyst
+                                                : (bay.isKimbi
+                                                      ? VoidTheme.emeraldShield
+                                                      : const Color(
+                                                          0xFF1E293B,
+                                                        ))))),
+                          width: isSelected || isAdvisorBay ? 1.4 : 1.0,
                         ),
                         boxShadow: isSelected
                             ? [
@@ -255,20 +339,45 @@ class CommandArcWidget extends StatelessWidget {
                                   blurRadius: 6.0,
                                 ),
                               ]
-                            : (isSowHop
+                            : (isAdvisorBay
                                   ? [
                                       BoxShadow(
-                                        color: VoidTheme.solarGold.withValues(
-                                          alpha: 0.45,
-                                        ),
+                                        color:
+                                            (tacticalAdvice!.isEmergencyBreach
+                                                    ? VoidTheme.crimsonFlare
+                                                    : VoidTheme.solarGold)
+                                                .withValues(alpha: 0.45),
                                         blurRadius: 6.0,
                                       ),
                                     ]
-                                  : null),
+                                  : (isSowHop
+                                        ? [
+                                            BoxShadow(
+                                              color: VoidTheme.solarGold
+                                                  .withValues(alpha: 0.45),
+                                              blurRadius: 6.0,
+                                            ),
+                                          ]
+                                        : null)),
                       ),
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
+                          // Holographic Tactical Advisor Direction Reticle
+                          if (isAdvisorBay)
+                            Positioned(
+                              top: 2.0,
+                              right: 2.0,
+                              child: Icon(
+                                tacticalAdvice!.recommendedDirection > 0
+                                    ? Icons.arrow_forward
+                                    : Icons.arrow_back,
+                                size: 8.5,
+                                color: tacticalAdvice!.isEmergencyBreach
+                                    ? VoidTheme.crimsonFlare
+                                    : VoidTheme.solarGold,
+                              ),
+                            ),
                           // 6 Horizontal Stacked LED Indicator Bars (Battery Gauge)
                           Positioned.fill(
                             child: Padding(
@@ -404,6 +513,7 @@ class CommandArcWidget extends StatelessWidget {
 
             final isSelected = selectedBay == bay.bayIndex;
             final isSowHop = activeSowBay == bay.bayIndex;
+            final isAdvisorBay = tacticalAdvice?.recommendedBay == bay.bayIndex;
             final isNyumba = bay.isNyumba;
 
             return Expanded(
@@ -431,12 +541,18 @@ class CommandArcWidget extends StatelessWidget {
                             ? (isNyumba
                                   ? VoidTheme.solarGold
                                   : VoidTheme.plasmaCyan)
-                            : (isSowHop
-                                  ? VoidTheme.solarGold
-                                  : (isNyumba
-                                        ? const Color(0xFF78350F)
-                                        : const Color(0xFF1E293B))),
-                        width: isSelected || isNyumba ? 1.2 : 0.8,
+                            : (isAdvisorBay
+                                  ? (tacticalAdvice!.isEmergencyBreach
+                                        ? VoidTheme.crimsonFlare
+                                        : VoidTheme.solarGold)
+                                  : (isSowHop
+                                        ? VoidTheme.solarGold
+                                        : (isNyumba
+                                              ? const Color(0xFF78350F)
+                                              : const Color(0xFF1E293B)))),
+                        width: isSelected || isNyumba || isAdvisorBay
+                            ? 1.2
+                            : 0.8,
                       ),
                       boxShadow: isSelected
                           ? [
@@ -449,11 +565,36 @@ class CommandArcWidget extends StatelessWidget {
                                 blurRadius: 4.0,
                               ),
                             ]
-                          : null,
+                          : (isAdvisorBay
+                                ? [
+                                    BoxShadow(
+                                      color:
+                                          (tacticalAdvice!.isEmergencyBreach
+                                                  ? VoidTheme.crimsonFlare
+                                                  : VoidTheme.solarGold)
+                                              .withValues(alpha: 0.35),
+                                      blurRadius: 4.0,
+                                    ),
+                                  ]
+                                : null),
                     ),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
+                        if (isAdvisorBay)
+                          Positioned(
+                            top: 1.0,
+                            right: 2.0,
+                            child: Icon(
+                              tacticalAdvice!.recommendedDirection > 0
+                                  ? Icons.arrow_forward
+                                  : Icons.arrow_back,
+                              size: 7.0,
+                              color: tacticalAdvice!.isEmergencyBreach
+                                  ? VoidTheme.crimsonFlare
+                                  : VoidTheme.solarGold,
+                            ),
+                          ),
                         if (bay.chargeUnits > 0)
                           Positioned(
                             top: 3.0,
@@ -522,6 +663,16 @@ class CommandArcWidget extends StatelessWidget {
   // 3. Bidirectional Sowing & Axial Discharge Controls
   // ---------------------------------------------------------------------------
   Widget _buildTouchGesturePrompt(int activeCorridor, int activeBay) {
+    final isAdvisedBay =
+        tacticalAdvice != null && activeBay == tacticalAdvice!.recommendedBay;
+    final isAdvisedLeft =
+        isAdvisedBay && tacticalAdvice!.recommendedDirection == -1;
+    final isAdvisedRight =
+        isAdvisedBay && tacticalAdvice!.recommendedDirection == 1;
+    final highlightColor = tacticalAdvice?.isEmergencyBreach == true
+        ? VoidTheme.crimsonFlare
+        : VoidTheme.solarGold;
+
     return Row(
       children: [
         // SOW LEFT Button
@@ -537,14 +688,26 @@ class CommandArcWidget extends StatelessWidget {
               height: 38.0,
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               decoration: BoxDecoration(
-                color: const Color(0xFF070D18),
+                color: isAdvisedLeft
+                    ? const Color(0xFF271202)
+                    : const Color(0xFF070D18),
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(
-                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                  width: 1.0,
+                  color: isAdvisedLeft
+                      ? highlightColor
+                      : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                  width: isAdvisedLeft ? 1.4 : 1.0,
                 ),
+                boxShadow: isAdvisedLeft
+                    ? [
+                        BoxShadow(
+                          color: highlightColor.withValues(alpha: 0.4),
+                          blurRadius: 6.0,
+                        ),
+                      ]
+                    : null,
               ),
-              child: const FittedBox(
+              child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -552,12 +715,16 @@ class CommandArcWidget extends StatelessWidget {
                     Icon(
                       Icons.arrow_left,
                       size: 16.0,
-                      color: VoidTheme.plasmaCyan,
+                      color: isAdvisedLeft
+                          ? highlightColor
+                          : VoidTheme.plasmaCyan,
                     ),
                     Text(
                       'SOW LEFT',
                       style: TextStyle(
-                        color: VoidTheme.plasmaCyan,
+                        color: isAdvisedLeft
+                            ? highlightColor
+                            : VoidTheme.plasmaCyan,
                         fontSize: 9.5,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.4,
@@ -641,14 +808,26 @@ class CommandArcWidget extends StatelessWidget {
               height: 38.0,
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               decoration: BoxDecoration(
-                color: const Color(0xFF070D18),
+                color: isAdvisedRight
+                    ? const Color(0xFF271202)
+                    : const Color(0xFF070D18),
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(
-                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                  width: 1.0,
+                  color: isAdvisedRight
+                      ? highlightColor
+                      : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                  width: isAdvisedRight ? 1.4 : 1.0,
                 ),
+                boxShadow: isAdvisedRight
+                    ? [
+                        BoxShadow(
+                          color: highlightColor.withValues(alpha: 0.4),
+                          blurRadius: 6.0,
+                        ),
+                      ]
+                    : null,
               ),
-              child: const FittedBox(
+              child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -656,7 +835,9 @@ class CommandArcWidget extends StatelessWidget {
                     Text(
                       'SOW RIGHT',
                       style: TextStyle(
-                        color: VoidTheme.plasmaCyan,
+                        color: isAdvisedRight
+                            ? highlightColor
+                            : VoidTheme.plasmaCyan,
                         fontSize: 9.5,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 0.4,
@@ -665,7 +846,9 @@ class CommandArcWidget extends StatelessWidget {
                     Icon(
                       Icons.arrow_right,
                       size: 16.0,
-                      color: VoidTheme.plasmaCyan,
+                      color: isAdvisedRight
+                          ? highlightColor
+                          : VoidTheme.plasmaCyan,
                     ),
                   ],
                 ),

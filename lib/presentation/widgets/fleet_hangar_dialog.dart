@@ -15,7 +15,6 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/models/pro_feature.dart';
-import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/fleet_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
@@ -39,7 +38,7 @@ class FleetHangarDialog extends StatefulWidget {
 
 class _FleetHangarDialogState extends State<FleetHangarDialog> {
   late String _activeId;
-  late final List<FleetChassis> _chassisList;
+  late List<FleetChassis> _chassisList;
 
   @override
   void initState() {
@@ -56,6 +55,7 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
 
   @override
   Widget build(BuildContext context) {
+    _chassisList = FleetService.instance.getChassisList();
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(
@@ -244,17 +244,14 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
           const SizedBox(height: 12.0),
 
           if (!isEquipped) ...[
-            if (chassis.isUnlocked ||
-                EntitlementService.instance.isFeatureAccessible(
-                  ProFeature.mk3SingularityChassis,
-                ))
+            if (chassis.isUnlocked)
               TactileButton(
                 label: 'EQUIP SHIP',
                 onPressed: () => _selectChassis(chassis.chassisId),
                 accentColor: VoidTheme.solarGold,
                 height: 38.0,
               )
-            else
+            else ...[
               TactileButton(
                 label: 'LOCKED • UNLOCK PRO / AD PASS',
                 icon: Icons.lock_outline,
@@ -262,6 +259,18 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
                 accentColor: VoidTheme.crimsonFlare,
                 height: 38.0,
               ),
+              const SizedBox(height: 6.0),
+              Center(
+                child: Text(
+                  chassis.unlockRequirement,
+                  style: const TextStyle(
+                    color: VoidTheme.textMuted,
+                    fontSize: 9.5,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
           ],
         ],
       ),
@@ -269,12 +278,18 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
   }
 
   void _promptProChassis(FleetChassis chassis) {
+    final feature = chassis.chassisId == 'mk4_golden_sovereign'
+        ? ProFeature.goldenSovereignSkin
+        : ProFeature.mk3SingularityChassis;
     showDialog<void>(
       context: context,
       builder: (context) => ProUpgradeModal(
-        highlightedFeature: ProFeature.mk3SingularityChassis,
+        highlightedFeature: feature,
         onUnlocked: () {
-          setState(() {});
+          if (!mounted) return;
+          setState(() {
+            _chassisList = FleetService.instance.getChassisList();
+          });
           _selectChassis(chassis.chassisId);
         },
       ),

@@ -338,7 +338,9 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       terminalBay: term,
       terminalCorridor: isFrontline ? term - 8 : -1,
       finalMass: finalMass,
-      predictedDamage: isFrontline ? finalMass * finalMass * 100.0 : 0.0,
+      predictedDamage: isFrontline
+          ? finalMass * finalMass * 100.0 * _lanceAlphaMultiplier
+          : 0.0,
       totalCascadeLaps: carried ~/ 16,
       triggersLance: isFrontline,
       triggersRelay: !isFrontline && finalMass >= 4,
@@ -393,6 +395,57 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   @override
   void reset() {
     initialize(startingCores: 32, boundaryY: _boundaryY);
+  }
+
+  double _lanceAlphaMultiplier = 1.0;
+
+  /// Exposes the current lance alpha multiplier for test verification.
+  double get lanceAlphaMultiplier => _lanceAlphaMultiplier;
+
+  @override
+  void setLanceAlphaMultiplier(double multiplier) {
+    _lanceAlphaMultiplier = multiplier > 0.0 ? multiplier : 1.0;
+  }
+
+  @override
+  void restoreSnapshot({
+    required List<int> bayCharges,
+    required int reserveCores,
+    required int totalScore,
+  }) {
+    for (var i = 0; i < 16 && i < bayCharges.length; i++) {
+      _bayCharges[i] = bayCharges[i];
+    }
+    _reserveCores = reserveCores;
+    _score = totalScore;
+    _isCascading = false;
+    _simState = 0;
+    _lances.clear();
+    _flaks.clear();
+  }
+
+  @override
+  TacticalStepResult? solveTacticalStep() {
+    int bestBay = 11;
+    int bestDir = 1;
+    double bestDmg = 0.0;
+    for (var b = 0; b < 16; b++) {
+      if (b < 8 && _bayCharges[b] == 0) continue;
+      for (final d in [1, -1]) {
+        final pred = predictSow(b, d);
+        if (pred.predictedDamage > bestDmg) {
+          bestDmg = pred.predictedDamage;
+          bestBay = b;
+          bestDir = d;
+        }
+      }
+    }
+    return TacticalStepResult(
+      bayIndex: bestBay,
+      direction: bestDir,
+      confidence: 0.92,
+      predictedDamage: bestDmg,
+    );
   }
 
   /// Test-only hook to set an enemy's destroyed state directly.

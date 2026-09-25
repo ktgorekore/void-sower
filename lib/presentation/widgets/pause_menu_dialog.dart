@@ -38,6 +38,9 @@ class PauseMenuDialog extends StatelessWidget {
     this.onSettings,
     this.isAutoSolving = false,
     this.onToggleAutoSolve,
+    this.canRewind = false,
+    this.rewindsRemaining = 0,
+    this.onRewind,
   });
 
   final int sectorId;
@@ -54,6 +57,9 @@ class PauseMenuDialog extends StatelessWidget {
   final VoidCallback? onSettings;
   final bool isAutoSolving;
   final VoidCallback? onToggleAutoSolve;
+  final bool canRewind;
+  final int rewindsRemaining;
+  final VoidCallback? onRewind;
 
   String get _tierName {
     switch (difficultyTier) {
@@ -249,7 +255,66 @@ class PauseMenuDialog extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(height: 12.0),
+
+                // Chrono-Anchor Rewind Option (if enabled)
+                if (onRewind != null) ...[
+                  GestureDetector(
+                    onTap: canRewind
+                        ? () {
+                            HapticService.instance.injectionClick();
+                            onRewind!();
+                          }
+                        : null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 9.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: canRewind
+                            ? VoidTheme.nebulaAmethyst.withValues(alpha: 0.22)
+                            : VoidTheme.cardSurface.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: canRewind
+                              ? VoidTheme.nebulaAmethyst
+                              : const Color(0xFF334155),
+                          width: 1.2,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.history,
+                            color: canRewind
+                                ? VoidTheme.nebulaAmethyst
+                                : VoidTheme.textMuted,
+                            size: 16.0,
+                          ),
+                          const SizedBox(width: 6.0),
+                          Text(
+                            canRewind
+                                ? 'CHRONO-REWIND ($rewindsRemaining REMAINING)'
+                                : 'CHRONO-REWIND (DEPLETED / LOCKED)',
+                            style: TextStyle(
+                              color: canRewind
+                                  ? VoidTheme.starWhite
+                                  : VoidTheme.textMuted,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10.0),
+                ] else ...[
+                  const SizedBox(height: 4.0),
+                ],
 
                 // Primary Simulation Controls (Icon-Focused, Self-Explanatory)
                 Row(

@@ -35,6 +35,7 @@ import '../widgets/hud_header.dart';
 import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/pause_menu_dialog.dart';
 import '../widgets/profile_modal.dart';
+import '../widgets/projection_shelf.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
@@ -253,6 +254,19 @@ class _CombatScreenState extends State<CombatScreen>
         isAmmoDepleted: _coordinator.dreadnought.reserveCores <= 0,
         isAiAssisted: isAiAssisted,
         armDuration: const Duration(milliseconds: 500),
+        canRewind: _coordinator.canChronoRewind,
+        rewindsRemaining: _coordinator.chronoRewindsRemaining,
+        onRewind: () {
+          _autoAdvanceTimer?.cancel();
+          Navigator.of(dialogContext).pop();
+          _coordinator.triggerChronoRewind();
+          _overlayState = CombatOverlayState.none;
+          if (!_ticker.isTicking) {
+            _lastElapsed = Duration.zero;
+            _ticker.start();
+          }
+          if (mounted) setState(() {});
+        },
         onRetry: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
@@ -616,6 +630,20 @@ class _CombatScreenState extends State<CombatScreen>
         difficultyTier: _currentDifficultyTier,
         score: _coordinator.competitiveScore,
         highScore: _coordinator.highScore,
+        canRewind: _coordinator.canChronoRewind,
+        rewindsRemaining: _coordinator.chronoRewindsRemaining,
+        onRewind: () {
+          shouldResumeOnClose = false;
+          Navigator.of(dialogContext).pop();
+          _coordinator.triggerChronoRewind();
+          _coordinator.resumeCombat();
+          _overlayState = CombatOverlayState.none;
+          if (!_ticker.isTicking) {
+            _lastElapsed = Duration.zero;
+            _ticker.start();
+          }
+          if (mounted) setState(() {});
+        },
         onResume: () {
           Navigator.of(dialogContext).pop();
         },
@@ -1221,6 +1249,25 @@ class _CombatScreenState extends State<CombatScreen>
                           ),
                         ),
 
+                        // Dynamic Projection Shelf (Isolated RepaintBoundary)
+                        RepaintBoundary(
+                          child: ProjectionShelf(
+                            prediction: _coordinator.prediction,
+                            selectedBay: matchState.selectedBay,
+                            isDeepTelemetry: EntitlementService.instance
+                                .isFeatureAccessible(
+                                  ProFeature.deepSensorTelemetry,
+                                ),
+                            threatCorridorBreachProbability:
+                                _coordinator
+                                        .tacticalAdvice
+                                        ?.isEmergencyBreach ==
+                                    true
+                                ? 0.95
+                                : null,
+                          ),
+                        ),
+
                         // Lower Primary Thumb Command Arc (Isolated RepaintBoundary)
                         RepaintBoundary(
                           child: CommandArcWidget(
@@ -1231,6 +1278,7 @@ class _CombatScreenState extends State<CombatScreen>
                             onSowAction: _coordinator.sow,
                             onInjectCore: _coordinator.injectCore,
                             onSlidePosition: _coordinator.slidePosition,
+                            tacticalAdvice: _coordinator.tacticalAdvice,
                           ),
                         ),
                       ],

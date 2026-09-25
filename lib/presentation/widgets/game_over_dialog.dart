@@ -35,6 +35,9 @@ class GameOverDialog extends StatefulWidget {
     this.isAmmoDepleted = false,
     this.isAiAssisted = false,
     this.armDuration = const Duration(milliseconds: 500),
+    this.canRewind = false,
+    this.rewindsRemaining = 0,
+    this.onRewind,
   });
 
   /// Mission score attained prior to defeat.
@@ -57,6 +60,15 @@ class GameOverDialog extends StatefulWidget {
 
   /// Safety debounce duration before action buttons accept taps.
   final Duration armDuration;
+
+  /// Whether Chrono-Anchor rewind is available to salvage the match.
+  final bool canRewind;
+
+  /// Number of Chrono-Anchor rewinds remaining.
+  final int rewindsRemaining;
+
+  /// Callback to rewind the combat state before defeat.
+  final VoidCallback? onRewind;
 
   @override
   State<GameOverDialog> createState() => _GameOverDialogState();
@@ -206,7 +218,27 @@ class _GameOverDialogState extends State<GameOverDialog> {
                 ],
               ),
             ),
-            const SizedBox(height: 14.0),
+            const SizedBox(height: 12.0),
+
+            // Emergency Chrono-Anchor Rewind
+            if (widget.onRewind != null) ...[
+              TactileButton(
+                label: widget.canRewind
+                    ? 'EMERGENCY CHRONO-REWIND (${widget.rewindsRemaining} LEFT)'
+                    : 'CHRONO-REWIND (DEPLETED / LOCKED)',
+                icon: Icons.history,
+                onPressed: (_isArmed && widget.canRewind)
+                    ? widget.onRewind
+                    : null,
+                accentColor: (_isArmed && widget.canRewind)
+                    ? VoidTheme.nebulaAmethyst
+                    : VoidTheme.textMuted.withValues(alpha: 0.35),
+                isPrimary: true,
+                height: 40.0,
+                fontSize: 10.5,
+              ),
+              const SizedBox(height: 8.0),
+            ],
 
             // Tactical Actions
             Row(

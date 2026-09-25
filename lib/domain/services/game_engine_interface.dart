@@ -19,6 +19,21 @@ import '../models/flak_burst.dart';
 import '../models/lance_beam.dart';
 import '../models/prediction_result.dart';
 
+/// Discrete result from the native MCTS tactical solver.
+class TacticalStepResult {
+  const TacticalStepResult({
+    required this.bayIndex,
+    required this.direction,
+    required this.confidence,
+    required this.predictedDamage,
+  });
+
+  final int bayIndex;
+  final int direction;
+  final double confidence;
+  final double predictedDamage;
+}
+
 /// Abstract contract for the Void Sower game simulation engine.
 /// Implemented by FfiVoidSowerEngine (C++ native) and MockVoidSowerEngine (Dart).
 abstract class IVoidSowerEngine {
@@ -82,6 +97,19 @@ abstract class IVoidSowerEngine {
 
   /// Retrieves current dreadnought flagship state and simulation FSM status.
   DreadnoughtState getDreadnoughtState();
+
+  /// Sets the active lance alpha multiplier (chassis bonus).
+  void setLanceAlphaMultiplier(double multiplier);
+
+  /// Restores bay charges, reserve cores, and score from a prior turn snapshot.
+  void restoreSnapshot({
+    required List<int> bayCharges,
+    required int reserveCores,
+    required int totalScore,
+  });
+
+  /// Solves the optimal single tactical move using native MCTS lookahead.
+  TacticalStepResult? solveTacticalStep();
 
   /// Resets the combat field and clears all entities.
   void reset();

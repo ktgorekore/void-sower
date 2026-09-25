@@ -20,6 +20,8 @@
 
 #include <algorithm>
 
+#include "systems/mcts_solver.h"
+
 namespace void_sower::ecs {
 
 Engine::Engine() {
@@ -165,6 +167,24 @@ DreadnoughtStateComponent Engine::GetDreadnoughtState() const {
 
 SimulationState Engine::GetSimulationState() const {
   return combat_system_->GetSimulationState();
+}
+
+void Engine::SetLanceAlphaMultiplier(float multiplier) {
+  combat_system_->SetLanceAlphaMultiplier(multiplier);
+}
+
+void Engine::RestoreSnapshot(
+    const std::array<uint32_t, kTotalBays>& bay_charges, uint32_t reserve_cores,
+    uint32_t total_score) {
+  combat_system_->RestoreSnapshot(bay_charges, reserve_cores, total_score);
+}
+
+int32_t Engine::SolveTacticalStep(uint8_t* out_bay, int8_t* out_direction,
+                                  float* out_confidence,
+                                  float* out_predicted_damage) {
+  MctsSolver solver(registry_);
+  return solver.SolveTacticalStep(out_bay, out_direction, out_confidence,
+                                  out_predicted_damage);
 }
 
 void Engine::Reset() { Initialize(); }

@@ -216,4 +216,34 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
   return true;
 }
 
+void CombatSystem::SetLanceAlphaMultiplier(float multiplier) {
+  const float clamped = (multiplier > 0.0f) ? multiplier : 1.0f;
+  discharge_system_.SetLanceAlphaMultiplier(clamped);
+  bao_cascade_system_.SetLanceAlphaMultiplier(clamped);
+}
+
+void CombatSystem::RestoreSnapshot(
+    const std::array<uint32_t, kTotalBays>& bay_charges, uint32_t reserve_cores,
+    uint32_t total_score) {
+  if (dreadnought_entity_ != entt::null &&
+      registry_.valid(dreadnought_entity_)) {
+    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    dread.reserve_cores = reserve_cores;
+    dread.total_score = total_score;
+    dread.is_cascading = 0;
+    dread.current_sim_state =
+        static_cast<uint8_t>(SimulationState::OrbitalIdle);
+  }
+
+  for (uint8_t i = 0; i < kTotalBays; ++i) {
+    if (registry_.valid(bay_entities_[i])) {
+      auto& bay = registry_.get<BatteryComponent>(bay_entities_[i]);
+      bay.charge_units = bay_charges[i];
+    }
+  }
+
+  discharge_system_.Reset(registry_);
+  registry_.clear<SowingStateComponent>();
+}
+
 }  // namespace void_sower::ecs

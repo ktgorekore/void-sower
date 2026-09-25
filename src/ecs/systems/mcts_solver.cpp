@@ -120,4 +120,115 @@ MctsEvaluationResult MctsSolver::EvaluateSolvability(uint32_t max_simulations,
   return result;
 }
 
+int32_t MctsSolver::SolveTacticalStep(uint8_t* out_bay, int8_t* out_direction,
+                                      float* out_confidence,
+                                      float* out_predicted_damage) {
+  if (out_bay == nullptr || out_direction == nullptr) {
+    return 0;
+  }
+
+  // Snapshot current capacitor bays
+  std::array<uint32_t, kTotalBays> initial_bays{};
+  auto bay_view = registry_.view<BatteryComponent>();
+  for (auto entity : bay_view) {
+    const auto& bay = bay_view.get<BatteryComponent>(entity);
+    if (bay.bay_index < kTotalBays) {
+      initial_bays[bay.bay_index] = bay.charge_units;
+    }
+  }
+
+  // Count active enemies per corridor and track critical proximity
+  std::array<float, 8> corridor_health{};
+  uint32_t total_enemies = 0;
+  uint8_t critical_corridors_mask = 0;
+
+  auto enemy_view = registry_.view<EnemyVesselComponent>();
+  for (auto entity : enemy_view) {
+    const auto& e = enemy_view.get<EnemyVesselComponent>(entity);
+    if (!e.is_destroyed && e.assigned_corridor < 8) {
+      corridor_health[e.assigned_corridor] +=
+          (e.current_shields + e.current_hull);
+      total_enemies++;
+      if (e.world_pos_y < 0.40f) {
+        critical_corridors_mask |= (1 << e.assigned_corridor);
+      }
+    }
+  }
+
+  if (total_enemies == 0) {
+    *out_bay = 11;
+    *out_direction = 1;
+    if (out_confidence != nullptr) *out_confidence = 1.0f;
+    if (out_predicted_damage != nullptr) *out_predicted_damage = 0.0f;
+    return 1;
+  }
+
+  uint8_t best_bay = 8;
+  int8_t best_dir = 1;
+  float best_score = -1.0f;
+  float best_damage = 0.0f;
+
+  for (uint8_t bay = 0; bay < kTotalBays; ++bay) {
+    // Reservoir bays (0..7) with 0 charge cannot sow
+    if (bay < 8 && initial_bays[bay] == 0) {
+      continue;
+    }
+
+    for (int8_t dir : {-1, 1}) {
+      // Simulate 1-ply sowing step
+      auto sim_bays = initial_bays;
+      uint32_t carried = sim_bays[bay] + 1;
+      sim_bays[bay] = 0;
+      uint8_t cur = bay;
+
+      while (carried > 0) {
+        cur = StepBayIndex(cur, dir);
+        sim_bays[cur]++;
+        carried--;
+      }
+
+      float move_score = 0.0f;
+      float move_damage = 0.0f;
+
+      if (IsFrontlineBay(cur) && sim_bays[cur] >= 1) {
+        int8_t corridor = CorridorForFrontlineBay(cur);
+        if (corridor >= 0 && corridor < 8 && corridor_health[corridor] > 0.0f) {
+          move_damage = ComputeLanceDamage(sim_bays[cur]);
+          move_score += 1200.0f + (move_damage * 15.0f);
+          if ((critical_corridors_mask & (1 << corridor)) != 0) {
+            move_score += 3000.0f;
+          }
+        }
+      }
+
+      // Check relay overload potential
+      if (sim_bays[cur] > 1 && !IsNyumbaBay(cur)) {
+        move_score += 600.0f;
+      }
+
+      if (cur >= 8) {
+        move_score += 80.0f;
+      }
+      move_score += static_cast<float>(initial_bays[bay]) * 25.0f;
+
+      if (move_score > best_score) {
+        best_score = move_score;
+        best_bay = bay;
+        best_dir = dir;
+        best_damage = move_damage;
+      }
+    }
+  }
+
+  *out_bay = best_bay;
+  *out_direction = best_dir;
+  if (out_confidence != nullptr) {
+    *out_confidence = std::clamp(best_score / 3500.0f, 0.40f, 0.99f);
+  }
+  if (out_predicted_damage != nullptr) {
+    *out_predicted_damage = best_damage;
+  }
+  return 1;
+}
+
 }  // namespace void_sower::ecs

@@ -32,6 +32,7 @@ import '../widgets/settings_modal.dart';
 import '../widgets/tactical_directives_modal.dart';
 import '../widgets/tactile_button.dart';
 import 'combat_screen.dart';
+import 'simulation_lab_screen.dart';
 
 /// Interactive Star Map Screen for the Kilwa Nebula Basin Campaign.
 class CampaignMapScreen extends StatefulWidget {
@@ -168,6 +169,21 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
       ),
     );
     _launchSectorWithAi(targetSector);
+  }
+
+  void _openSimulationLab() {
+    HapticService.instance.injectionClick();
+    if (!EntitlementService.instance.isFeatureAccessible(
+      ProFeature.orbitalSimulationLab,
+    )) {
+      _openProUpgrade(ProFeature.orbitalSimulationLab);
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (context) => SimulationLabScreen(engine: widget.engine),
+      ),
+    );
   }
 
   void _openCodex() {
@@ -961,6 +977,50 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                           'AI AUTO-SOLVE',
                           style: TextStyle(
                             color: Color(0xFF00E5FF),
+                            fontSize: 8.0,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const Text(
+                '•',
+                style: TextStyle(color: VoidTheme.textMuted, fontSize: 9.5),
+              ),
+              Tooltip(
+                message: 'Orbital Simulation Lab',
+                child: InkWell(
+                  onTap: _openSimulationLab,
+                  borderRadius: BorderRadius.circular(4.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5.0,
+                      vertical: 1.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1B4B),
+                      borderRadius: BorderRadius.circular(4.0),
+                      border: Border.all(
+                        color: VoidTheme.nebulaAmethyst,
+                        width: 0.6,
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.science_outlined,
+                          size: 10.0,
+                          color: VoidTheme.nebulaAmethyst,
+                        ),
+                        SizedBox(width: 3.0),
+                        Text(
+                          'SIM LAB',
+                          style: TextStyle(
+                            color: VoidTheme.nebulaAmethyst,
                             fontSize: 8.0,
                             fontWeight: FontWeight.w800,
                           ),

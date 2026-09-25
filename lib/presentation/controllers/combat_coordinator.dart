@@ -29,6 +29,7 @@ import '../../domain/models/pro_feature.dart';
 import '../../domain/models/sector_combat_doctrine.dart';
 import '../../domain/models/swarm_wave_phase.dart';
 import '../../domain/services/entitlement_service.dart';
+import '../../domain/services/fleet_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
 import '../../domain/state/combat_match_state.dart';
@@ -38,6 +39,25 @@ import '../theme/void_theme.dart';
 import 'combat_audio_orchestrator.dart';
 import 'invader_bullet_manager.dart';
 import 'tactical_solver_controller.dart';
+
+/// Immutable snapshot of combat state for in-combat time-dilation rewind.
+class CombatTurnSnapshot {
+  const CombatTurnSnapshot({
+    required this.reserveCores,
+    required this.totalScore,
+    required this.coresUsed,
+    required this.bayCharges,
+    required this.selectedBay,
+    required this.sowDirection,
+  });
+
+  final int reserveCores;
+  final int totalScore;
+  final int coresUsed;
+  final List<int> bayCharges;
+  final int selectedBay;
+  final int sowDirection;
+}
 
 /// Central coordinator managing the 60 Hz combat loop, state machine transitions,
 /// bullet physics, and presentation state.
@@ -157,15 +177,120 @@ class CombatCoordinator extends ChangeNotifier {
 
   int get competitiveScore => _hasUsedAiSolver ? 0 : dreadnought.totalScore;
 
+  FleetChassis _equippedChassis = FleetService.instance.getChassis(
+    'mk1_bastion',
+  );
+  FleetChassis get equippedChassis => _equippedChassis;
+
+  final List<CombatTurnSnapshot> _chronoSnapshots = <CombatTurnSnapshot>[];
+  int _chronoRewindsRemaining = 0;
+
+  /// Number of Chrono-Anchor rewinds remaining for current sortie.
+  int get chronoRewindsRemaining => _chronoRewindsRemaining;
+
+  /// Whether Chrono-Anchor rewind is currently available to trigger.
+  bool get canChronoRewind =>
+      _chronoSnapshots.isNotEmpty &&
+      _chronoRewindsRemaining > 0 &&
+      !dreadnought.isCascading &&
+      _state.status != CombatMatchStatus.sowingSequence &&
+      !_state.isTerminal;
+
+  /// Operating mode of the tactical solver subsystem.
+  TacticalSolverMode get solverMode => solverController.mode;
+
+  /// Updates tactical solver operating mode.
+  void setSolverMode(TacticalSolverMode mode) {
+    solverController.mode = mode;
+    _state = _state.copyWith(
+      isAutoSolving: mode == TacticalSolverMode.autopilot,
+    );
+    if (mode == TacticalSolverMode.autopilot) {
+      _hasUsedAiSolver = true;
+    }
+    notifyListeners();
+  }
+
+  /// Current real-time holographic move advisory guidance.
+  TacticalAdvice? get tacticalAdvice => solverController.currentAdvice;
+
+  void _captureTurnSnapshot() {
+    if (_chronoSnapshots.length >= 10) {
+      _chronoSnapshots.removeAt(0);
+    }
+    _chronoSnapshots.add(
+      CombatTurnSnapshot(
+        reserveCores: dreadnought.reserveCores,
+        totalScore: dreadnought.totalScore,
+        coresUsed: dreadnought.coresUsed,
+        bayCharges: bays.map((b) => b.chargeUnits).toList(growable: false),
+        selectedBay: _state.selectedBay ?? 8,
+        sowDirection: _sowDirection,
+      ),
+    );
+  }
+
+  /// Rewinds combat state by one turn using Chrono-Anchor technology.
+  bool triggerChronoRewind() {
+    if (!canChronoRewind) return false;
+    _chronoRewindsRemaining--;
+    final snapshot = _chronoSnapshots.removeLast();
+
+    // 1. Cancel in-flight animations
+    _sowAnimationGeneration++;
+    _pendingSowBay = null;
+    _pendingSowDirection = null;
+    if (_sowAnimationCompleter != null &&
+        !_sowAnimationCompleter!.isCompleted) {
+      _sowAnimationCompleter!.complete();
+    }
+
+    // 2. Clear bullets and particles
+    bulletManager.clear();
+    lances = const [];
+    damageNumbers.clear();
+
+    // 3. Restore native engine state
+    engine.restoreSnapshot(
+      bayCharges: snapshot.bayCharges,
+      reserveCores: snapshot.reserveCores,
+      totalScore: snapshot.totalScore,
+    );
+
+    // 4. Synchronize domain state
+    _syncDomainState();
+    _sowDirection = snapshot.sowDirection;
+    _state = _state.copyWith(
+      status: CombatMatchStatus.activeCombat,
+      selectedBay: snapshot.selectedBay,
+      clearActiveSowBay: true,
+    );
+    prediction = engine.predictSow(snapshot.selectedBay, snapshot.sowDirection);
+
+    // 5. Audio and haptic feedback
+    audio.onCoreInjected();
+    HapticService.instance.injectionClick();
+
+    notifyListeners();
+    return true;
+  }
+
+  /// Grants emergency Chrono-Anchor rewinds (e.g. from an ad pass).
+  void grantEmergencyRewinds(int count) {
+    _chronoRewindsRemaining += count;
+    notifyListeners();
+  }
+
   /// Initializes engine entities, procedurally generates the solvable combat wave,
   /// and primes the FSM.
   void initialize({
     CampaignSector? sector,
     int? difficulty,
-    int startingCores = 28,
+    int? startingCores,
     double boundaryY = 0.15,
     bool autoStartSolver = false,
     bool startWithTutorial = false,
+    String? chassisId,
   }) {
     _sector = sector;
     _hasUsedAiSolver = autoStartSolver;
@@ -180,6 +305,11 @@ class CombatCoordinator extends ChangeNotifier {
     _sessionMaxCascade = 0;
     _sessionStartTime = DateTime.now();
 
+    final resolvedChassisId =
+        chassisId ?? PersistenceService.instance.selectedChassisId;
+    _equippedChassis = FleetService.instance.getChassis(resolvedChassisId);
+    engine.setLanceAlphaMultiplier(_equippedChassis.lanceAlphaBonus);
+
     final doctrine = sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
     _remainingReinforcements = sector?.reinforcementQuota ?? 0;
     _swarmPhase = (doctrine == SectorCombatDoctrine.voidSwarm)
@@ -188,11 +318,11 @@ class CombatCoordinator extends ChangeNotifier {
 
     vlog(
       6,
-      'CombatCoordinator: Initializing sector ${sector?.sectorId ?? "custom"} difficulty $_currentDifficulty doctrine $doctrine',
+      'CombatCoordinator: Initializing sector ${sector?.sectorId ?? "custom"} difficulty $_currentDifficulty doctrine $doctrine chassis ${_equippedChassis.chassisId}',
     );
     final initialCores = (sector != null && sector.sectorId == 1)
         ? 36
-        : startingCores;
+        : (startingCores ?? _equippedChassis.coreCapacity);
     engine.initialize(startingCores: initialCores, boundaryY: boundaryY);
     engine.setLateralDrift(doctrine == SectorCombatDoctrine.phantomDrift);
     final int waveSeed = sector != null
@@ -217,6 +347,15 @@ class CombatCoordinator extends ChangeNotifier {
     _activeLanceBays.clear();
     _hasActiveFlak = false;
 
+    // Reset Chrono-Anchor snapshots and allocate rewinds
+    _chronoSnapshots.clear();
+    _chronoRewindsRemaining =
+        EntitlementService.instance.isFeatureAccessible(
+          ProFeature.chronoAnchorRewind,
+        )
+        ? 3
+        : 0;
+
     const initialBay = 11;
     prediction = engine.predictSow(initialBay, 1);
 
@@ -235,6 +374,15 @@ class CombatCoordinator extends ChangeNotifier {
     );
 
     if (autoStartSolver) {
+      solverController.mode = TacticalSolverMode.autopilot;
+      solverController.reset();
+    } else {
+      solverController.mode =
+          EntitlementService.instance.isFeatureAccessible(
+            ProFeature.aiMoveAdvisor,
+          )
+          ? TacticalSolverMode.advisor
+          : TacticalSolverMode.disabled;
       solverController.reset();
     }
     notifyListeners();
@@ -572,8 +720,8 @@ class CombatCoordinator extends ChangeNotifier {
       }
     }
 
-    // 8. Autonomous AI Tactical Solver step
-    if (_state.isAutoSolving &&
+    // 8. Autonomous AI Tactical Solver / Advisor step
+    if (solverController.mode != TacticalSolverMode.disabled &&
         _state.status == CombatMatchStatus.activeCombat) {
       solverController.update(
         dt: clampedDt,
@@ -673,6 +821,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Triggers a sequential pit-to-pit sowing traversal animation then executes on native engine.
   void sow(int bayIndex, int direction) {
     if (_state.status != CombatMatchStatus.activeCombat) return;
+    _captureTurnSnapshot();
     final mass = (bayIndex < bays.length) ? bays[bayIndex].chargeUnits : 1;
     if (!_state.isAutoSolving && !_hasUsedAiSolver) {
       _sessionSeedsSown += mass;
@@ -754,6 +903,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Direct core injection into a designated bay.
   void injectCore(int bayIndex, int direction) {
     if (!_state.canReceiveInput) return;
+    _captureTurnSnapshot();
     _sessionSeedsSown++;
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
@@ -781,6 +931,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// into the current corridor, drawing from the aligned bay or injecting a core.
   void quickFireActiveCorridor() {
     if (!_state.canReceiveInput) return;
+    _captureTurnSnapshot();
     if (_state.status == CombatMatchStatus.paused) {
       _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
     }
@@ -860,6 +1011,14 @@ class CombatCoordinator extends ChangeNotifier {
     final next = !_state.isAutoSolving;
     if (next) {
       _hasUsedAiSolver = true;
+      solverController.mode = TacticalSolverMode.autopilot;
+    } else {
+      solverController.mode =
+          EntitlementService.instance.isFeatureAccessible(
+            ProFeature.aiMoveAdvisor,
+          )
+          ? TacticalSolverMode.advisor
+          : TacticalSolverMode.disabled;
     }
     _state = _state.copyWith(
       isAutoSolving: next,

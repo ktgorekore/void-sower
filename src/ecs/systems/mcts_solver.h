@@ -57,6 +57,17 @@ class MctsSolver {
   MctsEvaluationResult EvaluateSolvability(uint32_t max_simulations = 400,
                                            uint32_t max_depth = 6);
 
+  /**
+   * @brief Evaluates the current state and returns the optimal tactical action.
+   * @param out_bay Output selected bay index (0..15).
+   * @param out_direction Output selected direction (+1 for CW, -1 for CCW).
+   * @param out_confidence Output confidence score (0.0 to 1.0).
+   * @param out_predicted_damage Output estimated damage.
+   * @return 1 on successful solution found, 0 otherwise.
+   */
+  int32_t SolveTacticalStep(uint8_t* out_bay, int8_t* out_direction,
+                            float* out_confidence, float* out_predicted_damage);
+
  private:
   entt::registry& registry_;
 };

@@ -14,6 +14,8 @@
 
 import 'package:flutter/material.dart';
 import '../../domain/models/prediction_result.dart';
+import '../../domain/models/pro_feature.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../theme/void_theme.dart';
 
 /// Middle 10% Dynamic Projection Shelf displaying reticle targeting telemetry.
@@ -22,10 +24,14 @@ class ProjectionShelf extends StatelessWidget {
     super.key,
     required this.prediction,
     required this.selectedBay,
+    this.isDeepTelemetry,
+    this.threatCorridorBreachProbability,
   });
 
   final PredictionResult? prediction;
   final int? selectedBay;
+  final bool? isDeepTelemetry;
+  final double? threatCorridorBreachProbability;
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +73,11 @@ class ProjectionShelf extends StatelessWidget {
     final p = prediction!;
     final isLance = p.triggersLance;
     final isRelay = p.triggersRelay;
+    final deepActive =
+        isDeepTelemetry ??
+        EntitlementService.instance.isFeatureAccessible(
+          ProFeature.deepSensorTelemetry,
+        );
 
     return Container(
       width: double.infinity,
@@ -117,6 +128,17 @@ class ProjectionShelf extends StatelessWidget {
                       ),
                     ),
                   ],
+                  if (deepActive && p.totalCascadeLaps > 0) ...[
+                    const SizedBox(width: 4.0),
+                    Text(
+                      '• ${p.totalCascadeLaps} LAPS',
+                      style: const TextStyle(
+                        color: VoidTheme.solarGold,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -139,13 +161,42 @@ class ProjectionShelf extends StatelessWidget {
                     ),
                     const SizedBox(width: 3.0),
                     Text(
-                      'LANCE: ${p.predictedDamage.toInt()} DMG (M=${p.finalMass})',
+                      deepActive
+                          ? 'LANCE: ${p.predictedDamage.toInt()} DMG (α × ${p.finalMass}²)'
+                          : 'LANCE: ${p.predictedDamage.toInt()} DMG (M=${p.finalMass})',
                       style: const TextStyle(
                         color: VoidTheme.plasmaCyan,
                         fontSize: 10.5,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (deepActive &&
+                        threatCorridorBreachProbability != null &&
+                        threatCorridorBreachProbability! > 0) ...[
+                      const SizedBox(width: 4.0),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 3.0,
+                          vertical: 1.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: VoidTheme.crimsonFlare.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(2.0),
+                          border: Border.all(
+                            color: VoidTheme.crimsonFlare,
+                            width: 0.6,
+                          ),
+                        ),
+                        child: Text(
+                          '${(threatCorridorBreachProbability! * 100).toInt()}% RISK',
+                          style: const TextStyle(
+                            color: VoidTheme.crimsonFlare,
+                            fontSize: 7.5,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ],
                   ] else if (isRelay) ...[
                     const Icon(
                       Icons.alt_route,

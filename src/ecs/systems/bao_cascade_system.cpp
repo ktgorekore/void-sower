@@ -290,8 +290,8 @@ BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
           result.triggers_lance = true;
           result.terminal_bay = cur_bay;
           result.terminal_corridor = corridor;
-          result.final_mass = term_mass;
-          result.predicted_damage = ComputeLanceDamage(term_mass);
+          result.predicted_damage = ComputeLanceDamage(
+              term_mass, kAlphaLanceDamage * lance_alpha_multiplier_);
           result.total_cascade_laps = laps;
           return result;
         }

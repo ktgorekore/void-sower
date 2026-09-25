@@ -88,6 +88,13 @@ class CombatSystem {
   /// Rebuilds spatial grid indexing enemy vessels by corridor.
   void RebuildSpatialGrid();
 
+  /// Sets the active lance alpha multiplier (chassis bonus).
+  void SetLanceAlphaMultiplier(float multiplier);
+
+  /// Restores bay charges, reserve cores, and score from a prior turn snapshot.
+  void RestoreSnapshot(const std::array<uint32_t, kTotalBays>& bay_charges,
+                       uint32_t reserve_cores, uint32_t total_score);
+
  private:
   entt::registry& registry_;
   SpatialGrid spatial_grid_;

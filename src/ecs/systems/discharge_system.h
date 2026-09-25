@@ -78,14 +78,19 @@ class DischargeSystem {
    */
   void Reset(entt::registry& registry);
 
-  /**
-   * @brief Returns whether any particle lances are currently active.
-   */
   bool HasActiveLances(const entt::registry& registry) const;
+
+  /**
+   * @brief Sets the active lance alpha multiplier (chassis bonus).
+   */
+  void SetLanceAlphaMultiplier(float multiplier) {
+    lance_alpha_multiplier_ = (multiplier > 0.0f) ? multiplier : 1.0f;
+  }
 
  private:
   std::array<entt::entity, kMaxConcurrentLances> lance_pool_{};
   std::array<entt::entity, kMaxConcurrentFlaks> flak_pool_{};
+  float lance_alpha_multiplier_{1.0f};
 };
 
 }  // namespace void_sower::ecs
