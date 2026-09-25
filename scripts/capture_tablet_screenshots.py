@@ -50,12 +50,25 @@ def keyevent(code, device):
   adb_cmd(["shell", "input", "keyevent", str(code)], device)
 
 
+from PIL import Image
+import numpy as np
+
+
 def capture(dest_name, device):
   dest_path = os.path.join(SCREENSHOTS_DIR, dest_name)
   print(f"[Tablet Capture] Grabbing {dest_name}...")
   with open(dest_path, "wb") as f:
     subprocess.run(["adb", "-s", device, "exec-out", "screencap", "-p"], stdout=f)
   print(f"[Saved] -> {dest_path}")
+
+  im = Image.open(dest_path).convert("RGB")
+  arr = np.array(im)
+  white_px = np.sum((arr[:, :, 0] > 240) & (arr[:, :, 1] > 240) & (arr[:, :, 2] > 240))
+  total_px = arr.shape[0] * arr.shape[1]
+  white_pct = (white_px / total_px) * 100
+  print(f"[Validation] {dest_name}: {im.size} (white={white_pct:.2f}%)")
+  if white_pct > 5.0:
+    raise RuntimeError(f"Screenshot {dest_name} failed validation! White pixels: {white_pct:.2f}%")
   return dest_path
 
 
@@ -93,6 +106,7 @@ def main():
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
       '<map>\n'
       '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
+      '    <boolean name="flutter.void_sower_ads_disabled" value="true" />\n'
       '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
       '    <int name="flutter.void_sower_high_score" value="34820" />\n'
       '    <int name="flutter.void_sower_liberated_sectors" value="6" />\n'

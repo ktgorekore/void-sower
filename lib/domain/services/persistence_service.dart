@@ -55,6 +55,7 @@ class PersistenceService {
   static const String _kHighScore = 'void_sower_high_score';
   static const String _kLiberatedSectors = 'void_sower_liberated_sectors';
   static const String _kProUnlocked = 'void_sower_pro_unlocked';
+  static const String _kAdsDisabled = 'void_sower_ads_disabled';
   static const String _kSoundEnabled = 'void_sower_sound_enabled';
   static const String _kMusicEnabled = 'void_sower_music_enabled';
   static const String _kHapticsEnabled = 'void_sower_haptics_enabled';
@@ -383,6 +384,11 @@ class PersistenceService {
   bool get isProUnlocked => _prefs?.getBool(_kProUnlocked) ?? false;
   Future<void> setProUnlocked(bool unlocked) async {
     await _prefs?.setBool(_kProUnlocked, unlocked);
+  }
+
+  bool get areAdsDisabled => _prefs?.getBool(_kAdsDisabled) ?? false;
+  Future<void> setAdsDisabled(bool disabled) async {
+    await _prefs?.setBool(_kAdsDisabled, disabled);
   }
 
   // --- Audio Preferences ---

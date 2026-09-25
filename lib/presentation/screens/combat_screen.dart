@@ -724,508 +724,235 @@ class _CombatScreenState extends State<CombatScreen>
             _coordinator.enemies.every((e) => e.isDestroyed) &&
             _coordinator.remainingReinforcements <= 0);
 
-    return Scaffold(
-      backgroundColor: VoidTheme.obsidianBlack,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // Compact landscape guard (height < 520 dp on landscape devices)
-          if (constraints.maxWidth > constraints.maxHeight &&
-              constraints.maxHeight < 520.0) {
-            return const LandscapeOrientationShield();
-          }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _toggleTacticalPause();
+      },
+      child: Scaffold(
+        backgroundColor: VoidTheme.obsidianBlack,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            // Compact landscape guard (height < 520 dp on landscape devices)
+            if (constraints.maxWidth > constraints.maxHeight &&
+                constraints.maxHeight < 520.0) {
+              return const LandscapeOrientationShield();
+            }
 
-          final isTabletWidth = constraints.maxWidth > 580.0;
+            final isTabletWidth = constraints.maxWidth > 580.0;
 
-          return Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 580.0),
-              decoration: isTabletWidth
-                  ? BoxDecoration(
-                      border: Border.symmetric(
-                        vertical: BorderSide(
-                          color: VoidTheme.cardSurface.withValues(alpha: 0.8),
-                          width: 1.5,
-                        ),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.08),
-                          blurRadius: 18.0,
-                          spreadRadius: 2.0,
-                        ),
-                      ],
-                    )
-                  : null,
-              child: Stack(
-                children: [
-                  SafeArea(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Top HUD (Isolated RepaintBoundary)
-                        RepaintBoundary(
-                          child: HudHeader(
-                            userProfile:
-                                PersistenceService.instance.userProfile,
-                            onProfileTap: _openProfile,
-                            reserveCores: dread.reserveCores,
-                            score: _coordinator.competitiveScore,
-                            highScore: _coordinator.highScore,
-                            isAiAssisted: _coordinator.hasUsedAiSolver,
-                            isPro: EntitlementService.instance.isProUnlocked,
-                            difficultyTier: _currentDifficultyTier,
-                            sectorId: _currentSectorId,
-                            sectorName: CampaignService.instance
-                                .getSector(_currentSectorId)
-                                .name,
-                            totalInvaders:
-                                _coordinator.enemies.length +
-                                _coordinator.remainingReinforcements,
-                            invadersRemaining:
-                                _coordinator.enemies
-                                    .where((e) => !e.isDestroyed)
-                                    .length +
-                                _coordinator.remainingReinforcements,
-                            isPaused:
-                                matchState.status == CombatMatchStatus.paused ||
-                                _overlayState == CombatOverlayState.paused,
-                            onTogglePause: _toggleTacticalPause,
-                            onRestartTap: _restartCombat,
-                            onStopTap: _openMap,
-                            onMapTap: _openMap,
-                            onNextSectorTap: () {
-                              if (_overlayState ==
-                                  CombatOverlayState.victoryReview) {
-                                _showVictoryModal();
-                              } else {
-                                _advanceNextSector();
-                              }
-                            },
-                            isSecured: isSecured,
-                            onSettingsTap: _openSettings,
-                            onCodexTap: _openCodex,
-                            onTutorialTap: _coordinator.showTutorial,
-                            onEmergencyFlareTap: _openEmergencyFlare,
-                            isAutoSolving: matchState.isAutoSolving,
-                            onToggleAutoSolve: _toggleAutoSolve,
+            return Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 580.0),
+                decoration: isTabletWidth
+                    ? BoxDecoration(
+                        border: Border.symmetric(
+                          vertical: BorderSide(
+                            color: VoidTheme.cardSurface.withValues(alpha: 0.8),
+                            width: 1.5,
                           ),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: VoidTheme.plasmaCyan.withValues(alpha: 0.08),
+                            blurRadius: 18.0,
+                            spreadRadius: 2.0,
+                          ),
+                        ],
+                      )
+                    : null,
+                child: Stack(
+                  children: [
+                    SafeArea(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Top HUD (Isolated RepaintBoundary)
+                          RepaintBoundary(
+                            child: HudHeader(
+                              userProfile:
+                                  PersistenceService.instance.userProfile,
+                              onProfileTap: _openProfile,
+                              reserveCores: dread.reserveCores,
+                              score: _coordinator.competitiveScore,
+                              highScore: _coordinator.highScore,
+                              isAiAssisted: _coordinator.hasUsedAiSolver,
+                              isPro: EntitlementService.instance.isProUnlocked,
+                              difficultyTier: _currentDifficultyTier,
+                              sectorId: _currentSectorId,
+                              sectorName: CampaignService.instance
+                                  .getSector(_currentSectorId)
+                                  .name,
+                              totalInvaders:
+                                  _coordinator.enemies.length +
+                                  _coordinator.remainingReinforcements,
+                              invadersRemaining:
+                                  _coordinator.enemies
+                                      .where((e) => !e.isDestroyed)
+                                      .length +
+                                  _coordinator.remainingReinforcements,
+                              isPaused:
+                                  matchState.status ==
+                                      CombatMatchStatus.paused ||
+                                  _overlayState == CombatOverlayState.paused,
+                              onTogglePause: _toggleTacticalPause,
+                              onRestartTap: _restartCombat,
+                              onStopTap: _openMap,
+                              onMapTap: _openMap,
+                              onNextSectorTap: () {
+                                if (_overlayState ==
+                                    CombatOverlayState.victoryReview) {
+                                  _showVictoryModal();
+                                } else {
+                                  _advanceNextSector();
+                                }
+                              },
+                              isSecured: isSecured,
+                              onSettingsTap: _openSettings,
+                              onCodexTap: _openCodex,
+                              onTutorialTap: _coordinator.showTutorial,
+                              onEmergencyFlareTap: _openEmergencyFlare,
+                              isAutoSolving: matchState.isAutoSolving,
+                              onToggleAutoSolve: _toggleAutoSolve,
+                            ),
+                          ),
 
-                        // Tactical Combat Corridor (Upper Viewport)
-                        Expanded(
-                          child: RepaintBoundary(
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      _combatViewportSize = Size(
-                                        constraints.maxWidth,
-                                        constraints.maxHeight,
-                                      );
-                                      return GestureDetector(
-                                        behavior: HitTestBehavior.opaque,
-                                        onPanUpdate: (details) {
-                                          final normX =
-                                              (details.localPosition.dx /
-                                                      constraints.maxWidth)
-                                                  .clamp(0.0, 1.0);
-                                          _coordinator.slidePosition(normX);
-                                        },
-                                        onDoubleTap: () {
-                                          if (matchState.canReceiveInput) {
-                                            _coordinator
-                                                .quickFireActiveCorridor();
-                                          }
-                                        },
-                                        onTap: () {
-                                          if (matchState.canReceiveInput) {
-                                            _coordinator
-                                                .quickFireActiveCorridor();
-                                          }
-                                        },
-                                        child: Stack(
-                                          fit: StackFit.expand,
-                                          children: [
-                                            // Retained Static Skia Surface (Corridors & Defense Rails)
-                                            const RepaintBoundary(
-                                              child: CustomPaint(
-                                                painter:
-                                                    CombatBackgroundPainter(),
+                          // Tactical Combat Corridor (Upper Viewport)
+                          Expanded(
+                            child: RepaintBoundary(
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        _combatViewportSize = Size(
+                                          constraints.maxWidth,
+                                          constraints.maxHeight,
+                                        );
+                                        return GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onPanUpdate: (details) {
+                                            final normX =
+                                                (details.localPosition.dx /
+                                                        constraints.maxWidth)
+                                                    .clamp(0.0, 1.0);
+                                            _coordinator.slidePosition(normX);
+                                          },
+                                          onDoubleTap: () {
+                                            if (matchState.canReceiveInput) {
+                                              _coordinator
+                                                  .quickFireActiveCorridor();
+                                            }
+                                          },
+                                          onTap: () {
+                                            if (matchState.canReceiveInput) {
+                                              _coordinator
+                                                  .quickFireActiveCorridor();
+                                            }
+                                          },
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              // Retained Static Skia Surface (Corridors & Defense Rails)
+                                              const RepaintBoundary(
+                                                child: CustomPaint(
+                                                  painter:
+                                                      CombatBackgroundPainter(),
+                                                ),
                                               ),
-                                            ),
-                                            // Dynamic Combat Entities Layer (Zero Allocation & Isolated Repaint)
-                                            RepaintBoundary(
-                                              child: ListenableBuilder(
-                                                listenable: _renderNotifier,
-                                                builder: (context, _) {
-                                                  return Transform.translate(
-                                                    offset: _coordinator
-                                                        .state
-                                                        .screenShake,
-                                                    child: CustomPaint(
-                                                      size:
-                                                          _combatViewportSize!,
-                                                      painter: CombatPainter(
-                                                        dreadnought:
-                                                            _coordinator
-                                                                .dreadnought,
-                                                        enemies: _coordinator
-                                                            .enemies,
-                                                        lances:
-                                                            _coordinator.lances,
-                                                        flaks:
-                                                            _coordinator.flaks,
-                                                        particles: _coordinator
-                                                            .particleService
-                                                            .activeParticles,
-                                                        damageNumbers:
-                                                            _coordinator
-                                                                .damageNumbers,
-                                                        enemyBullets:
-                                                            _coordinator
-                                                                .bulletManager
-                                                                .bullets,
-                                                        predictedDamage:
-                                                            _coordinator
-                                                                .prediction
-                                                                ?.predictedDamage,
-                                                        animationTime:
-                                                            _animationTime,
+                                              // Dynamic Combat Entities Layer (Zero Allocation & Isolated Repaint)
+                                              RepaintBoundary(
+                                                child: ListenableBuilder(
+                                                  listenable: _renderNotifier,
+                                                  builder: (context, _) {
+                                                    return Transform.translate(
+                                                      offset: _coordinator
+                                                          .state
+                                                          .screenShake,
+                                                      child: CustomPaint(
+                                                        size:
+                                                            _combatViewportSize!,
+                                                        painter: CombatPainter(
+                                                          dreadnought:
+                                                              _coordinator
+                                                                  .dreadnought,
+                                                          enemies: _coordinator
+                                                              .enemies,
+                                                          lances: _coordinator
+                                                              .lances,
+                                                          flaks: _coordinator
+                                                              .flaks,
+                                                          particles: _coordinator
+                                                              .particleService
+                                                              .activeParticles,
+                                                          damageNumbers:
+                                                              _coordinator
+                                                                  .damageNumbers,
+                                                          enemyBullets:
+                                                              _coordinator
+                                                                  .bulletManager
+                                                                  .bullets,
+                                                          predictedDamage:
+                                                              _coordinator
+                                                                  .prediction
+                                                                  ?.predictedDamage,
+                                                          animationTime:
+                                                              _animationTime,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
+                                                    );
+                                                  },
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                if (matchState.status ==
-                                        CombatMatchStatus.paused &&
-                                    !_overlayState.isModalOpen)
-                                  Positioned(
-                                    top: 6.0,
-                                    left: 16.0,
-                                    right: 16.0,
-                                    child: Center(
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10.0,
-                                          vertical: 3.0,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(
-                                            0xFF0F172A,
-                                          ).withValues(alpha: 0.8),
-                                          borderRadius: BorderRadius.circular(
-                                            12.0,
+                                            ],
                                           ),
-                                          border: Border.all(
-                                            color: VoidTheme.solarGold
-                                                .withValues(alpha: 0.8),
-                                            width: 1.0,
-                                          ),
-                                        ),
-                                        child: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.pause_circle_filled,
-                                              color: VoidTheme.solarGold,
-                                              size: 13.0,
-                                            ),
-                                            SizedBox(width: 4.0),
-                                            Text(
-                                              'TACTICAL TIME DILATION • SLIDE TO AIM • TAP TO FIRE',
-                                              style: TextStyle(
-                                                color: VoidTheme.solarGold,
-                                                fontSize: 8.0,
-                                                fontWeight: FontWeight.w800,
-                                                letterSpacing: 0.3,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                        );
+                                      },
                                     ),
                                   ),
-                                // Floating AI Tactical Solver Badge (Zero vertical footprint)
-                                if (matchState.isAutoSolving)
-                                  Positioned(
-                                    top: 6.0,
-                                    left: 0,
-                                    right: 0,
-                                    child: Center(
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8.0,
-                                          vertical: 2.0,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(
-                                            0xFF0F172A,
-                                          ).withValues(alpha: 0.8),
-                                          borderRadius: BorderRadius.circular(
-                                            10.0,
+                                  if (matchState.status ==
+                                          CombatMatchStatus.paused &&
+                                      !_overlayState.isModalOpen)
+                                    Positioned(
+                                      top: 6.0,
+                                      left: 16.0,
+                                      right: 16.0,
+                                      child: Center(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10.0,
+                                            vertical: 3.0,
                                           ),
-                                          border: Border.all(
-                                            color: VoidTheme.crimsonFlare
-                                                .withValues(alpha: 0.7),
-                                            width: 0.8,
-                                          ),
-                                        ),
-                                        child: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.smart_toy,
-                                              color: VoidTheme.crimsonFlare,
-                                              size: 11.0,
+                                          decoration: BoxDecoration(
+                                            color: const Color(
+                                              0xFF0F172A,
+                                            ).withValues(alpha: 0.8),
+                                            borderRadius: BorderRadius.circular(
+                                              12.0,
                                             ),
-                                            SizedBox(width: 4.0),
-                                            Text(
-                                              'AI TACTICAL SOLVER ACTIVE',
-                                              style: TextStyle(
-                                                color: VoidTheme.crimsonFlare,
-                                                fontSize: 8.0,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 0.6,
-                                              ),
+                                            border: Border.all(
+                                              color: VoidTheme.solarGold
+                                                  .withValues(alpha: 0.8),
+                                              width: 1.0,
                                             ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                // Ergonomic Sector Secured Bottom Command Dock when modal is dismissed
-                                if (isSecured &&
-                                    _overlayState ==
-                                        CombatOverlayState.victoryReview)
-                                  Positioned(
-                                    bottom: 12.0,
-                                    left: 16.0,
-                                    right: 16.0,
-                                    child: Center(
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14.0,
-                                          vertical: 10.0,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: VoidTheme.obsidianBlack
-                                              .withValues(alpha: 0.95),
-                                          borderRadius: BorderRadius.circular(
-                                            12.0,
                                           ),
-                                          border: Border.all(
-                                            color: VoidTheme.emeraldShield,
-                                            width: 1.2,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: VoidTheme.emeraldShield
-                                                  .withValues(alpha: 0.3),
-                                              blurRadius: 10.0,
-                                            ),
-                                          ],
-                                        ),
-                                        child: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Row(
+                                          child: const Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              // Star Map Button
-                                              GestureDetector(
-                                                onTap: _openMap,
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10.0,
-                                                        vertical: 6.0,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        VoidTheme.cardSurface,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          6.0,
-                                                        ),
-                                                    border: Border.all(
-                                                      color: VoidTheme
-                                                          .textSecondary
-                                                          .withValues(
-                                                            alpha: 0.5,
-                                                          ),
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  child: const Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.map_outlined,
-                                                        color: VoidTheme
-                                                            .textSecondary,
-                                                        size: 13.0,
-                                                      ),
-                                                      SizedBox(width: 4.0),
-                                                      Text(
-                                                        'MAP',
-                                                        style: TextStyle(
-                                                          color: VoidTheme
-                                                              .textSecondary,
-                                                          fontSize: 10.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          letterSpacing: 0.4,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
+                                              Icon(
+                                                Icons.pause_circle_filled,
+                                                color: VoidTheme.solarGold,
+                                                size: 13.0,
                                               ),
-                                              const SizedBox(width: 8.0),
-                                              // Replay Button
-                                              GestureDetector(
-                                                onTap: _restartCombat,
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 10.0,
-                                                        vertical: 6.0,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        VoidTheme.cardSurface,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          6.0,
-                                                        ),
-                                                    border: Border.all(
-                                                      color: VoidTheme
-                                                          .plasmaCyan
-                                                          .withValues(
-                                                            alpha: 0.8,
-                                                          ),
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  child: const Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.replay,
-                                                        color: VoidTheme
-                                                            .plasmaCyan,
-                                                        size: 13.0,
-                                                      ),
-                                                      SizedBox(width: 4.0),
-                                                      Text(
-                                                        'REPLAY',
-                                                        style: TextStyle(
-                                                          color: VoidTheme
-                                                              .plasmaCyan,
-                                                          fontSize: 10.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          letterSpacing: 0.4,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 8.0),
-                                              // Advance to Next Sector Button
-                                              GestureDetector(
-                                                onTap: _advanceNextSector,
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 12.0,
-                                                        vertical: 6.0,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        VoidTheme.emeraldShield,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          6.0,
-                                                        ),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: VoidTheme
-                                                            .emeraldShield
-                                                            .withValues(
-                                                              alpha: 0.4,
-                                                            ),
-                                                        blurRadius: 6.0,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        _currentSectorId < 9
-                                                            ? 'NEXT SECTOR'
-                                                            : 'REPLAY SECTOR',
-                                                        style: const TextStyle(
-                                                          color: VoidTheme
-                                                              .obsidianBlack,
-                                                          fontSize: 10.0,
-                                                          fontWeight:
-                                                              FontWeight.w900,
-                                                          letterSpacing: 0.5,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(
-                                                        width: 4.0,
-                                                      ),
-                                                      const Icon(
-                                                        Icons.navigate_next,
-                                                        color: VoidTheme
-                                                            .obsidianBlack,
-                                                        size: 15.0,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 6.0),
-                                              // Quick Recap Button to reopen victory dialog
-                                              GestureDetector(
-                                                onTap: () {
-                                                  _showVictoryModal();
-                                                },
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(
-                                                    5.0,
-                                                  ),
-                                                  decoration: BoxDecoration(
-                                                    color:
-                                                        VoidTheme.cardSurface,
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(
-                                                      color: VoidTheme.solarGold
-                                                          .withValues(
-                                                            alpha: 0.5,
-                                                          ),
-                                                      width: 1.0,
-                                                    ),
-                                                  ),
-                                                  child: const Icon(
-                                                    Icons.military_tech,
-                                                    color: VoidTheme.solarGold,
-                                                    size: 15.0,
-                                                  ),
+                                              SizedBox(width: 4.0),
+                                              Text(
+                                                'TACTICAL TIME DILATION • SLIDE TO AIM • TAP TO FIRE',
+                                                style: TextStyle(
+                                                  color: VoidTheme.solarGold,
+                                                  fontSize: 8.0,
+                                                  fontWeight: FontWeight.w800,
+                                                  letterSpacing: 0.3,
                                                 ),
                                               ),
                                             ],
@@ -1233,63 +960,347 @@ class _CombatScreenState extends State<CombatScreen>
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                  // Floating AI Tactical Solver Badge (Zero vertical footprint)
+                                  if (matchState.isAutoSolving)
+                                    Positioned(
+                                      top: 6.0,
+                                      left: 0,
+                                      right: 0,
+                                      child: Center(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8.0,
+                                            vertical: 2.0,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(
+                                              0xFF0F172A,
+                                            ).withValues(alpha: 0.8),
+                                            borderRadius: BorderRadius.circular(
+                                              10.0,
+                                            ),
+                                            border: Border.all(
+                                              color: VoidTheme.crimsonFlare
+                                                  .withValues(alpha: 0.7),
+                                              width: 0.8,
+                                            ),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.smart_toy,
+                                                color: VoidTheme.crimsonFlare,
+                                                size: 11.0,
+                                              ),
+                                              SizedBox(width: 4.0),
+                                              Text(
+                                                'AI TACTICAL SOLVER ACTIVE',
+                                                style: TextStyle(
+                                                  color: VoidTheme.crimsonFlare,
+                                                  fontSize: 8.0,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.6,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  // Ergonomic Sector Secured Bottom Command Dock when modal is dismissed
+                                  if (isSecured &&
+                                      _overlayState ==
+                                          CombatOverlayState.victoryReview)
+                                    Positioned(
+                                      bottom: 12.0,
+                                      left: 16.0,
+                                      right: 16.0,
+                                      child: Center(
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 14.0,
+                                            vertical: 10.0,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: VoidTheme.obsidianBlack
+                                                .withValues(alpha: 0.95),
+                                            borderRadius: BorderRadius.circular(
+                                              12.0,
+                                            ),
+                                            border: Border.all(
+                                              color: VoidTheme.emeraldShield,
+                                              width: 1.2,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: VoidTheme.emeraldShield
+                                                    .withValues(alpha: 0.3),
+                                                blurRadius: 10.0,
+                                              ),
+                                            ],
+                                          ),
+                                          child: FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                // Star Map Button
+                                                GestureDetector(
+                                                  onTap: _openMap,
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 10.0,
+                                                          vertical: 6.0,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          VoidTheme.cardSurface,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6.0,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: VoidTheme
+                                                            .textSecondary
+                                                            .withValues(
+                                                              alpha: 0.5,
+                                                            ),
+                                                        width: 1.0,
+                                                      ),
+                                                    ),
+                                                    child: const Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.map_outlined,
+                                                          color: VoidTheme
+                                                              .textSecondary,
+                                                          size: 13.0,
+                                                        ),
+                                                        SizedBox(width: 4.0),
+                                                        Text(
+                                                          'MAP',
+                                                          style: TextStyle(
+                                                            color: VoidTheme
+                                                                .textSecondary,
+                                                            fontSize: 10.0,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            letterSpacing: 0.4,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8.0),
+                                                // Replay Button
+                                                GestureDetector(
+                                                  onTap: _restartCombat,
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 10.0,
+                                                          vertical: 6.0,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          VoidTheme.cardSurface,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6.0,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: VoidTheme
+                                                            .plasmaCyan
+                                                            .withValues(
+                                                              alpha: 0.8,
+                                                            ),
+                                                        width: 1.0,
+                                                      ),
+                                                    ),
+                                                    child: const Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons.replay,
+                                                          color: VoidTheme
+                                                              .plasmaCyan,
+                                                          size: 13.0,
+                                                        ),
+                                                        SizedBox(width: 4.0),
+                                                        Text(
+                                                          'REPLAY',
+                                                          style: TextStyle(
+                                                            color: VoidTheme
+                                                                .plasmaCyan,
+                                                            fontSize: 10.0,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            letterSpacing: 0.4,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8.0),
+                                                // Advance to Next Sector Button
+                                                GestureDetector(
+                                                  onTap: _advanceNextSector,
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 12.0,
+                                                          vertical: 6.0,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: VoidTheme
+                                                          .emeraldShield,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6.0,
+                                                          ),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: VoidTheme
+                                                              .emeraldShield
+                                                              .withValues(
+                                                                alpha: 0.4,
+                                                              ),
+                                                          blurRadius: 6.0,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          _currentSectorId < 9
+                                                              ? 'NEXT SECTOR'
+                                                              : 'REPLAY SECTOR',
+                                                          style: const TextStyle(
+                                                            color: VoidTheme
+                                                                .obsidianBlack,
+                                                            fontSize: 10.0,
+                                                            fontWeight:
+                                                                FontWeight.w900,
+                                                            letterSpacing: 0.5,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 4.0,
+                                                        ),
+                                                        const Icon(
+                                                          Icons.navigate_next,
+                                                          color: VoidTheme
+                                                              .obsidianBlack,
+                                                          size: 15.0,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 6.0),
+                                                // Quick Recap Button to reopen victory dialog
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    _showVictoryModal();
+                                                  },
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          5.0,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          VoidTheme.cardSurface,
+                                                      shape: BoxShape.circle,
+                                                      border: Border.all(
+                                                        color: VoidTheme
+                                                            .solarGold
+                                                            .withValues(
+                                                              alpha: 0.5,
+                                                            ),
+                                                        width: 1.0,
+                                                      ),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.military_tech,
+                                                      color:
+                                                          VoidTheme.solarGold,
+                                                      size: 15.0,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
 
-                        // Dynamic Projection Shelf (Isolated RepaintBoundary)
-                        RepaintBoundary(
-                          child: ProjectionShelf(
-                            prediction: _coordinator.prediction,
-                            selectedBay: matchState.selectedBay,
-                            isDeepTelemetry: EntitlementService.instance
-                                .isFeatureAccessible(
-                                  ProFeature.deepSensorTelemetry,
-                                ),
-                            threatCorridorBreachProbability:
-                                _coordinator
-                                        .tacticalAdvice
-                                        ?.isEmergencyBreach ==
-                                    true
-                                ? 0.95
-                                : null,
+                          // Dynamic Projection Shelf (Isolated RepaintBoundary)
+                          RepaintBoundary(
+                            child: ProjectionShelf(
+                              prediction: _coordinator.prediction,
+                              selectedBay: matchState.selectedBay,
+                              isDeepTelemetry: EntitlementService.instance
+                                  .isFeatureAccessible(
+                                    ProFeature.deepSensorTelemetry,
+                                  ),
+                              threatCorridorBreachProbability:
+                                  _coordinator
+                                          .tacticalAdvice
+                                          ?.isEmergencyBreach ==
+                                      true
+                                  ? 0.95
+                                  : null,
+                            ),
                           ),
-                        ),
 
-                        // Lower Primary Thumb Command Arc (Isolated RepaintBoundary)
-                        RepaintBoundary(
-                          child: CommandArcWidget(
-                            bays: _coordinator.bays,
-                            selectedBay: matchState.selectedBay,
-                            activeSowBay: matchState.activeSowBay,
-                            sowDirection: _coordinator.sowDirection,
-                            onBaySelected: _coordinator.selectBay,
-                            onSowAction: _coordinator.sow,
-                            onInjectCore: _coordinator.injectCore,
-                            onSlidePosition: _coordinator.slidePosition,
-                            onDirectionChanged: _coordinator.setSowDirection,
-                            tacticalAdvice: _coordinator.tacticalAdvice,
+                          // Lower Primary Thumb Command Arc (Isolated RepaintBoundary)
+                          RepaintBoundary(
+                            child: CommandArcWidget(
+                              bays: _coordinator.bays,
+                              selectedBay: matchState.selectedBay,
+                              activeSowBay: matchState.activeSowBay,
+                              sowDirection: _coordinator.sowDirection,
+                              onBaySelected: _coordinator.selectBay,
+                              onSowAction: _coordinator.sow,
+                              onInjectCore: _coordinator.injectCore,
+                              onSlidePosition: _coordinator.slidePosition,
+                              onDirectionChanged: _coordinator.setSowDirection,
+                              tacticalAdvice: _coordinator.tacticalAdvice,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Flight Academy Onboarding Overlay
-                  if (matchState.status == CombatMatchStatus.briefing)
-                    Positioned.fill(
-                      child: TutorialOverlay(
-                        onDismiss: _coordinator.dismissTutorial,
-                        onOpenCodex: _openCodex,
+                        ],
                       ),
                     ),
-                ],
+
+                    // Flight Academy Onboarding Overlay
+                    if (matchState.status == CombatMatchStatus.briefing)
+                      Positioned.fill(
+                        child: TutorialOverlay(
+                          onDismiss: _coordinator.dismissTutorial,
+                          onOpenCodex: _openCodex,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

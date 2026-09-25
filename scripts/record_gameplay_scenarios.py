@@ -59,6 +59,7 @@ def reset_app_pro_state(completed_tutorial=False):
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
       '<map>\n'
       '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
+      '    <boolean name="flutter.void_sower_ads_disabled" value="true" />\n'
       f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
       '    <int name="flutter.void_sower_high_score" value="12480" />\n'
       '    <int name="flutter.void_sower_liberated_sectors" value="6" />\n'
@@ -148,16 +149,16 @@ def record_60s_tutorial():
 
   # Phase 6: 43.3s..60.0s — Autonomous AI Tactical Advisor & Sector Victory
   wait_until(43.5)
-  print("[Timeline 43.5s] Open Tactical Pause menu (tap x=1263, y=232)")
-  tap(1263, 232)
+  print("[Timeline 43.5s] Open Tactical Pause menu (tap x=1262, y=234)")
+  tap(1262, 234)
 
   wait_until(44.3)
-  print("[Timeline 44.3s] Engage AI Tactical Auto-Solver in Pause Dialog (tap x=972, y=1814)")
-  tap(972, 1814)
+  print("[Timeline 44.3s] Engage AI Tactical Auto-Solver in Pause Dialog (tap x=970, y=1880)")
+  tap(970, 1880)
 
   wait_until(45.0)
-  print("[Timeline 45.0s] Resume Sortie with AI Solver Active (tap x=672, y=1640)")
-  tap(672, 1640)
+  print("[Timeline 45.0s] Resume Sortie with AI Solver Active (tap x=672, y=1710)")
+  tap(672, 1710)
 
   print("[Record 60s] AI Solver active, executing Grandmaster cascades toward victory...")
   rec_proc.wait()
@@ -174,13 +175,13 @@ def record_30s_showcase():
 
   # Navigate to Phantom Drift (Sector 10: Evasive Invaders)
   print("[Record 30s] Navigating to Phantom Drift (Sector 10)...")
-  tap(1263, 232) # Pause
+  tap(1262, 234)  # Pause
   time.sleep(1.0)
-  tap(311, 1814) # Map
+  tap(310, 1880)  # Map
   time.sleep(2.0)
-  tap(672, 487)  # Phantom Drift theater tab
-  time.sleep(1.0)
-  tap(883, 905)  # Sector 10 AI launch
+  tap(672, 440)   # Phantom Drift theater tab
+  time.sleep(1.2)
+  tap(880, 750)   # Sector 10 AI launch
   time.sleep(2.0)
 
   print("[Record 30s] Launching 30s showcase recording...")
@@ -203,20 +204,20 @@ def record_30s_showcase():
 
   # Part 2: Transition to Void Swarm (14s..17s) - Respawning Swarm Invaders
   wait_until(14.0)
-  print("[Showcase 14.0s] Open Tactical Pause (tap x=1263, y=232)")
-  tap(1263, 232)
+  print("[Showcase 14.0s] Open Tactical Pause (tap x=1262, y=234)")
+  tap(1262, 234)
 
   wait_until(14.8)
-  print("[Showcase 14.8s] Open Star Map (tap MAP at x=311, y=1814)")
-  tap(311, 1814)
+  print("[Showcase 14.8s] Open Star Map (tap MAP at x=310, y=1880)")
+  tap(310, 1880)
 
   wait_until(16.0)
-  print("[Showcase 16.0s] Switch to Void Swarm tab (tap x=1080, y=487)")
-  tap(1080, 487)
+  print("[Showcase 16.0s] Switch to Void Swarm tab (tap x=1110, y=440)")
+  tap(1110, 440)
 
   wait_until(17.0)
-  print("[Showcase 17.0s] Launch Sector 19 Void Swarm with AI (tap AI at x=883, y=905)")
-  tap(883, 905)
+  print("[Showcase 17.0s] Launch Sector 19 Void Swarm with AI (tap AI at x=880, y=750)")
+  tap(880, 750)
 
   # Part 3: Void Swarm (18s..30s) - Dense Respawning Horde with Tactical Core Siphon
   print("[Showcase 18s..30s] Autonomous AI managing dense swarm horde and core siphon...")

@@ -702,60 +702,69 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   Widget build(BuildContext context) {
     final activeOp = CampaignService.instance.getOperation(_activeCampaignId);
 
-    return Scaffold(
-      backgroundColor: VoidTheme.obsidianBlack,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth > constraints.maxHeight &&
-                constraints.maxHeight < 520.0) {
-              return const LandscapeOrientationShield();
-            }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: VoidTheme.obsidianBlack,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > constraints.maxHeight &&
+                  constraints.maxHeight < 520.0) {
+                return const LandscapeOrientationShield();
+              }
 
-            return Center(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 640.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // 1. Large Centered Title & Liberation Progress Bar
-                    _buildCampaignHeader(activeOp),
+              return Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 640.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // 1. Large Centered Title & Liberation Progress Bar
+                      _buildCampaignHeader(activeOp),
 
-                    // 2. Theater Switcher Tabs (Kilwa Basin, Phantom Drift, Void Swarm)
-                    _buildTheaterSwitcher(),
+                      // 2. Theater Switcher Tabs (Kilwa Basin, Phantom Drift, Void Swarm)
+                      _buildTheaterSwitcher(),
 
-                    // 3. Tactical Doctrine & Mission Briefing Banner
-                    _buildDoctrineBanner(),
+                      // 3. Tactical Doctrine & Mission Briefing Banner
+                      _buildDoctrineBanner(),
 
-                    // 4. Orbital Mission Track List with Left Spline and Nodes
-                    Expanded(
-                      child: ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(
-                          16.0,
-                          4.0,
-                          16.0,
-                          8.0,
+                      // 4. Orbital Mission Track List with Left Spline and Nodes
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(
+                            16.0,
+                            4.0,
+                            16.0,
+                            8.0,
+                          ),
+                          itemCount: _sectors.length,
+                          itemBuilder: (context, index) {
+                            final s = _sectors[index];
+                            return _buildSectorRow(
+                              sector: s,
+                              index: index,
+                              isFirst: index == 0,
+                              isLast: index == _sectors.length - 1,
+                            );
+                          },
                         ),
-                        itemCount: _sectors.length,
-                        itemBuilder: (context, index) {
-                          final s = _sectors[index];
-                          return _buildSectorRow(
-                            sector: s,
-                            index: index,
-                            isFirst: index == 0,
-                            isLast: index == _sectors.length - 1,
-                          );
-                        },
                       ),
-                    ),
 
-                    // 5. Fixed Bottom Navigation Bar
-                    _buildBottomNavBar(),
-                  ],
+                      // 5. Fixed Bottom Navigation Bar
+                      _buildBottomNavBar(),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -46,6 +46,11 @@ class AdService {
     if (_initialized) return;
     _initialized = true;
 
+    if (PersistenceService.instance.areAdsDisabled) {
+      debugPrint('[AdService] Ads suppressed via configuration.');
+      return;
+    }
+
     if (Platform.isAndroid || Platform.isIOS) {
       try {
         await MobileAds.instance.initialize().timeout(
@@ -80,6 +85,9 @@ class AdService {
 
   /// Asynchronously loads and caches a rewarded advertisement.
   Future<RewardedAd?> loadRewardedAd() {
+    if (PersistenceService.instance.areAdsDisabled) {
+      return Future.value(null);
+    }
     if (_rewardedAd != null) {
       return Future.value(_rewardedAd);
     }
@@ -119,13 +127,15 @@ class AdService {
     return _loadingCompleter!.future;
   }
 
-  /// Displays the rewarded ad or grants an immediate pass if Pro Commander is unlocked.
+  /// Displays the rewarded ad or grants an immediate pass if Pro Commander is unlocked
+  /// or if ads are disabled (for testing, store screenshots, and promotional recordings).
   /// If [isEmergencyFlare] is true, enforces the 3-minute emergency cooldown.
   /// User-initiated feature unlock passes never suffer from emergency flare cooldowns.
   /// Returns `true` if the reward was earned, `false` otherwise.
   Future<bool> showRewardedAd({bool isEmergencyFlare = false}) async {
-    // Pro commander privilege: instant emergency flare without ads
-    if (PersistenceService.instance.isProUnlocked) {
+    // Pro commander privilege or explicit suppression: instant pass without ads
+    if (PersistenceService.instance.isProUnlocked ||
+        PersistenceService.instance.areAdsDisabled) {
       if (isEmergencyFlare) {
         _lastEmergencyFlareTime = DateTime.now();
       }
