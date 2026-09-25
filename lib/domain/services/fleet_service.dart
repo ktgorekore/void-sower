@@ -70,9 +70,11 @@ class FleetService {
     _temporaryRentals.add(chassisId);
   }
 
-  /// Initiates a rewarded transmission ad to rent a locked chassis.
+  /// Initiates a rewarded ad to rent a locked chassis.
   Future<bool> rentWithRewardedAd(String chassisId) async {
-    final success = await AdService.instance.showRewardedAd();
+    final success = await AdService.instance.showRewardedAd(
+      isEmergencyFlare: false,
+    );
     if (success) {
       grantTemporaryRental(chassisId);
       return true;

@@ -38,7 +38,9 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
     HapticService.instance.injectionClick();
     setState(() => _isLoading = true);
 
-    final success = await AdService.instance.showRewardedAd();
+    final success = await AdService.instance.showRewardedAd(
+      isEmergencyFlare: true,
+    );
 
     if (mounted) {
       setState(() => _isLoading = false);
@@ -61,7 +63,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Orbital transmission unavailable. Please try again shortly.',
+              'Ad unavailable. Please try again shortly.',
               style: TextStyle(fontFamily: 'monospace'),
             ),
             backgroundColor: VoidTheme.crimsonFlare,
@@ -147,7 +149,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
               // Lore / Description
               Text(
                 isPro
-                    ? 'PRO COMMANDER PRIVILEGE: Summon an instantaneous +${AdConfig.emergencyCoresReward} plasma core relay from the Kilwa flagship without viewing transmissions.'
+                    ? 'PRO COMMANDER PRIVILEGE: Summon an instantaneous +${AdConfig.emergencyCoresReward} plasma core relay from the Kilwa flagship without watching ads.'
                     : 'Siphon auxiliary energy reserves from the orbital fleet. Sponsoring this emergency broadcast will immediately deliver +${AdConfig.emergencyCoresReward} plasma cores into your active capacitor ring.',
                 style: const TextStyle(
                   color: VoidTheme.starWhite,
@@ -177,7 +179,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                       child: Text(
                         isPro
                             ? 'TIER: PRO COMMANDER'
-                            : 'TRANSMISSION: REWARDED AD',
+                            : 'WATCH AD: +${AdConfig.emergencyCoresReward} CORES',
                         style: TextStyle(
                           color: isPro
                               ? VoidTheme.solarGold

@@ -402,7 +402,7 @@ class CombatCoordinator extends ChangeNotifier {
     }
   }
 
-  /// Grants emergency auxiliary plasma cores (e.g. from a rewarded ad transmission).
+  /// Grants emergency auxiliary plasma cores (e.g. from a rewarded ad).
   void grantEmergencyCores(int bonusCores) {
     if (_isDisposed) return;
     engine.grantCores(bonusCores);

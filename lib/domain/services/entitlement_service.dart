@@ -78,9 +78,11 @@ class EntitlementService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Initiates rewarded transmission flow to unlock a temporary pass.
+  /// Initiates rewarded ad flow to unlock a temporary pass.
   Future<bool> unlockWithRewardedAd(ProFeature feature) async {
-    final success = await AdService.instance.showRewardedAd();
+    final success = await AdService.instance.showRewardedAd(
+      isEmergencyFlare: false,
+    );
     if (success) {
       grantTemporaryPass(feature);
       return true;

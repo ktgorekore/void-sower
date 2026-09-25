@@ -21,7 +21,7 @@ import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
 /// Afrofuturistic glassmorphic showcase modal for the $1.29 Pro Lifetime purchase
-/// and rewarded transmission temporary access pass.
+/// and rewarded ad temporary access pass.
 class ProUpgradeModal extends StatefulWidget {
   const ProUpgradeModal({super.key, this.highlightedFeature, this.onUnlocked});
 
@@ -34,6 +34,13 @@ class ProUpgradeModal extends StatefulWidget {
 
 class _ProUpgradeModalState extends State<ProUpgradeModal> {
   bool _isProcessing = false;
+  late ProFeature _selectedFeature;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedFeature = widget.highlightedFeature ?? ProFeature.aiTacticalSolver;
+  }
 
   Future<void> _handlePurchase() async {
     HapticService.instance.injectionClick();
@@ -85,13 +92,14 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
     }
   }
 
-  Future<void> _handleWatchAd() async {
-    final feature = widget.highlightedFeature ?? ProFeature.aiTacticalSolver;
+  Future<void> _handleWatchAd([ProFeature? feature]) async {
+    final targetFeature =
+        feature ?? widget.highlightedFeature ?? _selectedFeature;
     HapticService.instance.injectionClick();
     setState(() => _isProcessing = true);
 
     final success = await EntitlementService.instance.unlockWithRewardedAd(
-      feature,
+      targetFeature,
     );
 
     if (mounted) {
@@ -102,7 +110,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'TEMPORARY PASS GRANTED: ${ProFeatureMeta.registry[feature]?.title ?? 'Feature'} unlocked for session!',
+              'FREE PASS GRANTED: ${ProFeatureMeta.registry[targetFeature]?.title ?? 'Feature'} unlocked for session!',
               style: const TextStyle(
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.bold,
@@ -115,7 +123,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Transmission unavailable. Please try again shortly.',
+              'Ad unavailable. Please try again shortly.',
               style: TextStyle(fontFamily: 'monospace'),
             ),
             backgroundColor: VoidTheme.crimsonFlare,
@@ -159,7 +167,8 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
 
   @override
   Widget build(BuildContext context) {
-    final highlighted = widget.highlightedFeature;
+    final highlighted = widget.highlightedFeature ?? _selectedFeature;
+    final targetFeature = highlighted;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -239,22 +248,20 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
               Expanded(
                 child: ListView(
                   children: [
-                    if (highlighted != null) ...[
-                      _buildFeatureCard(highlighted, isHighlighted: true),
-                      const SizedBox(height: 10.0),
-                      const Center(
-                        child: Text(
-                          'ALL PRO FEATURES INCLUDED:',
-                          style: TextStyle(
-                            color: VoidTheme.textMuted,
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
+                    _buildFeatureCard(highlighted, isHighlighted: true),
+                    const SizedBox(height: 10.0),
+                    const Center(
+                      child: Text(
+                        'ALL PRO FEATURES INCLUDED:',
+                        style: TextStyle(
+                          color: VoidTheme.textMuted,
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8.0),
-                    ],
+                    ),
+                    const SizedBox(height: 8.0),
                     for (final feature in ProFeature.values)
                       if (feature != highlighted)
                         Padding(
@@ -291,16 +298,14 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                     const SizedBox(height: 8.0),
 
                     // Contextual Rewarded Ad Option
-                    if (highlighted != null) ...[
-                      TactileButton(
-                        label: 'WATCH TRANSMISSION (FREE PASS)',
-                        icon: Icons.ondemand_video,
-                        accentColor: VoidTheme.plasmaCyan,
-                        height: 42.0,
-                        onPressed: _handleWatchAd,
-                      ),
-                      const SizedBox(height: 8.0),
-                    ],
+                    TactileButton(
+                      label: 'WATCH AD (FREE PASS)',
+                      icon: Icons.ondemand_video,
+                      accentColor: VoidTheme.plasmaCyan,
+                      height: 42.0,
+                      onPressed: () => _handleWatchAd(targetFeature),
+                    ),
+                    const SizedBox(height: 8.0),
 
                     // Restore Purchases
                     TextButton(
@@ -326,59 +331,63 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
 
   Widget _buildFeatureCard(ProFeature feature, {bool isHighlighted = false}) {
     final meta = ProFeatureMeta.registry[feature]!;
-    final borderColor = isHighlighted
+    final isSelected = isHighlighted || (_selectedFeature == feature);
+    final borderColor = isSelected
         ? VoidTheme.solarGold
         : VoidTheme.cardSurface.withValues(alpha: 0.7);
 
-    return Container(
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: isHighlighted
-            ? VoidTheme.solarGold.withValues(alpha: 0.12)
-            : VoidTheme.cardSurface.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(
-          color: borderColor,
-          width: isHighlighted ? 1.5 : 1.0,
+    return GestureDetector(
+      onTap: () {
+        HapticService.instance.sowTick();
+        setState(() => _selectedFeature = feature);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12.0),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? VoidTheme.solarGold.withValues(alpha: 0.12)
+              : VoidTheme.cardSurface.withValues(alpha: 0.4),
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: borderColor, width: isSelected ? 1.5 : 1.0),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            meta.icon,
-            color: isHighlighted ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
-            size: 20.0,
-          ),
-          const SizedBox(width: 10.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  meta.title,
-                  style: TextStyle(
-                    color: isHighlighted
-                        ? VoidTheme.solarGold
-                        : VoidTheme.textPrimary,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 3.0),
-                Text(
-                  meta.shortDescription,
-                  style: const TextStyle(
-                    color: VoidTheme.textSecondary,
-                    fontSize: 10.5,
-                    height: 1.35,
-                  ),
-                ),
-              ],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              meta.icon,
+              color: isHighlighted ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
+              size: 20.0,
             ),
-          ),
-        ],
+            const SizedBox(width: 10.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    meta.title,
+                    style: TextStyle(
+                      color: isHighlighted
+                          ? VoidTheme.solarGold
+                          : VoidTheme.textPrimary,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 3.0),
+                  Text(
+                    meta.shortDescription,
+                    style: const TextStyle(
+                      color: VoidTheme.textSecondary,
+                      fontSize: 10.5,
+                      height: 1.35,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

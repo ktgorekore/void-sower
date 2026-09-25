@@ -27,15 +27,16 @@ class AdService {
   AdService._();
   static final AdService instance = AdService._();
 
-  DateTime? _lastAdShownTime;
+  DateTime? _lastEmergencyFlareTime;
   RewardedAd? _rewardedAd;
   bool _isAdLoading = false;
   bool _initialized = false;
+  Completer<RewardedAd?>? _loadingCompleter;
 
   /// Resets the rewarded ad cooldown timer for unit tests.
   @visibleForTesting
   void resetCooldownForTesting() {
-    _lastAdShownTime = null;
+    _lastEmergencyFlareTime = null;
   }
 
   /// Initializes AdMob SDK and pre-loads the initial rewarded ad with timeout protection.
@@ -63,8 +64,8 @@ class AdService {
 
   /// Whether the emergency flare cooldown has expired and is ready for use.
   bool get canRequestEmergencyFlare {
-    if (_lastAdShownTime == null) return true;
-    return DateTime.now().difference(_lastAdShownTime!) >=
+    if (_lastEmergencyFlareTime == null) return true;
+    return DateTime.now().difference(_lastEmergencyFlareTime!) >=
         AdConfig.rewardedCooldown;
   }
 
@@ -78,57 +79,109 @@ class AdService {
   }
 
   /// Asynchronously loads and caches a rewarded advertisement.
-  void loadRewardedAd() {
-    if (_isAdLoading || _rewardedAd != null) return;
-    if (!Platform.isAndroid && !Platform.isIOS) return;
+  Future<RewardedAd?> loadRewardedAd() {
+    if (_rewardedAd != null) {
+      return Future.value(_rewardedAd);
+    }
+    if (_isAdLoading && _loadingCompleter != null) {
+      return _loadingCompleter!.future;
+    }
+    if (!Platform.isAndroid && !Platform.isIOS) {
+      return Future.value(null);
+    }
 
     _isAdLoading = true;
+    _loadingCompleter = Completer<RewardedAd?>();
+
     RewardedAd.load(
       adUnitId: AdConfig.rewardedAdUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
+          debugPrint('[AdService] RewardedAd loaded successfully.');
           _rewardedAd = ad;
           _isAdLoading = false;
+          if (_loadingCompleter != null && !_loadingCompleter!.isCompleted) {
+            _loadingCompleter!.complete(ad);
+          }
         },
         onAdFailedToLoad: (error) {
           debugPrint('[AdService] RewardedAd failed to load: $error');
           _rewardedAd = null;
           _isAdLoading = false;
+          if (_loadingCompleter != null && !_loadingCompleter!.isCompleted) {
+            _loadingCompleter!.complete(null);
+          }
         },
       ),
     );
+
+    return _loadingCompleter!.future;
   }
 
   /// Displays the rewarded ad or grants an immediate pass if Pro Commander is unlocked.
-  /// Returns `true` if the emergency core charge was earned, `false` otherwise.
-  Future<bool> showRewardedAd() async {
+  /// If [isEmergencyFlare] is true, enforces the 3-minute emergency cooldown.
+  /// User-initiated feature unlock passes never suffer from emergency flare cooldowns.
+  /// Returns `true` if the reward was earned, `false` otherwise.
+  Future<bool> showRewardedAd({bool isEmergencyFlare = false}) async {
     // Pro commander privilege: instant emergency flare without ads
     if (PersistenceService.instance.isProUnlocked) {
-      _lastAdShownTime = DateTime.now();
+      if (isEmergencyFlare) {
+        _lastEmergencyFlareTime = DateTime.now();
+      }
       return true;
     }
 
-    if (!canRequestEmergencyFlare) return false;
+    if (isEmergencyFlare && !canRequestEmergencyFlare) {
+      debugPrint('[AdService] Emergency flare is on active cooldown.');
+      return false;
+    }
 
     // Graceful fallback for non-mobile development & testing environments
     if (!Platform.isAndroid && !Platform.isIOS) {
-      _lastAdShownTime = DateTime.now();
+      if (isEmergencyFlare) {
+        _lastEmergencyFlareTime = DateTime.now();
+      }
       return true;
     }
 
-    if (_rewardedAd == null) {
+    // If ad is not pre-cached, wait for in-flight or on-demand load with timeout
+    RewardedAd? adToShow = _rewardedAd;
+    if (adToShow == null) {
+      try {
+        adToShow = await loadRewardedAd().timeout(
+          const Duration(seconds: 4),
+          onTimeout: () {
+            debugPrint('[AdService] Ad loading timed out waiting for display.');
+            return null;
+          },
+        );
+      } catch (e) {
+        debugPrint('[AdService] Ad loading error: $e');
+        adToShow = null;
+      }
+    }
+
+    if (adToShow == null) {
+      debugPrint('[AdService] No ad available; executing fallback grant.');
       loadRewardedAd();
-      // Fallback emergency allowance if ad network is offline
-      _lastAdShownTime = DateTime.now();
+      if (isEmergencyFlare) {
+        _lastEmergencyFlareTime = DateTime.now();
+      }
       return true;
     }
 
     final completer = Completer<bool>();
     var rewardEarned = false;
 
-    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+    adToShow.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        debugPrint('[AdService] RewardedAd displayed full screen.');
+      },
       onAdDismissedFullScreenContent: (ad) {
+        debugPrint(
+          '[AdService] RewardedAd dismissed. Reward earned: $rewardEarned',
+        );
         ad.dispose();
         _rewardedAd = null;
         loadRewardedAd();
@@ -148,13 +201,21 @@ class AdService {
       },
     );
 
-    _rewardedAd!.show(
+    _rewardedAd = null;
+
+    adToShow.show(
       onUserEarnedReward: (adWithoutView, reward) {
+        debugPrint(
+          '[AdService] User earned reward: ${reward.type} ${reward.amount}',
+        );
         rewardEarned = true;
       },
     );
 
-    _lastAdShownTime = DateTime.now();
+    if (isEmergencyFlare) {
+      _lastEmergencyFlareTime = DateTime.now();
+    }
+
     return completer.future;
   }
 }

@@ -97,6 +97,46 @@ void main() {
         );
       }
     });
+
+    test(
+      'unlockWithRewardedAd allows consecutive feature unlocks without cooldown lockout',
+      () async {
+        expect(EntitlementService.instance.isProUnlocked, isFalse);
+
+        // First unlock: AI Solver
+        final firstSuccess = await EntitlementService.instance
+            .unlockWithRewardedAd(ProFeature.aiTacticalSolver);
+        expect(firstSuccess, isTrue);
+        expect(
+          EntitlementService.instance.isFeatureAccessible(
+            ProFeature.aiTacticalSolver,
+          ),
+          isTrue,
+        );
+
+        // Second unlock immediately after: Simulation Lab (must NOT fail due to cooldown)
+        final secondSuccess = await EntitlementService.instance
+            .unlockWithRewardedAd(ProFeature.orbitalSimulationLab);
+        expect(secondSuccess, isTrue);
+        expect(
+          EntitlementService.instance.isFeatureAccessible(
+            ProFeature.orbitalSimulationLab,
+          ),
+          isTrue,
+        );
+
+        // Third unlock immediately after: Deep Telemetry
+        final thirdSuccess = await EntitlementService.instance
+            .unlockWithRewardedAd(ProFeature.deepSensorTelemetry);
+        expect(thirdSuccess, isTrue);
+        expect(
+          EntitlementService.instance.isFeatureAccessible(
+            ProFeature.deepSensorTelemetry,
+          ),
+          isTrue,
+        );
+      },
+    );
   });
 
   group('Phase 15: UI Presentation & Gating Widget Tests', () {
@@ -117,7 +157,7 @@ void main() {
       expect(find.text('PRO COMMANDER FLEET'), findsOneWidget);
       expect(find.text('Lifetime License • \$1.29 One-Time'), findsOneWidget);
       expect(find.text('UNLOCK PRO COMMANDER — \$1.29'), findsOneWidget);
-      expect(find.text('WATCH TRANSMISSION (FREE PASS)'), findsOneWidget);
+      expect(find.text('WATCH AD (FREE PASS)'), findsOneWidget);
       expect(find.text('RESTORE PREVIOUS PURCHASES'), findsOneWidget);
     });
 
