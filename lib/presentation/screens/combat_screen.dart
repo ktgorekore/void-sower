@@ -16,6 +16,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../core/logging.dart';
 import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/campaign_service.dart';
@@ -153,9 +154,10 @@ class _CombatScreenState extends State<CombatScreen>
           _showVictoryModal();
         }
       }
-      if (_tickCount++ % 60 == 0) {
-        debugPrint(
-          '[VoidSower CombatScreen] Tick $_tickCount: status=${_coordinator.state.status.name}, enemies=${_coordinator.enemies.length}, bullets=${_coordinator.bulletManager.bullets.length}, lances=${_coordinator.lances.where((l) => l.active).length}',
+      if (kVlogLevel >= 6 && _tickCount++ % 60 == 0) {
+        vlog(
+          6,
+          '[CombatScreen] Tick $_tickCount: status=${_coordinator.state.status.name}, enemies=${_coordinator.enemies.length}, bullets=${_coordinator.bulletManager.bullets.length}',
         );
       }
 
@@ -175,6 +177,12 @@ class _CombatScreenState extends State<CombatScreen>
           state.isAutoSolving != _lastAutoSolving;
 
       if (hudChanged) {
+        if (state.status != _lastStatus) {
+          vlog(
+            1,
+            'Combat status transitioned: ${_lastStatus?.name} -> ${state.status.name}',
+          );
+        }
         _lastReserveCores = dread.reserveCores;
         _lastTotalScore = dread.totalScore;
         _lastInvadersRemaining = remaining;
