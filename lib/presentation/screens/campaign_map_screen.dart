@@ -159,18 +159,6 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     );
   }
 
-  void _launchAiSolver() {
-    HapticService.instance.injectionClick();
-    final targetSector = _sectors.firstWhere(
-      (s) => s.isUnlocked && !s.isLiberated,
-      orElse: () => _sectors.firstWhere(
-        (s) => s.isUnlocked,
-        orElse: () => _sectors.first,
-      ),
-    );
-    _launchSectorWithAi(targetSector);
-  }
-
   void _openSimulationLab() {
     HapticService.instance.injectionClick();
     if (!EntitlementService.instance.isFeatureAccessible(
@@ -189,8 +177,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   void _openCodex() {
     showDialog<void>(
       context: context,
-      builder: (context) =>
-          TacticalDirectivesModal(onLaunchAcademy: _launchAcademy),
+      builder: (context) => TacticalDirectivesModal(
+        onLaunchAcademy: _launchAcademy,
+        onLaunchSimulationLab: _openSimulationLab,
+      ),
     );
   }
 
@@ -285,15 +275,37 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                 ),
               ),
               const SizedBox(height: 20.0),
-              TactileButton(
-                label: 'ENGAGE BATTLE',
-                icon: Icons.rocket_launch,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _launchSector(sector);
-                },
-                accentColor: VoidTheme.solarGold,
-                height: 48.0,
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: TactileButton(
+                      label: 'ENGAGE BATTLE',
+                      icon: Icons.rocket_launch,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _launchSector(sector);
+                      },
+                      accentColor: VoidTheme.solarGold,
+                      height: 48.0,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                  Expanded(
+                    flex: 2,
+                    child: TactileButton(
+                      label: 'AI SOLVE',
+                      icon: Icons.smart_toy,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _launchSectorWithAi(sector);
+                      },
+                      accentColor: VoidTheme.plasmaCyan,
+                      height: 48.0,
+                      isPrimary: false,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -517,10 +529,11 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       child: Container(
-        padding: const EdgeInsets.all(3.0),
+        height: 38.0,
+        padding: const EdgeInsets.all(2.5),
         decoration: BoxDecoration(
           color: const Color(0xFF070C18),
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.circular(19.0),
           border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
         ),
         child: Row(
@@ -530,18 +543,17 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
 
             return Expanded(
               child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () => _switchCampaign(op.id),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 6.0,
-                    horizontal: 4.0,
-                  ),
+                  duration: const Duration(milliseconds: 180),
+                  height: 33.0,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: isSelected
                         ? const Color(0xFF0284C7)
                         : Colors.transparent,
-                    borderRadius: BorderRadius.circular(16.0),
+                    borderRadius: BorderRadius.circular(17.0),
                     border: Border.all(
                       color: isSelected
                           ? const Color(0xFF38BDF8)
@@ -559,72 +571,53 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                           ]
                         : null,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              op.id == 'kilwa_basin' ? 'KILWA BASIN' : op.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white
-                                    : (isLocked
-                                          ? VoidTheme.textMuted
-                                          : const Color(0xFF64748B)),
-                                fontSize: 9.5,
-                                fontWeight: isSelected
-                                    ? FontWeight.w900
-                                    : FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                      Flexible(
+                        child: Text(
+                          op.id == 'kilwa_basin' ? 'KILWA BASIN' : op.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : (isLocked
+                                      ? VoidTheme.textMuted
+                                      : const Color(0xFF64748B)),
+                            fontSize: 10.0,
+                            fontWeight: isSelected
+                                ? FontWeight.w900
+                                : FontWeight.w700,
+                            letterSpacing: 0.5,
                           ),
-                          if (isLocked) ...[
-                            const SizedBox(width: 3.0),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 3.0,
-                                vertical: 1.0,
-                              ),
-                              decoration: BoxDecoration(
-                                color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.25,
-                                ),
-                                borderRadius: BorderRadius.circular(3.0),
-                                border: Border.all(
-                                  color: VoidTheme.solarGold,
-                                  width: 0.6,
-                                ),
-                              ),
-                              child: const Text(
-                                'PRO',
-                                style: TextStyle(
-                                  color: VoidTheme.solarGold,
-                                  fontSize: 6.5,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 1.0),
-                      Text(
-                        '${op.liberatedCount}/${op.totalSectors} LIBERATED',
-                        style: TextStyle(
-                          color: isSelected
-                              ? const Color(0xFFBAE6FD)
-                              : VoidTheme.textMuted,
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
                         ),
                       ),
+                      if (isLocked) ...[
+                        const SizedBox(width: 4.0),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0,
+                            vertical: 1.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: VoidTheme.solarGold.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(3.0),
+                            border: Border.all(
+                              color: VoidTheme.solarGold,
+                              width: 0.6,
+                            ),
+                          ),
+                          child: const Text(
+                            'PRO',
+                            style: TextStyle(
+                              color: VoidTheme.solarGold,
+                              fontSize: 7.0,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -663,46 +656,40 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 2.0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
         decoration: BoxDecoration(
-          color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
+          color: VoidTheme.obsidianBlack.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8.0),
           border: Border.all(
-            color: doctrineColor.withValues(alpha: 0.3),
+            color: doctrineColor.withValues(alpha: 0.25),
             width: 0.8,
           ),
         ),
         child: Row(
           children: [
-            Icon(doctrineIcon, color: doctrineColor, size: 14.0),
+            Icon(doctrineIcon, color: doctrineColor, size: 13.0),
+            const SizedBox(width: 6.0),
+            Text(
+              doctrineTag,
+              style: TextStyle(
+                color: doctrineColor,
+                fontSize: 8.5,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.6,
+              ),
+            ),
             const SizedBox(width: 6.0),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    doctrineTag,
-                    style: TextStyle(
-                      color: doctrineColor,
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.6,
-                    ),
-                  ),
-                  const SizedBox(height: 1.0),
-                  Text(
-                    op.tacticalBriefing,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: VoidTheme.textMuted,
-                      fontSize: 8.0,
-                    ),
-                  ),
-                ],
+              child: Text(
+                op.tacticalBriefing,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: VoidTheme.textMuted,
+                  fontSize: 8.0,
+                ),
               ),
             ),
           ],
@@ -889,144 +876,87 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     final percent = totalSectors > 0 ? liberatedCount / totalSectors : 0.0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 4.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 6.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'VOID SOWER',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: VoidTheme.plasmaCyan,
-              fontSize: 10.0,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2.5,
-            ),
-          ),
-          const SizedBox(height: 2.0),
-          Text(
-            activeOp.title.toUpperCase(),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: VoidTheme.solarGold,
-              fontSize: 18.0,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.8,
-              shadows: [Shadow(color: Color(0x66FFB300), blurRadius: 8.0)],
-            ),
-          ),
-          const SizedBox(height: 2.0),
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 4.0,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Text(
-                'ORBITAL COMMAND DECK',
-                style: TextStyle(
-                  color: VoidTheme.plasmaCyanLight,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const Text(
-                '•',
-                style: TextStyle(color: VoidTheme.textMuted, fontSize: 9.5),
-              ),
-              Text(
-                'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
-                style: const TextStyle(
-                  color: VoidTheme.solarGoldLight,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.6,
-                ),
-              ),
-              const Text(
-                '•',
-                style: TextStyle(color: VoidTheme.textMuted, fontSize: 9.5),
-              ),
-              Tooltip(
-                message: 'Auto-Solve with AI',
-                child: InkWell(
-                  onTap: _launchAiSolver,
-                  borderRadius: BorderRadius.circular(4.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5.0,
-                      vertical: 1.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF082F49),
-                      borderRadius: BorderRadius.circular(4.0),
-                      border: Border.all(
-                        color: const Color(0xFF00E5FF),
-                        width: 0.6,
-                      ),
-                    ),
-                    child: const Row(
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.smart_toy,
-                          size: 10.0,
-                          color: Color(0xFF00E5FF),
-                        ),
-                        SizedBox(width: 3.0),
-                        Text(
-                          'AI AUTO-SOLVE',
+                        const Text(
+                          'VOID SOWER',
                           style: TextStyle(
-                            color: Color(0xFF00E5FF),
-                            fontSize: 8.0,
-                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF38BDF8),
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                        const SizedBox(width: 4.0),
+                        Text(
+                          '//',
+                          style: TextStyle(
+                            color: VoidTheme.textMuted.withValues(alpha: 0.6),
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 4.0),
+                        const Text(
+                          'ORBITAL COMMAND DECK',
+                          style: TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 9.0,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 2.0),
+                    Text(
+                      activeOp.title.toUpperCase(),
+                      style: const TextStyle(
+                        color: VoidTheme.starWhite,
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.4,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              // Sector Liberation Pill matching SVG
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 5.0,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(14.0),
+                  border: Border.all(
+                    color: const Color(0xFF0284C7),
+                    width: 1.0,
                   ),
                 ),
-              ),
-              const Text(
-                '•',
-                style: TextStyle(color: VoidTheme.textMuted, fontSize: 9.5),
-              ),
-              Tooltip(
-                message: 'Orbital Simulation Lab',
-                child: InkWell(
-                  onTap: _openSimulationLab,
-                  borderRadius: BorderRadius.circular(4.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5.0,
-                      vertical: 1.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1E1B4B),
-                      borderRadius: BorderRadius.circular(4.0),
-                      border: Border.all(
-                        color: VoidTheme.nebulaAmethyst,
-                        width: 0.6,
-                      ),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.science_outlined,
-                          size: 10.0,
-                          color: VoidTheme.nebulaAmethyst,
-                        ),
-                        SizedBox(width: 3.0),
-                        Text(
-                          'SIM LAB',
-                          style: TextStyle(
-                            color: VoidTheme.nebulaAmethyst,
-                            fontSize: 8.0,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
+                child: Text(
+                  'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
+                  style: const TextStyle(
+                    color: Color(0xFF38BDF8),
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
                   ),
                 ),
               ),
@@ -1034,25 +964,25 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
           ),
           const SizedBox(height: 6.0),
           Container(
-            height: 5.0,
+            height: 3.0,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(2.5),
+              borderRadius: BorderRadius.circular(1.5),
               boxShadow: [
                 BoxShadow(
-                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.45),
-                  blurRadius: 6.0,
+                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+                  blurRadius: 4.0,
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(2.5),
+              borderRadius: BorderRadius.circular(1.5),
               child: LinearProgressIndicator(
                 value: percent,
-                backgroundColor: VoidTheme.cardSurface,
+                backgroundColor: const Color(0xFF1E293B),
                 valueColor: const AlwaysStoppedAnimation<Color>(
                   VoidTheme.plasmaCyan,
                 ),
-                minHeight: 5.0,
+                minHeight: 3.0,
               ),
             ),
           ),
@@ -1286,49 +1216,19 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Tooltip(
-                        message: 'Auto-Solve with AI',
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: VoidTheme.plasmaCyan.withValues(
-                                alpha: 0.5,
-                              ),
-                              width: 1.0,
-                            ),
-                            backgroundColor: VoidTheme.cardSurface,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 4.0,
-                            ),
-                            minimumSize: const Size(34.0, 28.0),
-                          ),
-                          onPressed: () => _launchSectorWithAi(sector),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.smart_toy,
-                                size: 13.0,
-                                color: VoidTheme.plasmaCyan,
-                              ),
-                              SizedBox(width: 2.0),
-                              Text(
-                                'AI',
-                                style: TextStyle(
-                                  color: VoidTheme.plasmaCyan,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 10.0,
-                                ),
-                              ),
-                            ],
-                          ),
+                      Text(
+                        '★ ${sector.bestScore > 0 ? sector.bestScore : (sector.starsEarned > 0 ? sector.starsEarned * 1400 : 4200)}',
+                        style: const TextStyle(
+                          color: VoidTheme.solarGold,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(width: 6.0),
+                      const SizedBox(width: 8.0),
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: VoidTheme.cardSurface,
+                          backgroundColor: const Color(0xFF0F172A),
                           foregroundColor: VoidTheme.emeraldShield,
                           side: const BorderSide(
                             color: VoidTheme.emeraldShield,
@@ -1336,16 +1236,18 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                           ),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10.0,
-                            vertical: 6.0,
+                            vertical: 5.0,
                           ),
+                          minimumSize: const Size(0, 30.0),
                         ),
-                        icon: const Icon(Icons.refresh, size: 13.0),
+                        icon: const Icon(Icons.refresh, size: 12.0),
                         onPressed: () => _launchSector(sector),
                         label: const Text(
                           'REPLAY',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11.0,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10.5,
+                            letterSpacing: 0.4,
                           ),
                         ),
                       ),
@@ -1619,69 +1521,25 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
                     ),
                   ),
                   const SizedBox(width: 8.0),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Tooltip(
-                        message: 'Auto-Solve with AI',
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: VoidTheme.plasmaCyan.withValues(
-                                alpha: 0.7,
-                              ),
-                              width: 1.0,
-                            ),
-                            backgroundColor: VoidTheme.cardSurface,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 4.0,
-                            ),
-                            minimumSize: const Size(34.0, 28.0),
-                          ),
-                          onPressed: () => _launchSectorWithAi(sector),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.smart_toy,
-                                size: 13.0,
-                                color: VoidTheme.plasmaCyan,
-                              ),
-                              SizedBox(width: 2.0),
-                              Text(
-                                'AI',
-                                style: TextStyle(
-                                  color: VoidTheme.plasmaCyan,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 10.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: VoidTheme.solarGold,
+                      foregroundColor: VoidTheme.obsidianBlack,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 6.0,
                       ),
-                      const SizedBox(width: 6.0),
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: VoidTheme.solarGold,
-                          foregroundColor: VoidTheme.obsidianBlack,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0,
-                            vertical: 6.0,
-                          ),
-                        ),
-                        icon: const Icon(Icons.rocket_launch, size: 14.0),
-                        onPressed: () => _launchSector(sector),
-                        label: const Text(
-                          'ENGAGE',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11.5,
-                          ),
-                        ),
+                      minimumSize: const Size(0, 32.0),
+                    ),
+                    icon: const Icon(Icons.rocket_launch, size: 14.0),
+                    onPressed: () => _launchSector(sector),
+                    label: const Text(
+                      'ENGAGE',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11.5,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),

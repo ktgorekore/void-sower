@@ -908,32 +908,27 @@ class _CombatScreenState extends State<CombatScreen>
                                         CombatMatchStatus.paused &&
                                     !_overlayState.isModalOpen)
                                   Positioned(
-                                    top: 8.0,
+                                    top: 6.0,
                                     left: 16.0,
                                     right: 16.0,
                                     child: Center(
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 12.0,
-                                          vertical: 4.0,
+                                          horizontal: 10.0,
+                                          vertical: 3.0,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: VoidTheme.obsidianBlack
-                                              .withValues(alpha: 0.9),
+                                          color: const Color(
+                                            0xFF0F172A,
+                                          ).withValues(alpha: 0.8),
                                           borderRadius: BorderRadius.circular(
-                                            10.0,
+                                            12.0,
                                           ),
                                           border: Border.all(
-                                            color: VoidTheme.solarGold,
-                                            width: 1.2,
+                                            color: VoidTheme.solarGold
+                                                .withValues(alpha: 0.8),
+                                            width: 1.0,
                                           ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: VoidTheme.solarGold
-                                                  .withValues(alpha: 0.35),
-                                              blurRadius: 8.0,
-                                            ),
-                                          ],
                                         ),
                                         child: const Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -941,16 +936,16 @@ class _CombatScreenState extends State<CombatScreen>
                                             Icon(
                                               Icons.pause_circle_filled,
                                               color: VoidTheme.solarGold,
-                                              size: 14.0,
+                                              size: 13.0,
                                             ),
-                                            SizedBox(width: 5.0),
+                                            SizedBox(width: 4.0),
                                             Text(
                                               'TACTICAL TIME DILATION • SLIDE TO AIM • TAP TO FIRE',
                                               style: TextStyle(
                                                 color: VoidTheme.solarGold,
-                                                fontSize: 8.5,
-                                                fontWeight: FontWeight.w900,
-                                                letterSpacing: 0.4,
+                                                fontSize: 8.0,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.3,
                                               ),
                                             ),
                                           ],
@@ -967,26 +962,21 @@ class _CombatScreenState extends State<CombatScreen>
                                     child: Center(
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 10.0,
-                                          vertical: 2.5,
+                                          horizontal: 8.0,
+                                          vertical: 2.0,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: VoidTheme.cardSurface
-                                              .withValues(alpha: 0.85),
+                                          color: const Color(
+                                            0xFF0F172A,
+                                          ).withValues(alpha: 0.8),
                                           borderRadius: BorderRadius.circular(
                                             10.0,
                                           ),
                                           border: Border.all(
-                                            color: VoidTheme.crimsonFlare,
-                                            width: 1.0,
+                                            color: VoidTheme.crimsonFlare
+                                                .withValues(alpha: 0.7),
+                                            width: 0.8,
                                           ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: VoidTheme.crimsonFlare
-                                                  .withValues(alpha: 0.3),
-                                              blurRadius: 6.0,
-                                            ),
-                                          ],
                                         ),
                                         child: const Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -994,16 +984,16 @@ class _CombatScreenState extends State<CombatScreen>
                                             Icon(
                                               Icons.smart_toy,
                                               color: VoidTheme.crimsonFlare,
-                                              size: 12.0,
+                                              size: 11.0,
                                             ),
-                                            SizedBox(width: 5.0),
+                                            SizedBox(width: 4.0),
                                             Text(
                                               'AI TACTICAL SOLVER ACTIVE',
                                               style: TextStyle(
                                                 color: VoidTheme.crimsonFlare,
-                                                fontSize: 9.0,
+                                                fontSize: 8.0,
                                                 fontWeight: FontWeight.bold,
-                                                letterSpacing: 0.8,
+                                                letterSpacing: 0.6,
                                               ),
                                             ),
                                           ],

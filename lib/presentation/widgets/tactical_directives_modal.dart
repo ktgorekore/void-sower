@@ -24,10 +24,17 @@ import 'tactile_button.dart';
 /// completely eliminating instructional wall-of-text fatigue while giving commanders
 /// immediate one-tap access to the hands-on academy simulator.
 class TacticalDirectivesModal extends StatelessWidget {
-  const TacticalDirectivesModal({super.key, this.onLaunchAcademy});
+  const TacticalDirectivesModal({
+    super.key,
+    this.onLaunchAcademy,
+    this.onLaunchSimulationLab,
+  });
 
   /// Optional callback to trigger hands-on Flight Academy interactive simulation.
   final VoidCallback? onLaunchAcademy;
+
+  /// Optional callback to trigger Orbital Simulation Lab and MCTS arena.
+  final VoidCallback? onLaunchSimulationLab;
 
   @override
   Widget build(BuildContext context) {
@@ -224,6 +231,49 @@ class TacticalDirectivesModal extends StatelessWidget {
                           width: 1.2,
                         ),
                         backgroundColor: VoidTheme.plasmaCyan.withValues(
+                          alpha: 0.08,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 10.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10.0),
+                  ],
+
+                  if (onLaunchSimulationLab != null) ...[
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        onLaunchSimulationLab?.call();
+                      },
+                      icon: const Icon(
+                        Icons.psychology,
+                        color: VoidTheme.solarGold,
+                        size: 16.0,
+                      ),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'ORBITAL SIMULATION LAB (PRO)',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(
+                          color: VoidTheme.solarGold.withValues(alpha: 0.6),
+                          width: 1.2,
+                        ),
+                        backgroundColor: VoidTheme.solarGold.withValues(
                           alpha: 0.08,
                         ),
                         shape: RoundedRectangleBorder(

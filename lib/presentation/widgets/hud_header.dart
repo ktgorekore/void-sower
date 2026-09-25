@@ -133,7 +133,7 @@ class HudHeader extends StatelessWidget {
             ),
           );
 
-          if (constraints.maxWidth < 460.0) {
+          if (constraints.maxWidth < 490.0) {
             return Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 4.0,
@@ -142,7 +142,7 @@ class HudHeader extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.topCenter,
-                child: SizedBox(width: 460.0, child: row),
+                child: SizedBox(width: 490.0, child: row),
               ),
             );
           }
@@ -159,7 +159,7 @@ class HudHeader extends StatelessWidget {
   /// Builds the glassmorphic Top-Left Minimal Orbit Wing anchoring current score & sector.
   Widget _buildLeftWing(UserProfile profile, bool secured) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
       decoration: BoxDecoration(
         color: VoidTheme.obsidianBlack.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(10.0),
@@ -329,15 +329,16 @@ class HudHeader extends StatelessWidget {
               behavior: HitTestBehavior.opaque,
               onTap: onNextSectorTap,
               child: Container(
+                height: 28.0,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 6.0,
-                  vertical: 3.0,
+                  horizontal: 10.0,
+                  vertical: 4.0,
                 ),
                 decoration: BoxDecoration(
                   color: VoidTheme.emeraldShield.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(4.0),
+                  borderRadius: BorderRadius.circular(14.0),
                   border: Border.all(
-                    color: VoidTheme.emeraldShield.withValues(alpha: 0.7),
+                    color: VoidTheme.emeraldShield.withValues(alpha: 0.8),
                     width: 1.0,
                   ),
                 ),
@@ -346,7 +347,7 @@ class HudHeader extends StatelessWidget {
                   children: const [
                     Icon(
                       Icons.check_circle,
-                      size: 12.0,
+                      size: 13.0,
                       color: VoidTheme.emeraldShield,
                     ),
                     SizedBox(width: 4.0),
@@ -356,7 +357,7 @@ class HudHeader extends StatelessWidget {
                         color: VoidTheme.emeraldShield,
                         fontSize: 9.5,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 0.4,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ],
@@ -365,20 +366,21 @@ class HudHeader extends StatelessWidget {
             )
           else if (total > 0 || invadersRemaining != null)
             Container(
+              height: 28.0,
               padding: const EdgeInsets.symmetric(
-                horizontal: 5.0,
-                vertical: 3.0,
+                horizontal: 8.0,
+                vertical: 4.0,
               ),
               decoration: BoxDecoration(
-                color: VoidTheme.cardSurface.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(4.0),
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(14.0),
                 border: Border.all(
                   color:
                       (remaining <= 2
                               ? VoidTheme.solarGold
-                              : VoidTheme.crimsonFlare)
-                          .withValues(alpha: 0.35),
-                  width: 0.8,
+                              : const Color(0xFF00E5FF))
+                          .withValues(alpha: 0.4),
+                  width: 1.0,
                 ),
               ),
               child: Row(
@@ -386,32 +388,33 @@ class HudHeader extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.shield_outlined,
-                    size: 11.0,
+                    size: 13.0,
                     color: remaining <= 2
                         ? VoidTheme.solarGold
-                        : VoidTheme.crimsonFlare,
+                        : const Color(0xFF38BDF8),
                   ),
-                  const SizedBox(width: 3.0),
+                  const SizedBox(width: 4.0),
                   Text(
                     total > 0 ? '$eliminated/$total' : '$remaining',
                     style: const TextStyle(
                       color: VoidTheme.starWhite,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ],
               ),
             ),
 
-          const SizedBox(width: 8.0),
+          const SizedBox(width: 6.0),
 
           // 2. Integrated Core Fuel Gauge: ⚡ 28 CORES Pill
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: onEmergencyFlareTap,
             child: Container(
+              height: 28.0,
               padding: const EdgeInsets.symmetric(
                 horizontal: 10.0,
                 vertical: 4.0,
@@ -466,15 +469,15 @@ class HudHeader extends StatelessWidget {
 
           // 3. Single Streamlined Circular Pause Button [ ⏸ ]
           if (onTogglePause != null) ...[
-            const SizedBox(width: 8.0),
+            const SizedBox(width: 6.0),
             Tooltip(
               message: isPaused ? 'Resume Sortie' : 'Pause Sortie',
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onTogglePause,
                 child: Container(
-                  width: 30.0,
-                  height: 30.0,
+                  width: 28.0,
+                  height: 28.0,
                   decoration: BoxDecoration(
                     color: isPaused
                         ? VoidTheme.emeraldShield.withValues(alpha: 0.25)
@@ -490,7 +493,7 @@ class HudHeader extends StatelessWidget {
                   child: Center(
                     child: Icon(
                       isPaused ? Icons.play_arrow : Icons.pause,
-                      size: 16.0,
+                      size: 15.0,
                       color: isPaused
                           ? VoidTheme.emeraldShield
                           : VoidTheme.solarGold,

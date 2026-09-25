@@ -38,13 +38,16 @@ class ProjectionShelf extends StatelessWidget {
     if (prediction == null || selectedBay == null) {
       return Container(
         width: double.infinity,
-        height: 22.0,
+        height: 20.0,
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: VoidTheme.obsidianBlack.withValues(alpha: 0.75),
-          border: const Border.symmetric(
-            horizontal: BorderSide(color: VoidTheme.cardSurface, width: 0.8),
+          color: const Color(0xFF070B16).withValues(alpha: 0.55),
+          border: Border.symmetric(
+            horizontal: BorderSide(
+              color: const Color(0xFF1E293B).withValues(alpha: 0.6),
+              width: 0.6,
+            ),
           ),
         ),
         child: const FittedBox(
@@ -58,7 +61,7 @@ class ProjectionShelf extends StatelessWidget {
               Text(
                 'SELECT BAY TO PREVIEW LANCE & SOWING TRAJECTORY',
                 style: TextStyle(
-                  color: VoidTheme.textSecondary,
+                  color: VoidTheme.textMuted,
                   fontSize: 8.5,
                   letterSpacing: 0.6,
                   fontWeight: FontWeight.w600,
@@ -81,14 +84,15 @@ class ProjectionShelf extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      height: 22.0,
+      height: 20.0,
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface.withValues(alpha: 0.9),
+        color: const Color(0xFF0A101F).withValues(alpha: 0.65),
         border: Border.symmetric(
           horizontal: BorderSide(
-            color: isLance ? VoidTheme.plasmaCyan : VoidTheme.solarGold,
-            width: 0.8,
+            color: (isLance ? VoidTheme.plasmaCyan : VoidTheme.solarGold)
+                .withValues(alpha: 0.5),
+            width: 0.6,
           ),
         ),
       ),
