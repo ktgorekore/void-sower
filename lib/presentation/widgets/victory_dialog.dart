@@ -22,10 +22,7 @@ import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
 /// Modal overlay presented upon neutralizing all assault craft in a sector wave.
-///
-/// Designed with a compact high-tech profile (`maxWidth: 340.0`) anchored to
-/// the upper-middle screen (`Alignment(0.0, -0.28)`) and armed with a 500ms
-/// safety delay to prevent misclicks while firing.
+/// Modernized with a sleek, uncluttered profile and high-contrast visuals.
 class VictoryDialog extends StatefulWidget {
   const VictoryDialog({
     super.key,
@@ -150,11 +147,11 @@ class _VictoryDialogState extends State<VictoryDialog> {
           Container(
             constraints: const BoxConstraints(maxWidth: 340.0),
             padding: const EdgeInsets.symmetric(
-              horizontal: 18.0,
-              vertical: 16.0,
+              horizontal: 16.0,
+              vertical: 14.0,
             ),
             decoration: BoxDecoration(
-              color: VoidTheme.obsidianBlack,
+              color: VoidTheme.obsidianBlack.withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(16.0),
               border: Border.all(color: VoidTheme.solarGold, width: 1.5),
               boxShadow: [
@@ -169,66 +166,70 @@ class _VictoryDialogState extends State<VictoryDialog> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Top Victory Crest & Title
-                Center(
-                  child: Container(
-                    width: 44.0,
-                    height: 44.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: VoidTheme.solarGold.withValues(alpha: 0.15),
-                      border: Border.all(
-                        color: VoidTheme.solarGold,
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: VoidTheme.solarGold.withValues(alpha: 0.35),
-                          blurRadius: 12.0,
-                          spreadRadius: 1.0,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 32.0,
+                      height: 32.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: VoidTheme.solarGold.withValues(alpha: 0.15),
+                        border: Border.all(
+                          color: VoidTheme.solarGold,
+                          width: 1.2,
                         ),
-                      ],
+                      ),
+                      child: const Icon(
+                        Icons.military_tech,
+                        color: VoidTheme.solarGold,
+                        size: 18.0,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.military_tech,
-                      color: VoidTheme.solarGold,
-                      size: 26.0,
+                    const SizedBox(width: 8.0),
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SECTOR ${widget.sectorId} LIBERATED!',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: VoidTheme.solarGold,
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          Text(
+                            widget.sectorName.toUpperCase(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: VoidTheme.plasmaCyan,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.6,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 8.0),
-                Text(
-                  'SECTOR ${widget.sectorId} LIBERATED!',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: VoidTheme.solarGold,
-                    fontSize: 17.0,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 2.0),
-                Text(
-                  widget.sectorName.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: VoidTheme.plasmaCyan,
-                    fontSize: 11.0,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
+                const SizedBox(height: 10.0),
 
                 // Stars Rating Badge
                 Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10.0,
-                      vertical: 4.0,
+                      vertical: 3.5,
                     ),
                     decoration: BoxDecoration(
                       color: VoidTheme.cardSurface,
-                      borderRadius: BorderRadius.circular(16.0),
+                      borderRadius: BorderRadius.circular(12.0),
                       border: Border.all(
                         color: widget.isAiAssisted
                             ? VoidTheme.plasmaCyan.withValues(alpha: 0.5)
@@ -245,12 +246,12 @@ class _VictoryDialogState extends State<VictoryDialog> {
                               final earned = i < widget.starsEarned;
                               return Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 1.5,
+                                  horizontal: 1.0,
                                 ),
                                 child: Icon(
                                   earned ? Icons.star : Icons.star_border,
                                   color: VoidTheme.solarGold,
-                                  size: 15.0,
+                                  size: 13.0,
                                 ),
                               );
                             }),
@@ -261,7 +262,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                             child: Icon(
                               Icons.smart_toy,
                               color: VoidTheme.plasmaCyan,
-                              size: 13.0,
+                              size: 12.0,
                             ),
                           ),
                         const SizedBox(width: 4.0),
@@ -274,7 +275,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                               color: widget.isAiAssisted
                                   ? VoidTheme.plasmaCyan
                                   : VoidTheme.solarGoldLight,
-                              fontSize: 9.5,
+                              fontSize: 9.0,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.4,
                             ),
@@ -286,48 +287,52 @@ class _VictoryDialogState extends State<VictoryDialog> {
                 ),
                 const SizedBox(height: 10.0),
 
-                // Progress Banner: New Unlock or Campaign Summary
+                // Unlock Announcement (Compact Chip)
                 if (widget.isNewUnlock &&
                     widget.unlockedSectorName != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0,
-                      vertical: 6.0,
+                      horizontal: 8.0,
+                      vertical: 5.0,
                     ),
                     decoration: BoxDecoration(
                       color: VoidTheme.emeraldShield.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(6.0),
                       border: Border.all(
                         color: VoidTheme.emeraldShield,
                         width: 1.0,
                       ),
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
                           Icons.lock_open,
                           color: VoidTheme.emeraldShield,
-                          size: 16.0,
+                          size: 14.0,
                         ),
-                        const SizedBox(width: 6.0),
-                        Expanded(
+                        const SizedBox(width: 5.0),
+                        Flexible(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
                                 'NEW SECTOR UNLOCKED!',
                                 style: TextStyle(
                                   color: VoidTheme.emeraldShield,
-                                  fontSize: 9.0,
+                                  fontSize: 8.5,
                                   fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.6,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                               Text(
                                 'Sector ${widget.sectorId + 1}: ${widget.unlockedSectorName!.toUpperCase()}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: VoidTheme.starWhite,
-                                  fontSize: 10.5,
+                                  fontSize: 9.5,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -338,81 +343,68 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     ),
                   ),
                   const SizedBox(height: 10.0),
-                ] else if (widget.campaignProgressText != null) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 4.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: VoidTheme.cardSurface.withValues(alpha: 0.6),
-                      borderRadius: BorderRadius.circular(6.0),
-                      border: Border.all(
-                        color: VoidTheme.textMuted.withValues(alpha: 0.3),
-                        width: 0.8,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'CAMPAIGN PROGRESS: ${widget.campaignProgressText}',
-                        style: const TextStyle(
-                          color: VoidTheme.textSecondary,
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 10.0),
                 ],
 
-                // Score & Cores Stats Row: Mission Score + High Score + Cores Saved
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: _buildStatColumn(
-                        'MISSION SCORE',
-                        widget.isAiAssisted ? 'UNRANKED' : '${widget.score}',
-                        widget.isAiAssisted
-                            ? VoidTheme.textMuted
-                            : VoidTheme.textPrimary,
-                      ),
-                    ),
-                    Container(
-                      width: 1.0,
-                      height: 26.0,
+                // Score & Cores Stats Row (Unified 3-Column Stats Capsule)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8.0,
+                    vertical: 6.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: VoidTheme.cardSurface.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
                       color: VoidTheme.cardSurface,
-                    ),
-                    Expanded(
-                      child: _buildStatColumn(
-                        (!widget.isAiAssisted &&
-                                widget.score >= widget.highScore &&
-                                widget.score > 0)
-                            ? '★ NEW RECORD'
-                            : 'HIGH SCORE',
-                        widget.isAiAssisted
-                            ? '${widget.highScore}'
-                            : '${math.max(widget.score, widget.highScore)}',
-                        VoidTheme.solarGold,
-                      ),
-                    ),
-                    Container(
                       width: 1.0,
-                      height: 26.0,
-                      color: VoidTheme.cardSurface,
                     ),
-                    Expanded(
-                      child: _buildStatColumn(
-                        'CORES SAVED',
-                        '${widget.coresRemaining}',
-                        VoidTheme.plasmaCyan,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(
+                        child: _buildStatColumn(
+                          'MISSION SCORE',
+                          widget.isAiAssisted ? 'UNRANKED' : '${widget.score}',
+                          widget.isAiAssisted
+                              ? VoidTheme.textMuted
+                              : VoidTheme.textPrimary,
+                        ),
                       ),
-                    ),
-                  ],
+                      Container(
+                        width: 1.0,
+                        height: 22.0,
+                        color: VoidTheme.cardSurface,
+                      ),
+                      Expanded(
+                        child: _buildStatColumn(
+                          (!widget.isAiAssisted &&
+                                  widget.score >= widget.highScore &&
+                                  widget.score > 0)
+                              ? '★ NEW RECORD'
+                              : 'HIGH SCORE',
+                          widget.isAiAssisted
+                              ? '${widget.highScore}'
+                              : '${math.max(widget.score, widget.highScore)}',
+                          VoidTheme.solarGold,
+                        ),
+                      ),
+                      Container(
+                        width: 1.0,
+                        height: 22.0,
+                        color: VoidTheme.cardSurface,
+                      ),
+                      Expanded(
+                        child: _buildStatColumn(
+                          'CORES SAVED',
+                          '${widget.coresRemaining}',
+                          VoidTheme.plasmaCyan,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 14.0),
+                const SizedBox(height: 12.0),
 
                 // Action Buttons
                 Builder(
@@ -429,7 +421,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                           ? VoidTheme.solarGold
                           : VoidTheme.solarGold.withValues(alpha: 0.4),
                       minWidth: double.infinity,
-                      height: 42.0,
+                      height: 40.0,
                     );
                   },
                 ),
@@ -444,7 +436,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                         : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
                     isPrimary: false,
                     minWidth: double.infinity,
-                    height: 38.0,
+                    height: 36.0,
                   ),
                 ],
                 if (widget.onUpgradePro != null) ...[
@@ -457,15 +449,15 @@ class _VictoryDialogState extends State<VictoryDialog> {
                         ? VoidTheme.solarGold
                         : VoidTheme.solarGold.withValues(alpha: 0.4),
                     minWidth: double.infinity,
-                    height: 38.0,
+                    height: 36.0,
                   ),
                 ],
               ],
             ),
           ),
           Positioned(
-            top: 4.0,
-            right: 4.0,
+            top: 2.0,
+            right: 2.0,
             child: IconButton(
               icon: Container(
                 padding: const EdgeInsets.all(5.0),
@@ -484,8 +476,8 @@ class _VictoryDialogState extends State<VictoryDialog> {
                 ),
               ),
               constraints: const BoxConstraints(
-                minWidth: 44.0,
-                minHeight: 44.0,
+                minWidth: 40.0,
+                minHeight: 40.0,
               ),
               tooltip: 'Dismiss',
               onPressed: () {
@@ -514,7 +506,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: VoidTheme.textMuted,
-            fontSize: 8.5,
+            fontSize: 7.5,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.4,
           ),
@@ -525,7 +517,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: valueColor,
-            fontSize: 16.0,
+            fontSize: 14.0,
             fontWeight: FontWeight.w900,
           ),
         ),

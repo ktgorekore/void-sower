@@ -23,9 +23,8 @@ import 'tactile_button.dart';
 /// Modal overlay presented when enemy vessels breach the orbital boundary or
 /// plasma ammunition is exhausted.
 ///
-/// Anchored to the upper-middle viewport (`Alignment(0.0, -0.32)`) with a 500ms
-/// safety debounce delay to prevent in-flight shooting taps from triggering
-/// accidental retries or navigation.
+/// Anchored to the upper-middle viewport (`Alignment(0.0, -0.32)`) with a safety
+/// debounce delay to prevent misclicks while shooting.
 class GameOverDialog extends StatefulWidget {
   const GameOverDialog({
     super.key,
@@ -105,10 +104,10 @@ class _GameOverDialogState extends State<GameOverDialog> {
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 340.0),
-        padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 16.0),
+        constraints: const BoxConstraints(maxWidth: 320.0),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
         decoration: BoxDecoration(
-          color: VoidTheme.obsidianBlack,
+          color: VoidTheme.obsidianBlack.withValues(alpha: 0.96),
           borderRadius: BorderRadius.circular(16.0),
           border: Border.all(color: accentColor, width: 1.5),
           boxShadow: [
@@ -121,33 +120,32 @@ class _GameOverDialogState extends State<GameOverDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              widget.isAmmoDepleted ? Icons.bolt : Icons.warning_amber_rounded,
-              color: accentColor,
-              size: 38.0,
-            ),
-            const SizedBox(height: 8.0),
-            Text(
-              widget.isAmmoDepleted ? 'CORES EXHAUSTED' : 'ORBITAL BREACH',
-              style: TextStyle(
-                color: accentColor,
-                fontSize: 17.0,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 4.0),
-            Text(
-              widget.isAmmoDepleted
-                  ? 'Reserve plasma cores depleted with zero ordnance remaining.'
-                  : 'Atmospheric boundary compromised by enemy assault craft.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: VoidTheme.textSecondary,
-                fontSize: 11.5,
-              ),
+            // Warning Crest & Title
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  widget.isAmmoDepleted
+                      ? Icons.bolt
+                      : Icons.warning_amber_rounded,
+                  color: accentColor,
+                  size: 28.0,
+                ),
+                const SizedBox(width: 8.0),
+                Text(
+                  widget.isAmmoDepleted ? 'CORES EXHAUSTED' : 'ORBITAL BREACH',
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12.0),
+
+            // Compact Score Container
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 12.0,
@@ -167,18 +165,18 @@ class _GameOverDialogState extends State<GameOverDialog> {
                         : 'FINAL SCORE: ${widget.score}',
                     style: const TextStyle(
                       color: VoidTheme.solarGold,
-                      fontSize: 16.0,
+                      fontSize: 15.0,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.8,
                     ),
                   ),
                   const SizedBox(height: 2.0),
                   Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         Icons.emoji_events,
-                        size: 12.0,
+                        size: 11.0,
                         color: isNewRecord
                             ? VoidTheme.solarGold
                             : VoidTheme.textMuted,
@@ -197,7 +195,7 @@ class _GameOverDialogState extends State<GameOverDialog> {
                             color: isNewRecord
                                 ? VoidTheme.solarGold
                                 : VoidTheme.textSecondary,
-                            fontSize: 10.5,
+                            fontSize: 10.0,
                             fontWeight: FontWeight.w800,
                             letterSpacing: 0.2,
                           ),
@@ -208,42 +206,35 @@ class _GameOverDialogState extends State<GameOverDialog> {
                 ],
               ),
             ),
-            const SizedBox(height: 10.0),
-            Text(
-              widget.isAmmoDepleted
-                  ? 'TIP: Build mass along backline for quadratic cascades.'
-                  : 'TIP: Sowing into Nyumba (Bays 3 & 4) stores massive charges.',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: VoidTheme.textMuted,
-                fontSize: 10.0,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 16.0),
+            const SizedBox(height: 14.0),
+
+            // Tactical Actions
             Row(
               children: [
                 Expanded(
                   child: TactileButton(
                     label: 'SECTOR MAP',
+                    icon: Icons.map_outlined,
                     onPressed: _isArmed ? widget.onReturnToMap : null,
                     accentColor: _isArmed
                         ? VoidTheme.textSecondary
                         : VoidTheme.textSecondary.withValues(alpha: 0.35),
                     isPrimary: false,
                     height: 40.0,
+                    fontSize: 10.5,
                   ),
                 ),
-                const SizedBox(width: 10.0),
+                const SizedBox(width: 8.0),
                 Expanded(
                   child: TactileButton(
                     label: 'TRY AGAIN',
                     icon: Icons.refresh,
                     onPressed: _isArmed ? widget.onRetry : null,
                     accentColor: _isArmed
-                        ? VoidTheme.crimsonFlare
-                        : VoidTheme.crimsonFlare.withValues(alpha: 0.35),
+                        ? accentColor
+                        : accentColor.withValues(alpha: 0.35),
                     height: 40.0,
+                    fontSize: 10.5,
                   ),
                 ),
               ],

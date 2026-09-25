@@ -119,8 +119,6 @@ class _CombatScreenState extends State<CombatScreen>
     _ticker.start();
   }
 
-  int _tickCount = 0;
-
   void _onTick(Duration elapsed) {
     try {
       final nowMicros = elapsed.inMicroseconds;
@@ -153,12 +151,6 @@ class _CombatScreenState extends State<CombatScreen>
         } else if (matchStatus == CombatMatchStatus.victory) {
           _showVictoryModal();
         }
-      }
-      if (kVlogLevel >= 6 && _tickCount++ % 60 == 0) {
-        vlog(
-          6,
-          '[CombatScreen] Tick $_tickCount: status=${_coordinator.state.status.name}, enemies=${_coordinator.enemies.length}, bullets=${_coordinator.bulletManager.bullets.length}',
-        );
       }
 
       final dread = _coordinator.dreadnought;

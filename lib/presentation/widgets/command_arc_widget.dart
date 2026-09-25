@@ -171,7 +171,21 @@ class CommandArcWidget extends StatelessWidget {
                   ),
                   const SizedBox(height: 2.0),
 
-                  // Frontline Bay Capsule (Height 48.0dp strictly enforced for test & feel)
+                  // Raised Positive Terminal Cap
+                  Container(
+                    width: 14.0,
+                    height: 3.5,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? VoidTheme.plasmaCyan
+                          : const Color(0xFF334E68),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(2.0),
+                      ),
+                    ),
+                  ),
+
+                  // Frontline Battery Cylinder Body (Height 48.0dp strictly enforced for test & feel)
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
@@ -215,17 +229,21 @@ class CommandArcWidget extends StatelessWidget {
                       height: 48.0,
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF082F49)
+                            ? const Color(0xFF132A40)
                             : (isSowHop
                                   ? const Color(0xFF1E293B)
-                                  : const Color(0xFF0F172A)),
-                        borderRadius: BorderRadius.circular(8.0),
+                                  : const Color(0xFF101C2E)),
+                        borderRadius: BorderRadius.circular(6.0),
                         border: Border.all(
                           color: isSelected
                               ? VoidTheme.plasmaCyan
                               : (isSowHop
                                     ? VoidTheme.solarGold
-                                    : const Color(0xFF1E293B)),
+                                    : (bay.isKichwa
+                                          ? VoidTheme.nebulaAmethyst
+                                          : (bay.isKimbi
+                                                ? VoidTheme.emeraldShield
+                                                : const Color(0xFF1E293B)))),
                           width: isSelected ? 1.4 : 1.0,
                         ),
                         boxShadow: isSelected
@@ -251,15 +269,17 @@ class CommandArcWidget extends StatelessWidget {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          // Seed Dot Clusters (Bao count-and-capture visualization)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 2.0,
-                              vertical: 3.0,
-                            ),
-                            child: _buildPlasmaSeedCluster(
-                              bay.chargeUnits,
-                              isSelected,
+                          // 6 Horizontal Stacked LED Indicator Bars (Battery Gauge)
+                          Positioned.fill(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3.0,
+                                vertical: 4.0,
+                              ),
+                              child: _buildBatterySegmentBars(
+                                bay.chargeUnits,
+                                isSelected,
+                              ),
                             ),
                           ),
 
@@ -268,7 +288,7 @@ class CommandArcWidget extends StatelessWidget {
                             const Positioned(
                               top: 2.0,
                               child: DiamondShieldBadge(
-                                size: 7.0,
+                                size: 8.0,
                                 accentColor: VoidTheme.nebulaAmethyst,
                                 hasGlow: false,
                               ),
@@ -277,7 +297,7 @@ class CommandArcWidget extends StatelessWidget {
                             const Positioned(
                               top: 2.0,
                               child: DiamondShieldBadge(
-                                size: 7.0,
+                                size: 8.0,
                                 accentColor: VoidTheme.emeraldShield,
                                 hasGlow: false,
                               ),
@@ -293,7 +313,9 @@ class CommandArcWidget extends StatelessWidget {
                               style: TextStyle(
                                 color: isSelected
                                     ? VoidTheme.plasmaCyan
-                                    : const Color(0xFF64748B),
+                                    : (bay.chargeUnits > 0
+                                          ? VoidTheme.starWhite
+                                          : const Color(0xFF64748B)),
                                 fontSize: 8.0,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -656,90 +678,51 @@ class CommandArcWidget extends StatelessWidget {
   }
 
   // ---------------------------------------------------------------------------
-  // Plasma Seed Cluster Renderer (Dot layout)
+  // Physical Battery Segment Bars (6-Stage Horizontal LED Charge Gauge)
   // ---------------------------------------------------------------------------
-  Widget _buildPlasmaSeedCluster(int charges, bool isSelected) {
-    if (charges <= 0) {
-      return const SizedBox.shrink();
+  Widget _buildBatterySegmentBars(int chargeUnits, bool isSelected) {
+    const totalBars = 6;
+    int litBars = 0;
+    if (chargeUnits == 1) {
+      litBars = 2;
+    } else if (chargeUnits == 2) {
+      litBars = 3;
+    } else if (chargeUnits == 3) {
+      litBars = 4;
+    } else if (chargeUnits >= 4) {
+      litBars = totalBars;
     }
 
-    if (charges == 1) {
-      return Center(child: _buildSingleSeed(6.0, isSelected));
-    }
-
-    if (charges == 2) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _buildSingleSeed(5.0, isSelected),
-          const SizedBox(height: 3.0),
-          _buildSingleSeed(5.0, isSelected),
-        ],
-      );
-    }
-
-    if (charges == 3) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSingleSeed(4.5, isSelected),
-              const SizedBox(width: 3.0),
-              _buildSingleSeed(4.5, isSelected),
-            ],
-          ),
-          const SizedBox(height: 3.0),
-          _buildSingleSeed(4.5, isSelected),
-        ],
-      );
-    }
-
-    // 4 or more seeds (2x2 quad cluster)
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildSingleSeed(4.5, isSelected),
-            const SizedBox(width: 3.0),
-            _buildSingleSeed(4.5, isSelected),
-          ],
-        ),
-        const SizedBox(height: 3.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildSingleSeed(4.5, isSelected),
-            const SizedBox(width: 3.0),
-            _buildSingleSeed(4.5, isSelected),
-          ],
-        ),
-      ],
-    );
-  }
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: List.generate(totalBars, (index) {
+        final barIndexFromBottom = totalBars - 1 - index;
+        final isLit = barIndexFromBottom < litBars;
 
-  Widget _buildSingleSeed(double size, bool isSelected) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const RadialGradient(
-          colors: [Colors.white, VoidTheme.plasmaCyan, Color(0xFF0284C7)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: VoidTheme.plasmaCyan.withValues(
-              alpha: isSelected ? 0.9 : 0.6,
-            ),
-            blurRadius: 4.0,
-            spreadRadius: 0.5,
+        final barColor = isLit
+            ? (chargeUnits >= 4
+                  ? VoidTheme.plasmaCyan
+                  : VoidTheme.plasmaCyanLight)
+            : const Color(0xFF1B2A3D);
+
+        return Container(
+          height: 3.2,
+          margin: const EdgeInsets.symmetric(horizontal: 1.0),
+          decoration: BoxDecoration(
+            color: barColor,
+            borderRadius: BorderRadius.circular(1.5),
+            boxShadow: isLit
+                ? [
+                    BoxShadow(
+                      color: barColor.withValues(alpha: 0.6),
+                      blurRadius: 3.0,
+                      spreadRadius: 0.5,
+                    ),
+                  ]
+                : null,
           ),
-        ],
-      ),
+        );
+      }),
     );
   }
 }

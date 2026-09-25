@@ -16,11 +16,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
-import 'tactile_button.dart';
 
 /// Modal overlay presented when the player pauses the combat simulation.
-/// Stacks core simulation controls, campaign navigation, tactical codex, and settings.
+/// Uses sleek, high-contrast, self-explanatory icon controls with minimal text.
 class PauseMenuDialog extends StatelessWidget {
   const PauseMenuDialog({
     super.key,
@@ -70,6 +70,9 @@ class PauseMenuDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Unify Academy and Directives callback:
+    final unifiedDirectivesCallback = onAcademy ?? onCodex;
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -77,8 +80,11 @@ class PauseMenuDialog extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            constraints: const BoxConstraints(maxWidth: 400.0),
-            padding: const EdgeInsets.all(22.0),
+            constraints: const BoxConstraints(maxWidth: 340.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20.0,
+              vertical: 18.0,
+            ),
             decoration: BoxDecoration(
               color: VoidTheme.obsidianBlack.withValues(alpha: 0.96),
               borderRadius: BorderRadius.circular(16.0),
@@ -101,8 +107,8 @@ class PauseMenuDialog extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      width: 44.0,
-                      height: 44.0,
+                      width: 40.0,
+                      height: 40.0,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: VoidTheme.solarGold.withValues(alpha: 0.15),
@@ -114,10 +120,10 @@ class PauseMenuDialog extends StatelessWidget {
                       child: const Icon(
                         Icons.pause_circle_filled,
                         color: VoidTheme.solarGold,
-                        size: 26.0,
+                        size: 24.0,
                       ),
                     ),
-                    const SizedBox(width: 14.0),
+                    const SizedBox(width: 12.0),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +132,7 @@ class PauseMenuDialog extends StatelessWidget {
                             'TACTICAL PAUSE',
                             style: TextStyle(
                               color: VoidTheme.starWhite,
-                              fontSize: 16.0,
+                              fontSize: 15.0,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 1.2,
                             ),
@@ -148,12 +154,12 @@ class PauseMenuDialog extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16.0),
+                const SizedBox(height: 14.0),
 
-                // Score banner: Current Sortie Score + All-Time High Score
+                // Score bar: Compact Score + Best
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0,
+                    horizontal: 12.0,
                     vertical: 8.0,
                   ),
                   decoration: BoxDecoration(
@@ -187,7 +193,7 @@ class PauseMenuDialog extends StatelessWidget {
                               '$score',
                               style: const TextStyle(
                                 color: VoidTheme.plasmaCyanLight,
-                                fontSize: 14.0,
+                                fontSize: 15.0,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 0.5,
                               ),
@@ -235,7 +241,7 @@ class PauseMenuDialog extends StatelessWidget {
                               '${math.max(score, highScore)}',
                               style: const TextStyle(
                                 color: VoidTheme.solarGold,
-                                fontSize: 14.0,
+                                fontSize: 15.0,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 0.5,
                               ),
@@ -246,151 +252,99 @@ class PauseMenuDialog extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 18.0),
+                const SizedBox(height: 16.0),
 
-                // Primary Simulation Controls: Clear, labeled, and thumb-ergonomic
-                TactileButton(
-                  label: 'RESUME',
-                  icon: Icons.play_arrow,
-                  accentColor: VoidTheme.emeraldShield,
-                  isPrimary: true,
-                  onPressed: onResume,
-                  minWidth: double.infinity,
-                  height: 48.0,
-                  fontSize: 14.0,
-                ),
-                const SizedBox(height: 10.0),
+                // Primary Simulation Controls (Icon-Focused, Self-Explanatory)
                 Row(
                   children: [
-                    // Restart Sector
+                    // Restart Button (Cyan 🔄)
                     Expanded(
-                      child: TactileButton(
-                        label: 'RESTART SECTOR',
+                      flex: 3,
+                      child: _buildActionIconButton(
                         icon: Icons.replay,
-                        accentColor: VoidTheme.plasmaCyan,
-                        isPrimary: false,
+                        color: VoidTheme.plasmaCyan,
+                        tooltip: 'Restart Sector',
                         onPressed: onRestart,
-                        minWidth: 0.0,
-                        height: 44.0,
-                        fontSize: 10.5,
+                        height: 48.0,
                       ),
                     ),
-                    const SizedBox(width: 10.0),
-                    // Abort Mission
+                    const SizedBox(width: 8.0),
+                    // Large Emerald Resume Hero Button (▶)
                     Expanded(
-                      child: TactileButton(
-                        label: 'ABORT MISSION',
+                      flex: 4,
+                      child: _buildActionIconButton(
+                        icon: Icons.play_arrow,
+                        color: VoidTheme.emeraldShield,
+                        tooltip: 'Resume Sortie',
+                        onPressed: onResume,
+                        isPrimary: true,
+                        iconSize: 28.0,
+                        height: 48.0,
+                      ),
+                    ),
+                    const SizedBox(width: 8.0),
+                    // Abort Button (Crimson ⏹)
+                    Expanded(
+                      flex: 3,
+                      child: _buildActionIconButton(
                         icon: Icons.stop_circle_outlined,
-                        accentColor: VoidTheme.crimsonFlare,
-                        isPrimary: false,
+                        color: VoidTheme.crimsonFlare,
+                        tooltip: 'Abort Mission',
                         onPressed: onAbort,
-                        minWidth: 0.0,
-                        height: 44.0,
-                        fontSize: 10.5,
+                        height: 48.0,
                       ),
                     ),
                   ],
                 ),
-                if (onToggleAutoSolve != null) ...[
-                  const SizedBox(height: 10.0),
-                  TactileButton(
-                    label: isAutoSolving
-                        ? 'AI AUTO-SOLVER: ENGAGED'
-                        : 'AI AUTO-SOLVER: STANDBY',
-                    icon: Icons.smart_toy,
-                    accentColor: isAutoSolving
-                        ? VoidTheme.crimsonFlare
-                        : VoidTheme.plasmaCyan,
-                    isPrimary: isAutoSolving,
-                    onPressed: onToggleAutoSolve,
-                    minWidth: double.infinity,
-                    height: 40.0,
-                  ),
-                ],
-                const SizedBox(height: 10.0),
+                const SizedBox(height: 12.0),
 
-                // Tertiary Row: Map / Codex / Academy
+                // Secondary Utility Icon Strip: Map, Directives/Academy (Merged!), Settings, AI Solver
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     if (onMap != null)
-                      Expanded(
-                        child: TactileButton(
-                          label: 'MAP',
-                          icon: Icons.map_outlined,
-                          accentColor: VoidTheme.plasmaCyanLight,
-                          isPrimary: false,
-                          onPressed: onMap,
-                          minWidth: 0.0,
-                          height: 40.0,
-                          fontSize: 11.0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 4.0,
-                          ),
-                        ),
+                      _buildUtilityIconButton(
+                        icon: Icons.map_outlined,
+                        color: VoidTheme.plasmaCyanLight,
+                        tooltip: 'Star Map',
+                        onPressed: onMap!,
                       ),
-                    if (onMap != null && (onCodex != null || onAcademy != null))
-                      const SizedBox(width: 8.0),
-                    if (onCodex != null)
-                      Expanded(
-                        child: TactileButton(
-                          label: 'DIRECTIVES',
-                          icon: Icons.menu_book,
-                          accentColor: VoidTheme.plasmaCyanLight,
-                          isPrimary: false,
-                          onPressed: onCodex,
-                          minWidth: 0.0,
-                          height: 40.0,
-                          fontSize: 11.0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 4.0,
-                          ),
-                        ),
+                    if (unifiedDirectivesCallback != null)
+                      _buildUtilityIconButton(
+                        icon: Icons.school,
+                        color: VoidTheme.solarGold,
+                        tooltip: 'Directives & Flight Academy',
+                        onPressed: unifiedDirectivesCallback,
                       ),
-                    if (onCodex != null && onAcademy != null)
-                      const SizedBox(width: 8.0),
-                    if (onAcademy != null)
-                      Expanded(
-                        child: TactileButton(
-                          label: 'ACADEMY',
-                          icon: Icons.school,
-                          accentColor: VoidTheme.solarGold,
-                          isPrimary: false,
-                          onPressed: onAcademy,
-                          minWidth: 0.0,
-                          height: 40.0,
-                          fontSize: 11.0,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4.0,
-                            vertical: 4.0,
-                          ),
-                        ),
+                    if (onSettings != null)
+                      _buildUtilityIconButton(
+                        icon: Icons.settings,
+                        color: VoidTheme.textSecondary,
+                        tooltip: 'Settings',
+                        onPressed: onSettings!,
+                      ),
+                    if (onToggleAutoSolve != null)
+                      _buildUtilityIconButton(
+                        icon: Icons.smart_toy,
+                        color: isAutoSolving
+                            ? VoidTheme.crimsonFlare
+                            : VoidTheme.textMuted,
+                        tooltip: isAutoSolving
+                            ? 'AI Solver Active'
+                            : 'AI Solver Standby',
+                        onPressed: onToggleAutoSolve!,
+                        isActive: isAutoSolving,
                       ),
                   ],
                 ),
-
-                // System Settings
-                if (onSettings != null) ...[
-                  const SizedBox(height: 10.0),
-                  TactileButton(
-                    label: 'SYSTEM & AUDIO SETTINGS',
-                    icon: Icons.settings,
-                    accentColor: VoidTheme.textSecondary,
-                    isPrimary: false,
-                    onPressed: onSettings,
-                    minWidth: double.infinity,
-                    height: 40.0,
-                  ),
-                ],
               ],
             ),
           ),
 
           // Close button (X)
           Positioned(
-            top: 10.0,
-            right: 10.0,
+            top: 6.0,
+            right: 6.0,
             child: GestureDetector(
               onTap: onResume,
               child: Container(
@@ -412,6 +366,96 @@ class PauseMenuDialog extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionIconButton({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onPressed,
+    bool isPrimary = false,
+    double iconSize = 22.0,
+    double height = 44.0,
+  }) {
+    return Semantics(
+      label: tooltip,
+      button: true,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticService.instance.injectionClick();
+            onPressed();
+          },
+          child: Container(
+            height: height,
+            decoration: BoxDecoration(
+              color: isPrimary
+                  ? color.withValues(alpha: 0.2)
+                  : VoidTheme.cardSurface.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(color: color, width: isPrimary ? 1.5 : 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: isPrimary ? 0.35 : 0.15),
+                  blurRadius: isPrimary ? 8.0 : 4.0,
+                ),
+              ],
+            ),
+            child: Center(
+              child: Icon(icon, color: color, size: iconSize),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUtilityIconButton({
+    required IconData icon,
+    required Color color,
+    required String tooltip,
+    required VoidCallback onPressed,
+    bool isActive = false,
+  }) {
+    return Semantics(
+      label: tooltip,
+      button: true,
+      child: Tooltip(
+        message: tooltip,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            HapticService.instance.sowTick();
+            onPressed();
+          },
+          child: Container(
+            width: 44.0,
+            height: 44.0,
+            decoration: BoxDecoration(
+              color: isActive
+                  ? color.withValues(alpha: 0.2)
+                  : VoidTheme.cardSurface.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: isActive ? color : VoidTheme.cardSurface,
+                width: 1.0,
+              ),
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.4),
+                        blurRadius: 6.0,
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Center(child: Icon(icon, color: color, size: 20.0)),
+          ),
+        ),
       ),
     );
   }

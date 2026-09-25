@@ -91,7 +91,6 @@ void main() {
         bool restartTapped = false;
         bool abortTapped = false;
         bool mapTapped = false;
-        bool codexTapped = false;
         bool academyTapped = false;
         bool settingsTapped = false;
 
@@ -108,7 +107,6 @@ void main() {
                 onRestart: () => restartTapped = true,
                 onAbort: () => abortTapped = true,
                 onMap: () => mapTapped = true,
-                onCodex: () => codexTapped = true,
                 onAcademy: () => academyTapped = true,
                 onSettings: () => settingsTapped = true,
               ),
@@ -126,13 +124,9 @@ void main() {
         expect(find.byIcon(Icons.play_arrow), findsOneWidget);
         expect(find.byIcon(Icons.replay), findsOneWidget);
         expect(find.byIcon(Icons.stop_circle_outlined), findsOneWidget);
-        expect(find.text('RESUME SORTIE'), findsNothing);
-        expect(find.text('RESTART'), findsNothing);
-        expect(find.text('ABORT'), findsNothing);
-        expect(find.text('MAP'), findsOneWidget);
-        expect(find.text('DIRECTIVES'), findsOneWidget);
-        expect(find.text('ACADEMY'), findsOneWidget);
-        expect(find.text('SYSTEM & AUDIO SETTINGS'), findsOneWidget);
+        expect(find.byIcon(Icons.map_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.school), findsOneWidget);
+        expect(find.byIcon(Icons.settings), findsOneWidget);
 
         await tester.tap(find.byIcon(Icons.play_arrow));
         await tester.pumpAndSettle();
@@ -146,19 +140,15 @@ void main() {
         await tester.pumpAndSettle();
         expect(abortTapped, isTrue);
 
-        await tester.tap(find.text('MAP'));
+        await tester.tap(find.byIcon(Icons.map_outlined));
         await tester.pumpAndSettle();
         expect(mapTapped, isTrue);
 
-        await tester.tap(find.text('DIRECTIVES'));
-        await tester.pumpAndSettle();
-        expect(codexTapped, isTrue);
-
-        await tester.tap(find.text('ACADEMY'));
+        await tester.tap(find.byIcon(Icons.school));
         await tester.pumpAndSettle();
         expect(academyTapped, isTrue);
 
-        await tester.tap(find.text('SYSTEM & AUDIO SETTINGS'));
+        await tester.tap(find.byIcon(Icons.settings));
         await tester.pumpAndSettle();
         expect(settingsTapped, isTrue);
       },
@@ -524,10 +514,9 @@ void main() {
         );
 
         // AI tactical assist button is accessible within PauseMenuDialog
-        expect(find.text('AI AUTO-SOLVER: STANDBY'), findsOneWidget);
         expect(find.byIcon(Icons.smart_toy), findsOneWidget);
 
-        await tester.tap(find.text('AI AUTO-SOLVER: STANDBY'));
+        await tester.tap(find.byIcon(Icons.smart_toy));
         await tester.pumpAndSettle();
         expect(aiTapped, isTrue);
 

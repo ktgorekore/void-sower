@@ -45,8 +45,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.pause));
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('DIRECTIVES'), findsOneWidget);
-    expect(find.text('MAP'), findsOneWidget);
+    expect(find.byIcon(Icons.school), findsOneWidget);
+    expect(find.byIcon(Icons.map_outlined), findsOneWidget);
   });
 
   testWidgets(
