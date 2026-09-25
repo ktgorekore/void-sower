@@ -286,6 +286,16 @@ class CombatCoordinator extends ChangeNotifier {
         ? worldPosX * viewportSize.width
         : (assignedCorridor + 0.5) * (viewportSize.width / 8.0);
 
+    // Quadratic burst explosion upon enemy destruction
+    particleService.spawnFlakBurst(
+      enemyCorridorX,
+      viewportSize.height * 0.28,
+      vesselType == 2
+          ? VoidTheme.crimsonFlare
+          : (vesselType == 1 ? VoidTheme.nebulaAmethyst : VoidTheme.solarGold),
+      count: 24,
+    );
+
     damageNumbers.add(
       FloatingDamageNumber(
         text: '+$siphonAmount CORES (SIPHON)',
@@ -467,19 +477,62 @@ class CombatCoordinator extends ChangeNotifier {
       bays: bays,
     );
 
-    // 6. Reactive audio triggers on newly active lances and flak detonations
+    // 6. Reactive audio triggers and particle burst effects on active lances and flaks
     for (final lance in lances) {
-      if (lance.active && !_activeLanceBays.contains(lance.firingBayIndex)) {
-        audio.onLanceFired();
-        if (!_state.isAutoSolving && !_hasUsedAiSolver) {
-          _sessionLancesFired++;
+      if (lance.active) {
+        final corridor = (lance.firingBayIndex >= 8)
+            ? (lance.firingBayIndex - 8)
+            : lance.firingBayIndex;
+        final lanceX = (lance.originX > 0.0 && lance.originX <= 1.0)
+            ? lance.originX * viewportSize.width
+            : (corridor + 0.5) * (viewportSize.width / 8.0);
+
+        if (!_activeLanceBays.contains(lance.firingBayIndex)) {
+          audio.onLanceFired();
+          if (!_state.isAutoSolving && !_hasUsedAiSolver) {
+            _sessionLancesFired++;
+          }
+          // High-energy muzzle and impact spark burst
+          particleService.spawnLanceSparks(
+            lanceX,
+            boundaryY,
+            VoidTheme.plasmaCyan,
+            count: 12,
+          );
         }
+
+        particleService.spawnLanceSparks(
+          lanceX,
+          viewportSize.height * 0.28,
+          VoidTheme.plasmaCyan,
+          count: 4,
+        );
       }
     }
     _activeLanceBays = lances
         .where((l) => l.active)
         .map((l) => l.firingBayIndex)
         .toSet();
+
+    for (final flak in flaks) {
+      if (flak.active) {
+        final topMargin = viewportSize.height * 0.06;
+        final flakX = flak.worldPosX <= 1.0
+            ? flak.worldPosX * viewportSize.width
+            : flak.worldPosX;
+        final flakY = flak.worldPosY <= 1.0
+            ? topMargin +
+                  ((1.0 - flak.worldPosY.clamp(0.0, 1.0)) / 0.85) *
+                      (boundaryY - topMargin)
+            : flak.worldPosY;
+        particleService.spawnFlakBurst(
+          flakX,
+          flakY,
+          VoidTheme.solarGold,
+          count: 14,
+        );
+      }
+    }
 
     final nowHasFlak = flaks.any((f) => f.active);
     if (nowHasFlak && !_hasActiveFlak) {
@@ -494,19 +547,24 @@ class CombatCoordinator extends ChangeNotifier {
     for (final lance in lances) {
       if (lance.active) {
         _applyScreenShake(3.5);
-        if (damageNumbers.length < 5 && _random.nextDouble() < 0.25) {
+        if (damageNumbers.length < 5 && _random.nextDouble() < 0.35) {
           final corridor = (lance.firingBayIndex >= 8)
               ? (lance.firingBayIndex - 8)
               : lance.firingBayIndex;
           final lanceX = (lance.originX > 0.0 && lance.originX <= 1.0)
               ? lance.originX * viewportSize.width
               : (corridor + 0.5) * (viewportSize.width / 8.0);
+          final dmgVal = (lance.totalDamage * 10).toInt();
           damageNumbers.add(
             FloatingDamageNumber(
-              text: '${(lance.totalDamage * 10).toInt()}',
+              text: lance.totalDamage >= 2.0
+                  ? 'QUADRATIC CRIT +$dmgVal'
+                  : '+$dmgVal',
               x: lanceX,
-              y: viewportSize.height * 0.35,
-              color: VoidTheme.plasmaCyan,
+              y: viewportSize.height * 0.32,
+              color: lance.totalDamage >= 2.0
+                  ? VoidTheme.solarGold
+                  : VoidTheme.plasmaCyan,
               isCritical: lance.totalDamage >= 2.0,
             ),
           );

@@ -20,8 +20,6 @@ import shutil
 import subprocess
 import sys
 import time
-import numpy as np
-from PIL import Image
 
 DEVICE = "emulator-5554"
 SCREENSHOTS_DIR = "/home/kelvingorekore/projects/void-sower/store_listing/screenshots/phone"
@@ -140,6 +138,21 @@ def main():
       os.path.join(ASSETS_DIR, "phone_01_tactical_combat_grid.png"),
   )
 
+  # Screenshot 02: Quadratic Lance Discharge (Axial Particle Lance with beam, muzzle flare, sparks, and damage numbers)
+  print("[Combat] Capturing 02_quadratic_lance_discharge.png during axial lance burst...")
+  fire_proc = subprocess.Popen([
+      "adb", "-s", DEVICE, "shell",
+      "for i in $(seq 1 14); do input tap 672 2820; sleep 0.12; done"
+  ])
+  time.sleep(0.3)
+  capture("02_quadratic_lance_discharge.png")
+  fire_proc.wait()
+  shutil.copyfile(
+      os.path.join(SCREENSHOTS_DIR, "02_quadratic_lance_discharge.png"),
+      os.path.join(ASSETS_DIR, "phone_02_quadratic_lances.png"),
+  )
+  time.sleep(0.8)
+
   # Screenshot 07: Bao Tactical Directives (Tap PAUSE at x=1262, y=234, then DIRECTIVES at x=500, y=1761)
   print("[Directives] Opening Tactical Pause menu...")
   tap(1262, 234)
@@ -193,21 +206,13 @@ def main():
   keyevent(4)
   time.sleep(1.0)
 
-  # Launch Sector 1 from Campaign Map (tap ENGAGE at x=825, y=899)
-  print("[Combat] Launching Sector 1 (tap ENGAGE at x=825, y=899)...")
+  # Launch Sector 1 from Campaign Map (tap Sector card at x=825, y=899, then ENGAGE BATTLE at x=672, y=2820)
+  print("[Combat] Launching Sector 1 from Campaign Map (tap Sector 1 at x=825, y=899)...")
   tap(825, 899)
-  time.sleep(2.0)
-
-  # Screenshot 02: Quadratic Lance Discharge
-  print("[Combat] Discharging Axial Particle Lance (tap AXIAL DISCHARGE at x=672, y=2820)...")
+  time.sleep(1.2)
+  print("[Combat] Tapping ENGAGE BATTLE on briefing sheet (x=672, y=2820)...")
   tap(672, 2820)
-  time.sleep(0.18)
-  capture("02_quadratic_lance_discharge.png")
-  shutil.copyfile(
-      os.path.join(SCREENSHOTS_DIR, "02_quadratic_lance_discharge.png"),
-      os.path.join(ASSETS_DIR, "phone_02_quadratic_lances.png"),
-  )
-  time.sleep(1.0)
+  time.sleep(2.5)
 
   # Engage AI Solver to eliminate invaders and trigger Victory Dialog
   print("[Victory] Enabling AI Solver to trigger sector victory...")
@@ -217,7 +222,7 @@ def main():
   time.sleep(0.5)
   tap(672, 1587)  # Resume
   print("[Victory] Waiting for AI solver to clear invaders and present Victory Dialog...")
-  time.sleep(4.1)
+  time.sleep(6.0)
   capture("06_sector_liberation_victory.png")
   shutil.copyfile(
       os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png"),
