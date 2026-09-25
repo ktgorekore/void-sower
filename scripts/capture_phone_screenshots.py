@@ -218,11 +218,11 @@ def main():
   # Phase 6: Pilot Telemetry Dashboard (StatsDashboardScreen)
   # =========================================================================
   print("\n[Phase 6] Capturing Pilot Telemetry Dashboard...")
-  # In Campaign Map bottom nav bar, tap PILOT tab (x=672, y=2830)
-  tap(672, 2830)
+  # In Campaign Map bottom nav bar, tap PILOT tab (x=672, y=2810)
+  tap(672, 2810)
   time.sleep(1.5)
-  # Inside ProfileModal, tap VIEW FULL FLEET TELEMETRY button (x=672, y=2015)
-  tap(672, 2015)
+  # Inside ProfileModal, tap VIEW FULL FLEET TELEMETRY button (x=672, y=2040)
+  tap(672, 2040)
   time.sleep(2.0)
   capture("08_pilot_telemetry_dashboard.png", "phone_04_pilot_dossier.png")
   # Navigate back: tap top-left back arrow at x=100, y=185 to return to ProfileModal
@@ -243,11 +243,11 @@ def main():
   # Open Tactical Pause (x=1262, y=234)
   tap(1262, 234)
   time.sleep(0.8)
-  # Tap AI Solver button (x=846, y=1879)
-  tap(846, 1879)
+  # Tap AI Solver button (x=970, y=1880)
+  tap(970, 1880)
   time.sleep(0.5)
-  # Tap Resume button (x=677, y=1702)
-  tap(677, 1702)
+  # Tap Resume button (x=672, y=1710)
+  tap(672, 1710)
   time.sleep(0.5)
 
   print("[Victory] AI Solver engaged. Polling for Sector Liberation Victory modal...")
@@ -287,7 +287,7 @@ def main():
   # In Free Tier, open Pause Menu and tap AI Solver to open Pro Modal
   tap(1262, 234)
   time.sleep(1.0)
-  tap(846, 1879)
+  tap(970, 1880)
   time.sleep(1.5)
   capture("09_pro_commander_upgrade.png", "phone_07_pro_commander.png")
 
