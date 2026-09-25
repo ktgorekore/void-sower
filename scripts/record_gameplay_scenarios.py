@@ -61,6 +61,10 @@ def reset_app_pro_state(completed_tutorial=False):
       '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
       f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
       '    <int name="flutter.void_sower_high_score" value="12480" />\n'
+      '    <int name="flutter.void_sower_liberated_sectors" value="6" />\n'
+      '    <int name="flutter.void_sower_sector_stars_1" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_2" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_3" value="3" />\n'
       '</map>\n'
   )
   with open("/tmp/prefs.xml", "w") as f:
@@ -100,60 +104,60 @@ def record_60s_tutorial():
 
   # Phase 2: 7.6s..15.5s — Aiming & Corridor Alignment
   wait_until(8.5)
-  print("[Timeline 8.5s] Align prow to Corridor 2 (tap C2 notch at x=252, y=2406)")
-  tap(252, 2406)
+  print("[Timeline 8.5s] Align prow to Corridor 2 (tap C2 notch at x=277, y=2496)")
+  tap(277, 2496)
 
   wait_until(11.5)
-  print("[Timeline 11.5s] Align prow to Corridor 7 (tap C7 notch at x=1092, y=2406)")
-  tap(1092, 2406)
+  print("[Timeline 11.5s] Align prow to Corridor 7 (tap C7 notch at x=1067, y=2496)")
+  tap(1067, 2496)
 
   wait_until(14.0)
-  print("[Timeline 14.0s] Re-align prow to Corridor 2 (tap C2 notch at x=252, y=2406)")
-  tap(252, 2406)
+  print("[Timeline 14.0s] Re-align prow to Corridor 2 (tap C2 notch at x=277, y=2496)")
+  tap(277, 2496)
 
   # Phase 3: 15.5s..25.2s — 16-Bay Capacitor Ring & Sowing Cascades
   wait_until(16.5)
-  print("[Timeline 16.5s] Focus frontline Bay 9 under C2 (tap x=252, y=2530)")
-  tap(252, 2530)
+  print("[Timeline 16.5s] Focus frontline Bay 9 under C2 (tap x=277, y=2496)")
+  tap(277, 2496)
 
   wait_until(19.5)
-  print("[Timeline 19.5s] Sow plasma cores clockwise across frontline bays (swipe Bay 9 rightwards)")
-  swipe(252, 2530, 588, 2530, 200)
+  print("[Timeline 19.5s] Sow plasma cores clockwise across frontline bays (tap SOW RIGHT at x=1127, y=2829)")
+  tap(1127, 2829)
 
   wait_until(23.0)
-  print("[Timeline 23.0s] Select frontline Bay 9 (tap x=252, y=2530)")
-  tap(252, 2530)
+  print("[Timeline 23.0s] Select frontline Bay 9 (tap x=277, y=2496)")
+  tap(277, 2496)
 
   # Phase 4: 25.2s..35.2s — Axial Particle Lance Discharge
   wait_until(25.5)
-  print("[Timeline 25.5s] Tap Axial Discharge bar (tap x=672, y=2830)")
-  tap(672, 2830)
+  print("[Timeline 25.5s] Tap Axial Discharge bar (tap x=672, y=2829)")
+  tap(672, 2829)
 
   wait_until(28.0)
-  print("[Timeline 28.0s] Quick-fire secondary prow pulse (tap arena x=252, y=1500)")
-  tap(252, 1500)
+  print("[Timeline 28.0s] Quick-fire secondary prow pulse (tap arena x=277, y=1500)")
+  tap(277, 1500)
 
   # Phase 5: 35.2s..43.3s — Harmonic Shield Deflection vs EMP Breaches
   wait_until(36.0)
-  print("[Timeline 36.0s] Align charged canopy under C7 craft (tap C7 at x=1092, y=2406)")
-  tap(1092, 2406)
+  print("[Timeline 36.0s] Align charged canopy under C7 craft (tap C7 at x=1067, y=2496)")
+  tap(1067, 2496)
 
   wait_until(39.5)
-  print("[Timeline 39.5s] Re-align charged canopy under C2 craft (tap C2 at x=252, y=2406)")
-  tap(252, 2406)
+  print("[Timeline 39.5s] Re-align charged canopy under C2 craft (tap C2 at x=277, y=2496)")
+  tap(277, 2496)
 
   # Phase 6: 43.3s..60.0s — Autonomous AI Tactical Advisor & Sector Victory
   wait_until(43.5)
-  print("[Timeline 43.5s] Open Tactical Pause menu (tap x=1240, y=225)")
-  tap(1240, 225)
+  print("[Timeline 43.5s] Open Tactical Pause menu (tap x=1263, y=232)")
+  tap(1263, 232)
 
   wait_until(44.3)
-  print("[Timeline 44.3s] Engage AI Tactical Auto-Solver in Pause Dialog (tap x=672, y=1630)")
-  tap(672, 1630)
+  print("[Timeline 44.3s] Engage AI Tactical Auto-Solver in Pause Dialog (tap x=972, y=1814)")
+  tap(972, 1814)
 
   wait_until(45.0)
-  print("[Timeline 45.0s] Resume Sortie with AI Solver Active (tap x=250, y=1520)")
-  tap(250, 1520)
+  print("[Timeline 45.0s] Resume Sortie with AI Solver Active (tap x=672, y=1640)")
+  tap(672, 1640)
 
   print("[Record 60s] AI Solver active, executing Grandmaster cascades toward victory...")
   rec_proc.wait()
@@ -170,14 +174,14 @@ def record_30s_showcase():
 
   # Navigate to Phantom Drift (Sector 10: Evasive Invaders)
   print("[Record 30s] Navigating to Phantom Drift (Sector 10)...")
-  tap(1240, 225) # Pause
-  time.sleep(0.8)
-  tap(310, 1820) # Map
-  time.sleep(1.5)
-  tap(672, 680)  # Phantom Drift theater tab
-  time.sleep(0.8)
-  tap(915, 1040) # Sector 10 AI launch
-  time.sleep(1.8)
+  tap(1263, 232) # Pause
+  time.sleep(1.0)
+  tap(311, 1814) # Map
+  time.sleep(2.0)
+  tap(672, 487)  # Phantom Drift theater tab
+  time.sleep(1.0)
+  tap(883, 905)  # Sector 10 AI launch
+  time.sleep(2.0)
 
   print("[Record 30s] Launching 30s showcase recording...")
   rec_proc = subprocess.Popen([
@@ -199,20 +203,20 @@ def record_30s_showcase():
 
   # Part 2: Transition to Void Swarm (14s..17s) - Respawning Swarm Invaders
   wait_until(14.0)
-  print("[Showcase 14.0s] Open Tactical Pause (tap x=1240, y=225)")
-  tap(1240, 225)
+  print("[Showcase 14.0s] Open Tactical Pause (tap x=1263, y=232)")
+  tap(1263, 232)
 
   wait_until(14.8)
-  print("[Showcase 14.8s] Open Star Map (tap MAP at x=310, y=1820)")
-  tap(310, 1820)
+  print("[Showcase 14.8s] Open Star Map (tap MAP at x=311, y=1814)")
+  tap(311, 1814)
 
   wait_until(16.0)
-  print("[Showcase 16.0s] Switch to Void Swarm tab (tap x=1090, y=680)")
-  tap(1090, 680)
+  print("[Showcase 16.0s] Switch to Void Swarm tab (tap x=1080, y=487)")
+  tap(1080, 487)
 
-  wait_until(16.8)
-  print("[Showcase 16.8s] Launch Sector 19 Void Swarm with AI (tap AI at x=915, y=1040)")
-  tap(915, 1040)
+  wait_until(17.0)
+  print("[Showcase 17.0s] Launch Sector 19 Void Swarm with AI (tap AI at x=883, y=905)")
+  tap(883, 905)
 
   # Part 3: Void Swarm (18s..30s) - Dense Respawning Horde with Tactical Core Siphon
   print("[Showcase 18s..30s] Autonomous AI managing dense swarm horde and core siphon...")
