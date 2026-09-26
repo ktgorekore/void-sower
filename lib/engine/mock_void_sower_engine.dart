@@ -479,6 +479,11 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     }
   }
 
+  /// Test-only hook to set simulation state directly (e.g. 7 for Victory).
+  void setSimStateForTesting(int simState) {
+    _simState = simState;
+  }
+
   @override
   void dispose() {
     _enemies.clear();

@@ -81,7 +81,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
   double _initialVelocity = 0.020;
   int _startingCores = 28;
   int _difficultyTier = 1;
-  final SectorCombatDoctrine _doctrine = SectorCombatDoctrine.standardOrbital;
+  SectorCombatDoctrine _doctrine = SectorCombatDoctrine.standardOrbital;
   String _selectedChassisId = 'mk1_bastion';
 
   // Benchmark State
@@ -193,6 +193,8 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
           difficultyTier: _difficultyTier,
           sectorId: customSector.sectorId,
           sector: customSector,
+          startingCores: _startingCores,
+          initialVelocity: _initialVelocity,
           onReturnToMap: () => Navigator.of(context).pop(),
         ),
       ),
@@ -500,7 +502,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'HOSTILE REINFORCEMENT QUOTA',
+                      'HOSTILE QUOTA',
                       style: TextStyle(
                         color: VoidTheme.textSecondary,
                         fontSize: 9.5,
@@ -531,7 +533,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'DESCENT VELOCITY',
+                      'DESCENT SPEED',
                       style: TextStyle(
                         color: VoidTheme.textSecondary,
                         fontSize: 9.5,
@@ -562,7 +564,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      'AUXILIARY CORE RESERVES',
+                      'STARTING CORES',
                       style: TextStyle(
                         color: VoidTheme.textSecondary,
                         fontSize: 9.5,
@@ -588,6 +590,38 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                   onChanged: (v) => setState(() => _startingCores = v.round()),
                 ),
                 const SizedBox(height: 8.0),
+
+                // Combat Doctrine Selector
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'COMBAT DOCTRINE',
+                      style: TextStyle(
+                        color: VoidTheme.textSecondary,
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        _buildDoctrineOption(
+                          SectorCombatDoctrine.standardOrbital,
+                          'STANDARD',
+                        ),
+                        _buildDoctrineOption(
+                          SectorCombatDoctrine.phantomDrift,
+                          'DRIFT',
+                        ),
+                        _buildDoctrineOption(
+                          SectorCombatDoctrine.voidSwarm,
+                          'SWARM',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10.0),
 
                 // Threat Tier Selector
                 Row(
@@ -641,13 +675,36 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
 
           // Launch Action
           TactileButton(
-            label: 'INITIALIZE CUSTOM SIMULATION SORTIE',
+            label: 'LAUNCH SIMULATION',
             icon: Icons.rocket_launch,
             onPressed: _launchCustomSortie,
             accentColor: VoidTheme.solarGold,
             height: 48.0,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDoctrineOption(SectorCombatDoctrine doctrine, String label) {
+    final isSel = _doctrine == doctrine;
+    return GestureDetector(
+      onTap: () => setState(() => _doctrine = doctrine),
+      child: Container(
+        margin: const EdgeInsets.only(left: 6.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: isSel ? VoidTheme.solarGold : const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(6.0),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSel ? VoidTheme.obsidianBlack : VoidTheme.starWhite,
+            fontSize: 9.0,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
       ),
     );
   }

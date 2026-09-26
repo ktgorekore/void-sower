@@ -757,3 +757,45 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
     - Full defender swipe right (CW sow), swipe left (CCW sow), upward flick (lance fire), and tap (lance fire) functionality.
   - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 195/195).
   - [x] 0 issues found in `flutter analyze`.
+
+---
+
+## ⚡ Phase 22: Orbital Simulation Lab Overhaul, Reinforcement Victory Fix, Weapon Responsiveness & Dialog Workflow Hardening (Completed ✅)
+
+- [x] **Task 22.1: Orbital Simulation Lab UI Overhaul & Streamlined Parameters (`SimulationLabScreen`)**
+  - [x] Replace verbose "INITIALIZE CUSTOM SIMULATION SORTIE" with high-contrast, uncluttered "LAUNCH SIMULATION" action button.
+  - [x] Streamline parameter telemetry labels: "HOSTILE QUOTA", "DESCENT SPEED", "STARTING CORES", and "COMBAT DOCTRINE".
+  - [x] Introduce interactive Combat Doctrine selector supporting `STANDARD`, `DRIFT` (Phantom Drift lateral sway), and `SWARM` (Void Swarm phases).
+  - [x] Forward user-configured `startingCores` and `initialVelocity` directly into `CombatScreen` and native wave generation.
+
+- [x] **Task 22.2: Universal Reinforcement Quota Spawning & Match Solvability (`CombatCoordinator`)**
+  - [x] Eliminate doctrine restriction on reinforcement spawning: craft with `_remainingReinforcements > 0` now reliably spawn across all doctrines until quota is reached.
+  - [x] Transition match state to `CombatMatchStatus.victory` cleanly upon eliminating the final wave, resolving the empty arena hang.
+  - [x] Sync domain state immediately upon spawning reinforcements to refresh living enemy rosters and keep FSM responsive.
+
+- [x] **Task 22.3: Zero Weapon Lock & Rapid Axial Firing Hardening (`bao_cascade_system.cpp` & `CombatCoordinator`)**
+  - [x] In native C++ ECS `BaoCascadeSystem`:
+    - Replaced blocking wait on `HasActiveLances` in `SimulationState::CrossDischarge` with immediate transition to `CleanupCheck` -> `OrbitalIdle`. Active lance beams render and decay independently in Skia, eliminating 350ms weapon lock during rapid firing.
+    - Automatically reset `dread.current_sim_state` from `Victory` to `OrbitalIdle` on `InjectCore` when additional waves/reinforcements remain.
+    - Capped cascade depth to 10 in `RelayOverload` to eliminate infinite relay loops.
+  - [x] In `CombatCoordinator`:
+    - `quickFireActiveCorridor()` immediately calls `_finalizePendingSow()`, synchronizing domain state and restoring `activeCombat` status so rapid tapping/swiping is never blocked by an in-flight sow animation.
+    - Wrapped `sow.step()` in defensive `try/catch` with automated fallback to `_finalizePendingSow()`, preventing permanent status lock in `sowingSequence`.
+    - `resumeCombat()` restores `activeCombat` status if previously in `sowingSequence`.
+
+- [x] **Task 22.4: Modal Pause/Resume Lifecycle Hardening & Chained Dialog Flow (`CombatScreen`, `PauseMenuDialog`)**
+  - [x] Centralize coordinator pause and resume lifecycles across all modals (`_openCodex`, `_openSettings`, `_openEmergencyFlare`, `_openProfile`, `_openProUpgradeModal`).
+  - [x] Chained dialog navigation (e.g. Pause Menu -> Codex / Settings -> dismiss) cleanly unpauses the simulation coordinator and resumes the 60 Hz ticker, eliminating combat freezes.
+  - [x] Introduce `_activeSector` getter in `CombatScreen` to prevent custom simulation sectors from being overwritten by default campaign sector lookups during restarts.
+  - [x] Wrap Chrono-Rewind text in `Flexible` inside `PauseMenuDialog` to eliminate `RenderFlex` layout overflow on constrained mobile viewports.
+
+- [x] **Task 22.5: Comprehensive Test Suite Coverage & Verification**
+  - [x] Add unit and widget test suite `test/phase22_sim_lab_combat_workflow_test.dart` verifying:
+    - Simulation Lab UI, doctrine toggling, and sortie parameter transmission.
+    - Hostile reinforcement spawning and clean victory transition without empty arena hang.
+    - Rapid axial quick-fire responsiveness without input locks.
+    - Chained dialog navigation (Pause -> Codex -> dismiss) resuming combat simulation cleanly.
+  - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 203/203).
+  - [x] 0 issues found in `flutter analyze`.
+  - [x] All C++ and Dart code formatted with `clang-format -style=Google` and `dart format`.
+

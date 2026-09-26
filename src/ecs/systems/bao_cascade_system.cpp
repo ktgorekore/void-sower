@@ -43,6 +43,11 @@ bool BaoCascadeSystem::InjectCore(
   }
 
   auto sim_state = static_cast<SimulationState>(dread.current_sim_state);
+  if (sim_state == SimulationState::Victory) {
+    dread.current_sim_state =
+        static_cast<uint8_t>(SimulationState::OrbitalIdle);
+    sim_state = SimulationState::OrbitalIdle;
+  }
   if (sim_state != SimulationState::OrbitalIdle) {
     return false;
   }
@@ -201,10 +206,13 @@ void BaoCascadeSystem::StepFSM(
     }
 
     case SimulationState::CrossDischarge: {
-      if (!discharge_system.HasActiveLances(registry)) {
-        dread.current_sim_state =
-            static_cast<uint8_t>(SimulationState::CleanupCheck);
-      }
+      // Instant lance transition: Lance damage and beam creation were executed
+      // immediately upon entry in ExecuteCrossDischarge. Transition immediately
+      // to CleanupCheck so the dreadnought returns to OrbitalIdle and remains
+      // responsive for subsequent tactical commands, while active lances render
+      // and decay independently.
+      dread.current_sim_state =
+          static_cast<uint8_t>(SimulationState::CleanupCheck);
       break;
     }
 
@@ -216,6 +224,20 @@ void BaoCascadeSystem::StepFSM(
       }
 
       auto& sowing = registry.get<SowingStateComponent>(dreadnought_entity);
+      if (sowing.cascade_depth >= 10) {
+        // Prevent infinite cascade loops by forcing discharge on 10th lap
+        const uint8_t term_bay = sowing.current_bay;
+        auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
+        const uint32_t terminal_mass =
+            bay.charge_units > 0 ? bay.charge_units : 1;
+        dread.current_sim_state =
+            static_cast<uint8_t>(SimulationState::CrossDischarge);
+        discharge_system.ExecuteCrossDischarge(registry, dreadnought_entity,
+                                               bay_entities, spatial_grid,
+                                               term_bay, terminal_mass);
+        break;
+      }
+
       const uint8_t term_bay = sowing.current_bay;
       auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
 

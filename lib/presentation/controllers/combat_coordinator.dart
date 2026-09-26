@@ -288,6 +288,7 @@ class CombatCoordinator extends ChangeNotifier {
     CampaignSector? sector,
     int? difficulty,
     int? startingCores,
+    double? initialVelocity,
     double boundaryY = 0.15,
     bool autoStartSolver = false,
     bool startWithTutorial = false,
@@ -313,7 +314,9 @@ class CombatCoordinator extends ChangeNotifier {
 
     final doctrine = sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
     _remainingReinforcements = sector?.reinforcementQuota ?? 0;
-    _swarmPhase = (doctrine == SectorCombatDoctrine.voidSwarm)
+    _swarmPhase =
+        (doctrine == SectorCombatDoctrine.voidSwarm ||
+            _remainingReinforcements > 0)
         ? SwarmWavePhase.initialAssault
         : SwarmWavePhase.secured;
 
@@ -321,17 +324,21 @@ class CombatCoordinator extends ChangeNotifier {
       6,
       'CombatCoordinator: Initializing sector ${sector?.sectorId ?? "custom"} difficulty $_currentDifficulty doctrine $doctrine chassis ${_equippedChassis.chassisId}',
     );
-    final initialCores = (sector != null && sector.sectorId == 1)
-        ? 36
-        : (startingCores ?? _equippedChassis.coreCapacity);
+    final initialCores =
+        startingCores ??
+        ((sector != null && sector.sectorId == 1)
+            ? 36
+            : _equippedChassis.coreCapacity);
     engine.initialize(startingCores: initialCores, boundaryY: boundaryY);
     engine.setLateralDrift(doctrine == SectorCombatDoctrine.phantomDrift);
     final int waveSeed = sector != null
         ? (sector.sectorId == 1 ? 8 : (sector.sectorId * 7919))
         : 8;
-    final double initialVel = _currentDifficulty == 0
-        ? 0.010
-        : (0.02 + (_currentDifficulty * 0.008));
+    final double initialVel =
+        initialVelocity ??
+        (_currentDifficulty == 0
+            ? 0.010
+            : (0.02 + (_currentDifficulty * 0.008)));
     engine.generateWave(
       difficulty: _currentDifficulty,
       randomSeed: waveSeed,
@@ -456,9 +463,8 @@ class CombatCoordinator extends ChangeNotifier {
     );
     HapticService.instance.sowTick();
 
-    // Void Swarm horde reinforcement spawning
-    if (doctrine == SectorCombatDoctrine.voidSwarm &&
-        _remainingReinforcements > 0) {
+    // Horde reinforcement spawning (for Void Swarm doctrine or any sector with remaining reinforcements)
+    if (_remainingReinforcements > 0) {
       _remainingReinforcements--;
       final respawnCorridor = _random.nextInt(8);
       final vType = (_remainingReinforcements % 4 == 0)
@@ -846,6 +852,12 @@ class CombatCoordinator extends ChangeNotifier {
       _syncDomainState();
       prediction = engine.predictSow(bay, dir);
     }
+    if (_state.status == CombatMatchStatus.sowingSequence) {
+      _state = _state.copyWith(
+        status: CombatMatchStatus.activeCombat,
+        clearActiveSowBay: true,
+      );
+    }
     if (_sowAnimationCompleter != null &&
         !_sowAnimationCompleter!.isCompleted) {
       _sowAnimationCompleter!.complete();
@@ -891,54 +903,59 @@ class CombatCoordinator extends ChangeNotifier {
         return;
       }
 
-      if (remainingHops <= 0) {
+      try {
+        if (remainingHops <= 0) {
+          HapticService.instance.sowTick();
+          audio.onSowStep(cascadeDepth: 0);
+          engine.injectCore(bayIndex, resolvedDirection);
+          vlog(
+            6,
+            'CombatCoordinator: Sow completed for bay $bayIndex dir $resolvedDirection',
+          );
+          _syncDomainState();
+          _pendingSowBay = null;
+          _pendingSowDirection = null;
+
+          final nextStatus = (_state.status == CombatMatchStatus.paused)
+              ? CombatMatchStatus.paused
+              : CombatMatchStatus.activeCombat;
+
+          _state = _state.copyWith(
+            status: nextStatus,
+            clearActiveSowBay: true,
+            selectedBay: bayIndex,
+          );
+          prediction = engine.predictSow(bayIndex, resolvedDirection);
+          notifyListeners();
+
+          if (_sowAnimationCompleter != null &&
+              !_sowAnimationCompleter!.isCompleted) {
+            _sowAnimationCompleter!.complete();
+          }
+          return;
+        }
+
+        currentBay = (currentBay + currentDir + 16) & 0x0F;
+        remainingHops--;
+        hopIndex++;
+        if (remainingHops > 0 && (currentBay == 8 || currentBay == 15)) {
+          if (currentBay == 15 && currentDir == 1) {
+            currentDir = -1;
+          } else if (currentBay == 8 && currentDir == -1) {
+            currentDir = 1;
+          }
+        }
+
+        _state = _state.copyWith(activeSowBay: currentBay);
         HapticService.instance.sowTick();
-        audio.onSowStep(cascadeDepth: 0);
-        engine.injectCore(bayIndex, resolvedDirection);
-        vlog(
-          6,
-          'CombatCoordinator: Sow completed for bay $bayIndex dir $resolvedDirection',
-        );
-        _syncDomainState();
-        _pendingSowBay = null;
-        _pendingSowDirection = null;
-
-        final nextStatus = (_state.status == CombatMatchStatus.paused)
-            ? CombatMatchStatus.paused
-            : CombatMatchStatus.activeCombat;
-
-        _state = _state.copyWith(
-          status: nextStatus,
-          clearActiveSowBay: true,
-          selectedBay: bayIndex,
-        );
-        prediction = engine.predictSow(bayIndex, resolvedDirection);
+        audio.onSowStep(cascadeDepth: hopIndex ~/ 8);
         notifyListeners();
 
-        if (_sowAnimationCompleter != null &&
-            !_sowAnimationCompleter!.isCompleted) {
-          _sowAnimationCompleter!.complete();
-        }
-        return;
+        unawaited(Future.delayed(const Duration(milliseconds: 65), step));
+      } catch (e, stack) {
+        vlog(1, 'CombatCoordinator: Error in sow animation step: $e\n$stack');
+        _finalizePendingSow();
       }
-
-      currentBay = (currentBay + currentDir + 16) & 0x0F;
-      remainingHops--;
-      hopIndex++;
-      if (remainingHops > 0 && (currentBay == 8 || currentBay == 15)) {
-        if (currentBay == 15 && currentDir == 1) {
-          currentDir = -1;
-        } else if (currentBay == 8 && currentDir == -1) {
-          currentDir = 1;
-        }
-      }
-
-      _state = _state.copyWith(activeSowBay: currentBay);
-      HapticService.instance.sowTick();
-      audio.onSowStep(cascadeDepth: hopIndex ~/ 8);
-      notifyListeners();
-
-      unawaited(Future.delayed(const Duration(milliseconds: 65), step));
     }
 
     step();
@@ -976,6 +993,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Discharges an immediate axial particle lance from the Dreadnought's prow
   /// into the current corridor, drawing from the aligned bay or injecting a core.
   void quickFireActiveCorridor() {
+    _finalizePendingSow();
     if (!_state.canReceiveInput) return;
     _captureTurnSnapshot();
     if (_state.status == CombatMatchStatus.paused) {
@@ -1109,8 +1127,12 @@ class CombatCoordinator extends ChangeNotifier {
 
   /// Resumes the combat simulation from paused state.
   void resumeCombat() {
-    if (_state.status == CombatMatchStatus.paused) {
-      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+    if (_state.status == CombatMatchStatus.paused ||
+        _state.status == CombatMatchStatus.sowingSequence) {
+      _state = _state.copyWith(
+        status: CombatMatchStatus.activeCombat,
+        clearActiveSowBay: true,
+      );
       notifyListeners();
     }
   }

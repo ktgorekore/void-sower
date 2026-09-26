@@ -293,18 +293,21 @@ class PauseMenuDialog extends StatelessWidget {
                                 : VoidTheme.textMuted,
                             size: 16.0,
                           ),
-                          const SizedBox(width: 6.0),
-                          Text(
-                            canRewind
-                                ? 'CHRONO-REWIND ($rewindsRemaining REMAINING)'
-                                : 'CHRONO-REWIND (DEPLETED / LOCKED)',
-                            style: TextStyle(
-                              color: canRewind
-                                  ? VoidTheme.starWhite
-                                  : VoidTheme.textMuted,
-                              fontSize: 10.0,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
+                          Flexible(
+                            child: Text(
+                              canRewind
+                                  ? 'CHRONO-REWIND ($rewindsRemaining REMAINING)'
+                                  : 'CHRONO-REWIND (DEPLETED / LOCKED)',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: canRewind
+                                    ? VoidTheme.starWhite
+                                    : VoidTheme.textMuted,
+                                fontSize: 10.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
                         ],

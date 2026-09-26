@@ -52,6 +52,8 @@ class CombatScreen extends StatefulWidget {
     this.difficultyTier = 0,
     this.sectorId = 1,
     this.sector,
+    this.startingCores,
+    this.initialVelocity,
     this.onReturnToMap,
     this.autoStartSolver = false,
     this.startWithTutorial = false,
@@ -61,6 +63,8 @@ class CombatScreen extends StatefulWidget {
   final int difficultyTier;
   final int sectorId;
   final CampaignSector? sector;
+  final int? startingCores;
+  final double? initialVelocity;
   final VoidCallback? onReturnToMap;
   final bool autoStartSolver;
   final bool startWithTutorial;
@@ -84,6 +88,9 @@ class _CombatScreenState extends State<CombatScreen>
   CombatOverlayState _overlayState = CombatOverlayState.none;
   Timer? _autoAdvanceTimer;
 
+  CampaignSector get _activeSector =>
+      widget.sector ?? CampaignService.instance.getSector(_currentSectorId);
+
   int _lastReserveCores = -1;
   int _lastTotalScore = -1;
   int _lastInvadersRemaining = -1;
@@ -104,9 +111,10 @@ class _CombatScreenState extends State<CombatScreen>
     final isLowBattery = PersistenceService.instance.lowBatteryMode;
     _targetFps = isLowBattery ? 30 : PersistenceService.instance.targetFps;
 
-    _currentSectorId = widget.sectorId;
-    final sector = CampaignService.instance.getSector(_currentSectorId);
-    _currentDifficultyTier = sector.difficultyTier;
+    _currentSectorId = widget.sector?.sectorId ?? widget.sectorId;
+    final sector = _activeSector;
+    _currentDifficultyTier =
+        widget.sector?.difficultyTier ?? sector.difficultyTier;
     _coordinator = CombatCoordinator(
       engine: widget.engine,
       difficultyTier: _currentDifficultyTier,
@@ -114,7 +122,9 @@ class _CombatScreenState extends State<CombatScreen>
     _coordinator.addListener(_onCoordinatorStateChanged);
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
-      sector: widget.sector ?? sector,
+      sector: sector,
+      startingCores: widget.startingCores,
+      initialVelocity: widget.initialVelocity,
       autoStartSolver: widget.autoStartSolver,
       startWithTutorial: widget.startWithTutorial,
     );
@@ -253,7 +263,7 @@ class _CombatScreenState extends State<CombatScreen>
     }
 
     final currentScore = _coordinator.dreadnought.totalScore;
-    final defeatSector = CampaignService.instance.getSector(_currentSectorId);
+    final defeatSector = _activeSector;
     final isAiAssisted = _coordinator.hasUsedAiSolver;
 
     if (!isAiAssisted) {
@@ -339,7 +349,7 @@ class _CombatScreenState extends State<CombatScreen>
     final enemiesNeutralized = _coordinator.enemies
         .where((e) => e.isDestroyed)
         .length;
-    final currentSector = CampaignService.instance.getSector(_currentSectorId);
+    final currentSector = _activeSector;
     final isAiAssisted = _coordinator.hasUsedAiSolver;
 
     if (!isAiAssisted) {
@@ -447,11 +457,13 @@ class _CombatScreenState extends State<CombatScreen>
 
   void _restartCombat() {
     _overlayState = CombatOverlayState.none;
-    final sector = CampaignService.instance.getSector(_currentSectorId);
+    final sector = _activeSector;
     _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
       difficulty: _currentDifficultyTier,
       sector: sector,
+      startingCores: widget.startingCores,
+      initialVelocity: widget.initialVelocity,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
     _resumeTicker();
@@ -483,6 +495,7 @@ class _CombatScreenState extends State<CombatScreen>
   void _openCodex() {
     if (_overlayState != CombatOverlayState.none) return;
     _overlayState = CombatOverlayState.codex;
+    _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
     if (_coordinator.state.status == CombatMatchStatus.briefing) {
@@ -498,10 +511,12 @@ class _CombatScreenState extends State<CombatScreen>
       ),
     ).then((_) {
       _overlayState = CombatOverlayState.none;
-      if (mounted &&
-          wasTicking &&
-          _coordinator.state.status != CombatMatchStatus.briefing) {
-        _resumeTicker();
+      if (mounted) {
+        if (_coordinator.state.status != CombatMatchStatus.briefing) {
+          _coordinator.resumeCombat();
+          if (wasTicking) _resumeTicker();
+        }
+        setState(() {});
       }
     });
   }
@@ -509,6 +524,7 @@ class _CombatScreenState extends State<CombatScreen>
   void _openSettings() {
     if (_overlayState != CombatOverlayState.none) return;
     _overlayState = CombatOverlayState.settings;
+    _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -524,10 +540,12 @@ class _CombatScreenState extends State<CombatScreen>
       ),
     ).then((_) {
       _overlayState = CombatOverlayState.none;
-      if (mounted &&
-          wasTicking &&
-          _coordinator.state.status != CombatMatchStatus.briefing) {
-        _resumeTicker();
+      if (mounted) {
+        if (_coordinator.state.status != CombatMatchStatus.briefing) {
+          _coordinator.resumeCombat();
+          if (wasTicking) _resumeTicker();
+        }
+        setState(() {});
       }
     });
   }
@@ -535,6 +553,7 @@ class _CombatScreenState extends State<CombatScreen>
   void _openEmergencyFlare() {
     if (_overlayState != CombatOverlayState.none) return;
     _overlayState = CombatOverlayState.emergencyFlare;
+    _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -547,8 +566,10 @@ class _CombatScreenState extends State<CombatScreen>
       ),
     ).then((_) {
       _overlayState = CombatOverlayState.none;
-      if (mounted && wasTicking) {
-        _resumeTicker();
+      if (mounted) {
+        _coordinator.resumeCombat();
+        if (wasTicking) _resumeTicker();
+        setState(() {});
       }
     });
   }
@@ -556,6 +577,7 @@ class _CombatScreenState extends State<CombatScreen>
   void _openProfile() {
     if (_overlayState != CombatOverlayState.none) return;
     _overlayState = CombatOverlayState.profile;
+    _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -569,8 +591,10 @@ class _CombatScreenState extends State<CombatScreen>
       ),
     ).then((_) {
       _overlayState = CombatOverlayState.none;
-      if (mounted && wasTicking) {
-        _resumeTicker();
+      if (mounted) {
+        _coordinator.resumeCombat();
+        if (wasTicking) _resumeTicker();
+        setState(() {});
       }
     });
   }
@@ -594,6 +618,7 @@ class _CombatScreenState extends State<CombatScreen>
     } else {
       final wasTicking = _ticker.isTicking;
       if (wasTicking) _ticker.stop();
+      _coordinator.pauseCombat();
 
       showDialog<void>(
         context: context,
@@ -608,8 +633,10 @@ class _CombatScreenState extends State<CombatScreen>
           },
         ),
       ).then((_) {
-        if (mounted && wasTicking) {
-          _resumeTicker();
+        if (mounted) {
+          _coordinator.resumeCombat();
+          if (wasTicking) _resumeTicker();
+          setState(() {});
         }
       });
     }
@@ -618,6 +645,7 @@ class _CombatScreenState extends State<CombatScreen>
   void _openProUpgradeModal() {
     if (_overlayState != CombatOverlayState.none) return;
     _overlayState = CombatOverlayState.proUpgrade;
+    _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -631,8 +659,10 @@ class _CombatScreenState extends State<CombatScreen>
       ),
     ).then((_) {
       _overlayState = CombatOverlayState.none;
-      if (mounted && wasTicking) {
-        _resumeTicker();
+      if (mounted) {
+        _coordinator.resumeCombat();
+        if (wasTicking) _resumeTicker();
+        setState(() {});
       }
     });
   }
@@ -675,7 +705,7 @@ class _CombatScreenState extends State<CombatScreen>
       barrierColor: Colors.black.withValues(alpha: 0.75),
       builder: (dialogContext) => PauseMenuDialog(
         sectorId: _currentSectorId,
-        sectorName: CampaignService.instance.getSector(_currentSectorId).name,
+        sectorName: _activeSector.name,
         difficultyTier: _currentDifficultyTier,
         score: _coordinator.competitiveScore,
         highScore: _coordinator.highScore,
