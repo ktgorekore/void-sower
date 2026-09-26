@@ -788,6 +788,10 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Chained dialog navigation (e.g. Pause Menu -> Codex / Settings -> dismiss) cleanly unpauses the simulation coordinator and resumes the 60 Hz ticker, eliminating combat freezes.
   - [x] Introduce `_activeSector` getter in `CombatScreen` to prevent custom simulation sectors from being overwritten by default campaign sector lookups during restarts.
   - [x] Wrap Chrono-Rewind text in `Flexible` inside `PauseMenuDialog` to eliminate `RenderFlex` layout overflow on constrained mobile viewports.
+  - [x] Resolve empty arena stranding upon unlocking Pro from `VictoryDialog`:
+    - Automatically advance to the next sector (`_advanceNextSector()`) upon Pro unlock, generating fresh waves and engaging combat immediately.
+    - If `ProUpgradeModal` is dismissed without unlocking, re-present `VictoryDialog` (`_showVictoryModal(isReopen: true)`) without grace delay or duplicate stats recording, allowing players to replay or return to the Star Map.
+    - In `victoryReview` mode, equip bottom command dock with `UNLOCK PRO` action when the subsequent sector requires Pro access, dynamically transitioning to `NEXT SECTOR` upon entitlement grant.
 
 - [x] **Task 22.5: Comprehensive Test Suite Coverage & Verification**
   - [x] Add unit and widget test suite `test/phase22_sim_lab_combat_workflow_test.dart` verifying:
@@ -795,7 +799,10 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
     - Hostile reinforcement spawning and clean victory transition without empty arena hang.
     - Rapid axial quick-fire responsiveness without input locks.
     - Chained dialog navigation (Pause -> Codex -> dismiss) resuming combat simulation cleanly.
-  - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 203/203).
+    - Pro unlock from `VictoryDialog` advancing immediately to the next sector without empty arena stranding.
+    - Pro modal dismissal re-presenting `VictoryDialog` safely.
+    - Bottom command dock Pro unlock and subsequent advance in `victoryReview` mode.
+  - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 206/206).
   - [x] 0 issues found in `flutter analyze`.
   - [x] All C++ and Dart code formatted with `clang-format -style=Google` and `dart format`.
 

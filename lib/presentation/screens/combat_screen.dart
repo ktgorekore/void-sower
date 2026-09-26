@@ -328,50 +328,60 @@ class _CombatScreenState extends State<CombatScreen>
     }
   }
 
-  Future<void> _showVictoryModal() async {
-    if (_overlayState == CombatOverlayState.victoryReview) {
-      // Re-opening victory dialog from battlefield review dock
+  Future<void> _showVictoryModal({bool isReopen = false}) async {
+    final fromReview =
+        _overlayState == CombatOverlayState.victoryReview || isReopen;
+    if (fromReview) {
+      // Re-opening victory dialog from battlefield review dock or pro modal
     } else if (_overlayState.isTerminalFlow || _overlayState.isModalOpen) {
       return;
     }
-    _overlayState = CombatOverlayState.victoryGrace;
-    _autoAdvanceTimer?.cancel();
 
-    // 600ms grace period so in-flight shooting taps clear, animations finish,
-    // and victory fanfare plays before modal interrupts.
-    await Future.delayed(const Duration(milliseconds: 600));
-    if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
-      return;
+    if (!fromReview) {
+      _overlayState = CombatOverlayState.victoryGrace;
+      _autoAdvanceTimer?.cancel();
+
+      // 600ms grace period so in-flight shooting taps clear, animations finish,
+      // and victory fanfare plays before modal interrupts.
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
+        return;
+      }
+
+      final score = _coordinator.dreadnought.totalScore;
+      final cores = _coordinator.dreadnought.reserveCores;
+      final enemiesNeutralized = _coordinator.enemies
+          .where((e) => e.isDestroyed)
+          .length;
+      final currentSector = _activeSector;
+      final isAiAssisted = _coordinator.hasUsedAiSolver;
+
+      if (!isAiAssisted) {
+        await PersistenceService.instance.recordSectorVictory(
+          sectorId: _currentSectorId,
+          score: score,
+          coresRemaining: cores,
+          enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
+          lancesFired: _coordinator.sessionLancesFired,
+          flakBursts: _coordinator.sessionFlakBursts,
+          seedsSown: _coordinator.sessionSeedsSown,
+          maxCascadeLaps: _coordinator.sessionMaxCascade,
+          flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
+          chassisId: PersistenceService.instance.selectedChassisId,
+          campaignId: currentSector.campaignId,
+        );
+      }
     }
 
-    final score = _coordinator.dreadnought.totalScore;
-    final cores = _coordinator.dreadnought.reserveCores;
-    final enemiesNeutralized = _coordinator.enemies
-        .where((e) => e.isDestroyed)
-        .length;
-    final currentSector = _activeSector;
-    final isAiAssisted = _coordinator.hasUsedAiSolver;
-
-    if (!isAiAssisted) {
-      await PersistenceService.instance.recordSectorVictory(
-        sectorId: _currentSectorId,
-        score: score,
-        coresRemaining: cores,
-        enemiesNeutralized: enemiesNeutralized > 0 ? enemiesNeutralized : 4,
-        lancesFired: _coordinator.sessionLancesFired,
-        flakBursts: _coordinator.sessionFlakBursts,
-        seedsSown: _coordinator.sessionSeedsSown,
-        maxCascadeLaps: _coordinator.sessionMaxCascade,
-        flightTimeSeconds: _coordinator.sessionFlightTimeSeconds,
-        chassisId: PersistenceService.instance.selectedChassisId,
-        campaignId: currentSector.campaignId,
-      );
-    }
-
-    if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
+    if (!mounted) {
       return;
     }
     _overlayState = CombatOverlayState.victoryModal;
+
+    final currentSector = _activeSector;
+    final score = _coordinator.dreadnought.totalScore;
+    final cores = _coordinator.dreadnought.reserveCores;
+    final isAiAssisted = _coordinator.hasUsedAiSolver;
 
     final operation = CampaignService.instance.getOperation(
       currentSector.campaignId,
@@ -403,22 +413,44 @@ class _CombatScreenState extends State<CombatScreen>
         unlockedSectorName: nextSector?.name,
         campaignProgressText:
             '$liberatedInCampaign / ${operation.sectors.length} LIBERATED',
-        armDuration: const Duration(milliseconds: 500),
+        armDuration: fromReview
+            ? Duration.zero
+            : const Duration(milliseconds: 500),
         canAdvance: canAdvance,
         isAiAssisted: isAiAssisted,
         onUpgradePro: !isPro
             ? () {
                 _autoAdvanceTimer?.cancel();
                 Navigator.of(dialogContext).pop();
+                _overlayState = CombatOverlayState.proUpgrade;
                 showDialog<void>(
                   context: context,
+                  barrierColor: Colors.black.withValues(alpha: 0.75),
                   builder: (context) => ProUpgradeModal(
                     highlightedFeature: ProFeature.proCampaignTheaters,
                     onUnlocked: () {
                       if (mounted) setState(() {});
                     },
                   ),
-                );
+                ).then((_) {
+                  if (!mounted) return;
+                  if (EntitlementService.instance.isProUnlocked) {
+                    final currSector = CampaignService.instance.getSector(
+                      _currentSectorId,
+                    );
+                    final op = CampaignService.instance.getOperation(
+                      currSector.campaignId,
+                    );
+                    final maxSector = op.baseSectorId + op.sectors.length - 1;
+                    if (_currentSectorId < maxSector) {
+                      _advanceNextSector();
+                    } else {
+                      _showVictoryModal(isReopen: true);
+                    }
+                  } else {
+                    _showVictoryModal(isReopen: true);
+                  }
+                });
               }
             : null,
         onNextSector: () {
@@ -616,6 +648,8 @@ class _CombatScreenState extends State<CombatScreen>
     )) {
       _coordinator.toggleAutoSolve();
     } else {
+      if (_overlayState != CombatOverlayState.none) return;
+      _overlayState = CombatOverlayState.proUpgrade;
       final wasTicking = _ticker.isTicking;
       if (wasTicking) _ticker.stop();
       _coordinator.pauseCombat();
@@ -633,6 +667,7 @@ class _CombatScreenState extends State<CombatScreen>
           },
         ),
       ).then((_) {
+        _overlayState = CombatOverlayState.none;
         if (mounted) {
           _coordinator.resumeCombat();
           if (wasTicking) _resumeTicker();
@@ -643,9 +678,15 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _openProUpgradeModal() {
-    if (_overlayState != CombatOverlayState.none) return;
+    if (_overlayState != CombatOverlayState.none &&
+        _overlayState != CombatOverlayState.victoryReview) {
+      return;
+    }
+    final previousOverlay = _overlayState;
     _overlayState = CombatOverlayState.proUpgrade;
-    _coordinator.pauseCombat();
+    final wasActive =
+        _coordinator.state.status == CombatMatchStatus.activeCombat;
+    if (wasActive) _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
@@ -658,9 +699,13 @@ class _CombatScreenState extends State<CombatScreen>
         },
       ),
     ).then((_) {
-      _overlayState = CombatOverlayState.none;
-      if (mounted) {
-        _coordinator.resumeCombat();
+      if (!mounted) return;
+      if (previousOverlay == CombatOverlayState.victoryReview) {
+        _overlayState = CombatOverlayState.victoryReview;
+        setState(() {});
+      } else {
+        _overlayState = CombatOverlayState.none;
+        if (wasActive) _coordinator.resumeCombat();
         if (wasTicking) _resumeTicker();
         setState(() {});
       }
@@ -797,6 +842,20 @@ class _CombatScreenState extends State<CombatScreen>
             _coordinator.enemies.every((e) => e.isDestroyed) &&
             _coordinator.remainingReinforcements <= 0);
 
+    final currentSector = _activeSector;
+    final operation = CampaignService.instance.getOperation(
+      currentSector.campaignId,
+    );
+    final isPro = EntitlementService.instance.isProUnlocked;
+    final maxSectorInOperation =
+        operation.baseSectorId + operation.sectors.length - 1;
+    final nextSectorCandidate = _currentSectorId < maxSectorInOperation
+        ? CampaignService.instance.getSector(_currentSectorId + 1)
+        : null;
+    final canAdvance =
+        nextSectorCandidate != null &&
+        (isPro || nextSectorCandidate.isUnlocked);
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -876,7 +935,7 @@ class _CombatScreenState extends State<CombatScreen>
                               onNextSectorTap: () {
                                 if (_overlayState ==
                                     CombatOverlayState.victoryReview) {
-                                  _showVictoryModal();
+                                  _showVictoryModal(isReopen: true);
                                 } else {
                                   _advanceNextSector();
                                 }
@@ -1297,7 +1356,17 @@ class _CombatScreenState extends State<CombatScreen>
                                                 const SizedBox(width: 8.0),
                                                 // Advance to Next Sector Button
                                                 GestureDetector(
-                                                  onTap: _advanceNextSector,
+                                                  onTap: () {
+                                                    if (canAdvance) {
+                                                      _advanceNextSector();
+                                                    } else if (nextSectorCandidate !=
+                                                            null &&
+                                                        !isPro) {
+                                                      _openProUpgradeModal();
+                                                    } else {
+                                                      _restartCombat();
+                                                    }
+                                                  },
                                                   child: Container(
                                                     padding:
                                                         const EdgeInsets.symmetric(
@@ -1305,19 +1374,34 @@ class _CombatScreenState extends State<CombatScreen>
                                                           vertical: 6.0,
                                                         ),
                                                     decoration: BoxDecoration(
-                                                      color: VoidTheme
-                                                          .emeraldShield,
+                                                      color: canAdvance
+                                                          ? VoidTheme
+                                                                .emeraldShield
+                                                          : (nextSectorCandidate !=
+                                                                        null &&
+                                                                    !isPro
+                                                                ? VoidTheme
+                                                                      .solarGold
+                                                                : VoidTheme
+                                                                      .plasmaCyan),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             6.0,
                                                           ),
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color: VoidTheme
-                                                              .emeraldShield
-                                                              .withValues(
-                                                                alpha: 0.4,
-                                                              ),
+                                                          color:
+                                                              (canAdvance
+                                                                      ? VoidTheme
+                                                                            .emeraldShield
+                                                                      : (nextSectorCandidate !=
+                                                                                    null &&
+                                                                                !isPro
+                                                                            ? VoidTheme.solarGold
+                                                                            : VoidTheme.plasmaCyan))
+                                                                  .withValues(
+                                                                    alpha: 0.4,
+                                                                  ),
                                                           blurRadius: 6.0,
                                                         ),
                                                       ],
@@ -1327,9 +1411,13 @@ class _CombatScreenState extends State<CombatScreen>
                                                           MainAxisSize.min,
                                                       children: [
                                                         Text(
-                                                          _currentSectorId < 9
+                                                          canAdvance
                                                               ? 'NEXT SECTOR'
-                                                              : 'REPLAY SECTOR',
+                                                              : (nextSectorCandidate !=
+                                                                            null &&
+                                                                        !isPro
+                                                                    ? 'UNLOCK PRO'
+                                                                    : 'REPLAY SECTOR'),
                                                           style: const TextStyle(
                                                             color: VoidTheme
                                                                 .obsidianBlack,
@@ -1342,8 +1430,17 @@ class _CombatScreenState extends State<CombatScreen>
                                                         const SizedBox(
                                                           width: 4.0,
                                                         ),
-                                                        const Icon(
-                                                          Icons.navigate_next,
+                                                        Icon(
+                                                          canAdvance
+                                                              ? Icons
+                                                                    .navigate_next
+                                                              : (nextSectorCandidate !=
+                                                                            null &&
+                                                                        !isPro
+                                                                    ? Icons
+                                                                          .workspace_premium
+                                                                    : Icons
+                                                                          .replay),
                                                           color: VoidTheme
                                                               .obsidianBlack,
                                                           size: 15.0,
@@ -1356,7 +1453,9 @@ class _CombatScreenState extends State<CombatScreen>
                                                 // Quick Recap Button to reopen victory dialog
                                                 GestureDetector(
                                                   onTap: () {
-                                                    _showVictoryModal();
+                                                    _showVictoryModal(
+                                                      isReopen: true,
+                                                    );
                                                   },
                                                   child: Container(
                                                     padding:

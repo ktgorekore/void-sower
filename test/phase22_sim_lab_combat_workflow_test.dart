@@ -24,7 +24,9 @@ import 'package:void_sower/presentation/controllers/combat_coordinator.dart';
 import 'package:void_sower/presentation/screens/combat_screen.dart';
 import 'package:void_sower/presentation/screens/simulation_lab_screen.dart';
 import 'package:void_sower/presentation/widgets/pause_menu_dialog.dart';
+import 'package:void_sower/presentation/widgets/pro_upgrade_modal.dart';
 import 'package:void_sower/presentation/widgets/tactical_directives_modal.dart';
+import 'package:void_sower/presentation/widgets/victory_dialog.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -293,6 +295,187 @@ void main() {
         // Verify Codex is closed and combat screen is back to active combat
         expect(find.byType(TacticalDirectivesModal), findsNothing);
         expect(find.byType(CombatScreen), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Non-pro user unlocking Pro from VictoryDialog advances to next sector without stranding',
+      (tester) async {
+        await PersistenceService.instance.setProUnlocked(false);
+        final mockEngine = MockVoidSowerEngine();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CombatScreen(
+              engine: mockEngine,
+              difficultyTier: 1,
+              sectorId: 10,
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // Destroy enemies and set victory
+        for (final e in mockEngine.getEnemies()) {
+          mockEngine.setEnemyDestroyedForTesting(e.entityId, true);
+        }
+        mockEngine.setSimStateForTesting(7);
+
+        // Advance simulation frame so coordinator detects victory
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // Wait out 600ms victoryGrace delay
+        await tester.pump(const Duration(milliseconds: 700));
+        // Wait out 500ms armDuration delay so buttons are armed
+        await tester.pump(const Duration(milliseconds: 600));
+
+        // Verify VictoryDialog is visible
+        expect(find.byType(VictoryDialog), findsOneWidget);
+        expect(find.text('UNLOCK ALL SECTORS • PRO'), findsOneWidget);
+
+        // Tap UNLOCK ALL SECTORS • PRO
+        await tester.tap(find.text('UNLOCK ALL SECTORS • PRO'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify ProUpgradeModal is open
+        expect(find.byType(ProUpgradeModal), findsOneWidget);
+
+        // Tap the main upgrade button
+        await tester.tap(find.textContaining('UNLOCK PRO COMMANDER'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Debug emulator sandbox dialog appears
+        expect(find.text('SIMULATE PURCHASE'), findsOneWidget);
+        await tester.tap(find.text('SIMULATE PURCHASE'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify VictoryDialog and ProUpgradeModal are dismissed
+        expect(find.byType(ProUpgradeModal), findsNothing);
+        expect(find.byType(VictoryDialog), findsNothing);
+
+        // Verify CombatScreen advanced to Sector 11 and is active
+        expect(find.byType(CombatScreen), findsOneWidget);
+        expect(find.textContaining('11'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Non-pro user dismissing ProUpgradeModal from VictoryDialog re-presents VictoryDialog',
+      (tester) async {
+        await PersistenceService.instance.setProUnlocked(false);
+        final mockEngine = MockVoidSowerEngine();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CombatScreen(
+              engine: mockEngine,
+              difficultyTier: 1,
+              sectorId: 10,
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // Destroy enemies and set victory
+        for (final e in mockEngine.getEnemies()) {
+          mockEngine.setEnemyDestroyedForTesting(e.entityId, true);
+        }
+        mockEngine.setSimStateForTesting(7);
+
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump(const Duration(milliseconds: 700));
+        await tester.pump(const Duration(milliseconds: 600));
+
+        expect(find.byType(VictoryDialog), findsOneWidget);
+        expect(find.text('UNLOCK ALL SECTORS • PRO'), findsOneWidget);
+
+        // Tap UNLOCK ALL SECTORS • PRO
+        await tester.tap(find.text('UNLOCK ALL SECTORS • PRO'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(ProUpgradeModal), findsOneWidget);
+
+        // Dismiss ProUpgradeModal via close icon without unlocking
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        // Verify ProUpgradeModal closed and VictoryDialog is re-presented
+        expect(find.byType(ProUpgradeModal), findsNothing);
+        expect(find.byType(VictoryDialog), findsOneWidget);
+        expect(find.text('REPLAY SECTOR'), findsOneWidget);
+        expect(find.text('RETURN TO STAR MAP'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Non-pro user in victoryReview mode can tap UNLOCK PRO in bottom dock',
+      (tester) async {
+        await PersistenceService.instance.setProUnlocked(false);
+        final mockEngine = MockVoidSowerEngine();
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: CombatScreen(
+              engine: mockEngine,
+              difficultyTier: 1,
+              sectorId: 10,
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // Trigger victory
+        for (final e in mockEngine.getEnemies()) {
+          mockEngine.setEnemyDestroyedForTesting(e.entityId, true);
+        }
+        mockEngine.setSimStateForTesting(7);
+
+        await tester.pump(const Duration(milliseconds: 50));
+        await tester.pump(const Duration(milliseconds: 700));
+        await tester.pump(const Duration(milliseconds: 600));
+
+        expect(find.byType(VictoryDialog), findsOneWidget);
+
+        // Dismiss VictoryDialog to enter victoryReview mode
+        await tester.tap(find.byIcon(Icons.close));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(VictoryDialog), findsNothing);
+
+        // Verify bottom dock shows UNLOCK PRO button (since sector 11 requires Pro)
+        expect(find.text('UNLOCK PRO'), findsOneWidget);
+
+        // Tap UNLOCK PRO
+        await tester.tap(find.text('UNLOCK PRO'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(ProUpgradeModal), findsOneWidget);
+
+        // Simulate purchase
+        await tester.tap(find.textContaining('UNLOCK PRO COMMANDER'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.text('SIMULATE PURCHASE'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(ProUpgradeModal), findsNothing);
+        // After unlocking Pro in victoryReview mode, bottom dock now shows NEXT SECTOR!
+        expect(find.text('NEXT SECTOR'), findsOneWidget);
+
+        // Tap NEXT SECTOR
+        await tester.tap(find.text('NEXT SECTOR'));
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // CombatScreen advanced to Sector 11!
+        expect(find.textContaining('11'), findsOneWidget);
       },
     );
   });
