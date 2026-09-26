@@ -239,9 +239,13 @@ class IapService {
     }
 
     if (!_isAvailable) {
+      await initialize(timeoutDuration: const Duration(seconds: 4));
+    }
+
+    if (!_isAvailable) {
       debugPrint('[IapService] Store billing service unavailable.');
       return const PurchaseOutcome.error(
-        'Google Play Store billing is currently unavailable.',
+        'Google Play Store billing is currently unavailable on this device or emulator. Please verify Google Play Store is installed and signed into an active Google account.',
       );
     }
 
@@ -250,7 +254,7 @@ class IapService {
       if (_proProductDetails == null) {
         debugPrint('[IapService] SKU $kProLifetimeSku details not found.');
         return const PurchaseOutcome.error(
-          'Pro product details could not be loaded from the store.',
+          'Pro product details could not be loaded from Google Play Store.',
         );
       }
     }
@@ -293,6 +297,10 @@ class IapService {
       return;
     }
     if (!_isAvailable) {
+      await initialize(timeoutDuration: const Duration(seconds: 4));
+    }
+    if (!_isAvailable) {
+      debugPrint('[IapService] Store unavailable, cannot restore purchases.');
       return;
     }
     try {

@@ -171,6 +171,51 @@ void main() {
       // ProUpgradeModal is presented
       expect(find.byType(ProUpgradeModal), findsOneWidget);
     });
+
+    testWidgets(
+      'ProUpgradeModal displays Debug Sandbox popup when store is unavailable and allows simulation',
+      (tester) async {
+        bool unlockedCalled = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () => showDialog<void>(
+                    context: context,
+                    builder: (ctx) => ProUpgradeModal(
+                      onUnlocked: () => unlockedCalled = true,
+                    ),
+                  ),
+                  child: const Text('OPEN'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('OPEN'));
+        await tester.pumpAndSettle();
+
+        // Tap UNLOCK PRO COMMANDER
+        await tester.tap(find.text('UNLOCK PRO COMMANDER — \$1.29'));
+        await tester.pumpAndSettle();
+
+        // Debug Emulator Sandbox popup is displayed
+        expect(find.text('DEBUG EMULATOR SANDBOX'), findsOneWidget);
+        expect(find.text('SIMULATE PURCHASE'), findsOneWidget);
+
+        // Tap SIMULATE PURCHASE
+        await tester.tap(find.text('SIMULATE PURCHASE'));
+        await tester.pumpAndSettle();
+
+        // Pro is unlocked and onUnlocked callback triggered
+        expect(unlockedCalled, isTrue);
+        expect(PersistenceService.instance.isProUnlocked, isTrue);
+        expect(find.byType(ProUpgradeModal), findsNothing);
+      },
+    );
   });
 
   group(

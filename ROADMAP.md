@@ -705,11 +705,18 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Add `initialCampaignId` support to `CampaignMapScreen` and configure post-match victory/game over navigation to route directly to starter theater `kilwa_basin`.
   - [x] Hardened `PersistenceService.activeCampaignId` with non-Pro fallback checking to enforce `'kilwa_basin'` access for non-Pro pilots.
 
-- [x] **Task 20.6: Automated Regression Verification & Test Suite Coverage**
-  - [x] Author comprehensive unit and widget test suite `test/phase20_fixes_test.dart` covering all 5 core bug fixes.
+- [x] **Task 20.6: Google Play Billing Resilience, Modal Feedback & Debug Sandbox Flow (`IapService` & `ProUpgradeModal`)**
+  - [x] Implement lazy re-initialization (`initialize(timeoutDuration: 4s)`) inside `purchaseProLifetime()` and `restorePurchases()` if `_isAvailable` is false upon invocation.
+  - [x] Replace obscured background SnackBars with prominent foreground `AlertDialog`s for store billing failures.
+  - [x] In `kDebugMode` (e.g. Android emulators without an active Google Play account), display a dedicated **DEBUG EMULATOR SANDBOX** dialog with a one-tap `[SIMULATE PURCHASE]` option to unlock and test all Pro Commander capabilities immediately.
+  - [x] Author comprehensive widget tests verifying debug sandbox popup presentation, simulation action, and state persistence.
+
+- [x] **Task 20.7: Automated Regression Verification & Test Suite Coverage**
+  - [x] Author comprehensive unit and widget test suite `test/phase20_fixes_test.dart` covering all Phase 20 bug fixes.
   - [x] Update `test/hud_redesign_test.dart` to verify compact Pro badge presence.
-  - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 190/190).
+  - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 191/191).
   - [x] 0 issues found in `flutter analyze`.
+
 
 
 

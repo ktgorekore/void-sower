@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/entitlement_service.dart';
+import '../../domain/services/iap_service.dart';
+import '../../domain/services/persistence_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
@@ -78,16 +81,172 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
           ),
         );
       } else if (outcome.isError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'PURCHASE FAILED: ${outcome.errorMessage ?? 'Store transaction failed.'}',
-              style: const TextStyle(fontFamily: 'monospace'),
+        if (kDebugMode &&
+            (!IapService.instance.isAvailable ||
+                outcome.errorMessage?.contains('unavailable') == true ||
+                outcome.errorMessage?.contains('not found') == true)) {
+          final simulate = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: VoidTheme.obsidianBlack,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: VoidTheme.solarGold, width: 1.5),
+              ),
+              title: const Row(
+                children: [
+                  Icon(
+                    Icons.developer_mode,
+                    color: VoidTheme.solarGold,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'DEBUG EMULATOR SANDBOX',
+                    style: TextStyle(
+                      color: VoidTheme.solarGold,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Google Play Billing is unavailable on this emulator or test device (no Google account signed in).\n\nWould you like to simulate a successful Pro Commander purchase for testing?',
+                    style: TextStyle(
+                      color: VoidTheme.textPrimary,
+                      fontSize: 12,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: VoidTheme.cardSurface,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: VoidTheme.solarGold.withValues(alpha: 0.5),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: const Text(
+                      'SKU: void_sower_pro_lifetime (\$1.29 USD)',
+                      style: TextStyle(
+                        color: VoidTheme.plasmaCyan,
+                        fontSize: 10.5,
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text(
+                    'CANCEL',
+                    style: TextStyle(color: VoidTheme.textSecondary),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: VoidTheme.solarGold,
+                    foregroundColor: VoidTheme.obsidianBlack,
+                  ),
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text(
+                    'SIMULATE PURCHASE',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ),
-            backgroundColor: VoidTheme.crimsonFlare,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+          );
+
+          if (!mounted) return;
+          if (simulate == true) {
+            await PersistenceService.instance.setProUnlocked(true);
+            EntitlementService.instance.notifyEntitlementChanged();
+            if (!mounted) return;
+            widget.onUnlocked?.call();
+            Navigator.of(context).pop();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'PRO COMMANDER UNLOCKED: All features, flagships & ad-free access granted!',
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                backgroundColor: VoidTheme.solarGold,
+                duration: Duration(seconds: 2),
+              ),
+            );
+            return;
+          }
+        } else {
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: VoidTheme.obsidianBlack,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(
+                  color: VoidTheme.crimsonFlare,
+                  width: 1.5,
+                ),
+              ),
+              title: const Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: VoidTheme.crimsonFlare,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'STORE BILLING UNAVAILABLE',
+                    style: TextStyle(
+                      color: VoidTheme.crimsonFlare,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+              content: Text(
+                outcome.errorMessage ??
+                    'Google Play Store billing is currently unavailable on this device. Please verify that Google Play Store is installed and signed into an active Google account.',
+                style: const TextStyle(
+                  color: VoidTheme.textPrimary,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text(
+                    'DISMISS',
+                    style: TextStyle(color: VoidTheme.plasmaCyan),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
       }
     }
   }
@@ -152,15 +311,67 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'No previous Pro purchases found for this account.',
-              style: TextStyle(fontFamily: 'monospace'),
+        if (!IapService.instance.isAvailable) {
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: VoidTheme.obsidianBlack,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(
+                  color: VoidTheme.crimsonFlare,
+                  width: 1.5,
+                ),
+              ),
+              title: const Row(
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    color: VoidTheme.crimsonFlare,
+                    size: 20,
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    'STORE BILLING UNAVAILABLE',
+                    style: TextStyle(
+                      color: VoidTheme.crimsonFlare,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                ],
+              ),
+              content: const Text(
+                'Google Play Store billing is currently unavailable on this device or emulator. Please verify Google Play Store is installed and signed into an active Google account.',
+                style: TextStyle(
+                  color: VoidTheme.textPrimary,
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text(
+                    'DISMISS',
+                    style: TextStyle(color: VoidTheme.plasmaCyan),
+                  ),
+                ),
+              ],
             ),
-            backgroundColor: VoidTheme.cardSurface,
-          ),
-        );
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'No previous Pro purchases found for this account.',
+                style: TextStyle(fontFamily: 'monospace'),
+              ),
+              backgroundColor: VoidTheme.cardSurface,
+            ),
+          );
+        }
       }
     }
   }
