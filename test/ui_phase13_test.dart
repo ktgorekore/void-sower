@@ -275,8 +275,8 @@ void main() {
           ),
         );
 
-        expect(find.text('C1'), findsOneWidget);
-        expect(find.text('C8'), findsOneWidget);
+        expect(find.text('8'), findsOneWidget);
+        expect(find.text('15'), findsOneWidget);
         expect(find.byType(CommandArcWidget), findsOneWidget);
 
         // Tap bay 3

@@ -78,26 +78,28 @@ void main() {
         // 1. Physical sow buttons MUST NOT exist
         expect(find.text('◄ SOW'), findsNothing);
         expect(find.text('SOW ►'), findsNothing);
+        expect(find.text('SOW LEFT'), findsNothing);
+        expect(find.text('SOW RIGHT'), findsNothing);
 
         // 2. Lateral slider chevron handle MUST NOT exist
         expect(find.byIcon(Icons.rocket), findsNothing);
 
-        // 3. Corridor alignment badges C1 to C8 MUST exist
+        // 3. Cluttered outside corridor notch badges C1 to C8 MUST NOT exist
         for (var i = 1; i <= 8; i++) {
-          expect(find.text('C$i'), findsOneWidget);
+          expect(find.text('C$i'), findsNothing);
         }
 
-        // 4. Prominent AXIAL DISCHARGE button MUST exist
-        expect(find.textContaining('AXIAL DISCHARGE'), findsOneWidget);
+        // 4. Cluttered AXIAL DISCHARGE button MUST NOT exist
+        expect(find.textContaining('AXIAL DISCHARGE'), findsNothing);
 
-        // 5. Tapping corridor badge C3 selects frontline bay 10 (8 + 2) and aligns slide
-        await tester.tap(find.text('C3'));
+        // 5. Tapping frontline bay 10 selects frontline bay 10 and aligns slide
+        await tester.tap(find.text('10'));
         await tester.pumpAndSettle();
         expect(selectedBay, equals(10));
         expect(slidePos, equals((2 + 0.5) / 8.0));
 
-        // 6. Tapping AXIAL DISCHARGE triggers core injection
-        await tester.tap(find.textContaining('AXIAL DISCHARGE'));
+        // 6. Flicking upward on frontline bay 10 triggers core injection
+        await tester.drag(find.text('10'), const Offset(0.0, -50.0));
         await tester.pumpAndSettle();
         expect(injectedBay, isNotNull);
         expect(injectedDir, isNotNull);

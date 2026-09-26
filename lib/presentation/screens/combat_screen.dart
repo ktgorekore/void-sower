@@ -35,7 +35,7 @@ import '../widgets/hud_header.dart';
 import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/pause_menu_dialog.dart';
 import '../widgets/profile_modal.dart';
-import '../widgets/projection_shelf.dart';
+import '../../domain/models/bay_role.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
@@ -93,6 +93,8 @@ class _CombatScreenState extends State<CombatScreen>
   bool _lastAutoSolving = false;
   int _targetFps = 60;
   int _lastTickMicros = 0;
+  double _viewportDragDx = 0.0;
+  double _viewportDragDy = 0.0;
 
   @override
   void initState() {
@@ -874,12 +876,84 @@ class _CombatScreenState extends State<CombatScreen>
                                         );
                                         return GestureDetector(
                                           behavior: HitTestBehavior.opaque,
+                                          onPanStart: (_) {
+                                            _viewportDragDx = 0.0;
+                                            _viewportDragDy = 0.0;
+                                          },
                                           onPanUpdate: (details) {
+                                            _viewportDragDx += details.delta.dx;
+                                            _viewportDragDy += details.delta.dy;
                                             final normX =
                                                 (details.localPosition.dx /
                                                         constraints.maxWidth)
                                                     .clamp(0.0, 1.0);
                                             _coordinator.slidePosition(normX);
+                                          },
+                                          onPanEnd: (details) {
+                                            if (!matchState.canReceiveInput) {
+                                              return;
+                                            }
+                                            final vx = details
+                                                .velocity
+                                                .pixelsPerSecond
+                                                .dx;
+                                            final vy = details
+                                                .velocity
+                                                .pixelsPerSecond
+                                                .dy;
+
+                                            final activeCorridor =
+                                                (_coordinator
+                                                            .dreadnought
+                                                            .orbitalPositionX *
+                                                        8.0)
+                                                    .floor()
+                                                    .clamp(0, 7);
+                                            final activeBay =
+                                                activeCorridor + 8;
+
+                                            // 1. Upward flick -> Quick-fire axial lance / inject core (Namua)
+                                            if ((vy < -140.0 ||
+                                                    _viewportDragDy < -20.0) &&
+                                                _viewportDragDy.abs() >
+                                                    _viewportDragDx.abs()) {
+                                              _coordinator
+                                                  .quickFireActiveCorridor();
+                                            }
+                                            // 2. Swiped RIGHT (Clockwise)
+                                            else if (_viewportDragDx > 10.0 &&
+                                                (vx > 90.0 ||
+                                                    _viewportDragDx > 25.0)) {
+                                              final resolvedDir =
+                                                  BayRole.resolveSowDirection(
+                                                    activeBay,
+                                                    1,
+                                                  );
+                                              _coordinator.setSowDirection(
+                                                resolvedDir,
+                                              );
+                                              _coordinator.sow(
+                                                activeBay,
+                                                resolvedDir,
+                                              );
+                                            }
+                                            // 3. Swiped LEFT (Counter-Clockwise)
+                                            else if (_viewportDragDx < -10.0 &&
+                                                (vx < -90.0 ||
+                                                    _viewportDragDx < -25.0)) {
+                                              final resolvedDir =
+                                                  BayRole.resolveSowDirection(
+                                                    activeBay,
+                                                    -1,
+                                                  );
+                                              _coordinator.setSowDirection(
+                                                resolvedDir,
+                                              );
+                                              _coordinator.sow(
+                                                activeBay,
+                                                resolvedDir,
+                                              );
+                                            }
                                           },
                                           onDoubleTap: () {
                                             if (matchState.canReceiveInput) {
@@ -1288,25 +1362,6 @@ class _CombatScreenState extends State<CombatScreen>
                                     ),
                                 ],
                               ),
-                            ),
-                          ),
-
-                          // Dynamic Projection Shelf (Isolated RepaintBoundary)
-                          RepaintBoundary(
-                            child: ProjectionShelf(
-                              prediction: _coordinator.prediction,
-                              selectedBay: matchState.selectedBay,
-                              isDeepTelemetry: EntitlementService.instance
-                                  .isFeatureAccessible(
-                                    ProFeature.deepSensorTelemetry,
-                                  ),
-                              threatCorridorBreachProbability:
-                                  _coordinator
-                                          .tacticalAdvice
-                                          ?.isEmergencyBreach ==
-                                      true
-                                  ? 0.95
-                                  : null,
                             ),
                           ),
 

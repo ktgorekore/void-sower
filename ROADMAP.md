@@ -55,6 +55,7 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
 - **Phase 15 Pro Gameplay Suite, Bidirectional Gestures & Ad Monetization Hardening (Release v0.2.20 - Code 22)**: Completed full production release of the Phase 15 Pro gameplay suite across all 10 premium capabilities (Autonomous AI MCTS Solver, Holographic Move Advisor, MK-III Singularity Chassis, MK-IV Golden Sovereign Hull, Deep Sensor Telemetry, Chrono-Anchor Rewind, Tactical Time Dilation, Expanded 27-Sector Theaters, Orbital Simulation Lab Sandbox, and Ad-Free Flares). Hardened rewarded ad lifecycle (`AdService`) with proactive pre-caching, 4s await guards, and isolation of cooldowns strictly to emergency flares, ensuring instant unblocked access to rewarded Pro feature passes and ship rentals. Standardized storefront and in-game copy to concise "Watch Ad" terminology. Refined bidirectional bay gesture recognition in `CommandArcWidget` with cumulative displacement tracking ($\ge 6\text{ dp}$), making thumb swipe/flick left and right 100% reliable across both frontline and return orbit decks. Added active direction indicator with bright plasma cyan border and glow on SOW LEFT and SOW RIGHT, and aligned axial discharge to honor the player's chosen direction. 163/163 unit and widget tests passing with 0 analyzer issues.
 - **Storefront Media Remastering, Clean UI Declutter & Play Store Suite (Release v0.2.21 - Code 23)**: Recaptured and verified all 9 phone screenshots (`1344 x 2992`, Pixel 10 Pro XL) and all 6 tablet screenshots (`2560 x 1600`, Pixel Tablet) on host NVIDIA GPU PRIME offload with 100% genuine in-game views (Sector Liberation Victory, Pilot Telemetry Dashboard, and Pro Commander Upgrade modal). Enforced route barriers with `PopScope` on `CombatScreen` and `CampaignMapScreen` to prevent Android launcher exit on back press. Implemented `void_sower_ads_disabled` preference guard in `PersistenceService` and `AdService` to completely eliminate ad interstitials or test popups during gameplay recordings and screenshot capture. Remastered official 60s narrated tutorial video (`docs/media/void_sower_how_to_play_60s.mp4`), 30s live tactical solver showcase video (`docs/media/void_sower_solver_showcase_30s.mp4`, 1,742 frames @ 30 FPS across Phantom Drift and Void Swarm), and 150-frame animated GIF preview (`docs/media/void_sower_solver_showcase.gif`). Updated Google Play Store listing package metadata (`google_play_metadata.md`, `google_play_developer_page.md`, `release_notes_v0.2.21.md`) across 5 languages detailing all 3 campaign theaters (27 sectors), the native C++ AI Tactical Solver, the Orbital Simulation Lab, and updated `$1.29` Pro Commander lifetime pricing. 179/179 unit and widget tests passing with 0 analyzer issues.
 - **Tactical Combat Polish, Non-Pro Ad Hardening & Play Billing Resilience (Release v0.2.22 - Code 24)**: Eliminated unearned feature unlock bypasses in `AdService` by strictly binding reward delivery to confirmed user completion (`rewardEarned`). Embedded an uncluttered, compact Pro badge directly into the combat HUD (`HudHeader`) allowing non-Pro pilots to discover Pro upgrades and Pro pilots to verify active status. Resolved combat viewport freezing by resetting `_lastTickMicros` upon ticker resumption following external ad or dialog dismissal and adding `WidgetsBindingObserver` lifecycle handling. Fixed laser lance disappearance when neutralizing isolated sector targets by aligning beam origin in native `DischargeSystem` and sustaining beam decay across victory transitions in `CombatCoordinator`. Standardized post-victory star map navigation to route directly to starter theater `kilwa_basin`. Hardened Google Play Billing with lazy re-initialization, foreground modal alerts, and a debug sandbox purchase flow for emulator testing. 191/191 unit and widget tests passing with 0 analyzer issues.
+- **Gameplay Viewport Decluttering, Minimalist Deck & Defender Gesture Unification (Release v0.2.23 - Code 25)**: Overhauled the combat viewport to maximize gameplay real estate and eliminate visual clutter. Removed the entire lower button row (Axial Discharge, Sow Left, Sow Right) in favor of intuitive, unified defender gestures: swiping horizontally sows the dreadnought in the direction of the swipe (right = clockwise, left = counter-clockwise), sliding aims along the corridor rail, and flicking upward or tapping fires the axial lance. Stripped redundant external corridor notches (C1–C8) hovering above the frontline battery cylinders, embedding bay telemetry and charge state cleanly inside the physical cylinders. Removed the middle trajectory telemetry shelf (ProjectionShelf, "BAY 11 → BAY 14 CORRIDOR ...") to open up vertical space between the combat viewport and battery deck. Replaced bulky Return Orbit section headers with a streamlined, ultra-compact cell strip. 195/195 unit and widget tests passing with 0 analyzer issues.
 
 ---
 
@@ -717,6 +718,42 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 191/191).
   - [x] 0 issues found in `flutter analyze`.
 
+---
 
+## 🚀 Phase 21: Gameplay Viewport Decluttering, Minimalist Deck & Defender Gesture Unification (Completed ✅)
 
+- [x] **Task 21.1: Elimination of Redundant Action Button Row (`CommandArcWidget`)**
+  - [x] Remove the bottom button bar entirely (`AXIAL DISCHARGE`, `SOW LEFT`, `SOW RIGHT`) to establish a single, unified gesture-driven interaction model and reclaim critical vertical screen real estate.
+  - [x] Eliminate button-tap dependency by routing sowing and lance discharge directly through defender and battery gestures.
+  - [x] Update widget documentation and semantic tree to reflect Sower Deck 3.0 gesture-driven architecture.
 
+- [x] **Task 21.2: Frontline Battery De-Cluttering & External Badge Removal (`CommandArcWidget`)**
+  - [x] Remove external `C1` through `C8` corridor notch tags hovering above frontline battery cylinders.
+  - [x] Embed all critical telemetry (bay indices 8–15, charge unit counts, LED bar segments, and tactical advisor highlights) cleanly inside each cylinder's physical footprint.
+  - [x] Compress frontline deck padding to `EdgeInsets.all(6.0)`, yielding maximum vertical viewport area for invader engagement.
+
+- [x] **Task 21.3: Telemetry Shelf Removal (`CombatScreen`)**
+  - [x] Remove `ProjectionShelf` ("BAY 11 → BAY 14 (CORRIDOR 6)") from `CombatScreen` column, eliminating unnecessary text density and opening an unobstructed line between the combat viewport and battery deck.
+  - [x] Isolate and preserve standalone `ProjectionShelf` components and tests without polluting active combat rendering.
+
+- [x] **Task 21.4: Unified Defender Viewport Gestures (`CombatScreen`)**
+  - [x] Upgrade the combat viewport `GestureDetector` with cumulative displacement tracking (`_viewportDragDx`, `_viewportDragDy`):
+    - **Slide / Pan Update:** Dynamically tracks thumb touch along the orbital baseline (`_coordinator.slidePosition(normX)`).
+    - **Horizontal Swipe Right:** Detects clockwise swipe velocity/displacement and triggers clockwise sowing (`_coordinator.sow(activeBay, 1)`).
+    - **Horizontal Swipe Left:** Detects counter-clockwise swipe velocity/displacement and triggers counter-clockwise sowing (`_coordinator.sow(activeBay, -1)`).
+    - **Upward Flick:** Detects upward velocity/displacement ($v_y < -140\text{ px/s}$ or $\Delta y < -20\text{ dp}$) and triggers axial lance discharge into the active corridor (`_coordinator.quickFireActiveCorridor()`).
+    - **Direct Tap / Double Tap:** Quick-fires the axial lance into the active corridor.
+
+- [x] **Task 21.5: Minimalist Return Orbit Streamlining (`CommandArcWidget`)**
+  - [x] Strip bulky section headers (`RETURN ORBIT (BAYS 0–7)` and `NYUMBA CANOPY VAULT (B3 & B4)`).
+  - [x] Render a clean, uninterrupted horizontal row of 8 compact return orbit cells with touch selection and swipe sowing support.
+
+- [x] **Task 21.6: Comprehensive Test Coverage & Regression Verification**
+  - [x] Update `test/command_arc_gesture_test.dart`, `test/ux_refinements_test.dart`, and `test/ui_phase13_test.dart` to align with the decluttered UI.
+  - [x] Author `test/phase21_gameplay_ux_cleanup_test.dart` validating:
+    - Zero `ProjectionShelf` or `BAY...CORRIDOR` text on screen.
+    - Zero `AXIAL DISCHARGE`, `SOW LEFT`, `SOW RIGHT` button text on screen.
+    - Zero external `C1`..`C8` labels hovering over batteries.
+    - Full defender swipe right (CW sow), swipe left (CCW sow), upward flick (lance fire), and tap (lance fire) functionality.
+  - [x] 100% test pass rate across native C++ (`ctest`, 1/1) and Flutter (`flutter test`, 195/195).
+  - [x] 0 issues found in `flutter analyze`.

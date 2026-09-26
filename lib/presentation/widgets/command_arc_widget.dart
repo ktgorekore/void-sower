@@ -24,11 +24,11 @@ import 'diamond_shield_badge.dart';
 /// Primary thumb command arc managing the 16 physical capacitor battery cells
 /// and axial particle lance discharge.
 ///
-/// Implements Sower Deck 2.0 based on the refined visual and operational specifications:
+/// Implements Sower Deck 3.0 based on the minimalist gesture-driven specifications:
 /// - Unified glassmorphic deck backplate (#0A101F with #1E293B border)
 /// - 8 Frontline Bay Capsules (Bays 8–15, aligned directly under Corridors 1–8 with uniform width)
-/// - 8 Return Orbit Bays (Bays 0–7, transparent return circuit with Nyumba Vault Shield Bays 3 & 4)
-/// - Bidirectional Sowing Controls ([SOW LEFT], [AXIAL DISCHARGE], [SOW RIGHT]) + swipe support
+/// - 8 Return Orbit Bays (Bays 0–7, compact return circuit with Nyumba Vault Shield Bays 3 & 4)
+/// - Fluid gesture-driven sowing and core injection without button clutter
 /// - Zero dynamic per-frame allocation and zero candlestick distortion
 class CommandArcWidget extends StatelessWidget {
   const CommandArcWidget({
@@ -71,7 +71,7 @@ class CommandArcWidget extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
-      padding: const EdgeInsets.fromLTRB(8.0, 8.0, 8.0, 8.0),
+      padding: const EdgeInsets.all(6.0),
       decoration: BoxDecoration(
         color: const Color(0xFF0A101F).withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(16.0),
@@ -91,20 +91,19 @@ class CommandArcWidget extends StatelessWidget {
           // 1. 8 Frontline Bay Capsules (Directly Aligned Under Corridors 1 to 8)
           // -------------------------------------------------------------------
           _buildFrontlineDeck(frontlineBays, activeCorridor, activeBay),
-          const SizedBox(height: 6.0),
+          const SizedBox(height: 4.0),
 
           // -------------------------------------------------------------------
           // 2. Return Orbit / Backline Capacitors (Bays 0 to 7)
           // -------------------------------------------------------------------
           _buildReturnOrbitDeck(backlineBays),
-          const SizedBox(height: 6.0),
 
           // -------------------------------------------------------------------
           // 2b. Holographic Tactical Advisor Banner (if primed)
           // -------------------------------------------------------------------
           if (tacticalAdvice != null) ...[
+            const SizedBox(height: 4.0),
             Container(
-              margin: const EdgeInsets.only(bottom: 6.0),
               padding: const EdgeInsets.symmetric(
                 horizontal: 8.0,
                 vertical: 3.0,
@@ -168,11 +167,6 @@ class CommandArcWidget extends StatelessWidget {
               ),
             ),
           ],
-
-          // -------------------------------------------------------------------
-          // 3. Bidirectional Sowing & Axial Discharge Controls
-          // -------------------------------------------------------------------
-          _buildTouchGesturePrompt(activeCorridor, activeBay),
         ],
       ),
     );
@@ -223,33 +217,6 @@ class CommandArcWidget extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Corridor notch tag (C1–C8)
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      HapticService.instance.sowTick();
-                      onBaySelected(bay.bayIndex);
-                      final normX = (corridor + 0.5) / 8.0;
-                      onSlidePosition?.call(normX);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'C${corridor + 1}',
-                        style: TextStyle(
-                          color: isSelected
-                              ? VoidTheme.plasmaCyan
-                              : const Color(0xFF475569),
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 2.0),
-
                   // Raised Positive Terminal Cap
                   Container(
                     width: 14.0,
@@ -313,341 +280,55 @@ class CommandArcWidget extends StatelessWidget {
   // 2. Return Orbit Sub-Deck: Bays 0 to 7 (Inner Capacitor Ring & Nyumba Shield)
   // ---------------------------------------------------------------------------
   Widget _buildReturnOrbitDeck(List<BayState> backlineBays) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 2.0, vertical: 1.0),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'RETURN ORBIT (BAYS 0–7)',
-                  style: TextStyle(
-                    color: Color(0xFF475569),
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.shield, size: 8.5, color: VoidTheme.solarGold),
-                    SizedBox(width: 3.0),
-                    Text(
-                      'NYUMBA CANOPY VAULT (B3 & B4)',
-                      style: TextStyle(
-                        color: VoidTheme.solarGold,
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 2.0),
-        Row(
-          children: List.generate(8, (i) {
-            final bayIndex = i;
-            final bay = backlineBays.firstWhere(
-              (b) => b.bayIndex == bayIndex,
-              orElse: () => bays.firstWhere(
-                (b) => b.bayIndex == bayIndex,
-                orElse: () => BayState(
-                  bayIndex: bayIndex,
-                  tier: 0,
-                  gridColumn: bayIndex,
-                  radialPositionRad: 0,
-                  chargeUnits: 0,
-                  isFrontline: false,
-                  isNyumba: bayIndex == 3 || bayIndex == 4,
-                  isKichwa: false,
-                  isKimbi: false,
-                ),
-              ),
-            );
-
-            final isSelected = selectedBay == bay.bayIndex;
-            final isSowHop = activeSowBay == bay.bayIndex;
-            final isAdvisorBay = tacticalAdvice?.recommendedBay == bay.bayIndex;
-            final isNyumba = bay.isNyumba;
-
-            return Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                child: _ReturnOrbitBayCell(
-                  bay: bay,
-                  isSelected: isSelected,
-                  isSowHop: isSowHop,
-                  isAdvisorBay: isAdvisorBay,
-                  isNyumba: isNyumba,
-                  activeDirection: sowDirection,
-                  tacticalAdvice: tacticalAdvice,
-                  onTap: () {
-                    HapticService.instance.sowTick();
-                    onBaySelected(bay.bayIndex);
-                  },
-                  onSowAction: (bayIndex, direction) {
-                    onDirectionChanged?.call(direction);
-                    onSowAction(bayIndex, direction);
-                  },
-                ),
-              ),
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // 3. Bidirectional Sowing & Axial Discharge Controls
-  // ---------------------------------------------------------------------------
-  Widget _buildTouchGesturePrompt(int activeCorridor, int activeBay) {
-    final isAdvisedBay =
-        tacticalAdvice != null && activeBay == tacticalAdvice!.recommendedBay;
-    final isAdvisedLeft =
-        isAdvisedBay && tacticalAdvice!.recommendedDirection == -1;
-    final isAdvisedRight =
-        isAdvisedBay && tacticalAdvice!.recommendedDirection == 1;
-    final highlightColor = tacticalAdvice?.isEmergencyBreach == true
-        ? VoidTheme.crimsonFlare
-        : VoidTheme.solarGold;
-
     return Row(
-      children: [
-        // SOW LEFT Button
-        Expanded(
-          flex: 4,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              HapticService.instance.sowTick();
-              onDirectionChanged?.call(-1);
-              onSowAction(activeBay, -1);
-            },
-            child: Container(
-              height: 38.0,
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              decoration: BoxDecoration(
-                color: isAdvisedLeft
-                    ? const Color(0xFF271202)
-                    : (sowDirection == -1
-                          ? const Color(0xFF0C243B)
-                          : const Color(0xFF070D18)),
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(
-                  color: isAdvisedLeft
-                      ? highlightColor
-                      : (sowDirection == -1
-                            ? VoidTheme.plasmaCyan
-                            : VoidTheme.plasmaCyan.withValues(alpha: 0.4)),
-                  width: isAdvisedLeft || sowDirection == -1 ? 1.4 : 1.0,
-                ),
-                boxShadow: isAdvisedLeft
-                    ? [
-                        BoxShadow(
-                          color: highlightColor.withValues(alpha: 0.4),
-                          blurRadius: 6.0,
-                        ),
-                      ]
-                    : (sowDirection == -1
-                          ? [
-                              BoxShadow(
-                                color: VoidTheme.plasmaCyan.withValues(
-                                  alpha: 0.3,
-                                ),
-                                blurRadius: 6.0,
-                              ),
-                            ]
-                          : null),
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.arrow_left,
-                      size: 16.0,
-                      color: isAdvisedLeft
-                          ? highlightColor
-                          : (sowDirection == -1
-                                ? VoidTheme.plasmaCyan
-                                : VoidTheme.textSecondary),
-                    ),
-                    Text(
-                      'SOW LEFT',
-                      style: TextStyle(
-                        color: isAdvisedLeft
-                            ? highlightColor
-                            : (sowDirection == -1
-                                  ? VoidTheme.plasmaCyan
-                                  : VoidTheme.textSecondary),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      children: List.generate(8, (i) {
+        final bayIndex = i;
+        final bay = backlineBays.firstWhere(
+          (b) => b.bayIndex == bayIndex,
+          orElse: () => bays.firstWhere(
+            (b) => b.bayIndex == bayIndex,
+            orElse: () => BayState(
+              bayIndex: bayIndex,
+              tier: 0,
+              gridColumn: bayIndex,
+              radialPositionRad: 0,
+              chargeUnits: 0,
+              isFrontline: false,
+              isNyumba: bayIndex == 3 || bayIndex == 4,
+              isKichwa: false,
+              isKimbi: false,
             ),
           ),
-        ),
-        const SizedBox(width: 4.0),
+        );
 
-        // AXIAL DISCHARGE (Fire / Inject)
-        Expanded(
-          flex: 6,
-          child: Semantics(
-            label:
-                'Axial Discharge Corridor ${activeCorridor + 1}, Tap to Fire Lance',
-            button: true,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+        final isSelected = selectedBay == bay.bayIndex;
+        final isSowHop = activeSowBay == bay.bayIndex;
+        final isAdvisorBay = tacticalAdvice?.recommendedBay == bay.bayIndex;
+        final isNyumba = bay.isNyumba;
+
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2.0),
+            child: _ReturnOrbitBayCell(
+              bay: bay,
+              isSelected: isSelected,
+              isSowHop: isSowHop,
+              isAdvisorBay: isAdvisorBay,
+              isNyumba: isNyumba,
+              activeDirection: sowDirection,
+              tacticalAdvice: tacticalAdvice,
               onTap: () {
-                HapticService.instance.injectionClick();
-                final resolvedDir = BayRole.resolveSowDirection(
-                  activeBay,
-                  sowDirection,
-                );
-                onDirectionChanged?.call(resolvedDir);
-                onInjectCore(activeBay, resolvedDir);
+                HapticService.instance.sowTick();
+                onBaySelected(bay.bayIndex);
               },
-              child: Container(
-                height: 38.0,
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF082F49),
-                  borderRadius: BorderRadius.circular(8.0),
-                  border: Border.all(color: VoidTheme.plasmaCyan, width: 1.2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: VoidTheme.plasmaCyan.withValues(alpha: 0.25),
-                      blurRadius: 6.0,
-                    ),
-                  ],
-                ),
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.bolt,
-                        size: 14.0,
-                        color: Color(0xFFF59E0B),
-                      ),
-                      const SizedBox(width: 3.0),
-                      Text(
-                        'AXIAL DISCHARGE C${activeCorridor + 1}',
-                        style: const TextStyle(
-                          color: Color(0xFFF59E0B),
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              onSowAction: (bayIndex, direction) {
+                onDirectionChanged?.call(direction);
+                onSowAction(bayIndex, direction);
+              },
             ),
           ),
-        ),
-        const SizedBox(width: 4.0),
-
-        // SOW RIGHT Button
-        Expanded(
-          flex: 4,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              HapticService.instance.sowTick();
-              onDirectionChanged?.call(1);
-              onSowAction(activeBay, 1);
-            },
-            child: Container(
-              height: 38.0,
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              decoration: BoxDecoration(
-                color: isAdvisedRight
-                    ? const Color(0xFF271202)
-                    : (sowDirection == 1
-                          ? const Color(0xFF0C243B)
-                          : const Color(0xFF070D18)),
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(
-                  color: isAdvisedRight
-                      ? highlightColor
-                      : (sowDirection == 1
-                            ? VoidTheme.plasmaCyan
-                            : VoidTheme.plasmaCyan.withValues(alpha: 0.4)),
-                  width: isAdvisedRight || sowDirection == 1 ? 1.4 : 1.0,
-                ),
-                boxShadow: isAdvisedRight
-                    ? [
-                        BoxShadow(
-                          color: highlightColor.withValues(alpha: 0.4),
-                          blurRadius: 6.0,
-                        ),
-                      ]
-                    : (sowDirection == 1
-                          ? [
-                              BoxShadow(
-                                color: VoidTheme.plasmaCyan.withValues(
-                                  alpha: 0.3,
-                                ),
-                                blurRadius: 6.0,
-                              ),
-                            ]
-                          : null),
-              ),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'SOW RIGHT',
-                      style: TextStyle(
-                        color: isAdvisedRight
-                            ? highlightColor
-                            : (sowDirection == 1
-                                  ? VoidTheme.plasmaCyan
-                                  : VoidTheme.textSecondary),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_right,
-                      size: 16.0,
-                      color: isAdvisedRight
-                          ? highlightColor
-                          : (sowDirection == 1
-                                ? VoidTheme.plasmaCyan
-                                : VoidTheme.textSecondary),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+        );
+      }),
     );
   }
 }

@@ -151,18 +151,17 @@ void main() {
     });
 
     testWidgets(
-      'Dedicated SOW LEFT and SOW RIGHT buttons trigger respective directions',
+      'Swiping left and right on Frontline bays triggers onSowAction',
       (tester) async {
         int? lastSowBay;
         int? lastSowDir;
-        int? lastChangedDir;
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
               body: CommandArcWidget(
                 bays: testBays,
-                selectedBay: 12,
+                selectedBay: 8,
                 sowDirection: 1,
                 onBaySelected: (_) {},
                 onSowAction: (bay, dir) {
@@ -170,34 +169,34 @@ void main() {
                   lastSowDir = dir;
                 },
                 onInjectCore: (_, _) {},
-                onDirectionChanged: (dir) {
-                  lastChangedDir = dir;
-                },
               ),
             ),
           ),
         );
         await tester.pumpAndSettle();
 
-        // Tap SOW LEFT
-        await tester.tap(find.text('SOW LEFT'));
+        final bay12Finder = find.text('12');
+        expect(bay12Finder, findsOneWidget);
+
+        // Swipe LEFT on Bay 12
+        await tester.drag(bay12Finder, const Offset(-30.0, 0.0));
         await tester.pumpAndSettle();
 
         expect(lastSowBay, equals(12));
         expect(lastSowDir, equals(-1));
-        expect(lastChangedDir, equals(-1));
 
-        // Tap SOW RIGHT
-        await tester.tap(find.text('SOW RIGHT'));
+        // Swipe RIGHT on Bay 12
+        await tester.drag(bay12Finder, const Offset(30.0, 0.0));
         await tester.pumpAndSettle();
 
         expect(lastSowBay, equals(12));
         expect(lastSowDir, equals(1));
-        expect(lastChangedDir, equals(1));
       },
     );
 
-    testWidgets('AXIAL DISCHARGE button honors sowDirection', (tester) async {
+    testWidgets('Flicking upward on Frontline bay honors sowDirection', (
+      tester,
+    ) async {
       int? injectedBay;
       int? injectedDir;
 
@@ -206,7 +205,7 @@ void main() {
           home: Scaffold(
             body: CommandArcWidget(
               bays: testBays,
-              selectedBay: 9,
+              selectedBay: 8,
               sowDirection: -1,
               onBaySelected: (_) {},
               onSowAction: (_, _) {},
@@ -220,7 +219,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.textContaining('AXIAL DISCHARGE'));
+      final bay9Finder = find.text('9');
+      expect(bay9Finder, findsOneWidget);
+
+      await tester.drag(bay9Finder, const Offset(0.0, -50.0));
       await tester.pumpAndSettle();
 
       expect(injectedBay, equals(9));
@@ -267,72 +269,6 @@ void main() {
         await tester.pumpAndSettle();
         expect(lastSowBay, equals(2));
         expect(lastSowDir, equals(1));
-      },
-    );
-
-    testWidgets(
-      'AXIAL DISCHARGE button on Bay 15 (Kichwa) enforces inward direction -1 even if sowDirection is 1',
-      (tester) async {
-        int? injectedBay;
-        int? injectedDir;
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: CommandArcWidget(
-                bays: testBays,
-                selectedBay: 15,
-                sowDirection: 1,
-                onBaySelected: (_) {},
-                onSowAction: (_, _) {},
-                onInjectCore: (bay, dir) {
-                  injectedBay = bay;
-                  injectedDir = dir;
-                },
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.textContaining('AXIAL DISCHARGE'));
-        await tester.pumpAndSettle();
-
-        expect(injectedBay, equals(15));
-        expect(injectedDir, equals(-1));
-      },
-    );
-
-    testWidgets(
-      'AXIAL DISCHARGE button on Bay 8 (Kichwa) enforces inward direction 1 even if sowDirection is -1',
-      (tester) async {
-        int? injectedBay;
-        int? injectedDir;
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: CommandArcWidget(
-                bays: testBays,
-                selectedBay: 8,
-                sowDirection: -1,
-                onBaySelected: (_) {},
-                onSowAction: (_, _) {},
-                onInjectCore: (bay, dir) {
-                  injectedBay = bay;
-                  injectedDir = dir;
-                },
-              ),
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.textContaining('AXIAL DISCHARGE'));
-        await tester.pumpAndSettle();
-
-        expect(injectedBay, equals(8));
-        expect(injectedDir, equals(1));
       },
     );
 
