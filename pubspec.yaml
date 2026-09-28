@@ -14,7 +14,7 @@
 
 name: void_sower
 description: "Void Sower: Afrofuturistic space tactical combat & orbital siege engine."
-version: 0.2.23+25
+version: 0.2.24+26
 homepage: https://github.com/ktgorekore/void-sower
 
 environment:
