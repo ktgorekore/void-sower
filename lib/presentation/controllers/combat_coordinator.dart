@@ -147,7 +147,8 @@ class CombatCoordinator extends ChangeNotifier {
   int get sessionFlightTimeSeconds =>
       math.max(0, DateTime.now().difference(_sessionStartTime).inSeconds);
 
-  Set<int> _activeLanceBays = <int>{};
+  final Set<int> _activeLanceBays = <int>{};
+  final Set<int> _currentLivingEnemyIds = <int>{};
   bool _hasActiveFlak = false;
   bool _isDisposed = false;
   Completer<void>? _sowAnimationCompleter;
@@ -548,12 +549,12 @@ class CombatCoordinator extends ChangeNotifier {
 
     // Check for newly neutralized enemies for Tactical Core Siphon & Horde Reinforcements
     final doctrine = _sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
-    final currentLivingEnemyIds = <int>{};
+    _currentLivingEnemyIds.clear();
     bool spawnedReinforcements = false;
 
     for (final enemy in enemies) {
       if (!enemy.isDestroyed) {
-        currentLivingEnemyIds.add(enemy.entityId);
+        _currentLivingEnemyIds.add(enemy.entityId);
       } else if (!_neutralizedEnemyIds.contains(enemy.entityId)) {
         _handleEnemyNeutralized(
           entityId: enemy.entityId,
@@ -569,7 +570,7 @@ class CombatCoordinator extends ChangeNotifier {
 
     // Defensive fallback: check if any previously active enemy disappeared from the enemies snapshot
     for (final activeId in _activeEnemyIds) {
-      if (!currentLivingEnemyIds.contains(activeId) &&
+      if (!_currentLivingEnemyIds.contains(activeId) &&
           !_neutralizedEnemyIds.contains(activeId)) {
         _handleEnemyNeutralized(
           entityId: activeId,
@@ -584,7 +585,7 @@ class CombatCoordinator extends ChangeNotifier {
     }
     _activeEnemyIds
       ..clear()
-      ..addAll(currentLivingEnemyIds);
+      ..addAll(_currentLivingEnemyIds);
 
     // If reinforcements were spawned, re-sync domain state immediately so dreadnought state (restored to OrbitalIdle)
     // and enemies (new reinforcement craft) are immediately available.
@@ -668,7 +669,11 @@ class CombatCoordinator extends ChangeNotifier {
         final corridor = (lance.firingBayIndex >= 8)
             ? (lance.firingBayIndex - 8)
             : lance.firingBayIndex;
-        final lanceX = (lance.originX > 0.0 && lance.originX <= 1.0)
+        final lanceX =
+            (dreadnought.orbitalPositionX >= 0.0 &&
+                dreadnought.orbitalPositionX <= 1.0)
+            ? dreadnought.orbitalPositionX * viewportSize.width
+            : (lance.originX >= 0.0 && lance.originX <= 1.0)
             ? lance.originX * viewportSize.width
             : (corridor + 0.5) * (viewportSize.width / 8.0);
 
@@ -694,10 +699,12 @@ class CombatCoordinator extends ChangeNotifier {
         );
       }
     }
-    _activeLanceBays = lances
-        .where((l) => l.active)
-        .map((l) => l.firingBayIndex)
-        .toSet();
+    _activeLanceBays.clear();
+    for (final l in lances) {
+      if (l.active) {
+        _activeLanceBays.add(l.firingBayIndex);
+      }
+    }
 
     for (final flak in flaks) {
       if (flak.active) {
@@ -736,7 +743,11 @@ class CombatCoordinator extends ChangeNotifier {
           final corridor = (lance.firingBayIndex >= 8)
               ? (lance.firingBayIndex - 8)
               : lance.firingBayIndex;
-          final lanceX = (lance.originX > 0.0 && lance.originX <= 1.0)
+          final lanceX =
+              (dreadnought.orbitalPositionX >= 0.0 &&
+                  dreadnought.orbitalPositionX <= 1.0)
+              ? dreadnought.orbitalPositionX * viewportSize.width
+              : (lance.originX >= 0.0 && lance.originX <= 1.0)
               ? lance.originX * viewportSize.width
               : (corridor + 0.5) * (viewportSize.width / 8.0);
           final dmgVal = (lance.totalDamage * 10).toInt();

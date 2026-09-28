@@ -145,5 +145,60 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'CombatPainter renders axial lance locked to dreadnought prow when firingBayIndex is displaced',
+      (tester) async {
+        const displacedDread = DreadnoughtState(
+          orbitalPositionX: 0.25,
+          targetPositionX: 0.25,
+          reserveCores: 24,
+          boundaryLineY: 0.15,
+          isCascading: false,
+          totalScore: 500,
+          currentSimState: 0,
+          coresUsed: 2,
+        );
+
+        // Lance firing from bay 15 (corridor 7), but dreadnought is at 0.25
+        const displacedLance = LanceBeam(
+          firingBayIndex: 15,
+          originX: 0.25,
+          originY: 0.85,
+          beamWidth: 16.0,
+          sustainedDuration: 0.5,
+          remainingDuration: 0.5,
+          totalDamage: 400.0,
+          active: true,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CustomPaint(
+                size: const Size(800, 1000),
+                painter: CombatPainter(
+                  dreadnought: displacedDread,
+                  enemies: const [],
+                  lances: const [displacedLance],
+                  flaks: const [],
+                  particles: const [],
+                  damageNumbers: const [],
+                  enemyBullets: const [],
+                  animationTime: 0.5,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is CustomPaint && w.painter is CombatPainter,
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }

@@ -352,11 +352,12 @@ class CombatPainter extends CustomPainter {
       final corridor = (lance.firingBayIndex >= 8)
           ? (lance.firingBayIndex - 8)
           : lance.firingBayIndex;
-      final centerX = (lance.originX > 0.0 && lance.originX <= 1.0)
-          ? lance.originX * size.width
-          : (dreadnought.orbitalPositionX > 0.0 &&
-                dreadnought.orbitalPositionX <= 1.0)
+      final centerX =
+          (dreadnought.orbitalPositionX >= 0.0 &&
+              dreadnought.orbitalPositionX <= 1.0)
           ? dreadnought.orbitalPositionX * size.width
+          : (lance.originX >= 0.0 && lance.originX <= 1.0)
+          ? lance.originX * size.width
           : (corridor + 0.5) * corridorWidth;
       final rawWidth = lance.beamWidth <= 1.0
           ? (lance.beamWidth * size.width)

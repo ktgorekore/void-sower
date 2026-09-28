@@ -137,6 +137,69 @@ void main() {
       expect(damageNumbers.any((d) => d.text == 'DEFLECT +50'), isTrue);
     });
 
+    test(
+      'Lance deflection only occurs in beam corridor and not displaced firing bay corridor',
+      () {
+        // Enemy in corridor 5 (bay 13)
+        final enemies = [
+          const EnemyCraft(
+            entityId: 1,
+            assignedCorridor: 5,
+            worldPosX: 0.6875,
+            worldPosY: 0.8,
+            velocityY: 0.05,
+            currentShields: 100,
+            maxShields: 100,
+            currentHull: 100,
+            maxHull: 100,
+            vesselType: 1,
+            isDestroyed: false,
+          ),
+        ];
+
+        // Spawn bullet in corridor 5
+        manager.update(
+          dt: 1.5,
+          viewportSize: const Size(800, 1000),
+          boundaryY: 880,
+          dreadX: 200,
+          enemies: enemies,
+          lances: const [],
+          flaks: const [],
+        );
+        expect(manager.bullets.length, equals(1));
+        expect(manager.bullets.first.assignedCorridor, equals(5));
+
+        // Lance fired from bay 13 (corridor 5), but dreadnought is at corridor 2 (originX: 0.3125)
+        const lances = [
+          LanceBeam(
+            firingBayIndex: 13,
+            originX: 0.3125,
+            originY: 880,
+            beamWidth: 0.05,
+            sustainedDuration: 0.5,
+            remainingDuration: 0.5,
+            totalDamage: 400,
+            active: true,
+          ),
+        ];
+
+        manager.update(
+          dt: 0.016,
+          viewportSize: const Size(800, 1000),
+          boundaryY: 880,
+          dreadX: 250,
+          enemies: enemies,
+          lances: lances,
+          flaks: const [],
+        );
+
+        // Bullet in corridor 5 is NOT deflected because the beam is at corridor 2!
+        expect(manager.bullets.length, equals(1));
+        expect(bulletDeflectCount, equals(0));
+      },
+    );
+
     test('Direct hit on flagship triggers conduit breach', () {
       final enemies = [
         const EnemyCraft(

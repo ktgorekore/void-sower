@@ -51,6 +51,7 @@ class InvaderBulletManager {
   final OnBulletDeflected onBulletDeflected;
 
   final List<EnemyBullet> _bullets = <EnemyBullet>[];
+  final Set<int> _lanceCorridors = <int>{};
   final math.Random _random = math.Random();
 
   double _enemyFireCooldown = 1.0;
@@ -62,6 +63,7 @@ class InvaderBulletManager {
   /// Clears all active bullets.
   void clear() {
     _bullets.clear();
+    _lanceCorridors.clear();
     _enemyFireCooldown = 1.0;
   }
 
@@ -135,16 +137,12 @@ class InvaderBulletManager {
       }
     }
 
-    // 2. Identify corridors with active upward Particle Lances
-    final lanceCorridors = <int>{};
+    // 2. Identify corridors with active upward Particle Lances (strictly at lance origin)
+    _lanceCorridors.clear();
     for (final lance in lances) {
       if (lance.active) {
-        final c = (lance.firingBayIndex >= 8)
-            ? (lance.firingBayIndex - 8)
-            : lance.firingBayIndex;
-        lanceCorridors.add(c);
         final originCorridor = (lance.originX * 8.0).floor().clamp(0, 7);
-        lanceCorridors.add(originCorridor);
+        _lanceCorridors.add(originCorridor);
       }
     }
 
@@ -153,7 +151,7 @@ class InvaderBulletManager {
       bullet.update(dt);
 
       // A. Intercepted by active Particle Lance beam
-      if (lanceCorridors.contains(bullet.assignedCorridor)) {
+      if (_lanceCorridors.contains(bullet.assignedCorridor)) {
         particleService.spawnFlakBurst(
           bullet.x,
           bullet.y,

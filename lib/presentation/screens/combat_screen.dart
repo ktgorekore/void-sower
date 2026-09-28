@@ -141,8 +141,7 @@ class _CombatScreenState extends State<CombatScreen>
           !_ticker.isTicking) {
         _resumeTicker();
       }
-    } else if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
+    } else {
       if (_ticker.isTicking) {
         _ticker.stop();
       }
@@ -573,6 +572,9 @@ class _CombatScreenState extends State<CombatScreen>
     ).then((_) {
       _overlayState = CombatOverlayState.none;
       if (mounted) {
+        _targetFps = PersistenceService.instance.lowBatteryMode
+            ? 30
+            : PersistenceService.instance.targetFps;
         if (_coordinator.state.status != CombatMatchStatus.briefing) {
           _coordinator.resumeCombat();
           if (wasTicking) _resumeTicker();
