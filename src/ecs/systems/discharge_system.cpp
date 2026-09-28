@@ -31,6 +31,15 @@ void DischargeSystem::ExecuteCrossDischarge(
     const SpatialGrid& spatial_grid, uint8_t firing_bay, uint32_t mass) {
   VLOG(6) << "DischargeSystem::ExecuteCrossDischarge: firing_bay="
           << static_cast<int>(firing_bay) << ", mass=" << mass;
+  if (firing_bay >= kTotalBays || mass == 0) {
+    return;
+  }
+
+  if (bay_entities[firing_bay] == entt::null ||
+      !registry.valid(bay_entities[firing_bay])) {
+    return;
+  }
+
   auto& bay = registry.get<BatteryComponent>(bay_entities[firing_bay]);
   bay.charge_units = 0;
 
@@ -42,7 +51,7 @@ void DischargeSystem::ExecuteCrossDischarge(
       registry.get<DreadnoughtStateComponent>(dreadnought_entity);
 
   // Axial alignment: Beam origin is pinned directly to the Dreadnought's prow.
-  float lance_origin_x = dread.orbital_position_x;
+  const float lance_origin_x = dread.orbital_position_x;
   const float lance_origin_y = dread.boundary_line_y;
   const int8_t target_corridor = static_cast<int8_t>(
       std::clamp(static_cast<int>(dread.orbital_position_x *
@@ -52,18 +61,9 @@ void DischargeSystem::ExecuteCrossDischarge(
   const float damage =
       ComputeLanceDamage(mass, kAlphaLanceDamage * lance_alpha_multiplier_);
 
-  // Raycast through enemies in the Dreadnought's aligned active corridor
-  auto occupants = spatial_grid.GetCorridorOccupants(target_corridor);
-  if (occupants.empty()) {
-    const int8_t bay_corridor = CorridorForFrontlineBay(firing_bay);
-    if (bay_corridor >= 0 && bay_corridor != target_corridor) {
-      occupants = spatial_grid.GetCorridorOccupants(bay_corridor);
-      if (!occupants.empty()) {
-        lance_origin_x = (static_cast<float>(bay_corridor) + 0.5f) /
-                         static_cast<float>(kCorridorCount);
-      }
-    }
-  }
+  // Raycast through enemies strictly in the Dreadnought's aligned active
+  // corridor
+  const auto occupants = spatial_grid.GetCorridorOccupants(target_corridor);
 
   // Acquire slot from pre-allocated ParticleLance pool
   if (lance_pool_[0] == entt::null || !registry.valid(lance_pool_[0])) {
@@ -208,8 +208,12 @@ void DischargeSystem::ExecuteFlakDetonation(entt::registry& registry,
         if (dmg >= enemy.current_hull) {
           enemy.current_hull = 0.0f;
           enemy.is_destroyed = 1;
-          auto& d = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
-          d.total_score += 50 * (enemy.vessel_type + 1);
+          if (dreadnought_entity != entt::null &&
+              registry.valid(dreadnought_entity)) {
+            auto& d =
+                registry.get<DreadnoughtStateComponent>(dreadnought_entity);
+            d.total_score += 50 * (enemy.vessel_type + 1);
+          }
         } else {
           enemy.current_hull -= dmg;
         }

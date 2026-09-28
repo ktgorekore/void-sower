@@ -37,6 +37,11 @@ bool BaoCascadeSystem::InjectCore(
     return false;
   }
 
+  if (bay_entities[target_bay] == entt::null ||
+      !registry.valid(bay_entities[target_bay])) {
+    return false;
+  }
+
   auto& dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
   if (dread.reserve_cores == 0 || dread.is_cascading != 0) {
     return false;
@@ -115,8 +120,11 @@ void BaoCascadeSystem::StepFSM(
       sowing.current_bay = next_bay;
 
       // Deposit 1 plasma unit
-      auto& bay = registry.get<BatteryComponent>(bay_entities[next_bay]);
-      bay.charge_units += 1;
+      if (next_bay < kTotalBays && bay_entities[next_bay] != entt::null &&
+          registry.valid(bay_entities[next_bay])) {
+        auto& bay = registry.get<BatteryComponent>(bay_entities[next_bay]);
+        bay.charge_units += 1;
+      }
       sowing.remaining_units -= 1;
 
       // Kichwa vector conduit reversal check:
@@ -133,7 +141,11 @@ void BaoCascadeSystem::StepFSM(
 
       // If this is an active relay cycle (> 0 laps), emit intermediate flak
       // trail
-      if (sowing.cascade_depth > 0) {
+      if (sowing.cascade_depth > 0 && next_bay < kTotalBays &&
+          bay_entities[next_bay] != entt::null &&
+          registry.valid(bay_entities[next_bay])) {
+        const auto& bay =
+            registry.get<BatteryComponent>(bay_entities[next_bay]);
         const float col_x = IsFrontlineBay(next_bay)
                                 ? (static_cast<float>(next_bay - 8) + 0.5f) /
                                       static_cast<float>(kCorridorCount)
@@ -161,6 +173,12 @@ void BaoCascadeSystem::StepFSM(
       const auto& sowing =
           registry.get<SowingStateComponent>(dreadnought_entity);
       const uint8_t term_bay = sowing.current_bay;
+      if (term_bay >= kTotalBays || bay_entities[term_bay] == entt::null ||
+          !registry.valid(bay_entities[term_bay])) {
+        dread.current_sim_state =
+            static_cast<uint8_t>(SimulationState::CleanupCheck);
+        break;
+      }
       const auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
       const uint32_t final_mass = bay.charge_units;
 
@@ -171,11 +189,8 @@ void BaoCascadeSystem::StepFSM(
             std::clamp(static_cast<int>(dread_state.orbital_position_x *
                                         static_cast<float>(kCorridorCount)),
                        0, kCorridorCount - 1));
-        const int8_t bay_corridor = CorridorForFrontlineBay(term_bay);
         const bool has_enemies =
-            (spatial_grid.GetCorridorCount(dread_corridor) > 0 ||
-             (bay_corridor >= 0 &&
-              spatial_grid.GetCorridorCount(bay_corridor) > 0));
+            (spatial_grid.GetCorridorCount(dread_corridor) > 0);
 
         if (final_mass > 0 && (has_enemies || final_mass == 1)) {
           dread.current_sim_state =
@@ -224,9 +239,16 @@ void BaoCascadeSystem::StepFSM(
       }
 
       auto& sowing = registry.get<SowingStateComponent>(dreadnought_entity);
+      const uint8_t term_bay = sowing.current_bay;
+      if (term_bay >= kTotalBays || bay_entities[term_bay] == entt::null ||
+          !registry.valid(bay_entities[term_bay])) {
+        dread.current_sim_state =
+            static_cast<uint8_t>(SimulationState::CleanupCheck);
+        break;
+      }
+
       if (sowing.cascade_depth >= 10) {
         // Prevent infinite cascade loops by forcing discharge on 10th lap
-        const uint8_t term_bay = sowing.current_bay;
         auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
         const uint32_t terminal_mass =
             bay.charge_units > 0 ? bay.charge_units : 1;
@@ -238,7 +260,6 @@ void BaoCascadeSystem::StepFSM(
         break;
       }
 
-      const uint8_t term_bay = sowing.current_bay;
       auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
 
       const uint32_t scooped_mass = bay.charge_units;

@@ -129,8 +129,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     final isFrontline = currentBay >= 8;
 
     if (isFrontline && finalMass >= 1) {
-      final corridor = currentBay - 8;
-      final lanceX = (corridor + 0.5) / 8.0;
+      final lanceX = _orbitalX;
       _lances.add(
         LanceBeam(
           firingBayIndex: currentBay,

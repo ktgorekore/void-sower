@@ -30,9 +30,7 @@ WaveGenerator::WaveGenerator(entt::registry& registry) : registry_(registry) {}
 bool WaveGenerator::GenerateWave(const WaveGeneratorConfig& config) {
   // Clear any existing enemy entities
   auto view = registry_.view<EnemyVesselComponent>();
-  for (auto entity : view) {
-    registry_.destroy(entity);
-  }
+  registry_.destroy(view.begin(), view.end());
 
   // Setup PRNG
   std::mt19937 rng(config.random_seed != 0 ? config.random_seed : 42);

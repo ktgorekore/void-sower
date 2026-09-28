@@ -31,9 +31,11 @@ void MovementSystem::UpdateDreadnought(entt::registry& registry,
 
   auto& dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
   constexpr float kSmoothFactor = 12.0f;
-  dread.orbital_position_x +=
-      (dread.target_position_x - dread.orbital_position_x) *
-      std::min(1.0f, delta_time * kSmoothFactor);
+  dread.orbital_position_x =
+      std::clamp(dread.orbital_position_x +
+                     (dread.target_position_x - dread.orbital_position_x) *
+                         std::min(1.0f, delta_time * kSmoothFactor),
+                 0.0f, 1.0f);
 }
 
 void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,

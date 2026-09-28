@@ -69,6 +69,12 @@ TEST(CombatSimulationTest, CrossDischargeDestroysEnemy) {
   CombatSystem combat(registry);
   combat.InitializeDreadnought(12, 0.2f);
 
+  // Position dreadnought in Corridor 0 (matching frontline bay 8)
+  combat.SetTargetPositionX(0.0625f);
+  for (int i = 0; i < 40; ++i) {
+    combat.Update(kFixedTimeStep);
+  }
+
   // Spawn an enemy in corridor 0 (matching frontline bay 8)
   auto enemy = registry.create();
   registry.emplace<EnemyVesselComponent>(enemy, EnemyVesselComponent{
@@ -297,8 +303,8 @@ TEST(CombatSimulationTest, Bay15KichwaLanceDischarge) {
   CombatSystem combat(registry);
   combat.InitializeDreadnought(12, 0.2f);
 
-  // Position dreadnought in Corridor 7 (aligned with Bay 15)
-  combat.SetTargetPositionX(0.9375f);
+  // Position dreadnought in Corridor 6 (aligned with destination Bay 14)
+  combat.SetTargetPositionX(0.8125f);
   for (int i = 0; i < 40; ++i) {
     combat.Update(kFixedTimeStep);
   }
@@ -337,12 +343,14 @@ TEST(CombatSimulationTest, Bay15KichwaLanceDischarge) {
 
   combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
 
-  // Verify particle lance fired and damaged enemy in Corridor 6
+  // Verify particle lance fired strictly from dreadnought prow and damaged
+  // enemy in Corridor 6
   bool found_lance = false;
   auto lance_view = registry.view<ParticleLanceComponent>();
   for (auto l_entity : lance_view) {
     const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
     if (lance.active == 0) continue;
+    EXPECT_NEAR(lance.origin_x, 0.8125f, 0.05f);
     found_lance = true;
   }
   EXPECT_TRUE(found_lance);
@@ -356,8 +364,8 @@ TEST(CombatSimulationTest, Bay8KichwaLanceDischarge) {
   CombatSystem combat(registry);
   combat.InitializeDreadnought(12, 0.2f);
 
-  // Position dreadnought in Corridor 0 (aligned with Bay 8)
-  combat.SetTargetPositionX(0.0625f);
+  // Position dreadnought in Corridor 1 (aligned with destination Bay 9)
+  combat.SetTargetPositionX(0.1875f);
   for (int i = 0; i < 40; ++i) {
     combat.Update(kFixedTimeStep);
   }
@@ -396,12 +404,14 @@ TEST(CombatSimulationTest, Bay8KichwaLanceDischarge) {
 
   combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
 
-  // Verify particle lance fired and damaged enemy in Corridor 1
+  // Verify particle lance fired strictly from dreadnought prow and damaged
+  // enemy in Corridor 1
   bool found_lance = false;
   auto lance_view = registry.view<ParticleLanceComponent>();
   for (auto l_entity : lance_view) {
     const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
     if (lance.active == 0) continue;
+    EXPECT_NEAR(lance.origin_x, 0.1875f, 0.05f);
     found_lance = true;
   }
   EXPECT_TRUE(found_lance);
@@ -486,6 +496,64 @@ TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
   // Verify enemy in Corridor 6 took damage from 2-unit lance: D(2) = 400.0f
   const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
+}
+
+TEST(CombatSimulationTest,
+     LanceOnlyFiresFromDreadnoughtFrontAndNeverDisplacedToBay) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought(12, 0.2f);
+
+  // Position dreadnought in Corridor 2 (X = 0.3125f)
+  combat.SetTargetPositionX(0.3125f);
+  for (int i = 0; i < 40; ++i) {
+    combat.Update(kFixedTimeStep);
+  }
+
+  // Spawn enemy in Corridor 5 (Bay 13), NOT in front of dreadnought
+  auto enemy_c5 = registry.create();
+  registry.emplace<EnemyVesselComponent>(enemy_c5, EnemyVesselComponent{
+                                                       .entity_id = 505,
+                                                       .assigned_corridor = 5,
+                                                       .world_pos_x = 0.6875f,
+                                                       .world_pos_y = 0.7f,
+                                                       .velocity_y = 0.0f,
+                                                       .current_shields = 0.0f,
+                                                       .max_shields = 0.0f,
+                                                       .current_hull = 500.0f,
+                                                       .max_hull = 500.0f,
+                                                       .vessel_type = 1,
+                                                       .is_destroyed = 0,
+                                                   });
+  combat.RebuildSpatialGrid();
+
+  // Directly trigger cross discharge from Bay 13
+  // Even though Bay 13 corresponds to Corridor 5 and has an enemy in Corridor
+  // 5, the lance MUST strictly fire from the dreadnought prow at Corridor 2 (X
+  // = 0.3125f).
+  std::array<uint32_t, kTotalBays> charges{};
+  charges[13] = 2;
+  combat.RestoreSnapshot(charges, 12, 0);
+
+  // Inject into bay 12 (+1) -> destination is bay 13
+  EXPECT_TRUE(combat.InjectCore(12, 1));
+  combat.Update(kFixedTimeStep);  // SowingTraversal: steps 12 -> 13
+  combat.Update(kFixedTimeStep);  // EvaluateDestination
+
+  // Check lance origin: MUST match dreadnought position (Corridor 2, 0.3125f),
+  // NOT Corridor 5 (0.6875f)
+  auto lance_view = registry.view<ParticleLanceComponent>();
+  for (auto l_entity : lance_view) {
+    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    if (lance.active == 0) continue;
+    EXPECT_NEAR(lance.origin_x, 0.3125f, 0.05f);
+    EXPECT_NE(lance.origin_x, 0.6875f);
+  }
+
+  // The enemy in Corridor 5 must NOT have taken damage because dreadnought was
+  // aiming at Corridor 2
+  const auto& vessel_c5 = registry.get<EnemyVesselComponent>(enemy_c5);
+  EXPECT_FLOAT_EQ(vessel_c5.current_hull, 500.0f);
 }
 
 }  // namespace void_sower::ecs
