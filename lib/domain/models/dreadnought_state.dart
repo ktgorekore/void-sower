@@ -12,52 +12,120 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+/// Tactical quest types for deep-space sorties.
+enum QuestType {
+  none(0, 'Deep Space Recon', 'Standard sector defense'),
+  outpostReclamation(1, 'Outpost Reclamation', 'Secure and hold forward orbital outpost'),
+  convoyEscort(2, 'Convoy Escort', 'Shield resource cargo hulls from raiders'),
+  capitalSiege(3, 'Capital Dreadnought Siege', 'Penetrate and collapse flagship shielding'),
+  warpRiftCollapse(4, 'Warp Rift Collapse', 'Discharge resonance pulses into spatial fissures'),
+  asteroidProspecting(5, 'Asteroid Prospecting', 'Extract crystalline fuel cores under fire');
+
+  const QuestType(this.id, this.title, this.description);
+  final int id;
+  final String title;
+  final String description;
+
+  static QuestType fromId(int id) {
+    return QuestType.values.firstWhere(
+      (q) => q.id == id,
+      orElse: () => QuestType.none,
+    );
+  }
+}
+
+/// Tactical quest progress status.
+enum QuestStatus {
+  inactive(0, 'Standby'),
+  inProgress(1, 'Active'),
+  completed(2, 'Victorious'),
+  failed(3, 'Failed');
+
+  const QuestStatus(this.id, this.label);
+  final int id;
+  final String label;
+
+  static QuestStatus fromId(int id) {
+    return QuestStatus.values.firstWhere(
+      (s) => s.id == id,
+      orElse: () => QuestStatus.inactive,
+    );
+  }
+}
+
 /// State representation of the Dreadnought flagship and simulation FSM.
 class DreadnoughtState {
   const DreadnoughtState({
     required this.orbitalPositionX,
     required this.targetPositionX,
-    required this.reserveCores,
+    this.orbitalPositionY = 0.20,
+    this.targetPositionY = 0.20,
     required this.boundaryLineY,
-    required this.isCascading,
+    this.proximityMultiplier = 1.0,
+    required this.reserveCores,
     required this.totalScore,
-    required this.currentSimState,
     required this.coresUsed,
+    this.questProgress = 0.0,
+    required this.isCascading,
+    required this.currentSimState,
+    this.activeQuestType = 0,
+    this.questStatus = 0,
   });
 
   final double orbitalPositionX;
   final double targetPositionX;
-  final int reserveCores;
+  final double orbitalPositionY;
+  final double targetPositionY;
   final double boundaryLineY;
-  final bool isCascading;
+  final double proximityMultiplier;
+  final int reserveCores;
   final int totalScore;
-  final int currentSimState; // 0..8 (OrbitalIdle to GameOver)
   final int coresUsed;
+  final double questProgress;
+  final bool isCascading;
+  final int currentSimState; // 0..8 (OrbitalIdle to GameOver)
+  final int activeQuestType;
+  final int questStatus;
 
   bool get isVictory => currentSimState == 7;
   bool get isGameOver => currentSimState == 8;
   bool get isIdle => currentSimState == 0;
 
+  QuestType get quest => QuestType.fromId(activeQuestType);
+  QuestStatus get status => QuestStatus.fromId(questStatus);
+
   /// Creates a copy of this state with optional updated parameters.
   DreadnoughtState copyWith({
     double? orbitalPositionX,
     double? targetPositionX,
-    int? reserveCores,
+    double? orbitalPositionY,
+    double? targetPositionY,
     double? boundaryLineY,
-    bool? isCascading,
+    double? proximityMultiplier,
+    int? reserveCores,
     int? totalScore,
-    int? currentSimState,
     int? coresUsed,
+    double? questProgress,
+    bool? isCascading,
+    int? currentSimState,
+    int? activeQuestType,
+    int? questStatus,
   }) {
     return DreadnoughtState(
       orbitalPositionX: orbitalPositionX ?? this.orbitalPositionX,
       targetPositionX: targetPositionX ?? this.targetPositionX,
-      reserveCores: reserveCores ?? this.reserveCores,
+      orbitalPositionY: orbitalPositionY ?? this.orbitalPositionY,
+      targetPositionY: targetPositionY ?? this.targetPositionY,
       boundaryLineY: boundaryLineY ?? this.boundaryLineY,
-      isCascading: isCascading ?? this.isCascading,
+      proximityMultiplier: proximityMultiplier ?? this.proximityMultiplier,
+      reserveCores: reserveCores ?? this.reserveCores,
       totalScore: totalScore ?? this.totalScore,
-      currentSimState: currentSimState ?? this.currentSimState,
       coresUsed: coresUsed ?? this.coresUsed,
+      questProgress: questProgress ?? this.questProgress,
+      isCascading: isCascading ?? this.isCascading,
+      currentSimState: currentSimState ?? this.currentSimState,
+      activeQuestType: activeQuestType ?? this.activeQuestType,
+      questStatus: questStatus ?? this.questStatus,
     );
   }
 }

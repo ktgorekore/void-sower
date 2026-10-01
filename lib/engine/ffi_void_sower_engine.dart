@@ -162,6 +162,24 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  void setDreadnoughtTarget(double targetX, double targetY) {
+    _checkDisposed();
+    _bindings.void_sower_set_dreadnought_target(targetX, targetY);
+  }
+
+  @override
+  void setActiveQuest(int questType) {
+    _checkDisposed();
+    _bindings.void_sower_set_active_quest(questType);
+  }
+
+  @override
+  void updateQuest(double progress, int status) {
+    _checkDisposed();
+    _bindings.void_sower_update_quest(progress, status);
+  }
+
+  @override
   void stepSimulation(double deltaTime) {
     _checkDisposed();
     _bindings.void_sower_step_simulation(deltaTime);
@@ -439,24 +457,36 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     if (cached != null &&
         cached.orbitalPositionX == d.orbital_position_x &&
         cached.targetPositionX == d.target_position_x &&
+        cached.orbitalPositionY == d.orbital_position_y &&
+        cached.targetPositionY == d.target_position_y &&
+        cached.proximityMultiplier == d.proximity_multiplier &&
         cached.reserveCores == d.reserve_cores &&
         cached.boundaryLineY == d.boundary_line_y &&
         cached.isCascading == isCascading &&
         cached.totalScore == d.total_score &&
         cached.currentSimState == d.current_sim_state &&
-        cached.coresUsed == d.cores_used) {
+        cached.coresUsed == d.cores_used &&
+        cached.questProgress == d.quest_progress &&
+        cached.activeQuestType == d.active_quest_type &&
+        cached.questStatus == d.quest_status) {
       return cached;
     }
 
     final newState = DreadnoughtState(
       orbitalPositionX: d.orbital_position_x,
       targetPositionX: d.target_position_x,
-      reserveCores: d.reserve_cores,
+      orbitalPositionY: d.orbital_position_y,
+      targetPositionY: d.target_position_y,
       boundaryLineY: d.boundary_line_y,
-      isCascading: isCascading,
+      proximityMultiplier: d.proximity_multiplier,
+      reserveCores: d.reserve_cores,
       totalScore: d.total_score,
-      currentSimState: d.current_sim_state,
       coresUsed: d.cores_used,
+      questProgress: d.quest_progress,
+      isCascading: isCascading,
+      currentSimState: d.current_sim_state,
+      activeQuestType: d.active_quest_type,
+      questStatus: d.quest_status,
     );
     _cachedDreadnoughtState = newState;
     return newState;

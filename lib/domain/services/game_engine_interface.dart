@@ -55,6 +55,17 @@ abstract class IVoidSowerEngine {
   /// Smoothly pans the dreadnought laterally along the orbital horizon.
   void slideDreadnought(double targetX);
 
+  /// Positions the dreadnought flagship across 2D space.
+  /// [targetX]: Normalized horizontal coordinate across corridors [0.0, 1.0].
+  /// [targetY]: Normalized vertical flight corridor [0.20, 0.65].
+  void setDreadnoughtTarget(double targetX, double targetY);
+
+  /// Activates a tactical quest sortie (1: Outpost, 2: Convoy, 3: Capital Siege, etc.).
+  void setActiveQuest(int questType);
+
+  /// Updates progress [0.0, 1.0] and status (1: InProgress, 2: Completed, 3: Failed) of active quest.
+  void updateQuest(double progress, int status);
+
   /// Advances the deterministic 60 Hz combat simulation by [deltaTime] seconds.
   void stepSimulation(double deltaTime);
 

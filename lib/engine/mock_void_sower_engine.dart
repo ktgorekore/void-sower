@@ -32,6 +32,12 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   double _boundaryY = 800.0;
   double _orbitalX = 0.0;
   double _targetX = 0.0;
+  double _orbitalY = 0.20;
+  double _targetY = 0.20;
+  double _proximityMultiplier = 1.0;
+  double _questProgress = 0.0;
+  int _activeQuestType = 0;
+  int _questStatus = 0;
   int _score = 0;
   int _coresUsed = 0;
   int _simState = 0;
@@ -56,6 +62,12 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     _boundaryY = boundaryY;
     _orbitalX = 0.4375;
     _targetX = 0.4375;
+    _orbitalY = boundaryY;
+    _targetY = boundaryY;
+    _proximityMultiplier = 1.0;
+    _questProgress = 0.0;
+    _activeQuestType = 0;
+    _questStatus = 0;
     _score = 0;
     _coresUsed = 0;
     _simState = 0;
@@ -134,11 +146,16 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         LanceBeam(
           firingBayIndex: currentBay,
           originX: lanceX,
-          originY: _boundaryY,
+          originY: _orbitalY,
           beamWidth: 0.04 + (finalMass * 0.015),
           sustainedDuration: 0.5,
           remainingDuration: 0.5,
-          totalDamage: finalMass * finalMass * 100.0,
+          totalDamage:
+              finalMass *
+              finalMass *
+              100.0 *
+              _proximityMultiplier *
+              _lanceAlphaMultiplier,
           active: true,
         ),
       );
@@ -151,6 +168,24 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   @override
   void slideDreadnought(double targetX) {
     _targetX = targetX;
+  }
+
+  @override
+  void setDreadnoughtTarget(double targetX, double targetY) {
+    _targetX = targetX.clamp(0.0, 1.0);
+    _targetY = targetY.clamp(_boundaryY, 0.65);
+  }
+
+  @override
+  void setActiveQuest(int questType) {
+    _activeQuestType = questType;
+    _questStatus = questType > 0 ? 1 : 0;
+  }
+
+  @override
+  void updateQuest(double progress, int status) {
+    _questProgress = progress.clamp(0.0, 1.0);
+    _questStatus = status;
   }
 
   @override
@@ -216,10 +251,18 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   void stepSimulation(double deltaTime) {
-    // Interpolate dreadnought lateral position
+    // Interpolate dreadnought 2D position
     _orbitalX +=
         (_targetX - _orbitalX) *
         (1.0 - (0.5 * deltaTime * 20.0)).clamp(0.0, 1.0);
+    _orbitalY +=
+        (_targetY - _orbitalY) *
+        (1.0 - (0.5 * deltaTime * 20.0)).clamp(0.0, 1.0);
+    _orbitalY = _orbitalY.clamp(_boundaryY, 0.65);
+
+    final forwardDepth = math.max(0.0, _orbitalY - _boundaryY);
+    final normForward = (forwardDepth / 0.45).clamp(0.0, 1.0);
+    _proximityMultiplier = 1.0 + 0.6 * normForward;
 
     if (_lateralDrift) {
       _elapsedDriftTime += deltaTime;
@@ -403,12 +446,18 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     return DreadnoughtState(
       orbitalPositionX: _orbitalX,
       targetPositionX: _targetX,
-      reserveCores: _reserveCores,
+      orbitalPositionY: _orbitalY,
+      targetPositionY: _targetY,
       boundaryLineY: _boundaryY,
-      isCascading: _isCascading,
+      proximityMultiplier: _proximityMultiplier,
+      reserveCores: _reserveCores,
       totalScore: _score,
-      currentSimState: _simState,
       coresUsed: _coresUsed,
+      questProgress: _questProgress,
+      isCascading: _isCascading,
+      currentSimState: _simState,
+      activeQuestType: _activeQuestType,
+      questStatus: _questStatus,
     );
   }
 
