@@ -39,13 +39,19 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
       dreadnought_entity_, DreadnoughtStateComponent{
                                .orbital_position_x = 0.4375f,
                                .target_position_x = 0.4375f,
+                               .orbital_position_y = 0.2000f,
+                               .target_position_y = 0.2000f,
                                .boundary_line_y = boundary_y,
+                               .proximity_multiplier = 1.0f,
                                .reserve_cores = starting_cores,
                                .total_score = 0,
                                .cores_used = 0,
+                               .quest_progress = 0.0f,
                                .is_cascading = 0,
                                .current_sim_state = static_cast<uint8_t>(
                                    SimulationState::OrbitalIdle),
+                               .active_quest_type = 0,
+                               .quest_status = 0,
                            });
   lateral_drift_ = false;
   elapsed_combat_time_ = 0.0f;
@@ -90,11 +96,49 @@ void CombatSystem::SetTargetPositionX(float target_x) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
     auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    SetTargetPosition(target_x, dread.target_position_y);
+  }
+}
+
+void CombatSystem::SetTargetPosition(float target_x, float target_y) {
+  if (dreadnought_entity_ != entt::null &&
+      registry_.valid(dreadnought_entity_)) {
+    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.target_position_x = std::clamp(target_x, 0.0f, 1.0f);
+    dread.target_position_y =
+        std::clamp(target_y, dread.boundary_line_y, 0.65f);
     if (dread.current_sim_state ==
         static_cast<uint8_t>(SimulationState::OrbitalIdle)) {
       dread.orbital_position_x = dread.target_position_x;
+      dread.orbital_position_y = dread.target_position_y;
+      const float forward_depth =
+          std::max(0.0f, dread.orbital_position_y - dread.boundary_line_y);
+      constexpr float kMaxForwardSpan = 0.45f;
+      const float norm_forward =
+          std::clamp(forward_depth / kMaxForwardSpan, 0.0f, 1.0f);
+      dread.proximity_multiplier = 1.0f + 0.6f * norm_forward;
     }
+  }
+}
+
+void CombatSystem::SetActiveQuest(uint8_t quest_type) {
+  if (dreadnought_entity_ != entt::null &&
+      registry_.valid(dreadnought_entity_)) {
+    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    dread.active_quest_type = quest_type;
+    dread.quest_status = (quest_type != 0)
+                             ? static_cast<uint8_t>(QuestStatus::InProgress)
+                             : static_cast<uint8_t>(QuestStatus::Inactive);
+    dread.quest_progress = 0.0f;
+  }
+}
+
+void CombatSystem::UpdateQuest(float progress, uint8_t status) {
+  if (dreadnought_entity_ != entt::null &&
+      registry_.valid(dreadnought_entity_)) {
+    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    dread.quest_progress = std::clamp(progress, 0.0f, 1.0f);
+    dread.quest_status = status;
   }
 }
 

@@ -60,6 +60,24 @@ void Engine::SetTargetPositionX(float target_x) {
   combat_system_->SetTargetPositionX(target_x);
 }
 
+void Engine::SetTargetPosition(float target_x, float target_y) {
+  VLOG(10) << "Engine::SetTargetPosition: target_x=" << target_x
+           << ", target_y=" << target_y;
+  combat_system_->SetTargetPosition(target_x, target_y);
+}
+
+void Engine::SetActiveQuest(uint8_t quest_type) {
+  VLOG(6) << "Engine::SetActiveQuest: quest_type="
+          << static_cast<int>(quest_type);
+  combat_system_->SetActiveQuest(quest_type);
+}
+
+void Engine::UpdateQuest(float progress, uint8_t status) {
+  VLOG(10) << "Engine::UpdateQuest: progress=" << progress
+           << ", status=" << static_cast<int>(status);
+  combat_system_->UpdateQuest(progress, status);
+}
+
 void Engine::Update(float delta_time) {
   VLOG(10) << "Engine::Update: delta_time=" << delta_time;
   combat_system_->Update(delta_time);

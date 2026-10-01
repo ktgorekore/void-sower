@@ -116,6 +116,41 @@ void void_sower_slide_dreadnought(float target_x) noexcept {
   }
 }
 
+void void_sower_set_dreadnought_target(float target_x,
+                                       float target_y) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngineLocked().SetTargetPosition(target_x, target_y);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_set_dreadnought_target: "
+               << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_set_dreadnought_target";
+  }
+}
+
+void void_sower_set_active_quest(uint8_t quest_type) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngineLocked().SetActiveQuest(quest_type);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_set_active_quest: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_set_active_quest";
+  }
+}
+
+void void_sower_update_quest(float progress, uint8_t status) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    GetOrCreateEngineLocked().UpdateQuest(progress, status);
+  } catch (const std::exception& e) {
+    LOG(ERROR) << "Exception in void_sower_update_quest: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_update_quest";
+  }
+}
+
 void void_sower_step_simulation(float delta_time) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
@@ -354,12 +389,18 @@ void void_sower_get_dreadnought_state(
     auto dread = g_engine->GetDreadnoughtState();
     out_state->orbital_position_x = dread.orbital_position_x;
     out_state->target_position_x = dread.target_position_x;
-    out_state->reserve_cores = dread.reserve_cores;
+    out_state->orbital_position_y = dread.orbital_position_y;
+    out_state->target_position_y = dread.target_position_y;
     out_state->boundary_line_y = dread.boundary_line_y;
-    out_state->is_cascading = dread.is_cascading;
+    out_state->proximity_multiplier = dread.proximity_multiplier;
+    out_state->reserve_cores = dread.reserve_cores;
     out_state->total_score = dread.total_score;
-    out_state->current_sim_state = dread.current_sim_state;
     out_state->cores_used = dread.cores_used;
+    out_state->quest_progress = dread.quest_progress;
+    out_state->is_cascading = dread.is_cascading;
+    out_state->current_sim_state = dread.current_sim_state;
+    out_state->active_quest_type = dread.active_quest_type;
+    out_state->quest_status = dread.quest_status;
   } catch (const std::exception& e) {
     LOG(ERROR) << "Exception in void_sower_get_dreadnought_state: " << e.what();
   } catch (...) {

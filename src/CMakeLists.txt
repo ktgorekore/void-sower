@@ -125,6 +125,7 @@ if (BUILD_TESTS)
     "tests/spatial_grid_test.cpp"
     "tests/wave_generator_test.cpp"
     "tests/ffi_boundary_test.cpp"
+    "tests/spatial_combat_2d_test.cpp"
     ${VOID_SOWER_CORE_SOURCES}
   )
   target_include_directories(void_sower_tests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")

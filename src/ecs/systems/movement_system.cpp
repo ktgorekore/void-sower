@@ -36,6 +36,20 @@ void MovementSystem::UpdateDreadnought(entt::registry& registry,
                      (dread.target_position_x - dread.orbital_position_x) *
                          std::min(1.0f, delta_time * kSmoothFactor),
                  0.0f, 1.0f);
+  dread.orbital_position_y =
+      std::clamp(dread.orbital_position_y +
+                     (dread.target_position_y - dread.orbital_position_y) *
+                         std::min(1.0f, delta_time * kSmoothFactor),
+                 dread.boundary_line_y, 0.65f);
+
+  // Proximity damage multiplier: 1.0 at baseline boundary_line_y (0.20),
+  // scaling up to 1.6 at y=0.65.
+  const float forward_depth =
+      std::max(0.0f, dread.orbital_position_y - dread.boundary_line_y);
+  constexpr float kMaxForwardSpan = 0.45f;
+  const float norm_forward =
+      std::clamp(forward_depth / kMaxForwardSpan, 0.0f, 1.0f);
+  dread.proximity_multiplier = 1.0f + 0.6f * norm_forward;
 }
 
 void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,

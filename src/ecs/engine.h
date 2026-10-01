@@ -49,6 +49,15 @@ class Engine {
   /// Sets horizontal slider position for dreadnought.
   void SetTargetPositionX(float target_x);
 
+  /// Sets 2D position for dreadnought in space.
+  void SetTargetPosition(float target_x, float target_y);
+
+  /// Configures active tactical quest type.
+  void SetActiveQuest(uint8_t quest_type);
+
+  /// Updates active tactical quest progress and status.
+  void UpdateQuest(float progress, uint8_t status);
+
   /// Steps the simulation by delta_time (defaults to 1/60s).
   void Update(float delta_time = kFixedTimeStep);
 

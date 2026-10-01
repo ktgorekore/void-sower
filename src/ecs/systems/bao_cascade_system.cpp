@@ -151,8 +151,8 @@ void BaoCascadeSystem::StepFSM(
                                       static_cast<float>(kCorridorCount)
                                 : dread.orbital_position_x;
         discharge_system.ExecuteFlakDetonation(
-            registry, dreadnought_entity, col_x, dread.boundary_line_y + 0.05f,
-            bay.charge_units);
+            registry, dreadnought_entity, col_x,
+            dread.orbital_position_y + 0.05f, bay.charge_units);
         sowing.flak_triggered = 1;
       }
 
@@ -274,7 +274,7 @@ void BaoCascadeSystem::StepFSM(
                                     static_cast<float>(kCorridorCount)
                               : dread.orbital_position_x;
       discharge_system.ExecuteFlakDetonation(
-          registry, dreadnought_entity, col_x, dread.boundary_line_y + 0.05f,
+          registry, dreadnought_entity, col_x, dread.orbital_position_y + 0.05f,
           scooped_mass);
 
       dread.current_sim_state =

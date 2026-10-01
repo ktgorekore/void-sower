@@ -66,6 +66,15 @@ class CombatSystem {
   /// Updates dreadnought horizontal target position.
   void SetTargetPositionX(float target_x);
 
+  /// Updates dreadnought 2D target position in space.
+  void SetTargetPosition(float target_x, float target_y);
+
+  /// Configures the active tactical quest type.
+  void SetActiveQuest(uint8_t quest_type);
+
+  /// Updates progress and status for the active tactical quest.
+  void UpdateQuest(float progress, uint8_t status);
+
   /// Applies conduit direct hit breach: drains 1 reserve core and discharges
   /// active bay.
   void DamageConduit(uint8_t bay_index);

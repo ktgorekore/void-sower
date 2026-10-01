@@ -173,24 +173,83 @@ struct FlakBurstComponent {
   uint8_t active{0};               ///< 1 if active, 0 if expired.
 };
 
+/// Tactical quest types for deep space warfare.
+enum class QuestType : uint8_t {
+  None = 0,
+  OutpostReclamation = 1,      ///< Re-arm disabled orbital batteries.
+  ConvoyEscort = 2,            ///< Shield allied evacuation transport.
+  CapitalMothershipSiege = 3,  ///< Dismantle capital ship modules.
+  WarpRiftCollapse = 4,        ///< Collapse hostile spawning rift.
+  AsteroidProspecting = 5      ///< Harvest plasma from drifting asteroids.
+};
+
+/// Quest progression status.
+enum class QuestStatus : uint8_t {
+  Inactive = 0,
+  InProgress = 1,
+  Completed = 2,
+  Failed = 3
+};
+
+/**
+ * @brief Represents an in-flight spatial flak mine deployed during forward
+ * overloads.
+ */
+struct SpatialFlakMineComponent {
+  float world_pos_x{0.0f};
+  float world_pos_y{0.0f};
+  float blast_radius{0.15f};
+  float damage{150.0f};
+  float lifetime{10.0f};
+  float remaining_lifetime{10.0f};
+  uint8_t active{0};
+  uint8_t triggered{0};
+};
+
+/**
+ * @brief Represents a reclaimable orbital outpost station floating in a
+ * corridor.
+ */
+struct OrbitalOutpostComponent {
+  uint16_t assigned_corridor{0};
+  float world_pos_x{0.0f};
+  float world_pos_y{0.50f};
+  uint32_t energy_stored{0};
+  uint32_t energy_required{4};
+  float turret_cooldown{0.0f};
+  uint8_t is_online{0};
+  uint8_t is_destroyed{0};
+};
+
 /**
  * @brief Global single-instance state tracking dreadnought systems.
  * Cache-line aligned to 64 bytes.
  */
 struct alignas(64) DreadnoughtStateComponent {
   float orbital_position_x{
-      0.4375f};  ///< Platform position (0.0 to 1.0, C4 center) [offset 0]
+      0.4375f};  ///< Platform position X (0.0 to 1.0, C4 center) [offset 0]
   float target_position_x{
-      0.4375f};  ///< Smoothed interpolation target (C4 center) [offset 4]
-  float boundary_line_y{0.2f};  ///< Atmospheric threshold line [offset 8]
-  uint32_t reserve_cores{0};    ///< Unplaced core inventory [offset 12]
-  uint32_t total_score{0};      ///< Cumulative score [offset 16]
-  uint32_t cores_used{0};       ///< Total cores injected so far [offset 20]
+      0.4375f};  ///< Smoothed interpolation target X (C4 center) [offset 4]
+  float orbital_position_y{
+      0.2000f};  ///< Platform position Y (0.15 to 0.65) [offset 8]
+  float target_position_y{
+      0.2000f};  ///< Smoothed interpolation target Y [offset 12]
+  float boundary_line_y{0.2000f};  ///< Atmospheric threshold line [offset 16]
+  float proximity_multiplier{
+      1.0f};  ///< Proximity damage bonus [1.0 to 1.6] [offset 20]
+  uint32_t reserve_cores{0};   ///< Unplaced core inventory [offset 24]
+  uint32_t total_score{0};     ///< Cumulative score [offset 28]
+  uint32_t cores_used{0};      ///< Total cores injected so far [offset 32]
+  float quest_progress{0.0f};  ///< Progress of active quest [0..1] [offset 36]
   uint8_t is_cascading{
-      0};  ///< Input lock flag during active relays [offset 24]
-  uint8_t current_sim_state{0};  ///< SimulationState [offset 25]
-  uint8_t _padding[38]{
-      0};  ///< Explicit padding to guarantee 64-byte size [offset 26..63]
+      0};  ///< Input lock flag during active relays [offset 40]
+  uint8_t current_sim_state{0};  ///< SimulationState [offset 41]
+  uint8_t active_quest_type{
+      0};  ///< QuestType (0: None, 1: Outpost, etc.) [offset 42]
+  uint8_t quest_status{
+      0};  ///< QuestStatus (0: Inactive, 1: InProgress, etc.) [offset 43]
+  uint8_t _padding[20]{
+      0};  ///< Explicit padding to guarantee 64-byte size [offset 44..63]
 };
 static_assert(
     sizeof(DreadnoughtStateComponent) == 64,

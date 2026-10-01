@@ -96,12 +96,18 @@ typedef struct {
 typedef struct {
   float orbital_position_x;
   float target_position_x;
-  uint32_t reserve_cores;
+  float orbital_position_y;
+  float target_position_y;
   float boundary_line_y;
-  uint8_t is_cascading;
+  float proximity_multiplier;
+  uint32_t reserve_cores;
   uint32_t total_score;
-  uint8_t current_sim_state;
   uint32_t cores_used;
+  float quest_progress;
+  uint8_t is_cascading;
+  uint8_t current_sim_state;
+  uint8_t active_quest_type;
+  uint8_t quest_status;
 } VoidSowerDreadnoughtFFI;
 
 /**
@@ -175,6 +181,29 @@ void_sower_inject_core(uint8_t bay_index, int8_t direction) VOID_SOWER_NOEXCEPT;
  * @param target_x Normalized X coordinate along the orbital horizon [0.0, 1.0].
  */
 FFI_PLUGIN_EXPORT void void_sower_slide_dreadnought(float target_x)
+    VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Sets the 2D target position of the dreadnought flagship across space.
+ * @param target_x Normalized X coordinate across corridors [0.0, 1.0].
+ * @param target_y Normalized Y coordinate in space [0.15, 0.65].
+ */
+FFI_PLUGIN_EXPORT void void_sower_set_dreadnought_target(
+    float target_x, float target_y) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Activates a tactical quest in the current combat sortie.
+ * @param quest_type Quest type (1: Outpost, 2: Convoy, 3: Capital Siege, etc.).
+ */
+FFI_PLUGIN_EXPORT void void_sower_set_active_quest(uint8_t quest_type)
+    VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Updates the active tactical quest progress and status.
+ * @param progress Normalized quest progress [0.0, 1.0].
+ * @param status Quest status (1: InProgress, 2: Completed, 3: Failed).
+ */
+FFI_PLUGIN_EXPORT void void_sower_update_quest(float progress, uint8_t status)
     VOID_SOWER_NOEXCEPT;
 
 /**

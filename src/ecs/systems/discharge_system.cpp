@@ -50,16 +50,18 @@ void DischargeSystem::ExecuteCrossDischarge(
   const auto& dread =
       registry.get<DreadnoughtStateComponent>(dreadnought_entity);
 
-  // Axial alignment: Beam origin is pinned directly to the Dreadnought's prow.
+  // Axial alignment: Beam origin is pinned directly to the Dreadnought's prow
+  // in 2D space.
   const float lance_origin_x = dread.orbital_position_x;
-  const float lance_origin_y = dread.boundary_line_y;
+  const float lance_origin_y = dread.orbital_position_y;
   const int8_t target_corridor = static_cast<int8_t>(
       std::clamp(static_cast<int>(dread.orbital_position_x *
                                   static_cast<float>(kCorridorCount)),
                  0, kCorridorCount - 1));
 
   const float damage =
-      ComputeLanceDamage(mass, kAlphaLanceDamage * lance_alpha_multiplier_);
+      ComputeLanceDamage(mass, kAlphaLanceDamage * lance_alpha_multiplier_) *
+      dread.proximity_multiplier;
 
   // Raycast through enemies strictly in the Dreadnought's aligned active
   // corridor

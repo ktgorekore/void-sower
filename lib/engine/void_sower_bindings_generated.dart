@@ -95,6 +95,40 @@ class VoidSowerBindings {
   late final _void_sower_slide_dreadnought = _void_sower_slide_dreadnoughtPtr
       .asFunction<void Function(double)>();
 
+  void void_sower_set_dreadnought_target(double target_x, double target_y) {
+    return _void_sower_set_dreadnought_target(target_x, target_y);
+  }
+
+  late final _void_sower_set_dreadnought_targetPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Float, ffi.Float)>>(
+        'void_sower_set_dreadnought_target',
+      );
+  late final _void_sower_set_dreadnought_target =
+      _void_sower_set_dreadnought_targetPtr
+          .asFunction<void Function(double, double)>();
+
+  void void_sower_set_active_quest(int quest_type) {
+    return _void_sower_set_active_quest(quest_type);
+  }
+
+  late final _void_sower_set_active_questPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Uint8)>>(
+        'void_sower_set_active_quest',
+      );
+  late final _void_sower_set_active_quest =
+      _void_sower_set_active_questPtr.asFunction<void Function(int)>();
+
+  void void_sower_update_quest(double progress, int status) {
+    return _void_sower_update_quest(progress, status);
+  }
+
+  late final _void_sower_update_questPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Float, ffi.Uint8)>>(
+        'void_sower_update_quest',
+      );
+  late final _void_sower_update_quest =
+      _void_sower_update_questPtr.asFunction<void Function(double, int)>();
+
   void void_sower_step_simulation(double delta_time) {
     return _void_sower_step_simulation(delta_time);
   }
@@ -513,23 +547,41 @@ final class VoidSowerDreadnoughtFFI extends ffi.Struct {
   @ffi.Float()
   external double target_position_x;
 
-  @ffi.Uint32()
-  external int reserve_cores;
+  @ffi.Float()
+  external double orbital_position_y;
+
+  @ffi.Float()
+  external double target_position_y;
 
   @ffi.Float()
   external double boundary_line_y;
 
-  @ffi.Uint8()
-  external int is_cascading;
+  @ffi.Float()
+  external double proximity_multiplier;
+
+  @ffi.Uint32()
+  external int reserve_cores;
 
   @ffi.Uint32()
   external int total_score;
 
+  @ffi.Uint32()
+  external int cores_used;
+
+  @ffi.Float()
+  external double quest_progress;
+
+  @ffi.Uint8()
+  external int is_cascading;
+
   @ffi.Uint8()
   external int current_sim_state;
 
-  @ffi.Uint32()
-  external int cores_used;
+  @ffi.Uint8()
+  external int active_quest_type;
+
+  @ffi.Uint8()
+  external int quest_status;
 }
 
 /// @brief Flat C representation of predictive targeting telemetry.
