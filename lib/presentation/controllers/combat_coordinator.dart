@@ -817,9 +817,14 @@ class CombatCoordinator extends ChangeNotifier {
     HapticService.instance.sowTick();
   }
 
-  void _handleSolverMove(int bayIndex, int direction, double targetSlideX) {
+  void _handleSolverMove(
+    int bayIndex,
+    int direction,
+    double targetSlideX,
+    double targetSlideY,
+  ) {
     _hasUsedAiSolver = true;
-    engine.slideDreadnought(targetSlideX);
+    slidePosition2D(targetSlideX, targetSlideY);
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, direction);
     sow(bayIndex, direction);

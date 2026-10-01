@@ -157,7 +157,7 @@ void main() {
         final controller = TacticalSolverController(
           engine: engine,
           mode: TacticalSolverMode.advisor,
-          onMoveSelected: (bay, dir, x) {
+          onMoveSelected: (bay, dir, x, y) {
             moveExecuted = true;
           },
         );

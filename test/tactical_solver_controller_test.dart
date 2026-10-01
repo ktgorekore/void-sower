@@ -72,7 +72,7 @@ void main() {
       bool moveCalled = false;
       final controller = TacticalSolverController(
         engine: engine,
-        onMoveSelected: (bay, dir, x) {
+        onMoveSelected: (bay, dir, x, y) {
           moveCalled = true;
         },
       );
@@ -92,7 +92,7 @@ void main() {
       bool moveCalled = false;
       final controller = TacticalSolverController(
         engine: engine,
-        onMoveSelected: (bay, dir, x) {
+        onMoveSelected: (bay, dir, x, y) {
           moveCalled = true;
         },
       );
@@ -120,7 +120,7 @@ void main() {
       bool moveCalled = false;
       final controller = TacticalSolverController(
         engine: engine,
-        onMoveSelected: (bay, dir, x) {
+        onMoveSelected: (bay, dir, x, y) {
           moveCalled = true;
         },
       );
@@ -143,7 +143,7 @@ void main() {
 
         final controller = TacticalSolverController(
           engine: engine,
-          onMoveSelected: (bay, dir, x) {
+          onMoveSelected: (bay, dir, x, y) {
             selectedBay = bay;
             selectedDir = dir;
             selectedTargetX = x;
@@ -168,7 +168,7 @@ void main() {
     test('Adaptive Pacing: Mid-range proximity sets 0.32s cooldown', () {
       final controller = TacticalSolverController(
         engine: engine,
-        onMoveSelected: (bay, dir, x) {},
+        onMoveSelected: (bay, dir, x, y) {},
       );
 
       // Enemy mid-range: Y = 0.55 (dist = 0.40 < 0.50)
@@ -185,7 +185,7 @@ void main() {
     test('Adaptive Pacing: Long range sets 0.55s cooldown', () {
       final controller = TacticalSolverController(
         engine: engine,
-        onMoveSelected: (bay, dir, x) {},
+        onMoveSelected: (bay, dir, x, y) {},
       );
 
       // Enemy long range: Y = 0.90 (dist = 0.75 >= 0.50)
@@ -198,5 +198,56 @@ void main() {
 
       expect(controller.cooldown, closeTo(0.55, 0.001));
     });
+
+    test(
+      'Autonomous 2D Deep Space Flight: Advances into deep space for proximity lance bonus',
+      () {
+        double? targetY;
+        final controller = TacticalSolverController(
+          engine: engine,
+          onMoveSelected: (bay, dir, x, y) {
+            targetY = y;
+          },
+        );
+
+        // Enemy in corridor 3 at Y = 0.70 (deep space)
+        controller.update(
+          dt: 0.016,
+          dreadnought: createDreadnought(),
+          bays: engine.getBays(),
+          enemies: [createEnemy(corridor: 3, posY: 0.70)],
+        );
+
+        expect(targetY, isNotNull);
+        // Dreadnought must advance into deep space past the boundary line (0.15)
+        expect(targetY!, greaterThan(0.15));
+        expect(targetY!, lessThanOrEqualTo(0.65));
+      },
+    );
+
+    test(
+      'Autonomous 2D Deep Space Flight: Retreats to baseline threshold upon critical breach',
+      () {
+        double? targetY;
+        final controller = TacticalSolverController(
+          engine: engine,
+          onMoveSelected: (bay, dir, x, y) {
+            targetY = y;
+          },
+        );
+
+        // Imminent breach enemy at Y = 0.25 (critical threshold)
+        controller.update(
+          dt: 0.016,
+          dreadnought: createDreadnought(),
+          bays: engine.getBays(),
+          enemies: [createEnemy(corridor: 3, posY: 0.25)],
+        );
+
+        expect(targetY, isNotNull);
+        // Drop back close to boundaryLineY (0.15 + 0.04 = 0.19)
+        expect(targetY!, closeTo(0.19, 0.01));
+      },
+    );
   });
 }

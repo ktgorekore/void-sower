@@ -51,7 +51,12 @@ class TacticalAdvice {
 
 /// Callback when the autonomous solver selects a strategic action.
 typedef OnSolverMoveSelected =
-    void Function(int bayIndex, int direction, double targetSlideX);
+    void Function(
+      int bayIndex,
+      int direction,
+      double targetSlideX,
+      double targetSlideY,
+    );
 
 /// Encapsulates autonomous tactical decision evaluation, zero-allocation
 /// threat scanning, holographic move advisory, and adaptive action pacing.
@@ -215,7 +220,43 @@ class TacticalSolverController {
 
     if (mode == TacticalSolverMode.autopilot) {
       final targetX = ((targetCorridor + 0.5) / 8.0).clamp(0.0, 1.0);
-      onMoveSelected(bestBay, bestDir, targetX);
+
+      // Intelligent 2D Deep Space Flight Maneuvering:
+      double targetY = dreadnought.boundaryLineY;
+      final hasAnyCriticalBreach = criticalCorridorsMask != 0;
+      if (isCritical || hasAnyCriticalBreach) {
+        // Critical breach imminent: drop back to threshold to intercept
+        targetY = (dreadnought.boundaryLineY + 0.04).clamp(
+          dreadnought.boundaryLineY,
+          0.65,
+        );
+      } else if (pred.triggersLance &&
+          (activeCorridorsMask & (1 << targetCorridor)) != 0) {
+        // Maximizing Vanguard Proximity Damage Multiplier (+60% bonus):
+        // Advance boldly towards the target enemy in this corridor
+        double enemyY = 1.0;
+        for (var i = 0; i < enemies.length; i++) {
+          final e = enemies[i];
+          if (!e.isDestroyed && e.assignedCorridor == targetCorridor) {
+            if (e.worldPosY < enemyY) {
+              enemyY = e.worldPosY;
+            }
+          }
+        }
+        final desiredFlightY = (enemyY - 0.12).clamp(
+          dreadnought.boundaryLineY + 0.15,
+          0.60,
+        );
+        targetY = desiredFlightY;
+      } else {
+        // Active Deep Space Patrol / Reconnaissance cruise
+        targetY = (dreadnought.boundaryLineY + 0.22).clamp(
+          dreadnought.boundaryLineY,
+          0.50,
+        );
+      }
+
+      onMoveSelected(bestBay, bestDir, targetX, targetY);
 
       // Adaptive reactive pacing:
       if (minDistanceToBoundary < 0.25) {
