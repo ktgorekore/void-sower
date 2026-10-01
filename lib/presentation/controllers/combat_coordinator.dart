@@ -646,17 +646,28 @@ class CombatCoordinator extends ChangeNotifier {
 
     // 5. Update enemy bullets & collisions
     final boundaryY = viewportSize.height - 48.0;
+    final topMargin = viewportSize.height * 0.06;
     final dreadX =
         (dreadnought.orbitalPositionX > 0.0 &&
             dreadnought.orbitalPositionX <= 1.0)
         ? dreadnought.orbitalPositionX * viewportSize.width
         : viewportSize.width * 0.5;
 
+    final forwardDepth =
+        (dreadnought.orbitalPositionY - dreadnought.boundaryLineY).clamp(
+          0.0,
+          0.45,
+        );
+    final normForward = forwardDepth / 0.45;
+    final maxTravelY = (boundaryY - topMargin) * 0.60;
+    final dreadY = (boundaryY + 12.0) - (normForward * maxTravelY);
+
     bulletManager.update(
       dt: clampedDt,
       viewportSize: viewportSize,
       boundaryY: boundaryY,
       dreadX: dreadX,
+      dreadY: dreadY,
       enemies: enemies,
       lances: lances,
       flaks: flaks,
@@ -1048,14 +1059,23 @@ class CombatCoordinator extends ChangeNotifier {
 
   /// Sets the dreadnought's target horizontal position.
   void slidePosition(double targetX) {
+    slidePosition2D(targetX, dreadnought.boundaryLineY);
+  }
+
+  /// Sets the dreadnought's target 2D position in space with flight altitude.
+  void slidePosition2D(double targetX, double targetY) {
     final clampedX = targetX.clamp(0.0, 1.0);
     final corridor = (clampedX * 8.0).floor().clamp(0, 7);
     final snappedX = (corridor + 0.5) / 8.0;
-    engine.slideDreadnought(snappedX);
+    final clampedY = targetY.clamp(dreadnought.boundaryLineY, 0.65);
+    engine.setDreadnoughtTarget(snappedX, clampedY);
+    _syncDomainState();
     if (_state.status == CombatMatchStatus.paused) {
       dreadnought = dreadnought.copyWith(
         orbitalPositionX: snappedX,
         targetPositionX: snappedX,
+        orbitalPositionY: clampedY,
+        targetPositionY: clampedY,
       );
     }
     final frontlineBay = corridor + 8;
@@ -1065,6 +1085,20 @@ class CombatCoordinator extends ChangeNotifier {
       _state = _state.copyWith(selectedBay: frontlineBay);
       prediction = engine.predictSow(frontlineBay, _sowDirection);
     }
+    notifyListeners();
+  }
+
+  /// Configures the active tactical quest type.
+  void setActiveQuest(int questType) {
+    engine.setActiveQuest(questType);
+    _syncDomainState();
+    notifyListeners();
+  }
+
+  /// Updates progress and status for the active tactical quest.
+  void updateQuest(double progress, int status) {
+    engine.updateQuest(progress, status);
+    _syncDomainState();
     notifyListeners();
   }
 

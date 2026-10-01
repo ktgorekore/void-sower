@@ -340,10 +340,25 @@ class CombatPainter extends CustomPainter {
     textDirection: TextDirection.ltr,
   );
 
+  static final TextPainter _proximityTagTextPainter = TextPainter(
+    textDirection: TextDirection.ltr,
+  );
+
   @override
   void paint(Canvas canvas, Size size) {
+    final topMargin = size.height * 0.06;
     final corridorWidth = size.width / 8.0;
     final boundaryY = size.height - 48.0;
+
+    final forwardDepth =
+        (dreadnought.orbitalPositionY - dreadnought.boundaryLineY).clamp(
+          0.0,
+          0.45,
+        );
+    final normForward = forwardDepth / 0.45;
+    final maxTravelY = (boundaryY - topMargin) * 0.60;
+    final shipY = (boundaryY + 12.0) - (normForward * maxTravelY);
+    final shipProwY = shipY - 28.0;
 
     // 1. Draw Active Particle Lances (FIRED AXIALLY FROM DREADNOUGHT PROW)
     for (var i = 0; i < lances.length; i++) {
@@ -367,28 +382,28 @@ class CombatPainter extends CustomPainter {
       // Lance outer glow (Zero-allocation static shader with hardware canvas transform)
       canvas.save();
       canvas.translate(centerX, 0);
-      canvas.scale(beamW * 1.5, boundaryY);
+      canvas.scale(beamW * 1.5, shipProwY);
       canvas.drawRect(const Rect.fromLTWH(-1.0, 0, 2.0, 1.0), _lanceGlowPaint);
       canvas.restore();
 
       // Core axial laser beam
       _lanceCorePaint.strokeWidth = math.max(beamW * 0.4, 4.0);
       canvas.drawLine(
-        Offset(centerX, boundaryY),
+        Offset(centerX, shipProwY),
         Offset(centerX, 0),
         _lanceCorePaint,
       );
 
       // Muzzle Flare at the Dreadnought Turret (Zero MaskFilter)
       canvas.drawCircle(
-        Offset(centerX, boundaryY),
+        Offset(centerX, shipProwY),
         beamW * 1.6,
         _muzzleGlowPaint,
       );
-      canvas.drawCircle(Offset(centerX, boundaryY), beamW * 0.8, _muzzlePaint);
+      canvas.drawCircle(Offset(centerX, shipProwY), beamW * 0.8, _muzzlePaint);
       canvas.drawLine(
-        Offset(centerX - beamW * 2.2, boundaryY),
-        Offset(centerX + beamW * 2.2, boundaryY),
+        Offset(centerX - beamW * 2.2, shipProwY),
+        Offset(centerX + beamW * 2.2, shipProwY),
         _muzzleSpikePaint,
       );
 
@@ -397,7 +412,6 @@ class CombatPainter extends CustomPainter {
     }
 
     // 2. Draw Active Secondary Flak Bursts
-    final topMargin = size.height * 0.06;
     for (var i = 0; i < flaks.length; i++) {
       final flak = flaks[i];
       if (!flak.active) continue;
@@ -571,13 +585,23 @@ class CombatPainter extends CustomPainter {
   }
 
   void _drawDreadnoughtPlatform(Canvas canvas, Size size, double boundaryY) {
+    final topMargin = size.height * 0.06;
     final dreadNormX =
         (dreadnought.orbitalPositionX > 0.0 &&
             dreadnought.orbitalPositionX <= 1.0)
         ? dreadnought.orbitalPositionX
         : 0.4375;
     final centerX = dreadNormX * size.width;
-    final shipY = boundaryY + 12.0;
+
+    final forwardDepth =
+        (dreadnought.orbitalPositionY - dreadnought.boundaryLineY).clamp(
+          0.0,
+          0.45,
+        );
+    final normForward = forwardDepth / 0.45;
+    final maxTravelY = (boundaryY - topMargin) * 0.60;
+    final shipY = (boundaryY + 12.0) - (normForward * maxTravelY);
+    final prowY = shipY - 28.0;
 
     // Active corridor highlight under dreadnought (Energized Runway Track)
     final activeCorridor = (centerX / (size.width / 8.0)).floor().clamp(0, 7);
@@ -604,23 +628,18 @@ class CombatPainter extends CustomPainter {
       _corridorBorderPaint,
     );
 
-    // Targeting Alignment Laser Beam (Pulsing high-visibility dual-core beam aligned with ship prow)
+    // Targeting Alignment Laser Beam (Pulsing dual-core beam aligned with ship prow in 2D space)
     final aimPulse = 0.40 + 0.25 * math.sin(animationTime * 10.0);
     _aimGlowPaint.color = VoidTheme.plasmaCyan.withValues(
       alpha: aimPulse * 0.45,
     );
-    canvas.drawLine(
-      Offset(centerX, boundaryY),
-      Offset(centerX, 0),
-      _aimGlowPaint,
-    );
+    canvas.drawLine(Offset(centerX, prowY), Offset(centerX, 0), _aimGlowPaint);
 
     _aimPaint.color = Colors.white.withValues(alpha: aimPulse * 0.90);
     _aimPaint.strokeWidth = 1.8;
-    canvas.drawLine(Offset(centerX, boundaryY), Offset(centerX, 0), _aimPaint);
+    canvas.drawLine(Offset(centerX, prowY), Offset(centerX, 0), _aimPaint);
 
     // Holographic corner-bracket lock-on reticles on descending enemies in active corridor
-    final topMargin = size.height * 0.06;
     for (var i = 0; i < enemies.length; i++) {
       final enemy = enemies[i];
       if (!enemy.isDestroyed && enemy.assignedCorridor == activeCorridor) {
@@ -733,8 +752,10 @@ class CombatPainter extends CustomPainter {
       }
     }
 
-    // Animated Twin Plasma Thrusters (Enlarged and spread to 24.0)
-    final flameHeight = 22.0 + math.sin(animationTime * 20.0) * 6.0;
+    // Animated Twin Plasma Thrusters (Enlarged and elongated during deep-space forward thrust)
+    final thrustScale = 1.0 + 1.2 * normForward;
+    final flameHeight =
+        (22.0 + math.sin(animationTime * 20.0) * 6.0) * thrustScale;
     final leftThrusterX = centerX - 24.0;
     final rightThrusterX = centerX + 24.0;
     final thrusterY = shipY + 16.0;
@@ -837,6 +858,42 @@ class CombatPainter extends CustomPainter {
       size.width - labelPainter.width - 8.0,
     );
     labelPainter.paint(canvas, Offset(labelX, shipY + 23.0));
+
+    // Proximity Vanguard Telemetry Badge
+    if (dreadnought.proximityMultiplier > 1.01) {
+      final bonusPercent = ((dreadnought.proximityMultiplier - 1.0) * 100)
+          .toInt();
+      final bonusText = '⚡ VANGUARD +$bonusPercent% LANCE';
+      _proximityTagTextPainter.text = TextSpan(
+        text: bonusText,
+        style: const TextStyle(
+          color: VoidTheme.solarGold,
+          fontSize: 8.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.8,
+        ),
+      );
+      _proximityTagTextPainter.layout();
+      final tagW = _proximityTagTextPainter.width + 8.0;
+      const tagH = 15.0;
+      final tagRect = RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(centerX, shipY + 40.0),
+          width: tagW,
+          height: tagH,
+        ),
+        const Radius.circular(3.0),
+      );
+      canvas.drawRRect(tagRect, _damageTagBgPaint);
+      canvas.drawRRect(tagRect, _damageTagBorderPaint);
+      _proximityTagTextPainter.paint(
+        canvas,
+        Offset(
+          centerX - _proximityTagTextPainter.width / 2.0,
+          shipY + 40.0 - _proximityTagTextPainter.height / 2.0,
+        ),
+      );
+    }
   }
 
   @override

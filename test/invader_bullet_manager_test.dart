@@ -315,5 +315,73 @@ void main() {
         );
       },
     );
+
+    test('Mid-space forward deployment triggers CANOPY RAM on charged bay', () {
+      final enemies = [
+        const EnemyCraft(
+          entityId: 1,
+          assignedCorridor: 4,
+          worldPosX: 0.5625,
+          worldPosY: 0.85,
+          velocityY: 0.05,
+          currentShields: 100,
+          maxShields: 100,
+          currentHull: 100,
+          maxHull: 100,
+          vesselType: 0,
+          isDestroyed: false,
+        ),
+      ];
+
+      // Spawn bullet in corridor 4 (centerX = 450)
+      manager.update(
+        dt: 1.0,
+        viewportSize: const Size(800, 1000),
+        boundaryY: 880,
+        dreadX: 450,
+        dreadY: 550, // Forward in mid-space!
+        enemies: enemies,
+        lances: const [],
+        flaks: const [],
+      );
+      expect(manager.bullets.isNotEmpty, isTrue);
+
+      // Charged bay 12
+      final bays = List<BayState>.generate(
+        16,
+        (i) => BayState(
+          bayIndex: i,
+          tier: 0,
+          gridColumn: i % 8,
+          chargeUnits: i == 12 ? 3 : 0,
+          radialPositionRad: 0.0,
+          isFrontline: i >= 8,
+          isNyumba: false,
+          isKichwa: false,
+          isKimbi: false,
+        ),
+      );
+
+      // Advance bullet to strike dreadnought at y = 550
+      // Velocity is ~160-210 px/s, initial y is ~192.
+      // Need bullet to reach y=550: dt ≈ (550 - 192) / 210 ≈ 1.7s
+      manager.update(
+        dt: 1.7,
+        viewportSize: const Size(800, 1000),
+        boundaryY: 880,
+        dreadX: 450,
+        dreadY: 550,
+        enemies: const [],
+        lances: const [],
+        flaks: const [],
+        bays: bays,
+      );
+
+      expect(bulletDeflectCount, equals(1));
+      expect(
+        damageNumbers.any((d) => d.text.contains('CANOPY RAM! +75')),
+        isTrue,
+      );
+    });
   });
 }

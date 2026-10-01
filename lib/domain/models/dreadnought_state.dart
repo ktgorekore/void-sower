@@ -15,11 +15,27 @@
 /// Tactical quest types for deep-space sorties.
 enum QuestType {
   none(0, 'Deep Space Recon', 'Standard sector defense'),
-  outpostReclamation(1, 'Outpost Reclamation', 'Secure and hold forward orbital outpost'),
+  outpostReclamation(
+    1,
+    'Outpost Reclamation',
+    'Secure and hold forward orbital outpost',
+  ),
   convoyEscort(2, 'Convoy Escort', 'Shield resource cargo hulls from raiders'),
-  capitalSiege(3, 'Capital Dreadnought Siege', 'Penetrate and collapse flagship shielding'),
-  warpRiftCollapse(4, 'Warp Rift Collapse', 'Discharge resonance pulses into spatial fissures'),
-  asteroidProspecting(5, 'Asteroid Prospecting', 'Extract crystalline fuel cores under fire');
+  capitalSiege(
+    3,
+    'Capital Dreadnought Siege',
+    'Penetrate and collapse flagship shielding',
+  ),
+  warpRiftCollapse(
+    4,
+    'Warp Rift Collapse',
+    'Discharge resonance pulses into spatial fissures',
+  ),
+  asteroidProspecting(
+    5,
+    'Asteroid Prospecting',
+    'Extract crystalline fuel cores under fire',
+  );
 
   const QuestType(this.id, this.title, this.description);
   final int id;

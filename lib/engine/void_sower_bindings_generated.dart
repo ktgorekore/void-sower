@@ -115,8 +115,8 @@ class VoidSowerBindings {
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Uint8)>>(
         'void_sower_set_active_quest',
       );
-  late final _void_sower_set_active_quest =
-      _void_sower_set_active_questPtr.asFunction<void Function(int)>();
+  late final _void_sower_set_active_quest = _void_sower_set_active_questPtr
+      .asFunction<void Function(int)>();
 
   void void_sower_update_quest(double progress, int status) {
     return _void_sower_update_quest(progress, status);
@@ -126,8 +126,8 @@ class VoidSowerBindings {
       _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Float, ffi.Uint8)>>(
         'void_sower_update_quest',
       );
-  late final _void_sower_update_quest =
-      _void_sower_update_questPtr.asFunction<void Function(double, int)>();
+  late final _void_sower_update_quest = _void_sower_update_questPtr
+      .asFunction<void Function(double, int)>();
 
   void void_sower_step_simulation(double delta_time) {
     return _void_sower_step_simulation(delta_time);

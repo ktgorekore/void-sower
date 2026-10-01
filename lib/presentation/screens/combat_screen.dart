@@ -18,6 +18,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../core/logging.dart';
 import '../../domain/models/campaign_sector.dart';
+import '../../domain/models/dreadnought_state.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/campaign_service.dart';
 import '../../domain/services/entitlement_service.dart';
@@ -978,7 +979,28 @@ class _CombatScreenState extends State<CombatScreen>
                                                 (details.localPosition.dx /
                                                         constraints.maxWidth)
                                                     .clamp(0.0, 1.0);
-                                            _coordinator.slidePosition(normX);
+                                            final boundaryY =
+                                                constraints.maxHeight - 48.0;
+                                            final topMargin =
+                                                constraints.maxHeight * 0.06;
+                                            final forwardRatio =
+                                                (details.localPosition.dy <
+                                                    boundaryY)
+                                                ? ((boundaryY -
+                                                              details
+                                                                  .localPosition
+                                                                  .dy) /
+                                                          (boundaryY -
+                                                              topMargin))
+                                                      .clamp(0.0, 1.0)
+                                                : 0.0;
+                                            final normY =
+                                                (0.20 + forwardRatio * 0.45)
+                                                    .clamp(0.20, 0.65);
+                                            _coordinator.slidePosition2D(
+                                              normX,
+                                              normY,
+                                            );
                                           },
                                           onPanEnd: (details) {
                                             if (!matchState.canReceiveInput) {
@@ -1116,6 +1138,197 @@ class _CombatScreenState extends State<CombatScreen>
                                           ),
                                         );
                                       },
+                                    ),
+                                  ),
+                                  // Live Deep-Space Tactical Sortie Directive Banner
+                                  Positioned(
+                                    top: 6.0,
+                                    left: 14.0,
+                                    right: 14.0,
+                                    child: IgnorePointer(
+                                      child: ListenableBuilder(
+                                        listenable: _renderNotifier,
+                                        builder: (context, _) {
+                                          final dread =
+                                              _coordinator.dreadnought;
+                                          final quest = dread.quest;
+                                          final hasActiveQuest =
+                                              quest != QuestType.none;
+                                          final isVanguard =
+                                              dread.proximityMultiplier > 1.01;
+
+                                          return Row(
+                                            children: [
+                                              Expanded(
+                                                child: Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 3.5,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: VoidTheme
+                                                        .obsidianBlack
+                                                        .withValues(
+                                                          alpha: 0.82,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6.0,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: hasActiveQuest
+                                                          ? VoidTheme.solarGold
+                                                                .withValues(
+                                                                  alpha: 0.5,
+                                                                )
+                                                          : VoidTheme.plasmaCyan
+                                                                .withValues(
+                                                                  alpha: 0.3,
+                                                                ),
+                                                      width: 1.0,
+                                                    ),
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      Icon(
+                                                        hasActiveQuest
+                                                            ? Icons.explore
+                                                            : Icons.radar,
+                                                        size: 12.0,
+                                                        color: hasActiveQuest
+                                                            ? VoidTheme
+                                                                  .solarGold
+                                                            : VoidTheme
+                                                                  .plasmaCyan,
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 5.0,
+                                                      ),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Text(
+                                                              hasActiveQuest
+                                                                  ? quest.title
+                                                                        .toUpperCase()
+                                                                  : 'DEEP SPACE WARFARE',
+                                                              maxLines: 1,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: const TextStyle(
+                                                                color: Colors
+                                                                    .white,
+                                                                fontSize: 8.5,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w900,
+                                                                letterSpacing:
+                                                                    0.7,
+                                                              ),
+                                                            ),
+                                                            if (hasActiveQuest) ...[
+                                                              const SizedBox(
+                                                                height: 2.0,
+                                                              ),
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      1.5,
+                                                                    ),
+                                                                child: LinearProgressIndicator(
+                                                                  value: dread
+                                                                      .questProgress
+                                                                      .clamp(
+                                                                        0.0,
+                                                                        1.0,
+                                                                      ),
+                                                                  minHeight:
+                                                                      2.0,
+                                                                  backgroundColor:
+                                                                      Colors
+                                                                          .white12,
+                                                                  valueColor:
+                                                                      const AlwaysStoppedAnimation<
+                                                                        Color
+                                                                      >(
+                                                                        VoidTheme
+                                                                            .solarGold,
+                                                                      ),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                              if (isVanguard) ...[
+                                                const SizedBox(width: 6.0),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6.0,
+                                                        vertical: 3.5,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: VoidTheme
+                                                        .obsidianBlack
+                                                        .withValues(
+                                                          alpha: 0.88,
+                                                        ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6.0,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: VoidTheme.solarGold
+                                                          .withValues(
+                                                            alpha: 0.75,
+                                                          ),
+                                                      width: 1.0,
+                                                    ),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(
+                                                        Icons.bolt,
+                                                        size: 12.0,
+                                                        color:
+                                                            VoidTheme.solarGold,
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 2.0,
+                                                      ),
+                                                      Text(
+                                                        '+${((dread.proximityMultiplier - 1.0) * 100).toInt()}%',
+                                                        style: const TextStyle(
+                                                          color: VoidTheme
+                                                              .solarGold,
+                                                          fontSize: 9.0,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          letterSpacing: 0.5,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ],
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ),
                                   if (matchState.status ==
