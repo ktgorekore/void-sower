@@ -115,10 +115,14 @@ jobs:
             echo "[!] No release keystore secrets found. Falling back to debug signing for testing bundle."
           fi
 
-      - name: Build Optimized Android App Bundle (.aab)
+      - name: Build Optimized Android App Bundle (.aab) & Release APK (.apk)
         run: |
           mkdir -p build/app/outputs/symbols
           flutter build appbundle --release \
+            --obfuscate \
+            --split-debug-info=build/app/outputs/symbols \
+            --tree-shake-icons
+          flutter build apk --release \
             --obfuscate \
             --split-debug-info=build/app/outputs/symbols \
             --tree-shake-icons
@@ -134,6 +138,10 @@ jobs:
           AAB_SRC="build/app/outputs/bundle/release/app-release.aab"
           AAB_DEST="build/app/outputs/bundle/release/void-sower-${TAG}.aab"
           cp "$AAB_SRC" "$AAB_DEST"
+
+          APK_SRC="build/app/outputs/flutter-apk/app-release.apk"
+          APK_DEST="build/app/outputs/flutter-apk/void-sower-${TAG}.apk"
+          cp "$APK_SRC" "$APK_DEST"
           
           # Package Dart Obfuscation Symbols
           SYMBOLS_ZIP="build/app/outputs/symbols/void-sower-symbols-${TAG}.zip"
@@ -141,11 +149,16 @@ jobs:
           
           AAB_SHA256=$(sha256sum "$AAB_DEST" | awk '{print $1}')
           AAB_SIZE_MB=$(echo "scale=2; $(stat -c%s "$AAB_DEST" 2>/dev/null || stat -f%z "$AAB_DEST") / 1048576" | bc)
+          APK_SHA256=$(sha256sum "$APK_DEST" | awk '{print $1}')
+          APK_SIZE_MB=$(echo "scale=2; $(stat -c%s "$APK_DEST" 2>/dev/null || stat -f%z "$APK_DEST") / 1048576" | bc)
           
           echo "aab_dest=$AAB_DEST" >> $GITHUB_OUTPUT
+          echo "apk_dest=$APK_DEST" >> $GITHUB_OUTPUT
           echo "symbols_zip=$SYMBOLS_ZIP" >> $GITHUB_OUTPUT
           echo "aab_sha256=$AAB_SHA256" >> $GITHUB_OUTPUT
           echo "aab_size_mb=$AAB_SIZE_MB" >> $GITHUB_OUTPUT
+          echo "apk_sha256=$APK_SHA256" >> $GITHUB_OUTPUT
+          echo "apk_size_mb=$APK_SIZE_MB" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -160,13 +173,17 @@ jobs:
             
             #### 📦 Release Artifacts:
             * **Android App Bundle (.aab):** `void-sower-${{ steps.vars.outputs.tag }}.aab` (${{ steps.artifacts.outputs.aab_size_mb }} MB)
-            * **SHA-256 Checksum:** `${{ steps.artifacts.outputs.aab_sha256 }}`
+            * **Release APK (.apk):** `void-sower-${{ steps.vars.outputs.tag }}.apk` (${{ steps.artifacts.outputs.apk_size_mb }} MB)
+            * **AAB SHA-256 Checksum:** `${{ steps.artifacts.outputs.aab_sha256 }}`
+            * **APK SHA-256 Checksum:** `${{ steps.artifacts.outputs.apk_sha256 }}`
             * **Dart Obfuscation Symbols:** `void-sower-symbols-${{ steps.vars.outputs.tag }}.zip`
             
             #### 🚀 Deployment Instructions:
-            1. Download `void-sower-${{ steps.vars.outputs.tag }}.aab` and upload to **Google Play Console > Internal Testing / Production**.
-            2. Upload `void-sower-symbols-${{ steps.vars.outputs.tag }}.zip` to Crashlytics / Play Console for stack trace de-obfuscation.
-            3. Fully audited for **Android 15 16 KB ELF memory page alignment**.
+            1. **Direct Device Install:** Download `void-sower-${{ steps.vars.outputs.tag }}.apk` directly onto your Android device to install and test immediately.
+            2. **Google Play Console:** Upload `void-sower-${{ steps.vars.outputs.tag }}.aab` to **Google Play Console > Internal Testing / Production**.
+            3. Upload `void-sower-symbols-${{ steps.vars.outputs.tag }}.zip` to Crashlytics / Play Console for stack trace de-obfuscation.
+            4. Fully audited for **Android 15 16 KB ELF memory page alignment**.
           files: |
             ${{ steps.artifacts.outputs.aab_dest }}
+            ${{ steps.artifacts.outputs.apk_dest }}
             ${{ steps.artifacts.outputs.symbols_zip }}
