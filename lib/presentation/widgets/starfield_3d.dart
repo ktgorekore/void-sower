@@ -27,7 +27,7 @@ import '../theme/void_theme.dart';
 /// - Zero dynamic runtime heap allocations during combat ticks using contiguous [Float32List] memory.
 class Starfield3DSimulation {
   /// Initializes the 3D starfield simulation with a pre-allocated pool of [starCount] stars.
-  Starfield3DSimulation({this.starCount = 160}) {
+  Starfield3DSimulation({this.starCount = 64}) {
     _posX = Float32List(starCount);
     _posY = Float32List(starCount);
     _posZ = Float32List(starCount);
@@ -108,9 +108,9 @@ class Starfield3DSimulation {
     _prevScreenX[i] = -9999.0;
     _prevScreenY[i] = -9999.0;
 
-    _speed[i] = 0.25 + _rng.nextDouble() * 0.45;
-    _baseRadius[i] = 0.8 + _rng.nextDouble() * 1.6;
-    _baseAlpha[i] = 0.4 + _rng.nextDouble() * 0.6;
+    _speed[i] = 0.04 + _rng.nextDouble() * 0.05;
+    _baseRadius[i] = 0.5 + _rng.nextDouble() * 0.8;
+    _baseAlpha[i] = 0.20 + _rng.nextDouble() * 0.25;
 
     // 0: pure white (70%), 1: plasma cyan (15%), 2: solar gold (10%), 3: amethyst (5%)
     final roll = _rng.nextDouble();
@@ -130,32 +130,35 @@ class Starfield3DSimulation {
   /// [normForward]: Normalized deep space forward flight depth in $[0.0, 1.0]$.
   /// [velocityDx]: Instantaneous lateral conduit sliding velocity in units/second.
   /// [viewportSize]: Real-time tactical combat viewport dimensions.
+  /// [isLowBattery]: When true, updates only half the star pool to minimize CPU cycles.
   void update({
     required double dt,
     required double normForward,
     required double velocityDx,
     required Size viewportSize,
+    bool isLowBattery = false,
   }) {
     if (viewportSize.width <= 0 || viewportSize.height <= 0) return;
 
     final clampedDt = dt.clamp(0.001, 0.05);
-    final warpMultiplier = 1.0 + (5.5 * normForward.clamp(0.0, 1.0));
+    final warpMultiplier = 1.0 + (1.2 * normForward.clamp(0.0, 1.0));
     final centerX = viewportSize.width * 0.5;
     final centerY =
-        viewportSize.height * 0.42; // Vanishing point in upper third
+        viewportSize.height * 0.18; // Vanishing point aligned to 3D horizon
     final scaleX = viewportSize.width * 0.48;
     final scaleY = viewportSize.height * 0.48;
 
-    _nebulaPhase += clampedDt * (0.05 + 0.15 * normForward);
+    _nebulaPhase += clampedDt * (0.015 + 0.03 * normForward);
 
-    for (var i = 0; i < starCount; i++) {
+    final activeCount = isLowBattery ? (starCount ~/ 2) : starCount;
+    for (var i = 0; i < activeCount; i++) {
       // 1. Advance depth along Z axis (stars move towards camera)
       final stepZ = _speed[i] * clampedDt * warpMultiplier;
       _posZ[i] -= stepZ;
 
       // 2. Lateral parallax drift inversely proportional to Z depth
       final parallaxFactor = (1.15 - _posZ[i]).clamp(0.15, 1.0);
-      _posX[i] -= velocityDx * clampedDt * 0.35 * parallaxFactor;
+      _posX[i] -= velocityDx * clampedDt * 0.08 * parallaxFactor;
 
       // Check for camera pass or boundary exit
       if (_posZ[i] <= 0.06) {
@@ -184,26 +187,30 @@ class Starfield3DSimulation {
     Size size, {
     required double normForward,
     required double animationTime,
+    bool isLowBattery = false,
   }) {
     if (size.width <= 0 || size.height <= 0) return;
 
     final centerX = size.width * 0.5;
-    final centerY = size.height * 0.42;
+    final centerY = size.height * 0.18; // Vanishing point aligned to 3D horizon
     final scaleX = size.width * 0.48;
     final scaleY = size.height * 0.48;
 
     final isWarping = normForward > 0.08;
-    final streakFactor = (normForward * 2.8).clamp(0.0, 2.5);
+    final streakFactor = (normForward * 0.80).clamp(0.0, 0.80);
 
     // -------------------------------------------------------------------------
     // 1. Cosmic Nebulae Pass: Drifting Kilwa Basin Atmosphere
     // -------------------------------------------------------------------------
-    _paintCosmicNebulae(canvas, size, normForward);
+    if (!isLowBattery) {
+      _paintCosmicNebulae(canvas, size, normForward);
+    }
 
     // -------------------------------------------------------------------------
     // 2. 3D Stars & Warp Streaks Pass
     // -------------------------------------------------------------------------
-    for (var i = 0; i < starCount; i++) {
+    final activeCount = isLowBattery ? (starCount ~/ 2) : starCount;
+    for (var i = 0; i < activeCount; i++) {
       final z = _posZ[i];
       if (z <= 0.06) continue;
 
@@ -215,11 +222,11 @@ class Starfield3DSimulation {
       final depthFactor = ((1.0 - z) / 0.94).clamp(0.0, 1.0);
       final alpha = (_baseAlpha[i] * (0.25 + 0.75 * depthFactor)).clamp(
         0.0,
-        1.0,
+        0.48,
       );
-      final radius = (_baseRadius[i] * (0.6 + 1.2 * depthFactor)).clamp(
-        0.5,
-        4.0,
+      final radius = (_baseRadius[i] * (0.6 + 1.0 * depthFactor)).clamp(
+        0.4,
+        1.6,
       );
 
       final colorType = _colorType[i];
@@ -245,7 +252,7 @@ class Starfield3DSimulation {
         final dx = sx - centerX;
         final dy = sy - centerY;
         final dist = math.sqrt(dx * dx + dy * dy);
-        final streakLen = math.min(dist * 0.28 * streakFactor, 38.0);
+        final streakLen = math.min(dist * 0.08 * streakFactor, 8.0);
         final nx = dist > 0.001 ? (dx / dist) : 0.0;
         final ny = dist > 0.001 ? (dy / dist) : 1.0;
 
@@ -257,25 +264,25 @@ class Starfield3DSimulation {
           case 1:
             streakPaint = _streakCyanPaint
               ..color = starColor.withValues(alpha: alpha)
-              ..strokeWidth = math.max(radius * 0.75, 1.0);
-            break;
+              ..strokeWidth = 1.0;
           case 2:
             streakPaint = _streakGoldPaint
               ..color = starColor.withValues(alpha: alpha)
-              ..strokeWidth = math.max(radius * 0.75, 1.0);
-            break;
-          case 0:
+              ..strokeWidth = 1.0;
           case 3:
+            streakPaint = _streakCyanPaint
+              ..color = starColor.withValues(alpha: alpha)
+              ..strokeWidth = 1.0;
+          case 0:
           default:
             streakPaint = _streakWhitePaint
               ..color = starColor.withValues(alpha: alpha)
-              ..strokeWidth = math.max(radius * 0.75, 1.0);
-            break;
+              ..strokeWidth = 1.0;
         }
 
         canvas.drawLine(Offset(tailX, tailY), Offset(sx, sy), streakPaint);
       } else {
-        // Standard ambient orbital star point
+        // Ambient celestial pinprick
         final Paint starPaint;
         switch (colorType) {
           case 1:
@@ -347,6 +354,7 @@ class Starfield3DWidget extends StatelessWidget {
     required this.simulation,
     required this.normForward,
     required this.animationTime,
+    this.isLowBattery = false,
   });
 
   /// The active typed starfield simulation state.
@@ -358,6 +366,9 @@ class Starfield3DWidget extends StatelessWidget {
   /// Global continuous animation clock in seconds.
   final double animationTime;
 
+  /// Whether low battery optimizations are active.
+  final bool isLowBattery;
+
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
@@ -365,6 +376,7 @@ class Starfield3DWidget extends StatelessWidget {
         simulation: simulation,
         normForward: normForward,
         animationTime: animationTime,
+        isLowBattery: isLowBattery,
       ),
       isComplex: true,
       willChange: true,
@@ -377,11 +389,13 @@ class _Starfield3DPainter extends CustomPainter {
     required this.simulation,
     required this.normForward,
     required this.animationTime,
+    this.isLowBattery = false,
   });
 
   final Starfield3DSimulation simulation;
   final double normForward;
   final double animationTime;
+  final bool isLowBattery;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -390,6 +404,7 @@ class _Starfield3DPainter extends CustomPainter {
       size,
       normForward: normForward,
       animationTime: animationTime,
+      isLowBattery: isLowBattery,
     );
   }
 

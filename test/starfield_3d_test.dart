@@ -24,7 +24,7 @@ void main() {
   group('3D Perspective Starfield Simulation Tests', () {
     test('Starfield3DSimulation initializes pre-allocated typed arrays', () {
       final sim = Starfield3DSimulation();
-      expect(sim.starCount, equals(160));
+      expect(sim.starCount, equals(64));
 
       // Verify stars are distributed in valid normalized bounds
       for (var i = 0; i < sim.starCount; i++) {
@@ -61,9 +61,9 @@ void main() {
         viewportSize: viewport,
       );
 
-      // Forward warp speed multiplier accelerates z decrement
+      // Calm forward warp speed multiplier accelerates z decrement without disorientation
       final deltaWarp = zBeforeWarp - sim.posZ[1];
-      expect(deltaWarp, greaterThan(0.01));
+      expect(deltaWarp, greaterThan(0.001));
     });
 
     test('Starfield3DSimulation wraps stars at boundary plane', () {
