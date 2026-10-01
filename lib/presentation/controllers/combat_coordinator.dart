@@ -645,7 +645,7 @@ class CombatCoordinator extends ChangeNotifier {
     particleService.update(clampedDt);
 
     // 5. Update enemy bullets & collisions
-    final boundaryY = viewportSize.height - 48.0;
+    final boundaryY = viewportSize.height - 18.0;
     final topMargin = viewportSize.height * 0.06;
     final dreadX =
         (dreadnought.orbitalPositionX > 0.0 &&
@@ -660,7 +660,7 @@ class CombatCoordinator extends ChangeNotifier {
         );
     final normForward = forwardDepth / 0.45;
     final maxTravelY = (boundaryY - topMargin) * 0.60;
-    final dreadY = (boundaryY + 12.0) - (normForward * maxTravelY);
+    final dreadY = (boundaryY + 2.0) - (normForward * maxTravelY);
 
     bulletManager.update(
       dt: clampedDt,

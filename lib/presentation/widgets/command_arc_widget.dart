@@ -70,8 +70,8 @@ class CommandArcWidget extends StatelessWidget {
     final activeBay = selected ?? (activeCorridor + 8);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
-      padding: const EdgeInsets.all(6.0),
+      margin: const EdgeInsets.fromLTRB(4.0, 0.0, 4.0, 2.0),
+      padding: const EdgeInsets.fromLTRB(6.0, 3.0, 6.0, 5.0),
       decoration: BoxDecoration(
         color: const Color(0xFF0A101F).withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(16.0),

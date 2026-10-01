@@ -245,6 +245,7 @@ class _CombatScreenState extends State<CombatScreen>
         normForward: normForward,
         velocityDx: velocityDx,
         viewportSize: viewport,
+        isLowBattery: PersistenceService.instance.lowBatteryMode,
       );
 
       _renderNotifier.value = _animationTime;
@@ -999,7 +1000,7 @@ class _CombatScreenState extends State<CombatScreen>
                                                         constraints.maxWidth)
                                                     .clamp(0.0, 1.0);
                                             final boundaryY =
-                                                constraints.maxHeight - 48.0;
+                                                constraints.maxHeight - 18.0;
                                             final topMargin =
                                                 constraints.maxHeight * 0.06;
                                             final forwardRatio =
@@ -1013,9 +1014,13 @@ class _CombatScreenState extends State<CombatScreen>
                                                               topMargin))
                                                       .clamp(0.0, 1.0)
                                                 : 0.0;
+                                            final baseBoundaryY = _coordinator
+                                                .dreadnought
+                                                .boundaryLineY;
                                             final normY =
-                                                (0.20 + forwardRatio * 0.45)
-                                                    .clamp(0.20, 0.65);
+                                                (baseBoundaryY +
+                                                        forwardRatio * 0.45)
+                                                    .clamp(baseBoundaryY, 0.65);
                                             _coordinator.slidePosition2D(
                                               normX,
                                               normY,
@@ -1122,15 +1127,24 @@ class _CombatScreenState extends State<CombatScreen>
                                                       normForward: normForward,
                                                       animationTime:
                                                           _animationTime,
+                                                      isLowBattery:
+                                                          PersistenceService
+                                                              .instance
+                                                              .lowBatteryMode,
                                                     );
                                                   },
                                                 ),
                                               ),
                                               // Retained Static Skia Surface (Corridors & Defense Rails)
-                                              const RepaintBoundary(
+                                              RepaintBoundary(
                                                 child: CustomPaint(
                                                   painter:
-                                                      CombatBackgroundPainter(),
+                                                      CombatBackgroundPainter(
+                                                        isLowBattery:
+                                                            PersistenceService
+                                                                .instance
+                                                                .lowBatteryMode,
+                                                      ),
                                                 ),
                                               ),
                                               // Dynamic Combat Entities Layer (Zero Allocation & Isolated Repaint)
@@ -1171,6 +1185,10 @@ class _CombatScreenState extends State<CombatScreen>
                                                                   ?.predictedDamage,
                                                           animationTime:
                                                               _animationTime,
+                                                          isLowBattery:
+                                                              PersistenceService
+                                                                  .instance
+                                                                  .lowBatteryMode,
                                                         ),
                                                       ),
                                                     );

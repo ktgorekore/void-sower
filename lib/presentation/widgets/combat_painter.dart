@@ -23,6 +23,7 @@ import '../../domain/models/floating_damage_number.dart';
 import '../../domain/models/lance_beam.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
+import 'dreadnought_3d_mesh.dart';
 
 /// Retained Skia static background layer rendering the 8 tactical corridors,
 /// atmospheric defense boundary line, and planetary defense rails.
@@ -30,7 +31,9 @@ import '../theme/void_theme.dart';
 /// Wrapped in a [RepaintBoundary] so Flutter rasterizes this geometry to an offscreen
 /// GPU surface once, consuming zero raster cycles on subsequent dynamic frame ticks.
 class CombatBackgroundPainter extends CustomPainter {
-  const CombatBackgroundPainter();
+  const CombatBackgroundPainter({this.isLowBattery = false});
+
+  final bool isLowBattery;
 
   static final Paint _corridorPaint = Paint()
     ..color = VoidTheme.cosmicNavy.withValues(alpha: 0.35)
@@ -50,15 +53,26 @@ class CombatBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final corridorWidth = size.width / 8.0;
+    final boundaryY = size.height - 18.0;
+    final vpX = size.width * 0.5;
 
-    // 1. Draw 8 Tactical Combat Corridors (Dashed Futuristic Guides)
+    // 1. Draw 8 Tactical Combat Corridors (3D Converging Guides extending to viewport base)
     for (var i = 1; i < 8; i++) {
-      final x = i * corridorWidth;
+      final xBottom = i * corridorWidth;
+      // Subtle 15% perspective convergence towards vanishing point (0.5, 0.18)
+      final xTop = vpX + (xBottom - vpX) * 0.85;
       var y = 0.0;
       while (y < size.height) {
+        final t0 = (y / size.height).clamp(0.0, 1.0);
+        final t1 = (math.min(y + 4.0, size.height) / size.height).clamp(
+          0.0,
+          1.0,
+        );
+        final x0 = xTop + (xBottom - xTop) * t0;
+        final x1 = xTop + (xBottom - xTop) * t1;
         canvas.drawLine(
-          Offset(x, y),
-          Offset(x, math.min(y + 4.0, size.height)),
+          Offset(x0, y),
+          Offset(x1, math.min(y + 4.0, size.height)),
           _corridorPaint,
         );
         y += 8.0;
@@ -66,7 +80,6 @@ class CombatBackgroundPainter extends CustomPainter {
     }
 
     // 2. Draw Atmospheric Defense Boundary Line & Futuristic Label
-    final boundaryY = size.height - 48.0;
     canvas.drawLine(
       Offset(0, boundaryY),
       Offset(size.width, boundaryY),
@@ -85,12 +98,12 @@ class CombatBackgroundPainter extends CustomPainter {
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    thresholdPainter.paint(canvas, Offset(14.0, boundaryY - 12.0));
+    thresholdPainter.paint(canvas, Offset(14.0, boundaryY - 11.0));
 
     // 3. Draw Planetary Defense Horizon Line
     canvas.drawLine(
-      Offset(0, boundaryY + 22),
-      Offset(size.width, boundaryY + 22),
+      Offset(0, size.height - 1.5),
+      Offset(size.width, size.height - 1.5),
       _railPaint,
     );
   }
@@ -115,6 +128,7 @@ class CombatPainter extends CustomPainter {
     this.enemyBullets = const [],
     this.predictedDamage,
     required this.animationTime,
+    this.isLowBattery = false,
     super.repaint,
   });
 
@@ -127,6 +141,9 @@ class CombatPainter extends CustomPainter {
   final List<EnemyBullet> enemyBullets;
   final double? predictedDamage;
   final double animationTime;
+  final bool isLowBattery;
+
+  static final Dreadnought3DMesh _dreadMesh = Dreadnought3DMesh();
 
   // ---------------------------------------------------------------------------
   // Reusable Path Scratchpads & Pre-compiled Static Geometry
@@ -134,25 +151,6 @@ class CombatPainter extends CustomPainter {
   static final Path _scratchEnemyHullPath = Path();
   static final Path _scratchLeftFlamePath = Path();
   static final Path _scratchRightFlamePath = Path();
-
-  static final Path _staticDreadHullPath = Path()
-    ..moveTo(0, -23.0) // Nose pointing UP
-    ..lineTo(18.0, -7.0)
-    ..lineTo(52.0, 11.0) // Starboard wingtip
-    ..lineTo(32.0, 19.0) // Starboard mount
-    ..lineTo(15.0, 12.0)
-    ..lineTo(-15.0, 12.0)
-    ..lineTo(-32.0, 19.0) // Port mount
-    ..lineTo(-52.0, 11.0) // Port wingtip
-    ..lineTo(-18.0, -7.0)
-    ..close();
-
-  static final Path _staticProwChevronPath = Path()
-    ..moveTo(0, -36.0)
-    ..lineTo(8.0, -28.0)
-    ..lineTo(0, -30.0)
-    ..lineTo(-8.0, -28.0)
-    ..close();
 
   // ---------------------------------------------------------------------------
   // Pre-allocated Static Paint Pools (Zero Allocations & Zero MaskFilter Blurs)
@@ -253,42 +251,6 @@ class CombatPainter extends CustomPainter {
     ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.75)
     ..style = PaintingStyle.fill;
 
-  static final Paint _dreadFillPaint = Paint()
-    ..color = VoidTheme.obsidianBlack
-    ..style = PaintingStyle.fill;
-
-  static final Shader _staticDreadArmorShader = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [
-      VoidTheme.solarGold.withValues(alpha: 0.9),
-      VoidTheme.cardSurface,
-      VoidTheme.obsidianBlack,
-    ],
-  ).createShader(const Rect.fromLTWH(-52.0, -23.0, 104.0, 48.0));
-
-  static final Paint _dreadArmorPaint = Paint()
-    ..style = PaintingStyle.fill
-    ..shader = _staticDreadArmorShader;
-
-  static final Paint _dreadOutlinePaint = Paint()
-    ..color = VoidTheme.plasmaCyan
-    ..strokeWidth = 1.8
-    ..style = PaintingStyle.stroke;
-
-  static final Paint _turretPaint = Paint()
-    ..color = Colors.white
-    ..strokeWidth = 2.2
-    ..strokeCap = StrokeCap.round;
-
-  static final Paint _coreGlowPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _coreCenterPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.fill;
-
   static final Paint _shieldArcPaint = Paint()
     ..color = VoidTheme.plasmaCyan
     ..strokeWidth = 2.4
@@ -298,14 +260,6 @@ class CombatPainter extends CustomPainter {
     ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35)
     ..strokeWidth = 5.0
     ..style = PaintingStyle.stroke;
-
-  static final Paint _portNavPaint = Paint()..style = PaintingStyle.fill;
-  static final Paint _starboardNavPaint = Paint()..style = PaintingStyle.fill;
-  static final Paint _prowChevronPaint = Paint()..style = PaintingStyle.fill;
-  static final Paint _coreOuterGlowPaint = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.5
-    ..color = VoidTheme.solarGold.withValues(alpha: 0.6);
 
   // ---------------------------------------------------------------------------
   // Pre-computed Text Layout Pool (8 Tactical Conduits C1..C8)
@@ -451,7 +405,7 @@ class CombatPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final topMargin = size.height * 0.06;
     final corridorWidth = size.width / 8.0;
-    final boundaryY = size.height - 48.0;
+    final boundaryY = size.height - 18.0;
 
     final forwardDepth =
         (dreadnought.orbitalPositionY - dreadnought.boundaryLineY).clamp(
@@ -460,7 +414,7 @@ class CombatPainter extends CustomPainter {
         );
     final normForward = forwardDepth / 0.45;
     final maxTravelY = (boundaryY - topMargin) * 0.60;
-    final shipY = (boundaryY + 12.0) - (normForward * maxTravelY);
+    final shipY = (boundaryY + 2.0) - (normForward * maxTravelY);
     final shipProwY = shipY - 28.0;
 
     // 1. Draw Active Particle Lances (FIRED AXIALLY FROM DREADNOUGHT PROW)
@@ -558,7 +512,15 @@ class CombatPainter extends CustomPainter {
       }
 
       if (y < -50 || y > size.height) continue;
-      _drawEnemyVessel(canvas, x, y, enemy, corridorWidth);
+      _drawEnemyVessel(
+        canvas,
+        x,
+        y,
+        enemy,
+        corridorWidth,
+        topMargin,
+        boundaryY,
+      );
     }
 
     // 4. Draw Descending Enemy Plasma Bullets
@@ -632,12 +594,18 @@ class CombatPainter extends CustomPainter {
     double y,
     EnemyCraft enemy,
     double width,
+    double topMargin,
+    double boundaryY,
   ) {
+    final normDepth = ((y - topMargin) / math.max(boundaryY - topMargin, 1.0))
+        .clamp(0.0, 1.0);
+    // 3D perspective depth scaling: 0.65x in deep space -> 1.0x at defense line
+    final depthScale = 0.65 + 0.35 * normDepth;
     final sizeRatio = enemy.vesselType == 2
         ? 1.6
         : (enemy.vesselType == 1 ? 1.2 : 0.8);
-    final w = (width * 0.5) * sizeRatio;
-    final h = (width * 0.4) * sizeRatio;
+    final w = (width * 0.5) * sizeRatio * depthScale;
+    final h = (width * 0.4) * sizeRatio * depthScale;
 
     _scratchEnemyHullPath.reset();
     _scratchEnemyHullPath.moveTo(x, y + h); // Nose pointing downward
@@ -703,7 +671,7 @@ class CombatPainter extends CustomPainter {
         );
     final normForward = forwardDepth / 0.45;
     final maxTravelY = (boundaryY - topMargin) * 0.60;
-    final shipY = (boundaryY + 12.0) - (normForward * maxTravelY);
+    final shipY = (boundaryY + 2.0) - (normForward * maxTravelY);
     final prowY = shipY - 28.0;
 
     // Active corridor highlight under dreadnought (Energized Runway Track)
@@ -714,7 +682,7 @@ class CombatPainter extends CustomPainter {
 
     _highlightPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.12);
     canvas.drawRect(
-      Rect.fromLTWH(corridorLeft, 0, corridorWidth, boundaryY),
+      Rect.fromLTWH(corridorLeft, 0, corridorWidth, size.height),
       _highlightPaint,
     );
 
@@ -722,12 +690,12 @@ class CombatPainter extends CustomPainter {
     _corridorBorderPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.28);
     canvas.drawLine(
       Offset(corridorLeft, 0),
-      Offset(corridorLeft, boundaryY),
+      Offset(corridorLeft, size.height),
       _corridorBorderPaint,
     );
     canvas.drawLine(
       Offset(corridorRight, 0),
-      Offset(corridorRight, boundaryY),
+      Offset(corridorRight, size.height),
       _corridorBorderPaint,
     );
 
@@ -855,73 +823,90 @@ class CombatPainter extends CustomPainter {
       }
     }
 
-    // 3D Banking and Perspective Foreshortening
+    // 3D Spatial Attitude Angles & Perspective Depth Scale
     final lateralDisplacement =
         (dreadnought.targetPositionX - dreadnought.orbitalPositionX).clamp(
           -0.25,
           0.25,
         );
-    final bankAngleRad = lateralDisplacement * 24.0 * (math.pi / 180.0);
-    final bankForeshortening = 1.0 - bankAngleRad.abs() * 0.12;
+    final rollRad = lateralDisplacement * 24.0 * (math.pi / 180.0);
+    // 3D Pitch: Warship visibly pitches nose-down into space (-15 deg) under forward thrust
+    final pitchRad = -normForward * 0.26;
+    // 3D Yaw: Slight turning heading into lateral slide
+    final yawRad = lateralDisplacement * 0.14;
+    // Distance scaling: 1.0x in orbit -> 0.85x deep space
+    final scale = 1.0 - normForward * 0.15;
 
-    // Animated Twin Plasma Thrusters (Enlarged and elongated during deep-space forward thrust)
-    final thrustScale = 1.0 + 1.2 * normForward;
+    // 1. Render true 3D Polygonal Dreadnought Flagship Mesh
+    _dreadMesh.projectAndPaint(
+      canvas,
+      center: Offset(centerX, shipY),
+      pitchRad: pitchRad,
+      rollRad: rollRad,
+      yawRad: yawRad,
+      scale: scale,
+      animationTime: animationTime,
+      isLowBattery: isLowBattery,
+    );
+
+    // 2. 3D Aligned Twin Plasma Engine Exhaust Flames
+    final thrustScale = (1.0 + 1.2 * normForward) * scale;
     final flameHeight =
-        (22.0 + math.sin(animationTime * 20.0) * 6.0) * thrustScale;
-    final leftThrusterX = centerX - 24.0;
-    final rightThrusterX = centerX + 24.0;
-    final thrusterY = shipY + 16.0;
+        (20.0 + math.sin(animationTime * 20.0) * 5.0) * thrustScale;
+    final leftBellX = _dreadMesh.projX[Dreadnought3DMesh.vPortEngineBell];
+    final leftBellY = _dreadMesh.projY[Dreadnought3DMesh.vPortEngineBell];
+    final rightBellX = _dreadMesh.projX[Dreadnought3DMesh.vStbdEngineBell];
+    final rightBellY = _dreadMesh.projY[Dreadnought3DMesh.vStbdEngineBell];
 
     _scratchLeftFlamePath.reset();
-    _scratchLeftFlamePath.moveTo(leftThrusterX - 6.0, thrusterY);
-    _scratchLeftFlamePath.lineTo(leftThrusterX, thrusterY + flameHeight);
-    _scratchLeftFlamePath.lineTo(leftThrusterX + 6.0, thrusterY);
+    _scratchLeftFlamePath.moveTo(leftBellX - 5.0 * scale, leftBellY);
+    _scratchLeftFlamePath.lineTo(leftBellX, leftBellY + flameHeight);
+    _scratchLeftFlamePath.lineTo(leftBellX + 5.0 * scale, leftBellY);
     _scratchLeftFlamePath.close();
     canvas.drawPath(_scratchLeftFlamePath, _flamePaint);
 
     _scratchRightFlamePath.reset();
-    _scratchRightFlamePath.moveTo(rightThrusterX - 6.0, thrusterY);
-    _scratchRightFlamePath.lineTo(rightThrusterX, thrusterY + flameHeight);
-    _scratchRightFlamePath.lineTo(rightThrusterX + 6.0, thrusterY);
+    _scratchRightFlamePath.moveTo(rightBellX - 5.0 * scale, rightBellY);
+    _scratchRightFlamePath.lineTo(rightBellX, rightBellY + flameHeight);
+    _scratchRightFlamePath.lineTo(rightBellX + 5.0 * scale, rightBellY);
     _scratchRightFlamePath.close();
     canvas.drawPath(_scratchRightFlamePath, _flamePaint);
 
-    // Trailing Ion Contrails during deep space forward flight
+    // 3. Trailing Ion Contrails during deep space forward flight
     if (normForward > 0.05) {
-      final contrailLen = 35.0 + 45.0 * normForward;
+      final contrailLen = (35.0 + 45.0 * normForward) * scale;
       final contrailAlpha = (0.2 + 0.5 * normForward).clamp(0.0, 0.7);
       _contrailPaint.color = VoidTheme.plasmaCyan.withValues(
         alpha: contrailAlpha,
       );
       canvas.drawLine(
-        Offset(leftThrusterX, thrusterY + flameHeight * 0.8),
-        Offset(leftThrusterX, thrusterY + flameHeight + contrailLen),
+        Offset(leftBellX, leftBellY + flameHeight * 0.7),
+        Offset(leftBellX, leftBellY + flameHeight + contrailLen),
         _contrailPaint,
       );
       canvas.drawLine(
-        Offset(rightThrusterX, thrusterY + flameHeight * 0.8),
-        Offset(rightThrusterX, thrusterY + flameHeight + contrailLen),
+        Offset(rightBellX, rightBellY + flameHeight * 0.7),
+        Offset(rightBellX, rightBellY + flameHeight + contrailLen),
         _contrailPaint,
       );
     }
 
-    // Dreadnought Flagship Hull (Enlarged to 104x48 dp for commanding presence)
-    const shipW = 104.0;
-
-    canvas.save();
-    canvas.translate(centerX, shipY);
-    canvas.rotate(bankAngleRad);
-    canvas.scale(bankForeshortening, 1.0);
-
-    // Deep Space Energetic Bow Shock Ripple (Ahead of Prow)
+    // 4. Deep Space Energetic Bow Shock Ripple Ahead of 3D Prow
     if (normForward > 0.06) {
+      final prowTipX = _dreadMesh.projX[Dreadnought3DMesh.vProwTip];
+      final prowTipY = _dreadMesh.projY[Dreadnought3DMesh.vProwTip];
       final shockAlpha = (normForward * 0.85).clamp(0.0, 0.85);
-      final shockW = shipW * (1.15 + 0.25 * math.sin(animationTime * 18.0));
+      final shockW =
+          104.0 * scale * (1.15 + 0.25 * math.sin(animationTime * 18.0));
       _bowShockGlowPaint.color = VoidTheme.plasmaCyan.withValues(
         alpha: shockAlpha * 0.45,
       );
       _bowShockPaint.color = Colors.white.withValues(alpha: shockAlpha * 0.90);
-      final shockRect = Rect.fromLTRB(-shockW / 2, -44.0, shockW / 2, -18.0);
+      final shockRect = Rect.fromCenter(
+        center: Offset(prowTipX, prowTipY - 8.0 * scale),
+        width: shockW,
+        height: 24.0 * scale,
+      );
       canvas.drawArc(
         shockRect,
         math.pi * 1.15,
@@ -938,60 +923,11 @@ class CombatPainter extends CustomPainter {
       );
     }
 
-    // Hull obsidian base
-    canvas.drawPath(_staticDreadHullPath, _dreadFillPaint);
-
-    // Hull armor plating gradient (Pre-compiled zero-allocation static shader)
-    canvas.drawPath(_staticDreadHullPath, _dreadArmorPaint);
-
-    // Hull cyan trim outline
-    _dreadOutlinePaint.strokeWidth = 2.4;
-    canvas.drawPath(_staticDreadHullPath, _dreadOutlinePaint);
-
-    // Forward Twin Particle Lance Turrets (Longer with emitter tips)
-    _turretPaint.strokeWidth = 3.2;
-    canvas.drawLine(
-      const Offset(-6.5, -12.0),
-      const Offset(-6.5, -28.0),
-      _turretPaint,
-    );
-    canvas.drawLine(
-      const Offset(6.5, -12.0),
-      const Offset(6.5, -28.0),
-      _turretPaint,
-    );
-    canvas.drawCircle(const Offset(-6.5, -28.0), 2.5, _coreCenterPaint);
-    canvas.drawCircle(const Offset(6.5, -28.0), 2.5, _coreCenterPaint);
-
-    // Prow Tactical Alignment Chevron / Beacon (Instant Centerline Recognition)
-    final chevronPulse = 0.65 + 0.35 * math.sin(animationTime * 12.0);
-    _prowChevronPaint.color = VoidTheme.solarGold.withValues(
-      alpha: chevronPulse,
-    );
-    canvas.drawPath(_staticProwChevronPath, _prowChevronPaint);
-
-    // Wingtip Port (Crimson) and Starboard (Emerald) Navigation Lights
-    final portStrobe = 0.5 + 0.5 * math.sin(animationTime * 15.0);
-    final stbdStrobe = 0.5 + 0.5 * math.cos(animationTime * 15.0);
-    _portNavPaint.color = VoidTheme.crimsonFlare.withValues(alpha: portStrobe);
-    _starboardNavPaint.color = VoidTheme.emeraldShield.withValues(
-      alpha: stbdStrobe,
-    );
-    canvas.drawCircle(const Offset(-shipW / 2, 11.0), 3.5, _portNavPaint);
-    canvas.drawCircle(const Offset(shipW / 2, 11.0), 3.5, _starboardNavPaint);
-
-    // Central Plasma Reactor Core (Multi-Ring Energy Aura, Hardware Accelerated)
-    final coreGlow = 8.0 + math.sin(animationTime * 10.0) * 2.5;
-    canvas.drawCircle(const Offset(0, 3.0), coreGlow + 5.0, _coreGlowPaint);
-    canvas.drawCircle(const Offset(0, 3.0), 14.0, _coreOuterGlowPaint);
-    canvas.drawCircle(const Offset(0, 3.0), 5.0, _coreCenterPaint);
-
-    // Forward Kinetic Energy Canopy Shield Arc (Glow + Core)
-    const shieldRect = Rect.fromLTRB(
-      -shipW * 1.15 / 2,
-      -34.0,
-      shipW * 1.15 / 2,
-      14.0,
+    // 5. Forward Kinetic Energy Canopy Shield Arc
+    final shieldRect = Rect.fromCenter(
+      center: Offset(centerX, shipY - 10.0 * scale),
+      width: 104.0 * scale * 1.15,
+      height: 48.0 * scale,
     );
     canvas.drawArc(
       shieldRect,
@@ -1007,7 +943,6 @@ class CombatPainter extends CustomPainter {
       false,
       _shieldArcPaint,
     );
-    canvas.restore();
 
     // Upward Flight Discovery Hint (Pulsing text when stationary in orbit to teach deep-space flight)
     if (normForward < 0.25) {
@@ -1039,12 +974,15 @@ class CombatPainter extends CustomPainter {
     }
 
     // Defender Conduit Label (Zero-Allocation Pre-Laid Out Painter)
-    final labelPainter = _conduitLabelPainters[activeCorridor];
-    final labelX = (centerX - (labelPainter.width / 2)).clamp(
-      8.0,
-      size.width - labelPainter.width - 8.0,
-    );
-    labelPainter.paint(canvas, Offset(labelX, shipY + 23.0));
+    // Only displayed when cruising in deep space to avoid cluttering docked orbit
+    if (normForward > 0.08) {
+      final labelPainter = _conduitLabelPainters[activeCorridor];
+      final labelX = (centerX - (labelPainter.width / 2)).clamp(
+        8.0,
+        size.width - labelPainter.width - 8.0,
+      );
+      labelPainter.paint(canvas, Offset(labelX, shipY + 16.0));
+    }
 
     // Proximity Vanguard Telemetry Badge
     if (dreadnought.proximityMultiplier > 1.01) {
@@ -1063,9 +1001,10 @@ class CombatPainter extends CustomPainter {
       _proximityTagTextPainter.layout();
       final tagW = _proximityTagTextPainter.width + 8.0;
       const tagH = 15.0;
+      final tagCenterY = (normForward > 0.08) ? (shipY + 34.0) : (prowY - 26.0);
       final tagRect = RRect.fromRectAndRadius(
         Rect.fromCenter(
-          center: Offset(centerX, shipY + 40.0),
+          center: Offset(centerX, tagCenterY),
           width: tagW,
           height: tagH,
         ),
@@ -1077,7 +1016,7 @@ class CombatPainter extends CustomPainter {
         canvas,
         Offset(
           centerX - _proximityTagTextPainter.width / 2.0,
-          shipY + 40.0 - _proximityTagTextPainter.height / 2.0,
+          tagCenterY - _proximityTagTextPainter.height / 2.0,
         ),
       );
     }
@@ -1085,7 +1024,7 @@ class CombatPainter extends CustomPainter {
     // -------------------------------------------------------------------------
     // Tactical Spatial Altimeter / Elevation Rail (Left Margin)
     // -------------------------------------------------------------------------
-    final railBottom = boundaryY + 12.0;
+    final railBottom = boundaryY + 2.0;
     final railTop = railBottom - maxTravelY;
     const railX = 14.0;
 

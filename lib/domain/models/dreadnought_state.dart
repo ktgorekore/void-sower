@@ -74,8 +74,8 @@ class DreadnoughtState {
   const DreadnoughtState({
     required this.orbitalPositionX,
     required this.targetPositionX,
-    this.orbitalPositionY = 0.20,
-    this.targetPositionY = 0.20,
+    this.orbitalPositionY = 0.15,
+    this.targetPositionY = 0.15,
     required this.boundaryLineY,
     this.proximityMultiplier = 1.0,
     required this.reserveCores,

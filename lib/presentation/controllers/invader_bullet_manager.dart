@@ -81,7 +81,7 @@ class InvaderBulletManager {
   }) {
     final corridorWidth = viewportSize.width / 8.0;
     final topMargin = viewportSize.height * 0.06;
-    final dreadYPos = dreadY ?? (boundaryY + 12.0);
+    final dreadYPos = dreadY ?? (boundaryY + 2.0);
 
     // 1. Enemy assault craft firing dropping plasma bullets down corridors
     _enemyFireCooldown -= dt;
