@@ -40,6 +40,7 @@ import '../../domain/models/bay_role.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
+import '../widgets/starfield_3d.dart';
 import '../widgets/tactical_directives_modal.dart';
 import '../widgets/tutorial_overlay.dart';
 import '../widgets/victory_dialog.dart';
@@ -79,6 +80,7 @@ class _CombatScreenState extends State<CombatScreen>
   late final CombatCoordinator _coordinator;
   late final Ticker _ticker;
   late final ValueNotifier<double> _renderNotifier;
+  late final Starfield3DSimulation _starfieldSimulation;
 
   Duration _lastElapsed = Duration.zero;
   double _animationTime = 0.0;
@@ -109,6 +111,7 @@ class _CombatScreenState extends State<CombatScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _renderNotifier = ValueNotifier<double>(0.0);
+    _starfieldSimulation = Starfield3DSimulation();
     final isLowBattery = PersistenceService.instance.lowBatteryMode;
     _targetFps = isLowBattery ? 30 : PersistenceService.instance.targetFps;
 
@@ -227,6 +230,22 @@ class _CombatScreenState extends State<CombatScreen>
           setState(() {});
         }
       }
+
+      final forwardDepth = (dread.orbitalPositionY - dread.boundaryLineY).clamp(
+        0.0,
+        0.45,
+      );
+      final normForward = forwardDepth / 0.45;
+      final velocityDx = (dread.targetPositionX - dread.orbitalPositionX).clamp(
+        -1.0,
+        1.0,
+      );
+      _starfieldSimulation.update(
+        dt: clampedDt,
+        normForward: normForward,
+        velocityDx: velocityDx,
+        viewportSize: viewport,
+      );
 
       _renderNotifier.value = _animationTime;
     } catch (e, stack) {
@@ -1083,6 +1102,30 @@ class _CombatScreenState extends State<CombatScreen>
                                           child: Stack(
                                             fit: StackFit.expand,
                                             children: [
+                                              // 3D Perspective Warp Starfield & Kilwa Cosmic Dust
+                                              RepaintBoundary(
+                                                child: ListenableBuilder(
+                                                  listenable: _renderNotifier,
+                                                  builder: (context, _) {
+                                                    final dread = _coordinator
+                                                        .dreadnought;
+                                                    final forwardDepth =
+                                                        (dread.orbitalPositionY -
+                                                                dread
+                                                                    .boundaryLineY)
+                                                            .clamp(0.0, 0.45);
+                                                    final normForward =
+                                                        forwardDepth / 0.45;
+                                                    return Starfield3DWidget(
+                                                      simulation:
+                                                          _starfieldSimulation,
+                                                      normForward: normForward,
+                                                      animationTime:
+                                                          _animationTime,
+                                                    );
+                                                  },
+                                                ),
+                                              ),
                                               // Retained Static Skia Surface (Corridors & Defense Rails)
                                               const RepaintBoundary(
                                                 child: CustomPaint(

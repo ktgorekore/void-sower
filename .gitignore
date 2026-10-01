@@ -37,3 +37,4 @@ key.properties
 keystore_secrets.txt
 *crash_log*.txt
 Testing/
+campaign_screenshots/

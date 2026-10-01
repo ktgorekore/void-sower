@@ -313,12 +313,12 @@ class CombatPainter extends CustomPainter {
   static final List<TextPainter> _conduitLabelPainters = List.generate(8, (i) {
     final painter = TextPainter(
       text: TextSpan(
-        text: '▲ DEFENDER CONDUIT [C${i + 1}] ▲',
+        text: 'DEFENDER CONDUIT [C${i + 1}]',
         style: const TextStyle(
           color: VoidTheme.solarGold,
           fontSize: 9.0,
           fontWeight: FontWeight.w900,
-          letterSpacing: 1.2,
+          letterSpacing: 1.0,
           shadows: [Shadow(color: Colors.black, blurRadius: 4.0)],
         ),
       ),
@@ -343,6 +343,109 @@ class CombatPainter extends CustomPainter {
   static final TextPainter _proximityTagTextPainter = TextPainter(
     textDirection: TextDirection.ltr,
   );
+
+  // ---------------------------------------------------------------------------
+  // 3D Space Motion & Kinetic Cues Static Paints
+  // ---------------------------------------------------------------------------
+  static final Paint _bowShockPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.2;
+
+  static final Paint _bowShockGlowPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 6.0;
+
+  static final Paint _contrailPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.4
+    ..strokeCap = StrokeCap.round;
+
+  static final Paint _altimeterRailPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.2
+    ..color = const Color(0xFF1E293B);
+
+  static final Paint _altimeterTickPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.2
+    ..color = const Color(0xFF334155);
+
+  static final Paint _altimeterMarkerPaint = Paint()
+    ..style = PaintingStyle.fill
+    ..color = VoidTheme.plasmaCyan;
+
+  static final Paint _altimeterMarkerGlowPaint = Paint()
+    ..style = PaintingStyle.fill
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35);
+
+  static final TextPainter _altimeterOrbitPainter = TextPainter(
+    text: const TextSpan(
+      text: 'ORBIT',
+      style: TextStyle(
+        color: VoidTheme.emeraldShield,
+        fontSize: 6.5,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.5,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final TextPainter _altimeterStratoPainter = TextPainter(
+    text: const TextSpan(
+      text: 'STRATO',
+      style: TextStyle(
+        color: VoidTheme.textMuted,
+        fontSize: 6.5,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.5,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final TextPainter _altimeterDeepSpacePainter = TextPainter(
+    text: const TextSpan(
+      text: 'DEEP SPACE',
+      style: TextStyle(
+        color: VoidTheme.plasmaCyan,
+        fontSize: 6.5,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.5,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final TextPainter _altimeterVanguardPainter = TextPainter(
+    text: const TextSpan(
+      text: 'VANGUARD +60%',
+      style: TextStyle(
+        color: VoidTheme.solarGold,
+        fontSize: 6.5,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.5,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final TextPainter _flightHintPainter = TextPainter(
+    text: const TextSpan(
+      text: '▲ DRAG UP FOR DEEP SPACE ▲',
+      style: TextStyle(
+        color: VoidTheme.plasmaCyan,
+        fontSize: 8.5,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.0,
+        shadows: [
+          Shadow(color: Colors.black, blurRadius: 4.0),
+          Shadow(color: VoidTheme.plasmaCyan, blurRadius: 8.0),
+        ],
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -752,6 +855,15 @@ class CombatPainter extends CustomPainter {
       }
     }
 
+    // 3D Banking and Perspective Foreshortening
+    final lateralDisplacement =
+        (dreadnought.targetPositionX - dreadnought.orbitalPositionX).clamp(
+          -0.25,
+          0.25,
+        );
+    final bankAngleRad = lateralDisplacement * 24.0 * (math.pi / 180.0);
+    final bankForeshortening = 1.0 - bankAngleRad.abs() * 0.12;
+
     // Animated Twin Plasma Thrusters (Enlarged and elongated during deep-space forward thrust)
     final thrustScale = 1.0 + 1.2 * normForward;
     final flameHeight =
@@ -774,11 +886,57 @@ class CombatPainter extends CustomPainter {
     _scratchRightFlamePath.close();
     canvas.drawPath(_scratchRightFlamePath, _flamePaint);
 
+    // Trailing Ion Contrails during deep space forward flight
+    if (normForward > 0.05) {
+      final contrailLen = 35.0 + 45.0 * normForward;
+      final contrailAlpha = (0.2 + 0.5 * normForward).clamp(0.0, 0.7);
+      _contrailPaint.color = VoidTheme.plasmaCyan.withValues(
+        alpha: contrailAlpha,
+      );
+      canvas.drawLine(
+        Offset(leftThrusterX, thrusterY + flameHeight * 0.8),
+        Offset(leftThrusterX, thrusterY + flameHeight + contrailLen),
+        _contrailPaint,
+      );
+      canvas.drawLine(
+        Offset(rightThrusterX, thrusterY + flameHeight * 0.8),
+        Offset(rightThrusterX, thrusterY + flameHeight + contrailLen),
+        _contrailPaint,
+      );
+    }
+
     // Dreadnought Flagship Hull (Enlarged to 104x48 dp for commanding presence)
     const shipW = 104.0;
 
     canvas.save();
     canvas.translate(centerX, shipY);
+    canvas.rotate(bankAngleRad);
+    canvas.scale(bankForeshortening, 1.0);
+
+    // Deep Space Energetic Bow Shock Ripple (Ahead of Prow)
+    if (normForward > 0.06) {
+      final shockAlpha = (normForward * 0.85).clamp(0.0, 0.85);
+      final shockW = shipW * (1.15 + 0.25 * math.sin(animationTime * 18.0));
+      _bowShockGlowPaint.color = VoidTheme.plasmaCyan.withValues(
+        alpha: shockAlpha * 0.45,
+      );
+      _bowShockPaint.color = Colors.white.withValues(alpha: shockAlpha * 0.90);
+      final shockRect = Rect.fromLTRB(-shockW / 2, -44.0, shockW / 2, -18.0);
+      canvas.drawArc(
+        shockRect,
+        math.pi * 1.15,
+        math.pi * 0.7,
+        false,
+        _bowShockGlowPaint,
+      );
+      canvas.drawArc(
+        shockRect,
+        math.pi * 1.15,
+        math.pi * 0.7,
+        false,
+        _bowShockPaint,
+      );
+    }
 
     // Hull obsidian base
     canvas.drawPath(_staticDreadHullPath, _dreadFillPaint);
@@ -851,6 +1009,35 @@ class CombatPainter extends CustomPainter {
     );
     canvas.restore();
 
+    // Upward Flight Discovery Hint (Pulsing text when stationary in orbit to teach deep-space flight)
+    if (normForward < 0.25) {
+      final pulse = (0.5 + 0.5 * math.sin(animationTime * 4.0)).clamp(
+        0.2,
+        0.95,
+      );
+      _flightHintPainter.text = TextSpan(
+        text: '▲ DRAG UP FOR DEEP SPACE ▲',
+        style: TextStyle(
+          color: VoidTheme.plasmaCyan.withValues(alpha: pulse),
+          fontSize: 8.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.0,
+          shadows: [
+            const Shadow(color: Colors.black, blurRadius: 4.0),
+            Shadow(
+              color: VoidTheme.plasmaCyan.withValues(alpha: pulse * 0.6),
+              blurRadius: 8.0,
+            ),
+          ],
+        ),
+      );
+      _flightHintPainter.layout();
+      _flightHintPainter.paint(
+        canvas,
+        Offset(centerX - _flightHintPainter.width / 2.0, shipY - 54.0),
+      );
+    }
+
     // Defender Conduit Label (Zero-Allocation Pre-Laid Out Painter)
     final labelPainter = _conduitLabelPainters[activeCorridor];
     final labelX = (centerX - (labelPainter.width / 2)).clamp(
@@ -894,6 +1081,76 @@ class CombatPainter extends CustomPainter {
         ),
       );
     }
+
+    // -------------------------------------------------------------------------
+    // Tactical Spatial Altimeter / Elevation Rail (Left Margin)
+    // -------------------------------------------------------------------------
+    final railBottom = boundaryY + 12.0;
+    final railTop = railBottom - maxTravelY;
+    const railX = 14.0;
+
+    // Background rail guide line
+    canvas.drawLine(
+      Offset(railX, railTop - 6.0),
+      Offset(railX, railBottom + 6.0),
+      _altimeterRailPaint,
+    );
+
+    // Altitude sector tick elevations
+    final yOrbit = railBottom;
+    final yStrato = railBottom - maxTravelY * 0.35;
+    final yDeep = railBottom - maxTravelY * 0.70;
+    final yVanguard = railTop;
+
+    // Tick marks
+    canvas.drawLine(
+      Offset(railX - 3.0, yOrbit),
+      Offset(railX + 5.0, yOrbit),
+      _altimeterTickPaint,
+    );
+    canvas.drawLine(
+      Offset(railX - 2.0, yStrato),
+      Offset(railX + 4.0, yStrato),
+      _altimeterTickPaint,
+    );
+    canvas.drawLine(
+      Offset(railX - 2.0, yDeep),
+      Offset(railX + 4.0, yDeep),
+      _altimeterTickPaint,
+    );
+    canvas.drawLine(
+      Offset(railX - 3.0, yVanguard),
+      Offset(railX + 5.0, yVanguard),
+      _altimeterTickPaint,
+    );
+
+    // Sector Labels
+    _altimeterOrbitPainter.paint(
+      canvas,
+      Offset(railX + 8.0, yOrbit - _altimeterOrbitPainter.height / 2.0),
+    );
+    _altimeterStratoPainter.paint(
+      canvas,
+      Offset(railX + 8.0, yStrato - _altimeterStratoPainter.height / 2.0),
+    );
+    _altimeterDeepSpacePainter.paint(
+      canvas,
+      Offset(railX + 8.0, yDeep - _altimeterDeepSpacePainter.height / 2.0),
+    );
+    _altimeterVanguardPainter.paint(
+      canvas,
+      Offset(railX + 8.0, yVanguard - _altimeterVanguardPainter.height / 2.0),
+    );
+
+    // Current elevation marker chevron (Directly tracks ship's vertical coordinate)
+    final markerY = shipY;
+    canvas.drawCircle(Offset(railX, markerY), 4.5, _altimeterMarkerGlowPaint);
+    canvas.drawCircle(Offset(railX, markerY), 2.5, _altimeterMarkerPaint);
+    canvas.drawLine(
+      Offset(railX - 4.0, markerY),
+      Offset(railX + 4.0, markerY),
+      _altimeterMarkerPaint,
+    );
   }
 
   @override
