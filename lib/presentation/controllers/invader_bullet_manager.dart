@@ -81,7 +81,7 @@ class InvaderBulletManager {
   }) {
     final corridorWidth = viewportSize.width / 8.0;
     final topMargin = viewportSize.height * 0.06;
-    final dreadYPos = dreadY ?? (boundaryY + 2.0);
+    final dreadYPos = dreadY ?? (boundaryY - 28.0);
 
     // 1. Enemy assault craft firing dropping plasma bullets down corridors
     _enemyFireCooldown -= dt;
@@ -209,7 +209,7 @@ class InvaderBulletManager {
       }
 
       // C. Intercepted by Dreadnought Flagship in Mid-Space (Forward Deployment)
-      final isDreadForward = dreadYPos < boundaryY - 20.0;
+      final isDreadForward = dreadYPos < boundaryY - 38.0;
       final inCanopySweep =
           (bullet.x - dreadX).abs() < 46.0 &&
           ((bullet.y - dreadYPos).abs() < 30.0 ||
@@ -263,73 +263,79 @@ class InvaderBulletManager {
       }
 
       // D. Reached Atmospheric Boundary / Dreadnought Flagship at Baseline
-      if (bullet.y >= boundaryY) {
-        final hitDreadAtBaseline =
-            !isDreadForward && (bullet.x - dreadX).abs() < 46.0;
-        if (hitDreadAtBaseline) {
-          final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
-          final bayIndex = 8 + activeCorridor;
-          final isCharged =
-              bayIndex < bays.length && bays[bayIndex].chargeUnits > 0;
+      final inBaselineSweep =
+          !isDreadForward &&
+          (bullet.x - dreadX).abs() < 46.0 &&
+          ((bullet.y - dreadYPos).abs() < 30.0 ||
+              (prevY <= dreadYPos && bullet.y >= dreadYPos) ||
+              bullet.y >= boundaryY);
+      if (inBaselineSweep) {
+        final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
+        final bayIndex = 8 + activeCorridor;
+        final isCharged =
+            bayIndex < bays.length && bays[bayIndex].chargeUnits > 0;
 
-          if (isCharged) {
-            particleService.spawnFlakBurst(
-              bullet.x,
-              boundaryY,
-              VoidTheme.plasmaCyan,
-              count: 18,
-            );
-            if (damageNumbers.length < 8) {
-              damageNumbers.add(
-                FloatingDamageNumber(
-                  text: 'CANOPY DEFLECT! +50',
-                  x: bullet.x,
-                  y: boundaryY - 24,
-                  color: VoidTheme.plasmaCyan,
-                  isCritical: true,
-                ),
-              );
-            }
-            onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
-          } else {
-            particleService.spawnFlakBurst(
-              bullet.x,
-              boundaryY,
-              VoidTheme.crimsonFlare,
-              count: 18,
-            );
-            if (damageNumbers.length < 8) {
-              damageNumbers.add(
-                FloatingDamageNumber(
-                  text: 'CONDUIT BREACH! -1 CORE & DRAINED',
-                  x: bullet.x,
-                  y: boundaryY - 24,
-                  color: VoidTheme.crimsonFlare,
-                  isCritical: true,
-                ),
-              );
-            }
-            onConduitBreached(activeCorridor, bullet.x, boundaryY);
-          }
-        } else {
-          particleService.spawnLanceSparks(
+        if (isCharged) {
+          particleService.spawnFlakBurst(
             bullet.x,
             boundaryY,
-            VoidTheme.solarGold,
-            count: 8,
+            VoidTheme.plasmaCyan,
+            count: 18,
           );
           if (damageNumbers.length < 8) {
             damageNumbers.add(
               FloatingDamageNumber(
-                text: '-5 ATMOS PASS',
+                text: 'CANOPY DEFLECT! +50',
                 x: bullet.x,
-                y: boundaryY - 15,
-                color: VoidTheme.solarGold,
+                y: boundaryY - 24,
+                color: VoidTheme.plasmaCyan,
+                isCritical: true,
               ),
             );
           }
-          onAtmosphereBreached(bullet.x, boundaryY);
+          onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
+        } else {
+          particleService.spawnFlakBurst(
+            bullet.x,
+            boundaryY,
+            VoidTheme.crimsonFlare,
+            count: 18,
+          );
+          if (damageNumbers.length < 8) {
+            damageNumbers.add(
+              FloatingDamageNumber(
+                text: 'CONDUIT BREACH! -1 CORE & DRAINED',
+                x: bullet.x,
+                y: boundaryY - 24,
+                color: VoidTheme.crimsonFlare,
+                isCritical: true,
+              ),
+            );
+          }
+          onConduitBreached(activeCorridor, bullet.x, boundaryY);
         }
+        return true;
+      }
+
+      // E. Reached Atmospheric Boundary without intercepting Dreadnought
+      if (bullet.y >= boundaryY) {
+        particleService.spawnLanceSparks(
+          bullet.x,
+          boundaryY,
+          VoidTheme.solarGold,
+          count: 8,
+        );
+        if (damageNumbers.length < 8) {
+          damageNumbers.add(
+            FloatingDamageNumber(
+              text: '-5 ATMOS PASS',
+              x: bullet.x,
+              y: boundaryY - 15,
+              color: VoidTheme.solarGold,
+            ),
+          );
+        }
+        onAtmosphereBreached(bullet.x, boundaryY);
         return true;
       }
 

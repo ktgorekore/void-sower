@@ -383,5 +383,55 @@ void main() {
         isTrue,
       );
     });
+
+    test(
+      'Enemy projectile crossing atmospheric boundary triggers onAtmosphereBreached',
+      () {
+        final enemies = [
+          const EnemyCraft(
+            entityId: 1,
+            assignedCorridor: 1,
+            worldPosX: 0.1875,
+            worldPosY: 0.85,
+            velocityY: 0.05,
+            currentShields: 100,
+            maxShields: 100,
+            currentHull: 100,
+            maxHull: 100,
+            vesselType: 0,
+            isDestroyed: false,
+          ),
+        ];
+
+        // Spawn bullet in corridor 1 (centerX = 150)
+        manager.update(
+          dt: 1.0,
+          viewportSize: const Size(800, 1000),
+          boundaryY: 880,
+          dreadX: 450, // Dreadnought is far away in corridor 4
+          enemies: enemies,
+          lances: const [],
+          flaks: const [],
+        );
+        expect(manager.bullets.isNotEmpty, isTrue);
+
+        // Advance bullet past boundaryY (880)
+        manager.update(
+          dt: 5.0,
+          viewportSize: const Size(800, 1000),
+          boundaryY: 880,
+          dreadX: 450,
+          enemies: const [],
+          lances: const [],
+          flaks: const [],
+        );
+
+        expect(atmosphereBreachCount, greaterThanOrEqualTo(1));
+        expect(
+          damageNumbers.any((d) => d.text.contains('-5 ATMOS PASS')),
+          isTrue,
+        );
+      },
+    );
   });
 }
