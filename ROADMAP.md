@@ -811,3 +811,59 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] 0 issues found in `flutter analyze`.
   - [x] All C++ and Dart code formatted with `clang-format -style=Google` and `dart format`.
 
+---
+
+## 🛡️ Phase 23: Code Audit Remediation, Zero-Alloc Skia Hot-Paths, Power-of-Two Audio Ring Buffer & Battery Drain Hardening (Pending ⏳)
+
+- [ ] **Task 23.1: Zero-Allocation Skia Hot-Paths & TextPainter Pre-Layout (`combat_painter.dart`)**
+  - [ ] Eliminate per-frame `TextPainter.layout()` font shaping on the 60/120 Hz render loop:
+    - Pre-layout static flight hint painter (`_flightHintPainter`) once with neutral alpha; modulate pulsating opacity dynamically via canvas layer or alpha modulation paint without invoking `.layout()`.
+    - Pre-allocate lookup table for vanguard proximity tag text painters `_vanguardTagPainters[0..6]`.
+    - Cache damage preview tag text painters by multiplier value, eliminating per-frame `.layout()` inside the active enemy loop.
+    - Pre-layout atmospheric threshold text painter in `CombatBackgroundPainter` as a static retained painter.
+  - [ ] Eliminate per-frame `Rect.fromCenter(center: Offset(...))` and temporary `Offset` allocations across bow shock, canopy shield, and proximity badges using `Rect.fromLTWH(...)`.
+  - [ ] Eliminate transient `Offset` instances and per-frame `Color.withValues()` allocations in `_drawEnemyBullet`.
+  - [ ] Implement `isLowBattery` handling in `CombatBackgroundPainter` to streamline grid lines.
+  - [ ] Add comprehensive DartDoc for `_drawEnemyBullet`, `_drawEnemyVessel`, and `_drawDreadnoughtPlatform`.
+
+- [ ] **Task 23.2: 3D Mesh Geometry Clamping & Starfield Zero-Alloc Hardening (`dreadnought_3d_mesh.dart` & `starfield_3d.dart`)**
+  - [ ] In `dreadnought_3d_mesh.dart`: Clamp vertex depth to near-plane `zDepth = math.max(1.0, cameraZ + rz)` and compute `invZ = focalLength / zDepth`, eliminating inverted geometry artifacts under extreme camera pitch.
+  - [ ] In `dreadnought_3d_mesh.dart`: Replace `Rect.fromCenter` with `Rect.fromLTWH` in `_paintEngineNozzle`.
+  - [ ] In `dreadnought_3d_mesh.dart`: Halve GPU draw calls in low-battery mode by skipping facet outline strokes (`_facetOutlinePaint`).
+  - [ ] In `starfield_3d.dart`: Introduce dedicated `_streakAmethystPaint` to eliminate cyan paint mutation.
+  - [ ] In `starfield_3d.dart`: Replace per-star `Color.withValues()` (7,680 allocs/sec @ 120 Hz) with fast 32-bit ARGB bitwise color calculations or discrete pre-computed alpha paints.
+  - [ ] In `starfield_3d.dart`: Prevent visual jumps when low-battery mode is toggled by smoothly resetting or re-spreading stars $32 \dots 63$.
+  - [ ] Add comprehensive DartDoc for `_paintFacet`, `_paintQuad`, `_paintEngineNozzle`, `_initStarPool`, `_recycleStar`, and `_paintCosmicNebulae`.
+
+- [ ] **Task 23.3: Decoupling Sortie Directive UI & App Lifecycle Audio Focus (`combat_screen.dart` & `combat_coordinator.dart`)**
+  - [ ] In `combat_screen.dart`: Decouple Sortie Directive banner from `_renderNotifier` by binding it to `_directiveNotifier`, eliminating per-frame element tree rebuilding on 60/120 Hz hot-paths.
+  - [ ] In `combat_screen.dart`: Replace `where((e) => !e.isDestroyed).length` with zero-allocation indexed loop in `_onTick`.
+  - [ ] In `combat_screen.dart`: Update `didChangeAppLifecycleState` to call `pauseBgm()` and `releaseAudioFocus()` on app pause/hide, and restore both on resume to eliminate background battery drain and release exclusive audio focus to external media.
+
+- [ ] **Task 23.4: Cognitas-Pattern Power-of-Two Audio Ring Buffer & Lifecycle Hardening (`audio_service.dart`)**
+  - [ ] Refactor SFX player pool to power-of-two capacity `_kPoolSize = 8` ($2^3$) with bitwise index wrapping `(_poolIndex + 1) & 0x07`, eliminating runtime modulo division.
+  - [ ] Expose explicit `pauseBgm()` and `resumeBgm()` methods.
+  - [ ] In `dispose()`, release device audio focus back to `ambientAudioContext` prior to player disposal.
+
+- [ ] **Task 23.5: C++ ECS & Dart FFI State Hygiene & Style Standardization (`ffi_void_sower_engine.dart`, `combat_system.cpp`, `movement_system.cpp`, `game_engine_interface.dart`)**
+  - [ ] In `ffi_void_sower_engine.dart`: Zero-fill all 16 slots in `_cachedSnapshotChargesPtr` during `restoreSnapshot` to prevent stale memory leakage into C++ simulation.
+  - [ ] Standardize default parameter `boundaryY = 0.15` across `IVoidSowerEngine`, `FfiVoidSowerEngine`, `src/ecs/engine.h`, and `src/ecs/systems/combat_system.h`.
+  - [ ] In `src/ecs/systems/combat_system.cpp`: Reset static counter `s_reinforcement_id = 10000;` inside `InitializeDreadnought()`.
+  - [ ] In `src/ecs/systems/movement_system.cpp` and `game_engine_interface.dart`: Update comments to reflect `0.15` baseline boundary.
+
+- [ ] **Task 23.6: Automated Regression Test Suite & Quality Verification (`test/phase23_audit_remediation_test.dart`)**
+  - [ ] Author comprehensive unit/widget test suite in `test/phase23_audit_remediation_test.dart` verifying:
+    - Zero-allocation text layout caching in `CombatPainter`.
+    - Near-plane geometry clamping in `Dreadnought3DMesh`.
+    - Amethyst star streak paint isolation in `Starfield3DSimulation`.
+    - Power-of-two audio ring buffer bitwise wrapping ($0 \dots 7 \to 0$).
+    - Stale buffer zeroing in `FfiVoidSowerEngine.restoreSnapshot`.
+    - Audio focus release and BGM pausing on app pause/hide lifecycle events.
+    - Sortie Directive banner decoupled rebuilds.
+    - C++ `s_reinforcement_id` reset upon `InitializeDreadnought()`.
+    - Standardized parameter defaults across C++ and Dart.
+  - [ ] Verify C++ compilation and native tests (`ctest --test-dir src/build`).
+  - [ ] Verify Flutter test suite passes 100% (`flutter test`).
+  - [ ] Verify zero analyzer issues (`flutter analyze`).
+  - [ ] Verify formatting compliance across all files (`python3 scripts/verify_format.py --all`).
+
