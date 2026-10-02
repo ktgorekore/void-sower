@@ -27,7 +27,7 @@ concurrency:
 jobs:
   validate:
     name: Code Quality, C++ Engine & Flutter Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Repository
@@ -47,8 +47,11 @@ jobs:
 
       - name: Install Native C++ Toolchain & Dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build clang clang-format g++ libstdc++-12-dev
+          if command -v cmake &>/dev/null && command -v clang &>/dev/null && command -v ninja &>/dev/null; then
+            echo "[+] Native C++ toolchain already installed."
+          else
+            sudo apt-get update && sudo apt-get install -y cmake ninja-build clang clang-format g++ libstdc++-12-dev
+          fi
 
       - name: Install Flutter Dependencies
         run: |
