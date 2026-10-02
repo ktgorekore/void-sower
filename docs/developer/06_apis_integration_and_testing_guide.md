@@ -131,9 +131,76 @@ bash scripts/build_release_bundle.sh
 3. Runs `readelf -l` across all shared libraries to verify **16 KB memory page size alignment** (`0x4000` boundary).
 4. Verifies compressed device download payload is strictly $< 25\text{ MB}$ (Current: **7.51 MB**).
 
+## 6. Self-Hosted GitHub Actions Runner Management
+
+The repository CI ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)) and Release ([`.github/workflows/release.yml`](../../.github/workflows/release.yml)) workflows execute on a dedicated local self-hosted runner (`runs-on: self-hosted`) providing native C++ compilation speed, host GPU acceleration access, and pre-warmed Android/Flutter toolchains without GitHub cloud runner queue delays.
+
+### 6.1 Runner Architecture & File Locations
+
+- **Runner Directory:** `~/actions-runner-void-sower/`
+- **Systemd Service Unit:** `~/.config/systemd/user/github-runner-void-sower.service`
+- **Runner Binary:** GitHub Actions Runner `v2.337.0` (x64 Linux)
+- **Assigned Labels:** `self-hosted`, `Linux`, `X64`
+- **Pre-Configured Environment (`.env`):**
+  - `ANDROID_HOME=/home/kelvingorekore/Android/Sdk`
+  - System PATH with Flutter SDK, Android Studio, CMake, Clang, and Ninja.
+
+### 6.2 Service Management Commands
+
+The runner operates as a background `systemd --user` daemon that automatically starts on user login and restarts upon failure.
+
+```bash
+# Check runner daemon status
+systemctl --user status github-runner-void-sower.service
+
+# View live streaming runner logs
+journalctl --user -u github-runner-void-sower.service -f
+
+# View recent log history (last 50 lines)
+journalctl --user -u github-runner-void-sower.service -n 50 --no-pager
+
+# Restart the runner daemon
+systemctl --user restart github-runner-void-sower.service
+
+# Stop the runner daemon
+systemctl --user stop github-runner-void-sower.service
+
+# Start and enable the runner daemon
+systemctl --user enable --now github-runner-void-sower.service
+```
+
+### 6.3 Diagnostic & Worker Logs
+
+Detailed execution transcripts and step output blocks are archived in the runner's diagnostic directory:
+
+```bash
+# List recent job worker logs
+ls -lt ~/actions-runner-void-sower/_diag/
+
+# Tail active worker log
+tail -f ~/actions-runner-void-sower/_diag/Worker_*.log
+```
+
+### 6.4 Runner Maintenance & Token Re-Registration
+
+If GitHub repository registration tokens expire or the runner needs to be reconfigured:
+
+```bash
+# 1. Stop the current service
+systemctl --user stop github-runner-void-sower.service
+
+# 2. Reconfigure the runner with a new token from GitHub (Settings > Actions > Runners > New runner)
+cd ~/actions-runner-void-sower
+./config.sh --unattended --url https://github.com/ktgorekore/void-sower --token <NEW_REGISTRATION_TOKEN> --name void-sower-runner --replace
+
+# 3. Restart the systemd service
+systemctl --user start github-runner-void-sower.service
+```
+
 ---
 
 ## 🧭 Navigation
 
 | [◄ 05: Campaign Economy](05_campaign_economy_and_player_identity.md) | [🏠 Developer Hub](README.md) | [Next: 07 Procedural Generation ►](07_procedural_generation_and_solvability_guarantees.md) |
 |:---:|:---:|:---:|
+
