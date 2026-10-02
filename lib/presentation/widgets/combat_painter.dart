@@ -50,6 +50,23 @@ class CombatBackgroundPainter extends CustomPainter {
     ..strokeWidth = 1.5
     ..style = PaintingStyle.stroke;
 
+  static final TextPainter _thresholdPainter = TextPainter(
+    text: TextSpan(
+      text: 'ATMOSPHERIC THRESHOLD',
+      style: TextStyle(
+        color: VoidTheme.crimsonFlare.withValues(alpha: 0.85),
+        fontSize: 7.5,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.2,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  /// Static pre-laid out painter for atmospheric threshold label.
+  @visibleForTesting
+  static TextPainter get thresholdPainter => _thresholdPainter;
+
   @override
   void paint(Canvas canvas, Size size) {
     final corridorWidth = size.width / 8.0;
@@ -57,25 +74,37 @@ class CombatBackgroundPainter extends CustomPainter {
     final vpX = size.width * 0.5;
 
     // 1. Draw 8 Tactical Combat Corridors (3D Converging Guides extending to viewport base)
-    for (var i = 1; i < 8; i++) {
-      final xBottom = i * corridorWidth;
-      // Subtle 15% perspective convergence towards vanishing point (0.5, 0.18)
-      final xTop = vpX + (xBottom - vpX) * 0.85;
-      var y = 0.0;
-      while (y < size.height) {
-        final t0 = (y / size.height).clamp(0.0, 1.0);
-        final t1 = (math.min(y + 4.0, size.height) / size.height).clamp(
-          0.0,
-          1.0,
-        );
-        final x0 = xTop + (xBottom - xTop) * t0;
-        final x1 = xTop + (xBottom - xTop) * t1;
+    if (isLowBattery) {
+      for (var i = 1; i < 8; i++) {
+        final xBottom = i * corridorWidth;
+        final xTop = vpX + (xBottom - vpX) * 0.85;
         canvas.drawLine(
-          Offset(x0, y),
-          Offset(x1, math.min(y + 4.0, size.height)),
+          Offset(xTop, 0.0),
+          Offset(xBottom, size.height),
           _corridorPaint,
         );
-        y += 8.0;
+      }
+    } else {
+      for (var i = 1; i < 8; i++) {
+        final xBottom = i * corridorWidth;
+        // Subtle 15% perspective convergence towards vanishing point (0.5, 0.18)
+        final xTop = vpX + (xBottom - vpX) * 0.85;
+        var y = 0.0;
+        while (y < size.height) {
+          final t0 = (y / size.height).clamp(0.0, 1.0);
+          final t1 = (math.min(y + 4.0, size.height) / size.height).clamp(
+            0.0,
+            1.0,
+          );
+          final x0 = xTop + (xBottom - xTop) * t0;
+          final x1 = xTop + (xBottom - xTop) * t1;
+          canvas.drawLine(
+            Offset(x0, y),
+            Offset(x1, math.min(y + 4.0, size.height)),
+            _corridorPaint,
+          );
+          y += 8.0;
+        }
       }
     }
 
@@ -86,19 +115,7 @@ class CombatBackgroundPainter extends CustomPainter {
       _boundaryPaint,
     );
 
-    final thresholdPainter = TextPainter(
-      text: TextSpan(
-        text: 'ATMOSPHERIC THRESHOLD',
-        style: TextStyle(
-          color: VoidTheme.crimsonFlare.withValues(alpha: 0.85),
-          fontSize: 7.5,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.2,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    thresholdPainter.paint(canvas, Offset(14.0, boundaryY - 11.0));
+    _thresholdPainter.paint(canvas, Offset(14.0, boundaryY - 11.0));
 
     // 3. Draw Planetary Defense Horizon Line
     canvas.drawLine(
@@ -109,7 +126,8 @@ class CombatBackgroundPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CombatBackgroundPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CombatBackgroundPainter oldDelegate) =>
+      oldDelegate.isLowBattery != isLowBattery;
 }
 
 /// 60/120 FPS dynamic CustomPainter rendering particle lances, secondary flak bursts,
@@ -290,13 +308,62 @@ class CombatPainter extends CustomPainter {
     ..strokeWidth = 1.0
     ..style = PaintingStyle.stroke;
 
-  static final TextPainter _damageTagTextPainter = TextPainter(
-    textDirection: TextDirection.ltr,
-  );
+  static final Map<int, TextPainter> _damageTagPainters = {
+    for (final dmg in [16, 32, 64, 128, 256, 512, 1024])
+      dmg: _createDamageTagPainter(dmg),
+  };
 
-  static final TextPainter _proximityTagTextPainter = TextPainter(
-    textDirection: TextDirection.ltr,
-  );
+  static TextPainter _createDamageTagPainter(int dmg) {
+    return TextPainter(
+      text: TextSpan(
+        text: '⚡ ${dmg}x DMG',
+        style: const TextStyle(
+          color: VoidTheme.plasmaCyan,
+          fontSize: 9.5,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.5,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+  }
+
+  static TextPainter _getDamageTagPainter(int dmgValue) {
+    var painter = _damageTagPainters[dmgValue];
+    if (painter == null) {
+      painter = _createDamageTagPainter(dmgValue);
+      _damageTagPainters[dmgValue] = painter;
+    }
+    return painter;
+  }
+
+  /// Pre-allocated lookup table for proximity tiers (+10%, +20%, +30%, +40%, +50%, +60%).
+  static final List<TextPainter> _vanguardTagPainters = List.generate(7, (i) {
+    final bonus = (i == 0 ? 10 : i * 10);
+    return TextPainter(
+      text: TextSpan(
+        text: '⚡ VANGUARD +$bonus% LANCE',
+        style: const TextStyle(
+          color: VoidTheme.solarGold,
+          fontSize: 8.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.8,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+  });
+
+  static final Paint _flightHintAlphaPaint = Paint();
+
+  @visibleForTesting
+  static List<TextPainter> get vanguardTagPainters => _vanguardTagPainters;
+
+  @visibleForTesting
+  static Map<int, TextPainter> get damageTagPainters => _damageTagPainters;
+
+  @visibleForTesting
+  static TextPainter get flightHintPainter => _flightHintPainter;
 
   // ---------------------------------------------------------------------------
   // 3D Space Motion & Kinetic Cues Static Paints
@@ -554,42 +621,46 @@ class CombatPainter extends CustomPainter {
     }
   }
 
+  /// Renders a descending enemy plasma projectile with zero-allocation geometry.
+  ///
+  /// Reuses a single [bulletOffset] coordinate for all circle and line drawing
+  /// operations and computes alpha blending directly via 32-bit ARGB bitwise
+  /// shifts without invoking [Color.withValues].
   void _drawEnemyBullet(Canvas canvas, EnemyBullet bullet) {
+    final bulletOffset = Offset(bullet.x, bullet.y);
+    final glowColor = Color(
+      (89 << 24) | (bullet.color.toARGB32() & 0x00FFFFFF),
+    );
+
     // 1. Zero-allocation motion tail streak pointing upward
     _bulletTailPaint
-      ..color = bullet.color.withValues(alpha: 0.35)
+      ..color = glowColor
       ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(
-      Offset(bullet.x, bullet.y),
+      bulletOffset,
       Offset(bullet.x, bullet.y - 16.0),
       _bulletTailPaint,
     );
 
     // 2. Outer plasma glow (Hardware-accelerated zero-blur halo)
-    _bulletGlowPaint.color = bullet.color.withValues(alpha: 0.35);
-    canvas.drawCircle(
-      Offset(bullet.x, bullet.y),
-      bullet.radius * 1.8,
-      _bulletGlowPaint,
-    );
+    _bulletGlowPaint.color = glowColor;
+    canvas.drawCircle(bulletOffset, bullet.radius * 1.8, _bulletGlowPaint);
 
     // 3. Core plasma orb
     _bulletOrbPaint.color = bullet.color;
-    canvas.drawCircle(
-      Offset(bullet.x, bullet.y),
-      bullet.radius,
-      _bulletOrbPaint,
-    );
+    canvas.drawCircle(bulletOffset, bullet.radius, _bulletOrbPaint);
 
     // 4. White-hot center
-    canvas.drawCircle(
-      Offset(bullet.x, bullet.y),
-      bullet.radius * 0.45,
-      _bulletCenterPaint,
-    );
+    canvas.drawCircle(bulletOffset, bullet.radius * 0.45, _bulletCenterPaint);
   }
 
+  /// Renders an enemy assault craft ([enemy]) at the specified screen coordinate ([x], [y]).
+  ///
+  /// Applies 3D perspective scaling ([depthScale]) relative to the atmospheric
+  /// defense line ([boundaryY]) and top viewport margin ([topMargin]). Selects hull
+  /// geometry and colors based on [EnemyCraft.vesselType] (drone, cruiser, flagship),
+  /// and draws real-time hull and shield energy gauge bars above the vessel.
   void _drawEnemyVessel(
     Canvas canvas,
     double x,
@@ -657,6 +728,15 @@ class CombatPainter extends CustomPainter {
     }
   }
 
+  /// Renders the flagship dreadnought defense platform, HUD telemetry, and targeting reticles.
+  ///
+  /// Projects the dreadnought hull mesh along with:
+  /// - Energized active corridor highlight guide lines beneath the flagship.
+  /// - Dynamic aim laser beam projected axially from ship prow towards space.
+  /// - Holographic corner-bracket lock-on reticles and cached damage tags on active targets.
+  /// - 3D polygonal mesh transformation and twin engine plasma thrust plumes.
+  /// - Deep space bow shock ripple and forward kinetic canopy shield arcs.
+  /// - Tactical spatial elevation rail with altitude sector ticks and elevation marker.
   void _drawDreadnoughtPlatform(Canvas canvas, Size size, double boundaryY) {
     final topMargin = size.height * 0.06;
     final dreadNormX =
@@ -791,24 +871,14 @@ class CombatPainter extends CustomPainter {
         final dmgValue = (predictedDamage != null && predictedDamage! > 0)
             ? predictedDamage!.toInt()
             : 16;
-        final tagText = '⚡ ${dmgValue}x DMG';
-        _damageTagTextPainter.text = TextSpan(
-          text: tagText,
-          style: const TextStyle(
-            color: VoidTheme.plasmaCyan,
-            fontSize: 9.5,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
-        );
-        _damageTagTextPainter.layout();
+        final tagPainter = _getDamageTagPainter(dmgValue);
 
-        final tagWidth = _damageTagTextPainter.width + 10.0;
+        final tagWidth = tagPainter.width + 10.0;
         const tagHeight = 18.0;
         final tagX = (enemyX + lockSize + 4.0 + tagWidth > size.width)
             ? enemyX - lockSize - 4.0 - tagWidth
             : enemyX + lockSize + 4.0;
-        final tagY = ey - tagHeight / 2.0;
+        final tagY = ey - tagHeight * 0.5;
 
         final tagRRect = RRect.fromRectAndRadius(
           Rect.fromLTWH(tagX, tagY, tagWidth, tagHeight),
@@ -817,12 +887,9 @@ class CombatPainter extends CustomPainter {
         canvas.drawRRect(tagRRect, _damageTagBgPaint);
         canvas.drawRRect(tagRRect, _damageTagBorderPaint);
 
-        _damageTagTextPainter.paint(
+        tagPainter.paint(
           canvas,
-          Offset(
-            tagX + 5.0,
-            tagY + (tagHeight - _damageTagTextPainter.height) / 2.0,
-          ),
+          Offset(tagX + 5.0, tagY + (tagHeight - tagPainter.height) * 0.5),
         );
       }
     }
@@ -900,14 +967,17 @@ class CombatPainter extends CustomPainter {
       final shockAlpha = (normForward * 0.85).clamp(0.0, 0.85);
       final shockW =
           104.0 * scale * (1.15 + 0.25 * math.sin(animationTime * 18.0));
+      final shockH = 24.0 * scale;
+      final shockCenterY = prowTipY - 8.0 * scale;
       _bowShockGlowPaint.color = VoidTheme.plasmaCyan.withValues(
         alpha: shockAlpha * 0.45,
       );
       _bowShockPaint.color = Colors.white.withValues(alpha: shockAlpha * 0.90);
-      final shockRect = Rect.fromCenter(
-        center: Offset(prowTipX, prowTipY - 8.0 * scale),
-        width: shockW,
-        height: 24.0 * scale,
+      final shockRect = Rect.fromLTWH(
+        prowTipX - shockW * 0.5,
+        shockCenterY - shockH * 0.5,
+        shockW,
+        shockH,
       );
       canvas.drawArc(
         shockRect,
@@ -926,10 +996,14 @@ class CombatPainter extends CustomPainter {
     }
 
     // 5. Forward Kinetic Energy Canopy Shield Arc
-    final shieldRect = Rect.fromCenter(
-      center: Offset(centerX, shipY - 10.0 * scale),
-      width: 104.0 * scale * 1.15,
-      height: 48.0 * scale,
+    final shieldW = 104.0 * scale * 1.15;
+    final shieldH = 48.0 * scale;
+    final shieldCenterY = shipY - 10.0 * scale;
+    final shieldRect = Rect.fromLTWH(
+      centerX - shieldW * 0.5,
+      shieldCenterY - shieldH * 0.5,
+      shieldW,
+      shieldH,
     );
     canvas.drawArc(
       shieldRect,
@@ -952,27 +1026,19 @@ class CombatPainter extends CustomPainter {
         0.2,
         0.95,
       );
-      _flightHintPainter.text = TextSpan(
-        text: '▲ DRAG UP FOR DEEP SPACE ▲',
-        style: TextStyle(
-          color: VoidTheme.plasmaCyan.withValues(alpha: pulse),
-          fontSize: 8.5,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 1.0,
-          shadows: [
-            const Shadow(color: Colors.black, blurRadius: 4.0),
-            Shadow(
-              color: VoidTheme.plasmaCyan.withValues(alpha: pulse * 0.6),
-              blurRadius: 8.0,
-            ),
-          ],
-        ),
+      final alphaInt = (pulse * 255.0).round().clamp(0, 255);
+      _flightHintAlphaPaint.color = Color.fromARGB(alphaInt, 255, 255, 255);
+      final hintX = centerX - _flightHintPainter.width * 0.5;
+      final hintY = shipY - 54.0;
+      final hintBounds = Rect.fromLTWH(
+        hintX - 4.0,
+        hintY - 4.0,
+        _flightHintPainter.width + 8.0,
+        _flightHintPainter.height + 8.0,
       );
-      _flightHintPainter.layout();
-      _flightHintPainter.paint(
-        canvas,
-        Offset(centerX - _flightHintPainter.width / 2.0, shipY - 54.0),
-      );
+      canvas.saveLayer(hintBounds, _flightHintAlphaPaint);
+      _flightHintPainter.paint(canvas, Offset(hintX, hintY));
+      canvas.restore();
     }
 
     // Defender Conduit Label (Zero-Allocation Pre-Laid Out Painter)
@@ -988,37 +1054,29 @@ class CombatPainter extends CustomPainter {
 
     // Proximity Vanguard Telemetry Badge
     if (dreadnought.proximityMultiplier > 1.01) {
-      final bonusPercent = ((dreadnought.proximityMultiplier - 1.0) * 100)
+      final tierIndex = ((dreadnought.proximityMultiplier - 1.0) * 10)
+          .clamp(0, 6)
           .toInt();
-      final bonusText = '⚡ VANGUARD +$bonusPercent% LANCE';
-      _proximityTagTextPainter.text = TextSpan(
-        text: bonusText,
-        style: const TextStyle(
-          color: VoidTheme.solarGold,
-          fontSize: 8.5,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.8,
-        ),
-      );
-      _proximityTagTextPainter.layout();
-      final tagW = _proximityTagTextPainter.width + 8.0;
+      final tagPainter = _vanguardTagPainters[tierIndex];
+      final tagW = tagPainter.width + 8.0;
       const tagH = 15.0;
       final tagCenterY = (normForward > 0.08) ? (shipY + 34.0) : (prowY - 26.0);
       final tagRect = RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(centerX, tagCenterY),
-          width: tagW,
-          height: tagH,
+        Rect.fromLTWH(
+          centerX - tagW * 0.5,
+          tagCenterY - tagH * 0.5,
+          tagW,
+          tagH,
         ),
         const Radius.circular(3.0),
       );
       canvas.drawRRect(tagRect, _damageTagBgPaint);
       canvas.drawRRect(tagRect, _damageTagBorderPaint);
-      _proximityTagTextPainter.paint(
+      tagPainter.paint(
         canvas,
         Offset(
-          centerX - _proximityTagTextPainter.width / 2.0,
-          tagCenterY - _proximityTagTextPainter.height / 2.0,
+          centerX - tagPainter.width * 0.5,
+          tagCenterY - tagPainter.height * 0.5,
         ),
       );
     }

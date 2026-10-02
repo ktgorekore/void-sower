@@ -16,6 +16,7 @@ import 'dart:ffi' as ffi;
 import 'dart:io';
 
 import 'package:ffi/ffi.dart';
+import 'package:flutter/foundation.dart';
 
 import '../domain/models/bay_state.dart';
 import '../domain/models/dreadnought_state.dart';
@@ -128,7 +129,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
-  void initialize({int startingCores = 32, double boundaryY = 800.0}) {
+  void initialize({int startingCores = 32, double boundaryY = 0.15}) {
     _checkDisposed();
     _bindings.void_sower_init(startingCores, boundaryY);
   }
@@ -505,8 +506,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     required int totalScore,
   }) {
     if (_isDisposed) return;
-    for (var i = 0; i < kMaxBays && i < bayCharges.length; i++) {
-      _cachedSnapshotChargesPtr[i] = bayCharges[i];
+    // Zero-fill all 16 slots to guarantee trailing slots do not retain stale memory
+    for (var i = 0; i < kMaxBays; i++) {
+      _cachedSnapshotChargesPtr[i] = (i < bayCharges.length)
+          ? bayCharges[i]
+          : 0;
     }
     _bindings.void_sower_restore_snapshot(
       _cachedSnapshotChargesPtr,
@@ -515,6 +519,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     );
     _cachedDreadnoughtState = null;
   }
+
+  /// Read-only inspection of native snapshot charges pointer for testing.
+  @visibleForTesting
+  ffi.Pointer<ffi.Uint32> get cachedSnapshotChargesPtr =>
+      _cachedSnapshotChargesPtr;
 
   @override
   TacticalStepResult? solveTacticalStep() {

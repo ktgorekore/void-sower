@@ -22,6 +22,8 @@
 
 namespace void_sower::ecs {
 
+static uint32_t s_reinforcement_id = 10000;
+
 CombatSystem::CombatSystem(entt::registry& registry) : registry_(registry) {
   bay_entities_.fill(entt::null);
 }
@@ -30,6 +32,7 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
                                          float boundary_y) {
   VLOG(6) << "CombatSystem::InitializeDreadnought: starting_cores="
           << starting_cores << ", boundary_y=" << boundary_y;
+  s_reinforcement_id = 10000;
   if (dreadnought_entity_ == entt::null ||
       !registry_.valid(dreadnought_entity_)) {
     dreadnought_entity_ = registry_.create();
@@ -232,7 +235,6 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                               uint8_t vessel_type) {
   if (corridor >= kCorridorCount) return false;
   auto entity = registry_.create();
-  static uint32_t s_reinforcement_id = 10000;
   const float corridor_x = (static_cast<float>(corridor) + 0.5f) /
                            static_cast<float>(kCorridorCount);
   registry_.emplace<EnemyVesselComponent>(entity,

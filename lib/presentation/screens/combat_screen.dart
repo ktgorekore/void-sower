@@ -44,6 +44,7 @@ import '../widgets/starfield_3d.dart';
 import '../widgets/tactical_directives_modal.dart';
 import '../widgets/tutorial_overlay.dart';
 import '../widgets/victory_dialog.dart';
+import '../services/audio_service.dart';
 
 /// Primary Combat Viewport shell coordinating 60 Hz rendering, state machine
 /// event observation, and one-thumb input routing.
@@ -80,7 +81,10 @@ class _CombatScreenState extends State<CombatScreen>
   late final CombatCoordinator _coordinator;
   late final Ticker _ticker;
   late final ValueNotifier<double> _renderNotifier;
+  late final ValueNotifier<int> _directiveNotifier;
   late final Starfield3DSimulation _starfieldSimulation;
+
+  int _lastDirectiveHash = 0;
 
   Duration _lastElapsed = Duration.zero;
   double _animationTime = 0.0;
@@ -111,6 +115,7 @@ class _CombatScreenState extends State<CombatScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _renderNotifier = ValueNotifier<double>(0.0);
+    _directiveNotifier = ValueNotifier<int>(0);
     _starfieldSimulation = Starfield3DSimulation();
     final isLowBattery = PersistenceService.instance.lowBatteryMode;
     _targetFps = isLowBattery ? 30 : PersistenceService.instance.targetFps;
@@ -140,15 +145,17 @@ class _CombatScreenState extends State<CombatScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (mounted &&
-          _overlayState == CombatOverlayState.none &&
-          !_ticker.isTicking) {
+      if (mounted && _overlayState == CombatOverlayState.none) {
         _resumeTicker();
+        AudioService.instance.resumeBgm();
+        AudioService.instance.updateAudioFocus();
       }
     } else {
-      if (_ticker.isTicking) {
+      if (_ticker.isActive) {
         _ticker.stop();
       }
+      AudioService.instance.pauseBgm();
+      AudioService.instance.releaseAudioFocus();
     }
   }
 
@@ -198,10 +205,23 @@ class _CombatScreenState extends State<CombatScreen>
       }
 
       final dread = _coordinator.dreadnought;
-      final remaining = _coordinator.enemies
-          .where((e) => !e.isDestroyed)
-          .length;
+      var remaining = 0;
+      final enemies = _coordinator.enemies;
+      for (var i = 0; i < enemies.length; i++) {
+        if (!enemies[i].isDestroyed) remaining++;
+      }
       final state = _coordinator.state;
+
+      final isVanguard = dread.proximityMultiplier > 1.01;
+      final questStateHash = Object.hash(
+        dread.quest,
+        dread.questProgress,
+        isVanguard,
+      );
+      if (questStateHash != _lastDirectiveHash) {
+        _lastDirectiveHash = questStateHash;
+        _directiveNotifier.value++;
+      }
 
       final hudChanged =
           dread.reserveCores != _lastReserveCores ||
@@ -660,10 +680,14 @@ class _CombatScreenState extends State<CombatScreen>
     _autoAdvanceTimer?.cancel();
     _ticker.dispose();
     _renderNotifier.dispose();
+    _directiveNotifier.dispose();
     _coordinator.removeListener(_onCoordinatorStateChanged);
     _coordinator.dispose();
     super.dispose();
   }
+
+  @visibleForTesting
+  ValueNotifier<int> get directiveNotifier => _directiveNotifier;
 
   void _toggleAutoSolve() {
     if (EntitlementService.instance.isFeatureAccessible(
@@ -1225,7 +1249,7 @@ class _CombatScreenState extends State<CombatScreen>
                                     right: 14.0,
                                     child: IgnorePointer(
                                       child: ListenableBuilder(
-                                        listenable: _renderNotifier,
+                                        listenable: _directiveNotifier,
                                         builder: (context, _) {
                                           final dread =
                                               _coordinator.dreadnought;

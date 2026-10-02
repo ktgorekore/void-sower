@@ -556,4 +556,53 @@ TEST(CombatSimulationTest,
   EXPECT_FLOAT_EQ(vessel_c5.current_hull, 500.0f);
 }
 
+TEST(CombatSimulationTest, ReinforcementIdResetsOnInitializeDreadnought) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought();
+
+  // Spawn an enemy
+  EXPECT_TRUE(combat.SpawnEnemy(0, 0.8f, 10.0f, 0.0f, 100.0f, 0));
+  auto view1 = registry.view<EnemyVesselComponent>();
+  uint32_t first_id = 0;
+  for (auto entity : view1) {
+    first_id = view1.get<EnemyVesselComponent>(entity).entity_id;
+  }
+  EXPECT_EQ(first_id, 10000u);
+
+  // Spawn a second enemy
+  EXPECT_TRUE(combat.SpawnEnemy(1, 0.8f, 10.0f, 0.0f, 100.0f, 0));
+
+  // Re-initialize dreadnought
+  combat.InitializeDreadnought();
+  registry.clear();
+
+  // Spawn an enemy after re-initialization
+  EXPECT_TRUE(combat.SpawnEnemy(2, 0.8f, 10.0f, 0.0f, 100.0f, 0));
+  auto view2 = registry.view<EnemyVesselComponent>();
+  uint32_t reset_id = 0;
+  for (auto entity : view2) {
+    reset_id = view2.get<EnemyVesselComponent>(entity).entity_id;
+  }
+  EXPECT_EQ(reset_id, 10000u);
+}
+
+TEST(CombatSimulationTest, DefaultBoundaryLineIsFifteenHundredths) {
+  Engine engine;
+  engine.Initialize();
+  auto dread = engine.GetDreadnoughtState();
+  EXPECT_FLOAT_EQ(dread.boundary_line_y, 0.15f);
+  EXPECT_FLOAT_EQ(dread.orbital_position_y, 0.15f);
+
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought();
+  auto view = registry.view<DreadnoughtStateComponent>();
+  for (auto entity : view) {
+    const auto& state = view.get<DreadnoughtStateComponent>(entity);
+    EXPECT_FLOAT_EQ(state.boundary_line_y, 0.15f);
+    EXPECT_FLOAT_EQ(state.orbital_position_y, 0.15f);
+  }
+}
+
 }  // namespace void_sower::ecs

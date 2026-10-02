@@ -37,7 +37,7 @@ class Engine {
   ~Engine() = default;
 
   /// Initializes dreadnought with starting cores and atmospheric boundary.
-  void Initialize(uint32_t starting_cores = 24, float boundary_y = 0.2f);
+  void Initialize(uint32_t starting_cores = 24, float boundary_y = 0.15f);
 
   /// Generates a mathematically solvable procedural wave.
   bool GenerateWave(const WaveGeneratorConfig& config);

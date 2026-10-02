@@ -62,10 +62,19 @@ class AudioService {
 
   AudioPlayer? _bgmPlayer;
   final List<AudioPlayer> _sfxPool = <AudioPlayer>[];
-  static const int _kPoolSize = 6;
+  static const int _kPoolSize = 8;
+  static const int _kPoolMask = _kPoolSize - 1;
   int _poolIndex = 0;
   bool _initialized = false;
   bool _isTestMode = false;
+  bool _isBgmPaused = false;
+  bool _audioFocusReleased = false;
+
+  /// Whether background music is explicitly paused.
+  bool get isBgmPaused => _isBgmPaused;
+
+  /// Whether audio focus has been released to external media.
+  bool get isAudioFocusReleased => _audioFocusReleased;
 
   static bool _detectTestEnvironment() {
     try {
@@ -205,6 +214,7 @@ class AudioService {
   /// Explicitly requests exclusive audio focus across both Android and iOS,
   /// causing background media apps (YouTube, Spotify, etc.) to pause immediately.
   Future<void> requestExclusiveAudioFocus() async {
+    _audioFocusReleased = false;
     if (_isTestMode) return;
     try {
       try {
@@ -231,6 +241,7 @@ class AudioService {
   /// This immediately abandons audio focus, allowing external apps like YouTube
   /// and Spotify to resume playback without interference.
   Future<void> releaseAudioFocus() async {
+    _audioFocusReleased = true;
     if (_isTestMode) return;
     try {
       if (_bgmPlayer != null) {
@@ -355,6 +366,7 @@ class AudioService {
 
   /// Starts or restarts looping background music if music is active.
   Future<void> startBgm({String assetPath = 'audio/kilwa_ambient.mp3'}) async {
+    _isBgmPaused = false;
     if (_bgmPlayer == null || !isMusicActive) return;
     try {
       await _bgmPlayer!.setSource(AssetSource(assetPath));
@@ -367,26 +379,71 @@ class AudioService {
 
   /// Pauses looping background music.
   Future<void> pauseBgm() async {
-    await _bgmPlayer?.pause();
+    _isBgmPaused = true;
+    try {
+      await _bgmPlayer?.pause();
+    } catch (_) {}
   }
 
   /// Resumes background music if music is active.
   Future<void> resumeBgm() async {
+    _isBgmPaused = false;
     if (isMusicActive) {
-      await _bgmPlayer?.resume();
+      try {
+        await _bgmPlayer?.resume();
+      } catch (_) {}
     }
   }
 
   /// Stops background music.
   Future<void> stopBgm() async {
-    await _bgmPlayer?.stop();
+    _isBgmPaused = false;
+    try {
+      await _bgmPlayer?.stop();
+    } catch (_) {}
   }
 
   AudioPlayer? _getNextPlayer() {
-    if (_sfxPool.isEmpty) return null;
+    if (_sfxPool.isEmpty) {
+      if (_isTestMode) {
+        _poolIndex = (_poolIndex + 1) & _kPoolMask;
+      }
+      return null;
+    }
     final player = _sfxPool[_poolIndex];
-    _poolIndex = (_poolIndex + 1) % _sfxPool.length;
+    _poolIndex = (_poolIndex + 1) & _kPoolMask;
     return player;
+  }
+
+  /// Current pool index for unit test inspection.
+  @visibleForTesting
+  int get poolIndex => _poolIndex;
+
+  /// Total pre-allocated player pool size for testing.
+  @visibleForTesting
+  int get poolSize => _sfxPool.length;
+
+  /// Internal testing helper for testing ring buffer wraparound.
+  @visibleForTesting
+  AudioPlayer? getNextPlayerForTesting() => _getNextPlayer();
+
+  /// Internal testing helper to set ring buffer index.
+  @visibleForTesting
+  void setPoolIndexForTesting(int index) {
+    _poolIndex = index & _kPoolMask;
+  }
+
+  /// Internal testing helper to populate pool in test mode.
+  @visibleForTesting
+  void populatePoolForTesting(List<AudioPlayer> players) {
+    _sfxPool.clear();
+    _sfxPool.addAll(players);
+  }
+
+  /// Internal testing helper to set mock BGM player in test mode.
+  @visibleForTesting
+  void setBgmPlayerForTesting(AudioPlayer? player) {
+    _bgmPlayer = player;
   }
 
   /// Plays harmonic sow step SFX with cascade pitch ramping.
@@ -494,12 +551,13 @@ class AudioService {
     } catch (_) {}
   }
 
-  /// Disposes BGM player and pool.
-  void dispose() {
-    _bgmPlayer?.dispose();
+  /// Disposes BGM player and pool, releasing audio focus to [ambientAudioContext].
+  Future<void> dispose() async {
+    await releaseAudioFocus();
+    await _bgmPlayer?.dispose();
     _bgmPlayer = null;
     for (final player in _sfxPool) {
-      player.dispose();
+      await player.dispose();
     }
     _sfxPool.clear();
     _initialized = false;

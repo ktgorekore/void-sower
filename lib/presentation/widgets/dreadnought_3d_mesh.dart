@@ -280,8 +280,8 @@ class Dreadnought3DMesh {
       _camZ[i] = rz;
 
       // Perspective divide
-      final zDepth = cameraZ + rz;
-      final invZ = zDepth > 1.0 ? (focalLength / zDepth) : 1.0;
+      final zDepth = math.max(1.0, cameraZ + rz);
+      final invZ = focalLength / zDepth;
 
       _projX[i] = center.dx + rx * invZ;
       _projY[i] = center.dy + ry * invZ;
@@ -299,6 +299,7 @@ class Dreadnought3DMesh {
       vProwSpine,
       vPortShoulder,
       baseColor: const Color(0xFF0F172A),
+      isLowBattery: isLowBattery,
     );
 
     // Facet 2: Dorsal Prow Right
@@ -309,6 +310,7 @@ class Dreadnought3DMesh {
       vStbdShoulder,
       vProwSpine,
       baseColor: const Color(0xFF0F172A),
+      isLowBattery: isLowBattery,
     );
 
     // Facet 3: Bridge Deck Left
@@ -319,6 +321,7 @@ class Dreadnought3DMesh {
       vBridgeApex,
       vPortShoulder,
       baseColor: const Color(0xFF1E293B),
+      isLowBattery: isLowBattery,
     );
 
     // Facet 4: Bridge Deck Right
@@ -329,6 +332,7 @@ class Dreadnought3DMesh {
       vStbdShoulder,
       vBridgeApex,
       baseColor: const Color(0xFF1E293B),
+      isLowBattery: isLowBattery,
     );
 
     // Facet 5: Port Canted Main Wing
@@ -340,6 +344,7 @@ class Dreadnought3DMesh {
       vPortWingtip,
       vPortEngineMount,
       baseColor: const Color(0xFF0A101F),
+      isLowBattery: isLowBattery,
     );
 
     // Facet 6: Starboard Canted Main Wing
@@ -351,6 +356,7 @@ class Dreadnought3DMesh {
       vStbdWingtip,
       vStbdWingMid,
       baseColor: const Color(0xFF0A101F),
+      isLowBattery: isLowBattery,
     );
 
     // Facet 7: Aft Deck & Keel Plate
@@ -362,6 +368,7 @@ class Dreadnought3DMesh {
       vSternKeel,
       vStbdEngineMount,
       baseColor: const Color(0xFF162033),
+      isLowBattery: isLowBattery,
     );
 
     // -------------------------------------------------------------------------
@@ -398,8 +405,18 @@ class Dreadnought3DMesh {
     // -------------------------------------------------------------------------
     // 5. 3D Twin Engine Exhaust Nozzles
     // -------------------------------------------------------------------------
-    _paintEngineNozzle(canvas, vPortEngineBell, scale);
-    _paintEngineNozzle(canvas, vStbdEngineBell, scale);
+    _paintEngineNozzle(
+      canvas,
+      vPortEngineBell,
+      scale,
+      isLowBattery: isLowBattery,
+    );
+    _paintEngineNozzle(
+      canvas,
+      vStbdEngineBell,
+      scale,
+      isLowBattery: isLowBattery,
+    );
 
     // -------------------------------------------------------------------------
     // 6. Navigation Strobe Beacons (Port Crimson, Starboard Emerald)
@@ -448,6 +465,12 @@ class Dreadnought3DMesh {
     );
   }
 
+  /// Renders a 3D triangular hull facet ([i0], [i1], [i2]) with directional lighting.
+  ///
+  /// Computes face normal in camera space via vector cross product, calculates
+  /// Lambertian directional illumination against the cosmic key-light vector,
+  /// modulates [baseColor], and rasters the facet path onto [canvas].
+  /// In [isLowBattery] mode, facet outline strokes are omitted to halve draw calls.
   void _paintFacet(
     Canvas canvas,
     int facetIdx,
@@ -455,6 +478,7 @@ class Dreadnought3DMesh {
     int i1,
     int i2, {
     required Color baseColor,
+    bool isLowBattery = false,
   }) {
     // Compute facet normal in camera space
     final ax = _camX[i1] - _camX[i0];
@@ -502,9 +526,17 @@ class Dreadnought3DMesh {
     _scratchFacetPath.close();
 
     canvas.drawPath(_scratchFacetPath, _facetPaint);
-    canvas.drawPath(_scratchFacetPath, _facetOutlinePaint);
+    if (!isLowBattery) {
+      canvas.drawPath(_scratchFacetPath, _facetOutlinePaint);
+    }
   }
 
+  /// Renders a 3D quadrilateral hull facet ([i0], [i1], [i2], [i3]) with directional lighting.
+  ///
+  /// Computes face normal from the first three coplanar vertices in camera space,
+  /// calculates directional illumination against the cosmic key-light vector,
+  /// modulates [baseColor], and rasters the quad path onto [canvas].
+  /// In [isLowBattery] mode, facet outline strokes are omitted to halve draw calls.
   void _paintQuad(
     Canvas canvas,
     int facetIdx,
@@ -513,6 +545,7 @@ class Dreadnought3DMesh {
     int i2,
     int i3, {
     required Color baseColor,
+    bool isLowBattery = false,
   }) {
     // Normal from first three vertices
     final ax = _camX[i1] - _camX[i0];
@@ -554,10 +587,22 @@ class Dreadnought3DMesh {
     _scratchFacetPath.close();
 
     canvas.drawPath(_scratchFacetPath, _facetPaint);
-    canvas.drawPath(_scratchFacetPath, _facetOutlinePaint);
+    if (!isLowBattery) {
+      canvas.drawPath(_scratchFacetPath, _facetOutlinePaint);
+    }
   }
 
-  void _paintEngineNozzle(Canvas canvas, int bellIdx, double scale) {
+  /// Renders a 3D cylindrical engine exhaust nozzle at the projected vertex [bellIdx].
+  ///
+  /// Rasters an elliptical bell housing using [scale]-adjusted dimensions via [Rect.fromLTWH],
+  /// applies an outline stroke (omitted when [isLowBattery] is true), and
+  /// renders the glowing inner emitter aperture circle.
+  void _paintEngineNozzle(
+    Canvas canvas,
+    int bellIdx,
+    double scale, {
+    bool isLowBattery = false,
+  }) {
     final bx = _projX[bellIdx];
     final by = _projY[bellIdx];
     final nozzleRadiusX = 5.5 * scale;
@@ -565,15 +610,18 @@ class Dreadnought3DMesh {
 
     _scratchEnginePath.reset();
     _scratchEnginePath.addOval(
-      Rect.fromCenter(
-        center: Offset(bx, by),
-        width: nozzleRadiusX * 2.0,
-        height: nozzleRadiusY * 2.0,
+      Rect.fromLTWH(
+        bx - nozzleRadiusX,
+        by - nozzleRadiusY,
+        nozzleRadiusX * 2.0,
+        nozzleRadiusY * 2.0,
       ),
     );
 
     canvas.drawPath(_scratchEnginePath, _engineBellPaint);
-    canvas.drawPath(_scratchEnginePath, _facetOutlinePaint);
+    if (!isLowBattery) {
+      canvas.drawPath(_scratchEnginePath, _facetOutlinePaint);
+    }
 
     // Inner glowing emitter aperture
     canvas.drawCircle(Offset(bx, by), 2.2 * scale, _engineGazePaint);

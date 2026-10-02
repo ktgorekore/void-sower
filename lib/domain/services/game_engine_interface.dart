@@ -38,7 +38,7 @@ class TacticalStepResult {
 /// Implemented by FfiVoidSowerEngine (C++ native) and MockVoidSowerEngine (Dart).
 abstract class IVoidSowerEngine {
   /// Initializes simulation parameters and core allocations.
-  void initialize({int startingCores = 32, double boundaryY = 800.0});
+  void initialize({int startingCores = 32, double boundaryY = 0.15});
 
   /// Procedurally generates a solvable wave using backward-play program inversion.
   int generateWave({
@@ -57,7 +57,7 @@ abstract class IVoidSowerEngine {
 
   /// Positions the dreadnought flagship across 2D space.
   /// [targetX]: Normalized horizontal coordinate across corridors [0.0, 1.0].
-  /// [targetY]: Normalized vertical flight corridor [0.20, 0.65].
+  /// [targetY]: Normalized vertical flight corridor [0.15, 0.65].
   void setDreadnoughtTarget(double targetX, double targetY);
 
   /// Activates a tactical quest sortie (1: Outpost, 2: Convoy, 3: Capital Siege, etc.).

@@ -42,7 +42,7 @@ void MovementSystem::UpdateDreadnought(entt::registry& registry,
                          std::min(1.0f, delta_time * kSmoothFactor),
                  dread.boundary_line_y, 0.65f);
 
-  // Proximity damage multiplier: 1.0 at baseline boundary_line_y (0.20),
+  // Proximity damage multiplier: 1.0 at baseline boundary_line_y (0.15),
   // scaling up to 1.6 at y=0.65.
   const float forward_depth =
       std::max(0.0f, dread.orbital_position_y - dread.boundary_line_y);

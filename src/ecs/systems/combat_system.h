@@ -49,7 +49,7 @@ class CombatSystem {
 
   /// Initializes the 16 dreadnought capacitor bays and global state.
   void InitializeDreadnought(uint32_t starting_cores = 24,
-                             float boundary_y = 0.2f);
+                             float boundary_y = 0.15f);
 
   /// Injects a plasma core from the reactor into target bay and begins
   /// traversal.

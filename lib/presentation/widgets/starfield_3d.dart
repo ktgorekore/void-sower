@@ -86,17 +86,43 @@ class Starfield3DSimulation {
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
 
+  static final Paint _streakAmethystPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round;
+
+  @visibleForTesting
+  static Paint get streakAmethystPaint => _streakAmethystPaint;
+
+  @visibleForTesting
+  static Paint get streakCyanPaint => _streakCyanPaint;
+
   static final Paint _nebulaGlowPaint = Paint()..style = PaintingStyle.fill;
+
+  @pragma('vm:prefer-inline')
+  static Color _getAlphaColor(Color baseColor, double alpha) {
+    final a = (alpha * 255.0).round().clamp(0, 255);
+    return Color((a << 24) | (baseColor.toARGB32() & 0x00FFFFFF));
+  }
 
   // Drifting cosmic nebula anchor positions
   double _nebulaPhase = 0.0;
+  bool _lowBatteryDirty = false;
 
+  /// Pre-allocates and initializes all [starCount] stars in typed memory pools.
+  ///
+  /// Distributes initial stars across the full perspective depth range $[0.08, 1.0]$
+  /// with randomized radial coordinates, velocities, and color distributions.
   void _initStarPool() {
     for (var i = 0; i < starCount; i++) {
       _recycleStar(i, initialSpread: true);
     }
   }
 
+  /// Recycles a star at index [i] to the forward vanishing horizon ($z = 1.0$).
+  ///
+  /// When [initialSpread] is true, distributes depth randomly across $[0.08, 1.0]$.
+  /// Clears previous screen tracking coordinates ([_prevScreenX], [_prevScreenY])
+  /// to suppress spurious warp streaks across frame transitions.
   void _recycleStar(int i, {bool initialSpread = false}) {
     // Spread evenly across field of view
     final angle = _rng.nextDouble() * 2 * math.pi;
@@ -139,6 +165,16 @@ class Starfield3DSimulation {
     bool isLowBattery = false,
   }) {
     if (viewportSize.width <= 0 || viewportSize.height <= 0) return;
+
+    if (!isLowBattery && _lowBatteryDirty) {
+      _lowBatteryDirty = false;
+      final half = starCount ~/ 2;
+      for (var i = half; i < starCount; i++) {
+        _recycleStar(i, initialSpread: true);
+      }
+    } else if (isLowBattery) {
+      _lowBatteryDirty = true;
+    }
 
     final clampedDt = dt.clamp(0.001, 0.05);
     final warpMultiplier = 1.0 + (1.2 * normForward.clamp(0.0, 1.0));
@@ -190,6 +226,16 @@ class Starfield3DSimulation {
     bool isLowBattery = false,
   }) {
     if (size.width <= 0 || size.height <= 0) return;
+
+    if (!isLowBattery && _lowBatteryDirty) {
+      _lowBatteryDirty = false;
+      final half = starCount ~/ 2;
+      for (var i = half; i < starCount; i++) {
+        _recycleStar(i, initialSpread: true);
+      }
+    } else if (isLowBattery) {
+      _lowBatteryDirty = true;
+    }
 
     final centerX = size.width * 0.5;
     final centerY = size.height * 0.18; // Vanishing point aligned to 3D horizon
@@ -263,20 +309,20 @@ class Starfield3DSimulation {
         switch (colorType) {
           case 1:
             streakPaint = _streakCyanPaint
-              ..color = starColor.withValues(alpha: alpha)
+              ..color = _getAlphaColor(starColor, alpha)
               ..strokeWidth = 1.0;
           case 2:
             streakPaint = _streakGoldPaint
-              ..color = starColor.withValues(alpha: alpha)
+              ..color = _getAlphaColor(starColor, alpha)
               ..strokeWidth = 1.0;
           case 3:
-            streakPaint = _streakCyanPaint
-              ..color = starColor.withValues(alpha: alpha)
+            streakPaint = _streakAmethystPaint
+              ..color = _getAlphaColor(starColor, alpha)
               ..strokeWidth = 1.0;
           case 0:
           default:
             streakPaint = _streakWhitePaint
-              ..color = starColor.withValues(alpha: alpha)
+              ..color = _getAlphaColor(starColor, alpha)
               ..strokeWidth = 1.0;
         }
 
@@ -287,20 +333,20 @@ class Starfield3DSimulation {
         switch (colorType) {
           case 1:
             starPaint = _cyanStarPaint
-              ..color = starColor.withValues(alpha: alpha);
+              ..color = _getAlphaColor(starColor, alpha);
             break;
           case 2:
             starPaint = _goldStarPaint
-              ..color = starColor.withValues(alpha: alpha);
+              ..color = _getAlphaColor(starColor, alpha);
             break;
           case 3:
             starPaint = _amethystStarPaint
-              ..color = starColor.withValues(alpha: alpha);
+              ..color = _getAlphaColor(starColor, alpha);
             break;
           case 0:
           default:
             starPaint = _whiteStarPaint
-              ..color = starColor.withValues(alpha: alpha);
+              ..color = _getAlphaColor(starColor, alpha);
             break;
         }
 
@@ -312,6 +358,11 @@ class Starfield3DSimulation {
     }
   }
 
+  /// Renders atmospheric ionization nebula clouds drifting across the Kilwa basin.
+  ///
+  /// Paints dual-phase elliptical glow fields (plasma cyan and nebula amethyst)
+  /// that pulsate and drift based on [_nebulaPhase] and forward flight depth.
+  /// Skipped entirely when low battery mode is enabled.
   void _paintCosmicNebulae(Canvas canvas, Size size, double normForward) {
     // Drifting luminous nebula clouds in the Kilwa cosmic basin
     final nebula1X =
@@ -328,7 +379,7 @@ class Starfield3DSimulation {
 
     // Cyan orbital ionization cloud
     final alpha1 = (0.04 + 0.03 * normForward).clamp(0.0, 0.12);
-    _nebulaGlowPaint.color = VoidTheme.plasmaCyan.withValues(alpha: alpha1);
+    _nebulaGlowPaint.color = _getAlphaColor(VoidTheme.plasmaCyan, alpha1);
     canvas.drawCircle(
       Offset(nebula1X, nebula1Y),
       size.width * 0.42,
@@ -337,7 +388,7 @@ class Starfield3DSimulation {
 
     // Amethyst deep-space rift anomaly
     final alpha2 = (0.035 + 0.035 * normForward).clamp(0.0, 0.12);
-    _nebulaGlowPaint.color = VoidTheme.nebulaAmethyst.withValues(alpha: alpha2);
+    _nebulaGlowPaint.color = _getAlphaColor(VoidTheme.nebulaAmethyst, alpha2);
     canvas.drawCircle(
       Offset(nebula2X, nebula2Y),
       size.width * 0.38,
