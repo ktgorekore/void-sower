@@ -660,7 +660,8 @@ class CombatCoordinator extends ChangeNotifier {
         );
     final normForward = forwardDepth / 0.45;
     final maxTravelY = (boundaryY - topMargin) * 0.60;
-    final dreadY = (boundaryY + 2.0) - (normForward * maxTravelY);
+    final baselineShipY = boundaryY - 28.0;
+    final dreadY = baselineShipY - (normForward * maxTravelY);
 
     bulletManager.update(
       dt: clampedDt,
@@ -1063,22 +1064,35 @@ class CombatCoordinator extends ChangeNotifier {
   }
 
   /// Sets the dreadnought's target horizontal position.
-  void slidePosition(double targetX) {
-    slidePosition2D(targetX, dreadnought.boundaryLineY);
+  void slidePosition(double targetX, {bool snapToCorridor = true}) {
+    slidePosition2D(
+      targetX,
+      dreadnought.boundaryLineY,
+      snapToCorridor: snapToCorridor,
+    );
   }
 
   /// Sets the dreadnought's target 2D position in space with flight altitude.
-  void slidePosition2D(double targetX, double targetY) {
+  ///
+  /// When [snapToCorridor] is false (e.g. active touch-drag tracking in the viewport),
+  /// [targetX] is applied continuously without locking to discrete corridor centers,
+  /// guaranteeing fluid, responsive analog flight maneuvers without sticking.
+  void slidePosition2D(
+    double targetX,
+    double targetY, {
+    bool snapToCorridor = true,
+  }) {
     final clampedX = targetX.clamp(0.0, 1.0);
     final corridor = (clampedX * 8.0).floor().clamp(0, 7);
     final snappedX = (corridor + 0.5) / 8.0;
+    final resolvedX = snapToCorridor ? snappedX : clampedX;
     final clampedY = targetY.clamp(dreadnought.boundaryLineY, 0.65);
-    engine.setDreadnoughtTarget(snappedX, clampedY);
+    engine.setDreadnoughtTarget(resolvedX, clampedY);
     _syncDomainState();
     if (_state.status == CombatMatchStatus.paused) {
       dreadnought = dreadnought.copyWith(
-        orbitalPositionX: snappedX,
-        targetPositionX: snappedX,
+        orbitalPositionX: resolvedX,
+        targetPositionX: resolvedX,
         orbitalPositionY: clampedY,
         targetPositionY: clampedY,
       );

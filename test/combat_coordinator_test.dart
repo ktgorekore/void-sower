@@ -330,5 +330,36 @@ void main() {
         expect(coordinator.sowDirection, equals(1));
       },
     );
+
+    test(
+      'slidePosition2D with snapToCorridor: false allows continuous fluid dragging',
+      () {
+        // Continuous dragging to 0.42 (corridor 3, but offset from center 0.4375)
+        coordinator.slidePosition2D(0.42, 0.2, snapToCorridor: false);
+        expect(coordinator.state.selectedBay, equals(11)); // 8 + 3 = 11
+
+        // Step simulation multiple times to allow lerp to advance towards target
+        for (var i = 0; i < 30; i++) {
+          coordinator.update(0.016, const Size(800, 1000));
+        }
+        expect(coordinator.dreadnought.orbitalPositionX, closeTo(0.42, 0.01));
+        expect(coordinator.dreadnought.orbitalPositionY, closeTo(0.2, 0.01));
+      },
+    );
+
+    test(
+      'slidePosition2D with snapToCorridor: true snaps to corridor center',
+      () {
+        // Settle into corridor 3 center ((3 + 0.5) / 8.0 = 0.4375)
+        coordinator.slidePosition2D(0.42, 0.2, snapToCorridor: true);
+        expect(coordinator.state.selectedBay, equals(11));
+
+        // Step simulation multiple times to allow lerp to advance towards target
+        for (var i = 0; i < 30; i++) {
+          coordinator.update(0.016, const Size(800, 1000));
+        }
+        expect(coordinator.dreadnought.orbitalPositionX, closeTo(0.4375, 0.01));
+      },
+    );
   });
 }

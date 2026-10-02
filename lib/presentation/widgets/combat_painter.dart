@@ -414,8 +414,10 @@ class CombatPainter extends CustomPainter {
         );
     final normForward = forwardDepth / 0.45;
     final maxTravelY = (boundaryY - topMargin) * 0.60;
-    final shipY = (boundaryY + 2.0) - (normForward * maxTravelY);
-    final shipProwY = shipY - 28.0;
+    final baselineShipY = boundaryY - 28.0;
+    final shipY = baselineShipY - (normForward * maxTravelY);
+    final scale = 1.0 - normForward * 0.15;
+    final shipProwY = shipY - 38.0 * scale;
 
     // 1. Draw Active Particle Lances (FIRED AXIALLY FROM DREADNOUGHT PROW)
     for (var i = 0; i < lances.length; i++) {
@@ -671,8 +673,10 @@ class CombatPainter extends CustomPainter {
         );
     final normForward = forwardDepth / 0.45;
     final maxTravelY = (boundaryY - topMargin) * 0.60;
-    final shipY = (boundaryY + 2.0) - (normForward * maxTravelY);
-    final prowY = shipY - 28.0;
+    final baselineShipY = boundaryY - 28.0;
+    final shipY = baselineShipY - (normForward * maxTravelY);
+    final scale = 1.0 - normForward * 0.15;
+    final prowY = shipY - 38.0 * scale;
 
     // Active corridor highlight under dreadnought (Energized Runway Track)
     final activeCorridor = (centerX / (size.width / 8.0)).floor().clamp(0, 7);
@@ -834,8 +838,6 @@ class CombatPainter extends CustomPainter {
     final pitchRad = -normForward * 0.26;
     // 3D Yaw: Slight turning heading into lateral slide
     final yawRad = lateralDisplacement * 0.14;
-    // Distance scaling: 1.0x in orbit -> 0.85x deep space
-    final scale = 1.0 - normForward * 0.15;
 
     // 1. Render true 3D Polygonal Dreadnought Flagship Mesh
     _dreadMesh.projectAndPaint(
@@ -1024,7 +1026,7 @@ class CombatPainter extends CustomPainter {
     // -------------------------------------------------------------------------
     // Tactical Spatial Altimeter / Elevation Rail (Left Margin)
     // -------------------------------------------------------------------------
-    final railBottom = boundaryY + 2.0;
+    final railBottom = boundaryY - 4.0;
     final railTop = railBottom - maxTravelY;
     const railX = 14.0;
 

@@ -1003,15 +1003,18 @@ class _CombatScreenState extends State<CombatScreen>
                                                 constraints.maxHeight - 18.0;
                                             final topMargin =
                                                 constraints.maxHeight * 0.06;
+                                            final baselineShipY =
+                                                boundaryY - 28.0;
+                                            final maxTravelY =
+                                                (boundaryY - topMargin) * 0.60;
                                             final forwardRatio =
                                                 (details.localPosition.dy <
-                                                    boundaryY)
-                                                ? ((boundaryY -
+                                                    baselineShipY)
+                                                ? ((baselineShipY -
                                                               details
                                                                   .localPosition
                                                                   .dy) /
-                                                          (boundaryY -
-                                                              topMargin))
+                                                          maxTravelY)
                                                       .clamp(0.0, 1.0)
                                                 : 0.0;
                                             final baseBoundaryY = _coordinator
@@ -1024,6 +1027,7 @@ class _CombatScreenState extends State<CombatScreen>
                                             _coordinator.slidePosition2D(
                                               normX,
                                               normY,
+                                              snapToCorridor: false,
                                             );
                                           },
                                           onPanEnd: (details) {
@@ -1089,6 +1093,19 @@ class _CombatScreenState extends State<CombatScreen>
                                               _coordinator.sow(
                                                 activeBay,
                                                 resolvedDir,
+                                              );
+                                            } else {
+                                              // Settle smoothly into corridor center upon finger release
+                                              final currentNormX = _coordinator
+                                                  .dreadnought
+                                                  .orbitalPositionX;
+                                              final currentNormY = _coordinator
+                                                  .dreadnought
+                                                  .orbitalPositionY;
+                                              _coordinator.slidePosition2D(
+                                                currentNormX,
+                                                currentNormY,
+                                                snapToCorridor: true,
                                               );
                                             }
                                           },

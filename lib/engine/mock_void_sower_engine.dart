@@ -29,11 +29,11 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   }
 
   int _reserveCores = 32;
-  double _boundaryY = 800.0;
-  double _orbitalX = 0.0;
-  double _targetX = 0.0;
-  double _orbitalY = 0.20;
-  double _targetY = 0.20;
+  double _boundaryY = 0.15;
+  double _orbitalX = 0.4375;
+  double _targetX = 0.4375;
+  double _orbitalY = 0.15;
+  double _targetY = 0.15;
   double _proximityMultiplier = 1.0;
   double _questProgress = 0.0;
   int _activeQuestType = 0;
@@ -251,14 +251,13 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
   @override
   void stepSimulation(double deltaTime) {
-    // Interpolate dreadnought 2D position
-    _orbitalX +=
-        (_targetX - _orbitalX) *
-        (1.0 - (0.5 * deltaTime * 20.0)).clamp(0.0, 1.0);
-    _orbitalY +=
-        (_targetY - _orbitalY) *
-        (1.0 - (0.5 * deltaTime * 20.0)).clamp(0.0, 1.0);
-    _orbitalY = _orbitalY.clamp(_boundaryY, 0.65);
+    // Interpolate dreadnought 2D position matching C++ MovementSystem (factor: 12.0)
+    final factor = (deltaTime * 12.0).clamp(0.0, 1.0);
+    _orbitalX = (_orbitalX + (_targetX - _orbitalX) * factor).clamp(0.0, 1.0);
+    _orbitalY = (_orbitalY + (_targetY - _orbitalY) * factor).clamp(
+      _boundaryY,
+      0.65,
+    );
 
     final forwardDepth = math.max(0.0, _orbitalY - _boundaryY);
     final normForward = (forwardDepth / 0.45).clamp(0.0, 1.0);
