@@ -203,6 +203,27 @@ void main() {
     );
 
     test(
+      'Configures sfx audio context with AndroidAudioFocus.none and sonification to prevent audio focus thrashing',
+      () {
+        final ctx = AudioService.sfxAudioContext;
+
+        // Android verification: requests NO focus with game usage & sonification content
+        expect(ctx.android.audioFocus, equals(AndroidAudioFocus.none));
+        expect(ctx.android.usageType, equals(AndroidUsageType.game));
+        expect(
+          ctx.android.contentType,
+          equals(AndroidContentType.sonification),
+        );
+        expect(ctx.android.isSpeakerphoneOn, isFalse);
+        expect(ctx.android.stayAwake, isFalse);
+
+        // iOS verification: ambient category (no exclusive interruptions)
+        expect(ctx.iOS.category, equals(AVAudioSessionCategory.ambient));
+        expect(ctx.iOS.options, isEmpty);
+      },
+    );
+
+    test(
       'Manages sound and music toggles and dynamically tracks activity',
       () async {
         final audio = AudioService.instance;

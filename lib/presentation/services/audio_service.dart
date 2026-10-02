@@ -97,6 +97,25 @@ class AudioService {
     ),
   );
 
+  /// Game SFX audio context configured without exclusive audio focus across Android
+  /// (audioFocus none) and iOS (ambient category).
+  ///
+  /// This prevents pooled SFX players from fighting each other or the BGM player
+  /// for audio focus, completely eliminating audio focus churn and device stalls.
+  static final AudioContext sfxAudioContext = AudioContext(
+    android: const AudioContextAndroid(
+      isSpeakerphoneOn: false,
+      stayAwake: false,
+      contentType: AndroidContentType.sonification,
+      usageType: AndroidUsageType.game,
+      audioFocus: AndroidAudioFocus.none,
+    ),
+    iOS: AudioContextIOS(
+      category: AVAudioSessionCategory.ambient,
+      options: const {},
+    ),
+  );
+
   /// Ambient audio context configured to request NO audio focus across Android
   /// (audioFocus none) and iOS (ambient category with mixWithOthers).
   ///
@@ -157,11 +176,15 @@ class AudioService {
         debugPrint('[AudioService] BGM audio context setup fallback: $e');
       }
 
+      final sfxTargetContext = isAudioActive
+          ? sfxAudioContext
+          : ambientAudioContext;
+
       for (var i = 0; i < _kPoolSize; i++) {
         try {
           final player = AudioPlayer();
           try {
-            await player.setAudioContext(targetContext);
+            await player.setAudioContext(sfxTargetContext);
           } catch (_) {}
           try {
             await player.setVolume(isSoundActive ? sfxVolume : 0.0);
@@ -194,7 +217,7 @@ class AudioService {
       }
       for (final player in _sfxPool) {
         try {
-          await player.setAudioContext(gameAudioContext);
+          await player.setAudioContext(sfxAudioContext);
         } catch (_) {}
       }
     } catch (e) {
