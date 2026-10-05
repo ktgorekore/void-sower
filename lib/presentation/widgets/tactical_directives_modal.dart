@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
+import 'kinetic_rule_diorama.dart';
 import 'tactile_button.dart';
 
 /// Consolidated, ultra-fast (<20 seconds) Tactical Combat Directives modal.
@@ -151,6 +152,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                         'Swipe left or right to distribute cores. Land in charged bays for free cascade laps.',
                     icon: Icons.sync_alt_rounded,
                     accentColor: VoidTheme.plasmaCyan,
+                    dioramaType: DioramaType.sowingAndNamua,
                   ),
                   const SizedBox(height: 10.0),
 
@@ -163,6 +165,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                         'Bays C1–C8 target the 8 enemy lanes. Align your dreadnought to aim.',
                     icon: Icons.filter_center_focus,
                     accentColor: VoidTheme.plasmaCyanLight,
+                    dioramaType: DioramaType.vanguardAltitude,
                   ),
                   const SizedBox(height: 10.0),
 
@@ -175,6 +178,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                         'Frontline bays fire Particle Lances. Damage scales quadratically (4 cores = 16x).',
                     icon: Icons.bolt,
                     accentColor: VoidTheme.emeraldShield,
+                    dioramaType: DioramaType.quadraticDamage,
                   ),
                   const SizedBox(height: 10.0),
 
@@ -187,6 +191,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                         'Charged frontline bays automatically deflect enemy bombs safely (+50 PTS).',
                     icon: Icons.shield,
                     accentColor: VoidTheme.solarGold,
+                    dioramaType: DioramaType.relayAndCascade,
                   ),
                 ],
               ),
@@ -316,6 +321,7 @@ class TacticalDirectivesModal extends StatelessWidget {
     required String description,
     required IconData icon,
     required Color accentColor,
+    DioramaType? dioramaType,
   }) {
     return Container(
       padding: const EdgeInsets.all(12.0),
@@ -327,80 +333,93 @@ class TacticalDirectivesModal extends StatelessWidget {
           width: 1.0,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Left Glyph Box
-          Container(
-            width: 40.0,
-            height: 40.0,
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(
-                color: accentColor.withValues(alpha: 0.6),
-                width: 1.0,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Glyph Box
+              Container(
+                width: 40.0,
+                height: 40.0,
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: 0.6),
+                    width: 1.0,
+                  ),
+                ),
+                child: Icon(icon, color: accentColor, size: 20.0),
               ),
-            ),
-            child: Icon(icon, color: accentColor, size: 20.0),
-          ),
-          const SizedBox(width: 12.0),
+              const SizedBox(width: 12.0),
 
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        '$stepNumber. $title',
-                        style: TextStyle(
-                          color: accentColor,
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.8,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '$stepNumber. $title',
+                            style: TextStyle(
+                              color: accentColor,
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(width: 6.0),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5.0,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(3.0),
+                          ),
+                          child: Text(
+                            subtitle,
+                            style: TextStyle(
+                              color: accentColor,
+                              fontSize: 7.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 6.0),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 5.0,
-                        vertical: 1.5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(3.0),
-                      ),
-                      child: Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: accentColor,
-                          fontSize: 7.5,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.4,
-                        ),
+                    const SizedBox(height: 5.0),
+                    Text(
+                      description,
+                      style: const TextStyle(
+                        color: VoidTheme.starWhite,
+                        fontSize: 11.0,
+                        height: 1.35,
+                        letterSpacing: 0.2,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 5.0),
-                Text(
-                  description,
-                  style: const TextStyle(
-                    color: VoidTheme.starWhite,
-                    fontSize: 11.0,
-                    height: 1.35,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (dioramaType != null) ...[
+            const SizedBox(height: 8.0),
+            KineticRuleDiorama(
+              type: dioramaType,
+              height: 75.0,
+              accentColor: accentColor,
+            ),
+          ],
         ],
       ),
     );

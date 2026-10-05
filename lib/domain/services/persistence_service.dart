@@ -115,6 +115,19 @@ class PersistenceService {
     }
   }
 
+  /// Retrieves the highest wave reached in Void Incursions.
+  int getIncursionBestWave() {
+    return _prefs?.getInt('void_sower_incursion_best_wave') ?? 0;
+  }
+
+  /// Sets the highest wave reached in Void Incursions if higher than existing record.
+  Future<void> setIncursionBestWave(int wave) async {
+    final current = getIncursionBestWave();
+    if (wave > current) {
+      await _prefs?.setInt('void_sower_incursion_best_wave', wave);
+    }
+  }
+
   int get liberatedSectors {
     try {
       final val = _prefs?.get(_kLiberatedSectors);

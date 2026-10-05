@@ -19,9 +19,11 @@ import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/models/sector_combat_doctrine.dart';
 import '../../domain/services/campaign_service.dart';
+import '../../domain/services/daily_sortie_service.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
+import '../../domain/services/void_incursion_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import '../widgets/fleet_hangar_dialog.dart';
@@ -712,6 +714,230 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
     );
   }
 
+  Widget _buildEngagementModesCard() {
+    final daily = DailySortieService.instance;
+    final incursion = VoidIncursionService.instance;
+    final bestWave = PersistenceService.instance.getIncursionBestWave();
+    final todayScore = daily.todayBestScore;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+      child: Row(
+        children: [
+          // Daily Sortie Action Card
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12.0),
+                border: Border.all(
+                  color: VoidTheme.solarGold.withValues(alpha: 0.5),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: VoidTheme.solarGold.withValues(alpha: 0.1),
+                    blurRadius: 8.0,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(
+                        Icons.calendar_today,
+                        color: VoidTheme.solarGold,
+                        size: 14.0,
+                      ),
+                      SizedBox(width: 6.0),
+                      Expanded(
+                        child: Text(
+                          'DAILY SORTIE',
+                          style: TextStyle(
+                            color: VoidTheme.solarGold,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4.0),
+                  Text(
+                    todayScore > 0
+                        ? 'BEST: $todayScore PTS'
+                        : 'GLOBAL 24H SORTIE',
+                    style: const TextStyle(
+                      color: VoidTheme.starWhite,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6.0),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 28.0,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: VoidTheme.solarGold,
+                        foregroundColor: Colors.black,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                      ),
+                      onPressed: () {
+                        HapticService.instance.injectionClick();
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) => CombatScreen(
+                              engine: widget.engine,
+                              difficultyTier: daily.todayDifficultyTier,
+                              sectorId: 999,
+                              sector: daily.getTodaySector(),
+                              isDailySortie: true,
+                              onReturnToMap: () {
+                                Navigator.of(context).pop();
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'LAUNCH',
+                        style: TextStyle(
+                          fontSize: 10.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8.0),
+
+          // Infinite Void Incursion Card
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(12.0),
+                border: Border.all(
+                  color: VoidTheme.crimsonFlare.withValues(alpha: 0.5),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: VoidTheme.crimsonFlare.withValues(alpha: 0.1),
+                    blurRadius: 8.0,
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(
+                        Icons.all_inclusive,
+                        color: VoidTheme.crimsonFlare,
+                        size: 14.0,
+                      ),
+                      SizedBox(width: 6.0),
+                      Expanded(
+                        child: Text(
+                          'VOID INCURSION',
+                          style: TextStyle(
+                            color: VoidTheme.crimsonFlare,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.6,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4.0),
+                  Text(
+                    bestWave > 0
+                        ? 'BEST WAVE: $bestWave'
+                        : 'ENDLESS ROGUE-LITE',
+                    style: const TextStyle(
+                      color: VoidTheme.starWhite,
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6.0),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 28.0,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: VoidTheme.crimsonFlare,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                      ),
+                      onPressed: () {
+                        HapticService.instance.injectionClick();
+                        incursion.startNewRun();
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (context) => CombatScreen(
+                              engine: widget.engine,
+                              difficultyTier: incursion
+                                  .getCurrentSector()
+                                  .difficultyTier,
+                              sectorId: 1000,
+                              sector: incursion.getCurrentSector(),
+                              isIncursionRun: true,
+                              onReturnToMap: () {
+                                Navigator.of(context).pop();
+                                setState(() {});
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'COMMENCE',
+                        style: TextStyle(
+                          fontSize: 10.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeOp = CampaignService.instance.getOperation(_activeCampaignId);
@@ -748,6 +974,9 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
 
                       // 3. Tactical Doctrine & Mission Briefing Banner
                       _buildDoctrineBanner(),
+
+                      // 3b. Tactical Sorties & Incursion Deck
+                      _buildEngagementModesCard(),
 
                       // 4. Orbital Mission Track List with Left Spline and Nodes
                       Expanded(

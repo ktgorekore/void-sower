@@ -15,6 +15,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/void_theme.dart';
+import 'kinetic_rule_diorama.dart';
 import 'tactile_button.dart';
 
 /// In-game Bao Codex and Tactical Rules Guide detailing orbital battery principles.
@@ -91,10 +92,11 @@ class BaoCodexDialog extends StatelessWidget {
                       title: '1. NAMUA (CORE INJECTION)',
                       body:
                           'Your reactor pool holds 28 Reserve Cores per sector. '
-                          'Injecting a core into any bay (even with 0 charge) spends 1 reserve core '
-                          '(Bao "Namua" rule) to prime and initiate orbital sowing. Energy is never created from nothing.',
+                          'Injecting a core into any bay spends 1 reserve core '
+                          '(Bao "Namua" rule) to prime and initiate orbital sowing.',
                       icon: Icons.bolt,
                       color: VoidTheme.plasmaCyan,
+                      dioramaType: DioramaType.sowingAndNamua,
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
@@ -102,9 +104,10 @@ class BaoCodexDialog extends StatelessWidget {
                       body:
                           'When a sowing sequence finishes on a frontline bay (Bays 8–15 facing an active corridor), '
                           'its accumulated mass M discharges as an axial Particle Lance (D = 100 · M²). '
-                          'Single shots deal only 100 DMG, while accumulated mass reaches 3,600 to 14,400 DMG!',
+                          'Massive energy bloom scales quadratically!',
                       icon: Icons.flash_on,
                       color: VoidTheme.crimsonFlare,
+                      dioramaType: DioramaType.quadraticDamage,
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
@@ -115,15 +118,17 @@ class BaoCodexDialog extends StatelessWidget {
                           'with a +15% quadratic cascade bonus.',
                       icon: Icons.shield,
                       color: VoidTheme.solarGold,
+                      dioramaType: DioramaType.relayAndCascade,
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
                       title: '4. KICHWA (HEAD VECTORS 8 & 15)',
                       body:
                           'Kichwa conduits allow reversing the angular momentum of a sowing wave. '
-                          'Entering a Kichwa reverses directional drift, trapping enemy formations.',
+                          'Advance along the altitude rail for a +60% Vanguard proximity devastation bonus.',
                       icon: Icons.compare_arrows,
                       color: VoidTheme.nebulaAmethyst,
+                      dioramaType: DioramaType.vanguardAltitude,
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
@@ -175,6 +180,7 @@ class BaoCodexDialog extends StatelessWidget {
     required String body,
     required IconData icon,
     required Color color,
+    DioramaType? dioramaType,
   }) {
     return Container(
       padding: const EdgeInsets.all(12.0),
@@ -203,6 +209,14 @@ class BaoCodexDialog extends StatelessWidget {
               ),
             ],
           ),
+          if (dioramaType != null) ...[
+            const SizedBox(height: 8.0),
+            KineticRuleDiorama(
+              type: dioramaType,
+              height: 90.0,
+              accentColor: color,
+            ),
+          ],
           const SizedBox(height: 6.0),
           Text(
             body,

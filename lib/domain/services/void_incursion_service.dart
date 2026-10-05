@@ -141,6 +141,22 @@ class VoidIncursionService extends ChangeNotifier {
     return available.take(math.min(3, available.length)).toList();
   }
 
+  /// Alias to retrieve randomized mutations for draft pick.
+  List<SowingMutation> getRandomMutations([int count = 3]) =>
+      generateMutationChoices();
+
+  /// Gets the CampaignSector for the active wave.
+  CampaignSector getCurrentSector() => generateSectorForWave(_currentWave);
+
+  /// Equips a mutation in the active run.
+  void addMutation(SowingMutation mutation) => selectMutation(mutation);
+
+  /// Advances to the subsequent wave.
+  void advanceWave() {
+    _currentWave++;
+    notifyListeners();
+  }
+
   /// Selects a mutation to equip for the current run.
   void selectMutation(SowingMutation mutation) {
     _activeMutations.add(mutation);

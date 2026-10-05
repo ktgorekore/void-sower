@@ -21,9 +21,11 @@ import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/dreadnought_state.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/campaign_service.dart';
+import '../../domain/services/daily_sortie_service.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
+import '../../domain/services/void_incursion_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../controllers/combat_coordinator.dart';
 import '../controllers/combat_overlay_state.dart';
@@ -34,6 +36,7 @@ import '../widgets/command_arc_widget.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/hud_header.dart';
 import '../widgets/landscape_orientation_shield.dart';
+import '../widgets/mutation_selection_dialog.dart';
 import '../widgets/pause_menu_dialog.dart';
 import '../widgets/profile_modal.dart';
 import '../../domain/models/bay_role.dart';
@@ -60,6 +63,8 @@ class CombatScreen extends StatefulWidget {
     this.onReturnToMap,
     this.autoStartSolver = false,
     this.startWithTutorial = false,
+    this.isIncursionRun = false,
+    this.isDailySortie = false,
   });
 
   final IVoidSowerEngine engine;
@@ -71,6 +76,8 @@ class CombatScreen extends StatefulWidget {
   final VoidCallback? onReturnToMap;
   final bool autoStartSolver;
   final bool startWithTutorial;
+  final bool isIncursionRun;
+  final bool isDailySortie;
 
   @override
   State<CombatScreen> createState() => _CombatScreenState();
@@ -440,6 +447,37 @@ class _CombatScreenState extends State<CombatScreen>
     final liberatedInCampaign = PersistenceService.instance
         .getLiberatedSectorsForCampaign(currentSector.campaignId);
 
+    if (widget.isIncursionRun) {
+      final currentWave = VoidIncursionService.instance.currentWave;
+      PersistenceService.instance.setIncursionBestWave(currentWave);
+      final draftMutations = VoidIncursionService.instance.getRandomMutations(
+        3,
+      );
+
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => MutationSelectionDialog(
+          waveNumber: currentWave,
+          mutations: draftMutations,
+          onSelected: (mutation) {
+            VoidIncursionService.instance.addMutation(mutation);
+            VoidIncursionService.instance.advanceWave();
+            Navigator.of(dialogContext).pop();
+            _startIncursionWave();
+          },
+        ),
+      );
+      return;
+    }
+
+    if (widget.isDailySortie) {
+      PersistenceService.instance.setDailyHighScore(
+        DailySortieService.instance.todayDateKey,
+        score,
+      );
+    }
+
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -529,6 +567,11 @@ class _CombatScreenState extends State<CombatScreen>
 
   void _restartCombat() {
     _overlayState = CombatOverlayState.none;
+    if (widget.isIncursionRun) {
+      VoidIncursionService.instance.startNewRun();
+      _startIncursionWave();
+      return;
+    }
     final sector = _activeSector;
     _currentDifficultyTier = sector.difficultyTier;
     _coordinator.initialize(
@@ -536,6 +579,19 @@ class _CombatScreenState extends State<CombatScreen>
       sector: sector,
       startingCores: widget.startingCores,
       initialVelocity: widget.initialVelocity,
+      autoStartSolver: _coordinator.state.isAutoSolving,
+    );
+    _resumeTicker();
+    if (mounted) setState(() {});
+  }
+
+  void _startIncursionWave() {
+    _overlayState = CombatOverlayState.none;
+    final incursionSector = VoidIncursionService.instance.getCurrentSector();
+    _currentDifficultyTier = incursionSector.difficultyTier;
+    _coordinator.initialize(
+      difficulty: _currentDifficultyTier,
+      sector: incursionSector,
       autoStartSolver: _coordinator.state.isAutoSolving,
     );
     _resumeTicker();
