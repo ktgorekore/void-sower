@@ -15,6 +15,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 
+import '../models/entitlement_state.dart';
 import '../models/pro_feature.dart';
 import 'ad_service.dart';
 import 'iap_service.dart';
@@ -24,21 +25,65 @@ export 'iap_service.dart' show PurchaseOutcome, PurchaseOutcomeStatus;
 
 /// Central authority managing permanent Pro entitlements and temporary Rewarded Ad passes.
 class EntitlementService extends ChangeNotifier {
-  EntitlementService._();
+  EntitlementService._() {
+    syncStateFromPersistence();
+  }
   static final EntitlementService instance = EntitlementService._();
 
+  late EntitlementStateMachine _stateMachine;
   final Map<ProFeature, DateTime> _temporaryPasses = {};
   int _aiSolverRemainingMoves = 0;
 
+  /// Synchronizes state machine with local persistence on startup or account switch.
+  void syncStateFromPersistence() {
+    if (PersistenceService.instance.isProUnlocked) {
+      _stateMachine = EntitlementStateMachine(
+        initialState: const LifetimeProEntitlement(),
+      );
+    } else {
+      final savedExpiry = PersistenceService.instance.proBoostExpiry;
+      if (savedExpiry != null && DateTime.now().isBefore(savedExpiry)) {
+        _stateMachine = EntitlementStateMachine(
+          initialState: TimedBoostEntitlement(expiresAt: savedExpiry),
+        );
+      } else {
+        _stateMachine = EntitlementStateMachine(
+          initialState: const StandardFreeEntitlement(),
+        );
+      }
+    }
+  }
+
+  /// Current exhaustive entitlement state (StandardFree, TimedBoost, LifetimePro).
+  EntitlementState get entitlementState {
+    if (PersistenceService.instance.isProUnlocked) {
+      return const LifetimeProEntitlement();
+    }
+    if (_stateMachine.currentState is LifetimeProEntitlement) {
+      _stateMachine.resetToFree();
+    }
+    return _stateMachine.currentState;
+  }
+
   /// Whether the player holds a lifetime Pro license.
   bool get isProUnlocked => PersistenceService.instance.isProUnlocked;
+
+  /// Whether an ad-boosted Pro pass is currently active.
+  bool get isBoostActive => entitlementState.isBoostActive;
+
+  /// Remaining duration of the active Pro boost, or [Duration.zero].
+  Duration get remainingBoostTime => entitlementState.remainingBoostTime;
+
+  /// Formatted countdown display (e.g. '04:59') if boost is active, or empty string.
+  String get formattedRemainingBoostTime =>
+      entitlementState.formattedRemainingTime;
 
   /// Number of rewarded AI solver moves currently remaining in session.
   int get aiSolverRemainingMoves => _aiSolverRemainingMoves;
 
   /// Checks whether a given [ProFeature] is currently accessible.
   bool isFeatureAccessible(ProFeature feature) {
-    if (isProUnlocked) return true;
+    if (isProUnlocked || entitlementState.hasProAccess) return true;
 
     if (feature == ProFeature.aiTacticalSolver) {
       if (_aiSolverRemainingMoves > 0) return true;
@@ -65,6 +110,18 @@ class EntitlementService extends ChangeNotifier {
     }
   }
 
+  /// Grants a stackable timed Pro Boost (default 5 minutes, stackable up to 60m).
+  void grantStackableBoost({
+    Duration duration = EntitlementStateMachine.boostDurationPerAd,
+  }) {
+    _stateMachine.grantBoost(duration: duration);
+    final state = _stateMachine.currentState;
+    if (state is TimedBoostEntitlement) {
+      unawaited(PersistenceService.instance.setProBoostExpiry(state.expiresAt));
+    }
+    notifyListeners();
+  }
+
   /// Grants a temporary pass for a specific [ProFeature] (e.g. from a rewarded ad).
   void grantTemporaryPass(
     ProFeature feature, {
@@ -78,13 +135,17 @@ class EntitlementService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Initiates rewarded ad flow to unlock a temporary pass.
-  Future<bool> unlockWithRewardedAd(ProFeature feature) async {
+  /// Initiates rewarded ad flow to unlock a stackable 5-minute Pro Boost app-wide.
+  Future<bool> unlockWithRewardedAd([ProFeature? feature]) async {
     final success = await AdService.instance.showRewardedAd(
       isEmergencyFlare: false,
     );
     if (success) {
-      grantTemporaryPass(feature);
+      if (feature != null) {
+        grantTemporaryPass(feature);
+      } else {
+        grantStackableBoost();
+      }
       return true;
     }
     return false;
@@ -94,6 +155,8 @@ class EntitlementService extends ChangeNotifier {
   Future<PurchaseOutcome> purchaseProLifetime() async {
     final outcome = await IapService.instance.purchaseProLifetime();
     if (outcome.isSuccess) {
+      _stateMachine.unlockLifetimePro();
+      await PersistenceService.instance.setProBoostExpiry(null);
       notifyListeners();
     }
     return outcome;
@@ -102,6 +165,9 @@ class EntitlementService extends ChangeNotifier {
   /// Restores existing Google Play purchases.
   Future<void> restorePurchases() async {
     await IapService.instance.restorePurchases();
+    if (PersistenceService.instance.isProUnlocked) {
+      _stateMachine.unlockLifetimePro();
+    }
     notifyListeners();
   }
 
@@ -110,11 +176,12 @@ class EntitlementService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Clears temporary passes (for testing).
+  /// Clears temporary passes and resets state machine (for testing).
   @visibleForTesting
   void resetForTesting() {
     _temporaryPasses.clear();
     _aiSolverRemainingMoves = 0;
+    _stateMachine.resetToFree();
     notifyListeners();
   }
 }

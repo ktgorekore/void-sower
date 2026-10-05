@@ -55,6 +55,7 @@ class PersistenceService {
   static const String _kHighScore = 'void_sower_high_score';
   static const String _kLiberatedSectors = 'void_sower_liberated_sectors';
   static const String _kProUnlocked = 'void_sower_pro_unlocked';
+  static const String _kProBoostExpiry = 'void_sower_pro_boost_expiry';
   static const String _kAdsDisabled = 'void_sower_ads_disabled';
   static const String _kSoundEnabled = 'void_sower_sound_enabled';
   static const String _kMusicEnabled = 'void_sower_music_enabled';
@@ -98,6 +99,19 @@ class PersistenceService {
   Future<void> setHighScore(int score) async {
     if (score > highScore) {
       await _prefs?.setInt(_kHighScore, score);
+    }
+  }
+
+  /// Retrieves high score achieved in the specified daily sortie.
+  int getDailyHighScore(String dateKey) {
+    return _prefs?.getInt('void_sower_daily_score_$dateKey') ?? 0;
+  }
+
+  /// Sets high score for the specified daily sortie if higher than existing record.
+  Future<void> setDailyHighScore(String dateKey, int score) async {
+    final current = getDailyHighScore(dateKey);
+    if (score > current) {
+      await _prefs?.setInt('void_sower_daily_score_$dateKey', score);
     }
   }
 
@@ -392,6 +406,24 @@ class PersistenceService {
   bool get isProUnlocked => _prefs?.getBool(_kProUnlocked) ?? false;
   Future<void> setProUnlocked(bool unlocked) async {
     await _prefs?.setBool(_kProUnlocked, unlocked);
+  }
+
+  /// Expiration timestamp for temporary stackable Pro Boost, or null if none.
+  DateTime? get proBoostExpiry {
+    final millis = _prefs?.getInt(_kProBoostExpiry);
+    if (millis != null && millis > 0) {
+      return DateTime.fromMillisecondsSinceEpoch(millis);
+    }
+    return null;
+  }
+
+  /// Sets or clears expiration timestamp for temporary stackable Pro Boost.
+  Future<void> setProBoostExpiry(DateTime? expiry) async {
+    if (expiry != null) {
+      await _prefs?.setInt(_kProBoostExpiry, expiry.millisecondsSinceEpoch);
+    } else {
+      await _prefs?.remove(_kProBoostExpiry);
+    }
   }
 
   bool get areAdsDisabled => _prefs?.getBool(_kAdsDisabled) ?? false;
