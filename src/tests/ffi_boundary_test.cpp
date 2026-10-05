@@ -17,8 +17,8 @@
 #include <gtest/gtest.h>
 
 #include <atomic>
-#include <thread>
 #include <cmath>
+#include <thread>
 #include <vector>
 
 #include "void_sower.h"
