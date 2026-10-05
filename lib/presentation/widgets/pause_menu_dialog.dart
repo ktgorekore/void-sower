@@ -297,7 +297,7 @@ class PauseMenuDialog extends StatelessWidget {
                             child: Text(
                               canRewind
                                   ? 'REWIND ($rewindsRemaining LEFT)'
-                                  : 'REWIND (DEPLETED)',
+                                  : 'REWIND (0 REMAINING)',
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                               style: TextStyle(

@@ -361,5 +361,39 @@ void main() {
         expect(coordinator.dreadnought.orbitalPositionX, closeTo(0.4375, 0.01));
       },
     );
+
+    test(
+      'quickFireActiveCorridor self-heals defeat status when cores exist and dreadnought is not game over',
+      () {
+        expect(coordinator.dreadnought.reserveCores, equals(28));
+        coordinator.setMatchStatusForTesting(CombatMatchStatus.defeat);
+        expect(coordinator.state.status, equals(CombatMatchStatus.defeat));
+        expect(coordinator.state.canReceiveInput, isFalse);
+
+        // Firing quick-fire axial lance should self-heal status to activeCombat and inject
+        coordinator.quickFireActiveCorridor();
+        expect(
+          coordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+        expect(coordinator.state.canReceiveInput, isTrue);
+        expect(coordinator.dreadnought.reserveCores, equals(27));
+      },
+    );
+
+    test(
+      'update self-heals defeat status when reserve cores exist and dreadnought is not game over',
+      () {
+        expect(coordinator.dreadnought.reserveCores, equals(28));
+        coordinator.setMatchStatusForTesting(CombatMatchStatus.defeat);
+        expect(coordinator.state.status, equals(CombatMatchStatus.defeat));
+
+        coordinator.update(0.016, const Size(800, 1000));
+        expect(
+          coordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+      },
+    );
   });
 }

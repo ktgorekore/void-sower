@@ -421,93 +421,111 @@ class HudHeader extends StatelessWidget {
           const SizedBox(width: 6.0),
 
           // 2. Integrated Core Fuel Gauge: ⚡ 28 CORES Pill
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onEmergencyFlareTap,
-            child: Container(
-              height: 28.0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10.0,
-                vertical: 4.0,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0F172A),
-                borderRadius: BorderRadius.circular(14.0),
-                border: Border.all(color: const Color(0xFF0284C7), width: 1.2),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7.0,
-                    height: 7.0,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: coreColor,
-                      boxShadow: [
-                        BoxShadow(
-                          color: coreColor.withValues(alpha: 0.8),
-                          blurRadius: 4.0,
-                          spreadRadius: 0.5,
-                        ),
-                      ],
-                    ),
+          // Only permit Emergency Flare modal when cores are in critical depletion (<= 3),
+          // preventing accidental mis-taps near the Pause button from claiming depletion.
+          Tooltip(
+            message: reserveCores <= 3
+                ? 'Critical Core Reserves ($reserveCores) — Tap for Emergency Flare'
+                : 'Plasma Core Reserves: $reserveCores units',
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: (reserveCores <= 3) ? onEmergencyFlareTap : null,
+              child: Container(
+                height: 28.0,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 4.0,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(14.0),
+                  border: Border.all(
+                    color: reserveCores <= 3
+                        ? VoidTheme.crimsonFlare
+                        : const Color(0xFF0284C7),
+                    width: 1.2,
                   ),
-                  const SizedBox(width: 5.0),
-                  Text(
-                    '$reserveCores',
-                    style: TextStyle(
-                      color: coreColor,
-                      fontSize: 13.0,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.3,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7.0,
+                      height: 7.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: coreColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: coreColor.withValues(alpha: 0.8),
+                            blurRadius: 4.0,
+                            spreadRadius: 0.5,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  Text(
-                    'CORES',
-                    style: TextStyle(
-                      color: coreColor.withValues(alpha: 0.75),
-                      fontSize: 8.0,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
+                    const SizedBox(width: 5.0),
+                    Text(
+                      '$reserveCores',
+                      style: TextStyle(
+                        color: coreColor,
+                        fontSize: 13.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.3,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 4.0),
+                    Text(
+                      'CORES',
+                      style: TextStyle(
+                        color: coreColor.withValues(alpha: 0.75),
+                        fontSize: 8.0,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
           // 3. Single Streamlined Circular Pause Button [ ⏸ ]
+          // Wrapped in a dedicated >= 48x48 dp touch target arc per AGENTS.md rule 5.4.
           if (onTogglePause != null) ...[
-            const SizedBox(width: 6.0),
+            const SizedBox(width: 4.0),
             Tooltip(
               message: isPaused ? 'Resume Sortie' : 'Pause Sortie',
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onTogglePause,
                 child: Container(
-                  width: 28.0,
-                  height: 28.0,
-                  decoration: BoxDecoration(
-                    color: isPaused
-                        ? VoidTheme.emeraldShield.withValues(alpha: 0.25)
-                        : const Color(0xFF1E293B).withValues(alpha: 0.7),
-                    shape: BoxShape.circle,
-                    border: Border.all(
+                  width: 48.0,
+                  height: 48.0,
+                  alignment: Alignment.center,
+                  child: Container(
+                    width: 28.0,
+                    height: 28.0,
+                    decoration: BoxDecoration(
                       color: isPaused
-                          ? VoidTheme.emeraldShield
-                          : VoidTheme.solarGold.withValues(alpha: 0.5),
-                      width: 1.0,
+                          ? VoidTheme.emeraldShield.withValues(alpha: 0.25)
+                          : const Color(0xFF1E293B).withValues(alpha: 0.7),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isPaused
+                            ? VoidTheme.emeraldShield
+                            : VoidTheme.solarGold.withValues(alpha: 0.5),
+                        width: 1.0,
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      isPaused ? Icons.play_arrow : Icons.pause,
-                      size: 15.0,
-                      color: isPaused
-                          ? VoidTheme.emeraldShield
-                          : VoidTheme.solarGold,
+                    child: Center(
+                      child: Icon(
+                        isPaused ? Icons.play_arrow : Icons.pause,
+                        size: 15.0,
+                        color: isPaused
+                            ? VoidTheme.emeraldShield
+                            : VoidTheme.solarGold,
+                      ),
                     ),
                   ),
                 ),

@@ -503,6 +503,15 @@ class CombatCoordinator extends ChangeNotifier {
 
     // If game is in tactical tutorial briefing, paused, defeated, or victorious, freeze combat simulation!
     // This guarantees enemies stop moving and shooting when the match reaches a terminal state.
+    // Self-heal: If match status was flagged as defeat due to temporary core depletion,
+    // but reserve cores exist (e.g. from tactical core siphon) and no enemy breached,
+    // restore activeCombat immediately so the match continues without freezing simulation.
+    if (_state.status == CombatMatchStatus.defeat &&
+        dreadnought.reserveCores > 0 &&
+        !dreadnought.isGameOver) {
+      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+    }
+
     final bool allEnemiesDestroyed =
         enemies.isNotEmpty && enemies.every((e) => e.isDestroyed);
     final bool isTerminalState =
@@ -1027,7 +1036,15 @@ class CombatCoordinator extends ChangeNotifier {
   /// into the current corridor, drawing from the aligned bay or injecting a core.
   void quickFireActiveCorridor() {
     _finalizePendingSow();
-    if (!_state.canReceiveInput) return;
+    if (!_state.canReceiveInput) {
+      if (_state.status == CombatMatchStatus.defeat &&
+          dreadnought.reserveCores > 0 &&
+          !dreadnought.isGameOver) {
+        _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+      } else {
+        return;
+      }
+    }
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final activeBay = corridor + 8;
     // Quick-fire axial lance honors active sowing direction with Kichwa boundary resolution

@@ -152,6 +152,8 @@ struct EnemyVesselComponent {
   uint8_t behavior_mode{
       0};  ///< 0: Standard, 1: Swooper, 2: Weaver, 3: Kamikaze, 4: Splitter.
   float warp_in_progress{1.0f};  ///< 0.0 to 1.0 holographic rift distortion.
+  uint8_t death_ticks{
+      0};  ///< Frames survived in destroyed state before reaping.
 };
 
 /**

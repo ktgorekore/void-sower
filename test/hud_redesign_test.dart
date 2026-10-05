@@ -650,5 +650,109 @@ void main() {
         );
       },
     );
+
+    testWidgets(
+      'HudHeader gates emergency flare tap to critical core reserves (<= 3 cores)',
+      (tester) async {
+        bool flareTapped = false;
+
+        // 1. Ample cores (16 cores) -> Tapping fuel gauge should NOT trigger emergency flare
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 16,
+                score: 1000,
+                highScore: 5000,
+                difficultyTier: 1,
+                sectorId: 1,
+                sectorName: 'Test Sector',
+                totalInvaders: 10,
+                invadersRemaining: 5,
+                isPaused: false,
+                onEmergencyFlareTap: () => flareTapped = true,
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('16'));
+        await tester.pumpAndSettle();
+        expect(
+          flareTapped,
+          isFalse,
+          reason: 'Flare modal must be blocked when cores > 3',
+        );
+
+        // 2. Critical cores (2 cores) -> Tapping fuel gauge should trigger emergency flare
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 2,
+                score: 1000,
+                highScore: 5000,
+                difficultyTier: 1,
+                sectorId: 1,
+                sectorName: 'Test Sector',
+                totalInvaders: 10,
+                invadersRemaining: 5,
+                isPaused: false,
+                onEmergencyFlareTap: () => flareTapped = true,
+              ),
+            ),
+          ),
+        );
+
+        await tester.tap(find.text('2'));
+        await tester.pumpAndSettle();
+        expect(
+          flareTapped,
+          isTrue,
+          reason: 'Flare modal must trigger when cores <= 3',
+        );
+      },
+    );
+
+    testWidgets(
+      'HudHeader pause button touch target satisfies >= 48x48 dp bounds',
+      (tester) async {
+        bool pauseTapped = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 16,
+                score: 1000,
+                highScore: 5000,
+                difficultyTier: 1,
+                sectorId: 1,
+                sectorName: 'Test Sector',
+                totalInvaders: 10,
+                invadersRemaining: 5,
+                isPaused: false,
+                onTogglePause: () => pauseTapped = true,
+              ),
+            ),
+          ),
+        );
+
+        // Find the pause gesture detector
+        final pauseFinder = find.ancestor(
+          of: find.byIcon(Icons.pause),
+          matching: find.byType(GestureDetector),
+        );
+        expect(pauseFinder, findsOneWidget);
+
+        final pauseSize = tester.getSize(pauseFinder);
+        expect(pauseSize.width, greaterThanOrEqualTo(48.0));
+        expect(pauseSize.height, greaterThanOrEqualTo(48.0));
+
+        await tester.tap(pauseFinder);
+        await tester.pumpAndSettle();
+        expect(pauseTapped, isTrue);
+      },
+    );
   });
 }

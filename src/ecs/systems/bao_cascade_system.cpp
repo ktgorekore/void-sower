@@ -47,21 +47,51 @@ bool BaoCascadeSystem::InjectCore(
     return false;
   }
 
-  // Self-heal: If no sowing state is active, clear stale cascade flag
+  // Self-heal 1: If no sowing state is active, clear stale cascade flag and
+  // ensure OrbitalIdle
   if (!registry.all_of<SowingStateComponent>(dreadnought_entity)) {
     dread.is_cascading = 0;
-  }
-  if (dread.is_cascading != 0) {
-    return false;
+    if (dread.current_sim_state !=
+            static_cast<uint8_t>(SimulationState::Victory) &&
+        dread.current_sim_state !=
+            static_cast<uint8_t>(SimulationState::GameOver)) {
+      dread.current_sim_state =
+          static_cast<uint8_t>(SimulationState::OrbitalIdle);
+    }
   }
 
+  // Self-heal 2: If in an ephemeral post-discharge state (CrossDischarge or
+  // CleanupCheck), finalize the transition to OrbitalIdle immediately so rapid
+  // fire is never blocked.
   auto sim_state = static_cast<SimulationState>(dread.current_sim_state);
-  if (sim_state == SimulationState::Victory ||
-      (sim_state == SimulationState::GameOver && dread.reserve_cores > 0)) {
+  if (sim_state == SimulationState::CrossDischarge ||
+      sim_state == SimulationState::CleanupCheck) {
+    if (registry.all_of<SowingStateComponent>(dreadnought_entity)) {
+      registry.remove<SowingStateComponent>(dreadnought_entity);
+    }
+    dread.is_cascading = 0;
     dread.current_sim_state =
         static_cast<uint8_t>(SimulationState::OrbitalIdle);
     sim_state = SimulationState::OrbitalIdle;
   }
+
+  // Self-heal 3: If GameOver or Victory was flagged but reserve cores exist,
+  // allow injection to proceed by resetting to OrbitalIdle.
+  if (sim_state == SimulationState::Victory ||
+      (sim_state == SimulationState::GameOver && dread.reserve_cores > 0)) {
+    if (registry.all_of<SowingStateComponent>(dreadnought_entity)) {
+      registry.remove<SowingStateComponent>(dreadnought_entity);
+    }
+    dread.is_cascading = 0;
+    dread.current_sim_state =
+        static_cast<uint8_t>(SimulationState::OrbitalIdle);
+    sim_state = SimulationState::OrbitalIdle;
+  }
+
+  if (dread.is_cascading != 0) {
+    return false;
+  }
+
   if (sim_state != SimulationState::OrbitalIdle) {
     return false;
   }

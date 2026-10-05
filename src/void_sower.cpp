@@ -285,10 +285,13 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI *out_enemies,
     const auto &reg = g_engine->GetRegistry();
     auto view = reg.view<const void_sower::ecs::EnemyVesselComponent>();
     uint32_t count = 0;
+    // Pass 1: Prioritize living active enemies so combat telemetry never
+    // starves living craft
     for (auto entity : view) {
       if (count >= max_count) break;
       const auto &enemy =
           view.get<const void_sower::ecs::EnemyVesselComponent>(entity);
+      if (enemy.is_destroyed != 0) continue;
       out_enemies[count].entity_id = enemy.entity_id;
       out_enemies[count].assigned_corridor = enemy.assigned_corridor;
       out_enemies[count].world_pos_x = enemy.world_pos_x;
@@ -299,7 +302,32 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI *out_enemies,
       out_enemies[count].current_hull = enemy.current_hull;
       out_enemies[count].max_hull = enemy.max_hull;
       out_enemies[count].vessel_type = enemy.vessel_type;
-      out_enemies[count].is_destroyed = enemy.is_destroyed;
+      out_enemies[count].is_destroyed = 0;
+      out_enemies[count].world_pos_z = enemy.world_pos_z;
+      out_enemies[count].bank_angle_rad = enemy.bank_angle_rad;
+      out_enemies[count].pitch_angle_rad = enemy.pitch_angle_rad;
+      out_enemies[count].behavior_mode = enemy.behavior_mode;
+      out_enemies[count].warp_in_progress = enemy.warp_in_progress;
+      count++;
+    }
+    // Pass 2: Append recently destroyed enemies for particle detonation and
+    // tactical siphon
+    for (auto entity : view) {
+      if (count >= max_count) break;
+      const auto &enemy =
+          view.get<const void_sower::ecs::EnemyVesselComponent>(entity);
+      if (enemy.is_destroyed == 0) continue;
+      out_enemies[count].entity_id = enemy.entity_id;
+      out_enemies[count].assigned_corridor = enemy.assigned_corridor;
+      out_enemies[count].world_pos_x = enemy.world_pos_x;
+      out_enemies[count].world_pos_y = enemy.world_pos_y;
+      out_enemies[count].velocity_y = enemy.velocity_y;
+      out_enemies[count].current_shields = enemy.current_shields;
+      out_enemies[count].max_shields = enemy.max_shields;
+      out_enemies[count].current_hull = enemy.current_hull;
+      out_enemies[count].max_hull = enemy.max_hull;
+      out_enemies[count].vessel_type = enemy.vessel_type;
+      out_enemies[count].is_destroyed = 1;
       out_enemies[count].world_pos_z = enemy.world_pos_z;
       out_enemies[count].bank_angle_rad = enemy.bank_angle_rad;
       out_enemies[count].pitch_angle_rad = enemy.pitch_angle_rad;

@@ -16,6 +16,7 @@
 
 #include "combat_system.h"
 
+#include <absl/container/inlined_vector.h>
 #include <absl/log/log.h>
 
 #include <algorithm>
@@ -186,7 +187,24 @@ void CombatSystem::Update(float delta_time) {
   // 5. Rebuild spatial grid for raycasting
   RebuildSpatialGrid();
 
-  // 6. Check victory/loss conditions
+  // 6. Reap destroyed enemies that have survived >= 10 frames in destroyed
+  // state, allowing FFI polling to capture the kill while preventing unbounded
+  // entity bloat.
+  auto enemy_view = registry_.view<EnemyVesselComponent>();
+  absl::InlinedVector<entt::entity, 16> to_reap;
+  for (auto entity : enemy_view) {
+    auto &enemy = enemy_view.get<EnemyVesselComponent>(entity);
+    if (enemy.is_destroyed != 0) {
+      if (++enemy.death_ticks >= 10) {
+        to_reap.push_back(entity);
+      }
+    }
+  }
+  for (auto entity : to_reap) {
+    registry_.destroy(entity);
+  }
+
+  // 7. Check victory/loss conditions
   match_lifecycle_system_.CheckVictoryLossConditions(
       registry_, dreadnought_entity_, bay_entities_);
 }

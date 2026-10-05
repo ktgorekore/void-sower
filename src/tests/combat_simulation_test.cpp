@@ -646,4 +646,59 @@ TEST(CombatSimulationTest, StepFSMInvalidEntityHandle) {
                              discharge_system, match_lifecycle_system, 0.016f);
 }
 
+TEST(CombatSimulationTest, InjectCoreSelfHealsTransitionalStates) {
+  Engine engine;
+  engine.Initialize(10, 0.15f);
+
+  auto &registry = engine.GetRegistry();
+  auto dread_view = registry.view<DreadnoughtStateComponent>();
+  ASSERT_NE(dread_view.begin(), dread_view.end());
+  auto dread_entity = *dread_view.begin();
+  auto &dread = registry.get<DreadnoughtStateComponent>(dread_entity);
+
+  // 1. Manually set state to CrossDischarge (post-lance discharge transitional
+  // state)
+  dread.current_sim_state =
+      static_cast<uint8_t>(SimulationState::CrossDischarge);
+
+  // InjectCore should self-heal the transitional state and succeed
+  EXPECT_TRUE(engine.InjectCore(8, 1));
+  EXPECT_EQ(dread.reserve_cores, 9u);
+
+  // 2. Set to CleanupCheck
+  dread.current_sim_state = static_cast<uint8_t>(SimulationState::CleanupCheck);
+  EXPECT_TRUE(engine.InjectCore(9, 1));
+  EXPECT_EQ(dread.reserve_cores, 8u);
+
+  // 3. Set GameOver while reserve cores > 0
+  dread.current_sim_state = static_cast<uint8_t>(SimulationState::GameOver);
+  EXPECT_TRUE(engine.InjectCore(10, 1));
+  EXPECT_EQ(dread.reserve_cores, 7u);
+}
+
+TEST(CombatSimulationTest, ReapDestroyedEnemiesAfterTenTicks) {
+  Engine engine;
+  engine.Initialize(10, 0.15f);
+
+  // Spawn an enemy
+  EXPECT_TRUE(engine.SpawnEnemy(2, 0.8f, 0.02f, 0.0f, 50.0f, 0));
+  auto &registry = engine.GetRegistry();
+  auto view = registry.view<EnemyVesselComponent>();
+  ASSERT_NE(view.begin(), view.end());
+
+  // Mark enemy as destroyed
+  auto enemy_entity = *view.begin();
+  registry.get<EnemyVesselComponent>(enemy_entity).is_destroyed = 1;
+
+  // Run 9 ticks - enemy should still exist for FFI polling
+  for (int i = 0; i < 9; ++i) {
+    engine.Update(0.016f);
+    EXPECT_TRUE(registry.valid(enemy_entity));
+  }
+
+  // 10th tick should reap the destroyed enemy
+  engine.Update(0.016f);
+  EXPECT_FALSE(registry.valid(enemy_entity));
+}
+
 }  // namespace void_sower::ecs

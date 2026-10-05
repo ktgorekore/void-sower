@@ -53,7 +53,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   static const int kMaxBays = 16;
-  static const int kMaxEnemies = 64;
+  static const int kMaxEnemies = 128;
   static const int kMaxLances = 16;
   static const int kMaxFlaks = 32;
 
