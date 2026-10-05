@@ -501,10 +501,10 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                     // Voluntary Rewarded Ad CTA (Stackable +5m up to 60m)
                     TactileButton(
                       label: EntitlementService.instance.isMaxBoostReached
-                          ? 'MAX OVERCHARGE ACTIVE (60 MIN)'
-                          : 'WATCH AD (FREE PASS)',
-                      icon: Icons.ondemand_video,
-                      accentColor: VoidTheme.plasmaCyan,
+                          ? 'BOOST FULL (60m)'
+                          : 'WATCH AD (+5m PRO)',
+                      icon: Icons.play_circle_filled,
+                      accentColor: VoidTheme.emeraldShield,
                       height: 44.0,
                       onPressed: EntitlementService.instance.isMaxBoostReached
                           ? null
@@ -514,7 +514,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
 
                     // Primary 1-Time Purchase CTA
                     TactileButton(
-                      label: 'UNLOCK PRO COMMANDER — \$1.29',
+                      label: 'UNLOCK PRO — \$1.29',
                       icon: Icons.lock_open,
                       accentColor: VoidTheme.solarGold,
                       height: 46.0,

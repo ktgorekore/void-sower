@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../domain/models/user_profile.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../theme/void_theme.dart';
 
 /// Streamlined "Split-Wing" Tactical HUD Header.
@@ -296,51 +299,7 @@ class HudHeader extends StatelessWidget {
 
   /// Builds a compact, clutter-free Pro status and discovery badge for the Top-Left Wing.
   Widget _buildProBadge() {
-    final proColor = isPro ? VoidTheme.solarGold : VoidTheme.plasmaCyan;
-    return Tooltip(
-      message: isPro ? 'Pro Commander Active' : 'Discover Pro Commander',
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onProTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
-          decoration: BoxDecoration(
-            color: isPro
-                ? VoidTheme.solarGold.withValues(alpha: 0.15)
-                : const Color(0xFF1E293B).withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(4.0),
-            border: Border.all(
-              color: isPro
-                  ? VoidTheme.solarGold.withValues(alpha: 0.7)
-                  : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-              width: 0.8,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isPro
-                    ? Icons.workspace_premium
-                    : Icons.workspace_premium_outlined,
-                size: 10.0,
-                color: proColor,
-              ),
-              const SizedBox(width: 2.5),
-              Text(
-                'PRO',
-                style: TextStyle(
-                  color: proColor,
-                  fontSize: 8.0,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return _ProHudBadge(isPro: isPro, onTap: onProTap);
   }
 
   /// Builds the glassmorphic Top-Right Minimal Orbit Wing anchoring fuel cores, hostiles & pause control.
@@ -556,6 +515,140 @@ class HudHeader extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _ProHudBadge extends StatefulWidget {
+  const _ProHudBadge({required this.isPro, required this.onTap});
+
+  final bool isPro;
+  final VoidCallback? onTap;
+
+  @override
+  State<_ProHudBadge> createState() => _ProHudBadgeState();
+}
+
+class _ProHudBadgeState extends State<_ProHudBadge> {
+  Timer? _countdownTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncTimer();
+    EntitlementService.instance.addListener(_handleEntitlementChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ProHudBadge oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncTimer();
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    EntitlementService.instance.removeListener(_handleEntitlementChanged);
+    super.dispose();
+  }
+
+  void _handleEntitlementChanged() {
+    if (mounted) {
+      _syncTimer();
+      setState(() {});
+    }
+  }
+
+  void _syncTimer() {
+    final isBoost = EntitlementService.instance.isBoostActive;
+    if (isBoost) {
+      _countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (_) {
+        if (!mounted) return;
+        if (!EntitlementService.instance.isBoostActive) {
+          _countdownTimer?.cancel();
+          _countdownTimer = null;
+        }
+        setState(() {});
+      });
+    } else {
+      _countdownTimer?.cancel();
+      _countdownTimer = null;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ent = EntitlementService.instance;
+    final isLifetime = widget.isPro || ent.isProUnlocked;
+    final isBoost = !isLifetime && ent.isBoostActive;
+
+    final Color badgeColor;
+    final Color bgColor;
+    final IconData badgeIcon;
+    final String badgeText;
+    final String tooltipMessage;
+
+    if (isLifetime) {
+      badgeColor = VoidTheme.solarGold;
+      bgColor = VoidTheme.solarGold.withValues(alpha: 0.15);
+      badgeIcon = Icons.workspace_premium;
+      badgeText = 'PRO';
+      tooltipMessage = 'Pro Commander Active';
+    } else if (isBoost) {
+      badgeColor = VoidTheme.solarGold;
+      bgColor = VoidTheme.plasmaCyan.withValues(alpha: 0.2);
+      badgeIcon = Icons.timer;
+      badgeText = ent.formattedRemainingBoostTime;
+      tooltipMessage = 'Pro Boost: ${ent.formattedRemainingBoostTime}';
+    } else {
+      // Curiosity-triggering prominent red lock badge indicating unlock needed
+      badgeColor = VoidTheme.crimsonFlare;
+      bgColor = VoidTheme.crimsonFlare.withValues(alpha: 0.18);
+      badgeIcon = Icons.lock_outline;
+      badgeText = 'PRO';
+      tooltipMessage = 'Unlock Pro Commander';
+    }
+
+    return Tooltip(
+      message: tooltipMessage,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 1.5),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(4.0),
+            border: Border.all(
+              color: badgeColor.withValues(alpha: 0.75),
+              width: 0.9,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: badgeColor.withValues(alpha: 0.2),
+                blurRadius: 4.0,
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(badgeIcon, size: 10.0, color: badgeColor),
+              const SizedBox(width: 2.5),
+              Text(
+                badgeText,
+                style: TextStyle(
+                  color: badgeColor,
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                  fontFamily: isBoost ? 'monospace' : null,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

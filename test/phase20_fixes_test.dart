@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:void_sower/domain/services/ad_service.dart';
+import 'package:void_sower/domain/services/entitlement_service.dart';
 import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/domain/state/combat_match_state.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
@@ -112,9 +113,9 @@ void main() {
           ),
         );
 
-        // Verifies compact PRO badge exists in the HUD
+        // Verifies curiosity-triggering compact red lock PRO badge exists in the HUD
         expect(find.text('PRO'), findsOneWidget);
-        expect(find.byIcon(Icons.workspace_premium_outlined), findsOneWidget);
+        expect(find.byIcon(Icons.lock_outline), findsOneWidget);
 
         // Tapping badge triggers onProTap
         await tester.tap(find.text('PRO'));
@@ -152,6 +153,40 @@ void main() {
       await tester.pump();
       expect(proTapped, isTrue);
     });
+
+    testWidgets(
+      'HudHeader displays countdown timer badge when Pro Boost is active',
+      (tester) async {
+        EntitlementService.instance.grantStackableBoost(
+          duration: const Duration(minutes: 5),
+        );
+
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: HudHeader(
+                reserveCores: 20,
+                score: 2500,
+                highScore: 5000,
+                isPro: false,
+                difficultyTier: 1,
+                sectorId: 1,
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.byIcon(Icons.timer), findsOneWidget);
+        expect(
+          find.text(EntitlementService.instance.formattedRemainingBoostTime),
+          findsOneWidget,
+        );
+
+        await PersistenceService.instance.setProBoostExpiry(null);
+        EntitlementService.instance.syncStateFromPersistence();
+      },
+    );
 
     testWidgets('Tapping Pro badge in CombatScreen opens ProUpgradeModal', (
       tester,
@@ -198,8 +233,8 @@ void main() {
         await tester.tap(find.text('OPEN'));
         await tester.pumpAndSettle();
 
-        // Tap UNLOCK PRO COMMANDER
-        await tester.tap(find.text('UNLOCK PRO COMMANDER — \$1.29'));
+        // Tap UNLOCK PRO
+        await tester.tap(find.text('UNLOCK PRO — \$1.29'));
         await tester.pumpAndSettle();
 
         // Debug Emulator Sandbox popup is displayed

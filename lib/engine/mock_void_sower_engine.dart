@@ -114,6 +114,9 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   @override
   int injectCore(int bayIndex, int direction) {
     if (_reserveCores == 0) return 0;
+    if (_simState == 8) {
+      _simState = 0; // OrbitalIdle
+    }
     _reserveCores--;
     _coresUsed++;
 
@@ -209,6 +212,9 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   @override
   void grantCores(int count) {
     _reserveCores += count;
+    if (_simState == 8) {
+      _simState = 0; // OrbitalIdle
+    }
   }
 
   @override

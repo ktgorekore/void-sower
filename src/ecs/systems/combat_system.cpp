@@ -219,6 +219,11 @@ void CombatSystem::GrantCores(uint32_t count) {
       registry_.valid(dreadnought_entity_)) {
     auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.reserve_cores += count;
+    if (dread.current_sim_state ==
+        static_cast<uint8_t>(SimulationState::GameOver)) {
+      dread.current_sim_state =
+          static_cast<uint8_t>(SimulationState::OrbitalIdle);
+    }
   }
 }
 

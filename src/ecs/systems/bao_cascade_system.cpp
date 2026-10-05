@@ -43,12 +43,21 @@ bool BaoCascadeSystem::InjectCore(
   }
 
   auto &dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
-  if (dread.reserve_cores == 0 || dread.is_cascading != 0) {
+  if (dread.reserve_cores == 0) {
+    return false;
+  }
+
+  // Self-heal: If no sowing state is active, clear stale cascade flag
+  if (!registry.all_of<SowingStateComponent>(dreadnought_entity)) {
+    dread.is_cascading = 0;
+  }
+  if (dread.is_cascading != 0) {
     return false;
   }
 
   auto sim_state = static_cast<SimulationState>(dread.current_sim_state);
-  if (sim_state == SimulationState::Victory) {
+  if (sim_state == SimulationState::Victory ||
+      (sim_state == SimulationState::GameOver && dread.reserve_cores > 0)) {
     dread.current_sim_state =
         static_cast<uint8_t>(SimulationState::OrbitalIdle);
     sim_state = SimulationState::OrbitalIdle;

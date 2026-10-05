@@ -38,6 +38,7 @@ class GameOverDialog extends StatefulWidget {
     this.canRewind = false,
     this.rewindsRemaining = 0,
     this.onRewind,
+    this.onWatchAdForCores,
   });
 
   /// Mission score attained prior to defeat.
@@ -69,6 +70,9 @@ class GameOverDialog extends StatefulWidget {
 
   /// Callback to rewind the combat state before defeat.
   final VoidCallback? onRewind;
+
+  /// Callback to watch a rewarded ad for auxiliary cores (+8 cores).
+  final VoidCallback? onWatchAdForCores;
 
   @override
   State<GameOverDialog> createState() => _GameOverDialogState();
@@ -141,16 +145,22 @@ class _GameOverDialogState extends State<GameOverDialog> {
                       ? Icons.bolt
                       : Icons.warning_amber_rounded,
                   color: accentColor,
-                  size: 28.0,
+                  size: 26.0,
                 ),
                 const SizedBox(width: 8.0),
-                Text(
-                  widget.isAmmoDepleted ? 'CORES EXHAUSTED' : 'ORBITAL BREACH',
-                  style: TextStyle(
-                    color: accentColor,
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
+                Flexible(
+                  child: Text(
+                    widget.isAmmoDepleted
+                        ? 'CORES EXHAUSTED'
+                        : 'ORBITAL BREACH',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: accentColor,
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ),
               ],
@@ -220,12 +230,28 @@ class _GameOverDialogState extends State<GameOverDialog> {
             ),
             const SizedBox(height: 12.0),
 
+            // Rewarded Ad Emergency Core Infusion
+            if (widget.onWatchAdForCores != null) ...[
+              TactileButton(
+                label: 'WATCH AD (+8 CORES)',
+                icon: Icons.play_circle_filled,
+                onPressed: _isArmed ? widget.onWatchAdForCores : null,
+                accentColor: _isArmed
+                    ? VoidTheme.emeraldShield
+                    : VoidTheme.emeraldShield.withValues(alpha: 0.35),
+                isPrimary: true,
+                height: 40.0,
+                fontSize: 11.0,
+              ),
+              const SizedBox(height: 8.0),
+            ],
+
             // Emergency Chrono-Anchor Rewind
             if (widget.onRewind != null) ...[
               TactileButton(
                 label: widget.canRewind
-                    ? 'EMERGENCY CHRONO-REWIND (${widget.rewindsRemaining} LEFT)'
-                    : 'CHRONO-REWIND (DEPLETED / LOCKED)',
+                    ? 'REWIND (${widget.rewindsRemaining} LEFT)'
+                    : 'REWIND (DEPLETED)',
                 icon: Icons.history,
                 onPressed: (_isArmed && widget.canRewind)
                     ? widget.onRewind

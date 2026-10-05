@@ -253,7 +253,7 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
               )
             else ...[
               TactileButton(
-                label: 'LOCKED • UNLOCK PRO / AD PASS',
+                label: 'UNLOCK PRO',
                 icon: Icons.lock_outline,
                 onPressed: () => _promptProChassis(chassis),
                 accentColor: VoidTheme.crimsonFlare,

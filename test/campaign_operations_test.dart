@@ -238,10 +238,10 @@ void main() {
           ),
           findsOneWidget,
         );
-        expect(find.text('INSTANTLY UNLOCK ALL SECTORS • PRO'), findsOneWidget);
+        expect(find.text('UNLOCK PRO — \$1.29'), findsOneWidget);
 
         // Tap Pro upgrade button
-        await tester.tap(find.text('INSTANTLY UNLOCK ALL SECTORS • PRO'));
+        await tester.tap(find.text('UNLOCK PRO — \$1.29'));
         await tester.pumpAndSettle();
 
         // Modal should open
@@ -389,7 +389,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('PRO OVERCHARGE'), findsOneWidget);
-        expect(find.text('+5m PRO BOOST'), findsOneWidget);
+        expect(find.text('WATCH AD (+5m PRO)'), findsOneWidget);
 
         // Campaign theater tabs are hidden while in Special Ops
         expect(find.text('KILWA BASIN'), findsNothing);

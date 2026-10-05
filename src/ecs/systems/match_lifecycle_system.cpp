@@ -30,9 +30,7 @@ void MatchLifecycleSystem::CheckVictoryLossConditions(
 
   auto& dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
   if (dread.current_sim_state ==
-          static_cast<uint8_t>(SimulationState::Victory) ||
-      dread.current_sim_state ==
-          static_cast<uint8_t>(SimulationState::GameOver)) {
+      static_cast<uint8_t>(SimulationState::Victory)) {
     return;
   }
 
@@ -49,6 +47,21 @@ void MatchLifecycleSystem::CheckVictoryLossConditions(
         return;
       }
     }
+  }
+
+  // If currently in GameOver, but we have reserve cores and no enemy has
+  // breached the boundary, restore state to OrbitalIdle (e.g. after
+  // emergency cores granted via ad/reward/siphon).
+  if (dread.current_sim_state ==
+          static_cast<uint8_t>(SimulationState::GameOver) &&
+      dread.reserve_cores > 0) {
+    dread.current_sim_state =
+        static_cast<uint8_t>(SimulationState::OrbitalIdle);
+  }
+
+  if (dread.current_sim_state ==
+      static_cast<uint8_t>(SimulationState::GameOver)) {
+    return;
   }
 
   // 2. Victory check: All enemies eliminated

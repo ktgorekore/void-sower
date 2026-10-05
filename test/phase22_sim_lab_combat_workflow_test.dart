@@ -342,7 +342,7 @@ void main() {
         expect(find.byType(ProUpgradeModal), findsOneWidget);
 
         // Tap the main upgrade button
-        await tester.tap(find.textContaining('UNLOCK PRO COMMANDER'));
+        await tester.tap(find.textContaining('UNLOCK PRO —'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
 
@@ -459,7 +459,7 @@ void main() {
         expect(find.byType(ProUpgradeModal), findsOneWidget);
 
         // Simulate purchase
-        await tester.tap(find.textContaining('UNLOCK PRO COMMANDER'));
+        await tester.tap(find.textContaining('UNLOCK PRO —'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
         await tester.tap(find.text('SIMULATE PURCHASE'));

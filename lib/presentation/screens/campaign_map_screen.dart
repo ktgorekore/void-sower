@@ -577,18 +577,18 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 // Action Buttons
                 if (sector.isProRequired) ...[
                   TactileButton(
-                    label: '+5m PRO BOOST',
-                    icon: Icons.ondemand_video,
+                    label: 'WATCH AD (+5m PRO)',
+                    icon: Icons.play_circle_filled,
                     onPressed: () {
                       Navigator.of(context).pop();
                       _handleWatchAdForBoost();
                     },
-                    accentColor: VoidTheme.plasmaCyan,
+                    accentColor: VoidTheme.emeraldShield,
                     height: 44.0,
                   ),
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'INSTANTLY UNLOCK ALL SECTORS • PRO',
+                    label: 'UNLOCK PRO — \$1.29',
                     icon: Icons.workspace_premium,
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -1637,7 +1637,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isMax
                       ? const Color(0xFF1E293B)
-                      : VoidTheme.solarGold,
+                      : VoidTheme.emeraldShield,
                   foregroundColor: isMax
                       ? VoidTheme.emeraldShield
                       : VoidTheme.obsidianBlack,
@@ -1646,11 +1646,11 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   ),
                 ),
                 icon: Icon(
-                  isMax ? Icons.check_circle : Icons.ondemand_video,
+                  isMax ? Icons.check_circle : Icons.play_circle_filled,
                   size: 15.0,
                 ),
                 label: Text(
-                  isMax ? 'BATTERY FULL (60m)' : '+5m PRO BOOST',
+                  isMax ? 'BOOST FULL (60m)' : 'WATCH AD (+5m PRO)',
                   style: const TextStyle(
                     fontSize: 11.0,
                     fontWeight: FontWeight.w900,

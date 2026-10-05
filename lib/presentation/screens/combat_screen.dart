@@ -20,6 +20,7 @@ import '../../core/logging.dart';
 import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/dreadnought_state.dart';
 import '../../domain/models/pro_feature.dart';
+import '../../domain/services/ad_service.dart';
 import '../../domain/services/campaign_service.dart';
 import '../../domain/services/daily_sortie_service.dart';
 import '../../domain/services/entitlement_service.dart';
@@ -343,6 +344,19 @@ class _CombatScreenState extends State<CombatScreen>
         armDuration: const Duration(milliseconds: 500),
         canRewind: _coordinator.canChronoRewind,
         rewindsRemaining: _coordinator.chronoRewindsRemaining,
+        onWatchAdForCores: () async {
+          _autoAdvanceTimer?.cancel();
+          final rewarded = await AdService.instance.showRewardedAd();
+          if (!dialogContext.mounted) return;
+          if (rewarded && mounted) {
+            Navigator.of(dialogContext).pop();
+            _coordinator.grantEmergencyCores(8);
+            _coordinator.resumeCombat();
+            _overlayState = CombatOverlayState.none;
+            _resumeTicker();
+            if (mounted) setState(() {});
+          }
+        },
         onRewind: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
@@ -753,7 +767,11 @@ class _CombatScreenState extends State<CombatScreen>
     )) {
       _coordinator.toggleAutoSolve();
     } else {
-      if (_overlayState != CombatOverlayState.none) return;
+      if (_overlayState != CombatOverlayState.none &&
+          _overlayState != CombatOverlayState.paused) {
+        return;
+      }
+      final previousOverlay = _overlayState;
       _overlayState = CombatOverlayState.proUpgrade;
       final wasTicking = _ticker.isTicking;
       if (wasTicking) _ticker.stop();
@@ -772,10 +790,12 @@ class _CombatScreenState extends State<CombatScreen>
           },
         ),
       ).then((_) {
-        _overlayState = CombatOverlayState.none;
+        _overlayState = previousOverlay;
         if (mounted) {
-          _coordinator.resumeCombat();
-          if (wasTicking) _resumeTicker();
+          if (previousOverlay != CombatOverlayState.paused) {
+            _coordinator.resumeCombat();
+            if (wasTicking) _resumeTicker();
+          }
           setState(() {});
         }
       });
@@ -846,6 +866,8 @@ class _CombatScreenState extends State<CombatScreen>
     if (_overlayState != CombatOverlayState.none) return;
     _coordinator.pauseCombat();
     _overlayState = CombatOverlayState.paused;
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
 
     bool shouldResumeOnClose = true;
 
@@ -853,66 +875,68 @@ class _CombatScreenState extends State<CombatScreen>
       context: context,
       barrierDismissible: true,
       barrierColor: Colors.black.withValues(alpha: 0.75),
-      builder: (dialogContext) => PauseMenuDialog(
-        sectorId: _currentSectorId,
-        sectorName: _activeSector.name,
-        difficultyTier: _currentDifficultyTier,
-        score: _coordinator.competitiveScore,
-        highScore: _coordinator.highScore,
-        canRewind: _coordinator.canChronoRewind,
-        rewindsRemaining: _coordinator.chronoRewindsRemaining,
-        onRewind: () {
-          shouldResumeOnClose = false;
-          Navigator.of(dialogContext).pop();
-          _coordinator.triggerChronoRewind();
-          _coordinator.resumeCombat();
-          _overlayState = CombatOverlayState.none;
-          _resumeTicker();
-          if (mounted) setState(() {});
-        },
-        onResume: () {
-          Navigator.of(dialogContext).pop();
-        },
-        onRestart: () {
-          shouldResumeOnClose = false;
-          Navigator.of(dialogContext).pop();
-          _restartCombat();
-        },
-        onAbort: () {
-          shouldResumeOnClose = false;
-          Navigator.of(dialogContext).pop();
-          _overlayState = CombatOverlayState.none;
-          _openMap(campaignId: 'kilwa_basin');
-        },
-        onMap: () {
-          shouldResumeOnClose = false;
-          Navigator.of(dialogContext).pop();
-          _overlayState = CombatOverlayState.none;
-          _openMap(campaignId: 'kilwa_basin');
-        },
-        onCodex: () {
-          shouldResumeOnClose = false;
-          Navigator.of(dialogContext).pop();
-          _overlayState = CombatOverlayState.none;
-          _openCodex();
-        },
-        onAcademy: () {
-          shouldResumeOnClose = false;
-          Navigator.of(dialogContext).pop();
-          _overlayState = CombatOverlayState.none;
-          _coordinator.showTutorial();
-        },
-        onSettings: () {
-          shouldResumeOnClose = false;
-          Navigator.of(dialogContext).pop();
-          _overlayState = CombatOverlayState.none;
-          _openSettings();
-        },
-        isAutoSolving: _coordinator.state.isAutoSolving,
-        onToggleAutoSolve: () {
-          _toggleAutoSolve();
-          (dialogContext as Element).markNeedsBuild();
-        },
+      builder: (dialogContext) => AnimatedBuilder(
+        animation: _coordinator,
+        builder: (context, _) => PauseMenuDialog(
+          sectorId: _currentSectorId,
+          sectorName: _activeSector.name,
+          difficultyTier: _currentDifficultyTier,
+          score: _coordinator.competitiveScore,
+          highScore: _coordinator.highScore,
+          canRewind: _coordinator.canChronoRewind,
+          rewindsRemaining: _coordinator.chronoRewindsRemaining,
+          onRewind: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _coordinator.triggerChronoRewind();
+            _coordinator.resumeCombat();
+            _overlayState = CombatOverlayState.none;
+            _resumeTicker();
+            if (mounted) setState(() {});
+          },
+          onResume: () {
+            Navigator.of(dialogContext).pop();
+          },
+          onRestart: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _restartCombat();
+          },
+          onAbort: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _overlayState = CombatOverlayState.none;
+            _openMap(campaignId: 'kilwa_basin');
+          },
+          onMap: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _overlayState = CombatOverlayState.none;
+            _openMap(campaignId: 'kilwa_basin');
+          },
+          onCodex: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _overlayState = CombatOverlayState.none;
+            _openCodex();
+          },
+          onAcademy: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _overlayState = CombatOverlayState.none;
+            _coordinator.showTutorial();
+          },
+          onSettings: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _overlayState = CombatOverlayState.none;
+            _openSettings();
+          },
+          isAutoSolving: _coordinator.state.isAutoSolving,
+          onToggleAutoSolve: () {
+            _toggleAutoSolve();
+          },
+        ),
       ),
     ).then((_) {
       if (_overlayState == CombatOverlayState.paused) {
@@ -922,6 +946,11 @@ class _CombatScreenState extends State<CombatScreen>
           shouldResumeOnClose &&
           _coordinator.state.status == CombatMatchStatus.paused) {
         _resumeCombat();
+      } else if (mounted &&
+          wasTicking &&
+          !_ticker.isTicking &&
+          shouldResumeOnClose) {
+        _resumeTicker();
       }
     });
   }

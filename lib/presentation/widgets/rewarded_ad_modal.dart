@@ -233,10 +233,12 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                     const SizedBox(width: 10.0),
                     Expanded(
                       child: TactileButton(
-                        label: isPro ? 'SUMMON FLARE' : 'CHANNEL (+8)',
-                        icon: isPro ? Icons.bolt : Icons.ondemand_video,
+                        label: isPro ? 'SUMMON FLARE' : 'WATCH AD (+8 CORES)',
+                        icon: isPro ? Icons.bolt : Icons.play_circle_filled,
                         accentColor: canRequest
-                            ? VoidTheme.solarGold
+                            ? (isPro
+                                  ? VoidTheme.solarGold
+                                  : VoidTheme.emeraldShield)
                             : VoidTheme.cardSurface,
                         height: 44.0,
                         padding: const EdgeInsets.symmetric(

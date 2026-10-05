@@ -417,7 +417,11 @@ class CombatCoordinator extends ChangeNotifier {
     engine.grantCores(bonusCores);
     dreadnought = dreadnought.copyWith(
       reserveCores: dreadnought.reserveCores + bonusCores,
+      currentSimState: 0,
     );
+    if (_state.status == CombatMatchStatus.defeat) {
+      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+    }
     notifyListeners();
   }
 
@@ -992,13 +996,14 @@ class CombatCoordinator extends ChangeNotifier {
   /// Direct core injection into a designated bay.
   void injectCore(int bayIndex, int direction) {
     if (!_state.canReceiveInput) return;
+    final resolvedDirection = BayRole.resolveSowDirection(bayIndex, direction);
+    final steps = engine.injectCore(bayIndex, resolvedDirection);
+    if (steps <= 0) return;
     _captureTurnSnapshot();
     _sessionSeedsSown++;
-    final resolvedDirection = BayRole.resolveSowDirection(bayIndex, direction);
     _sowDirection = resolvedDirection;
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
-    engine.injectCore(bayIndex, resolvedDirection);
     vlog(
       6,
       'CombatCoordinator: Injected core into bay $bayIndex dir $resolvedDirection',
@@ -1023,21 +1028,22 @@ class CombatCoordinator extends ChangeNotifier {
   void quickFireActiveCorridor() {
     _finalizePendingSow();
     if (!_state.canReceiveInput) return;
-    _captureTurnSnapshot();
-    if (_state.status == CombatMatchStatus.paused) {
-      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
-    }
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final activeBay = corridor + 8;
     // Quick-fire axial lance honors active sowing direction with Kichwa boundary resolution
     final direction = BayRole.resolveSowDirection(activeBay, _sowDirection);
+    final steps = engine.injectCore(activeBay, direction);
+    if (steps <= 0) return;
+
+    _captureTurnSnapshot();
+    if (_state.status == CombatMatchStatus.paused) {
+      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+    }
     _sowDirection = direction;
 
     _sessionSeedsSown++;
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
-
-    engine.injectCore(activeBay, direction);
     vlog(
       6,
       'CombatCoordinator: Quick-fire active corridor $corridor via bay $activeBay dir $direction',
@@ -1192,7 +1198,8 @@ class CombatCoordinator extends ChangeNotifier {
   /// Resumes the combat simulation from paused state.
   void resumeCombat() {
     if (_state.status == CombatMatchStatus.paused ||
-        _state.status == CombatMatchStatus.sowingSequence) {
+        _state.status == CombatMatchStatus.sowingSequence ||
+        _state.status == CombatMatchStatus.defeat) {
       _state = _state.copyWith(
         status: CombatMatchStatus.activeCombat,
         clearActiveSowBay: true,

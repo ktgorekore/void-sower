@@ -156,8 +156,8 @@ void main() {
 
       expect(find.text('PRO COMMANDER FLEET'), findsOneWidget);
       expect(find.text('Lifetime License • \$1.29 One-Time'), findsOneWidget);
-      expect(find.text('UNLOCK PRO COMMANDER — \$1.29'), findsOneWidget);
-      expect(find.text('WATCH AD (FREE PASS)'), findsOneWidget);
+      expect(find.text('UNLOCK PRO — \$1.29'), findsOneWidget);
+      expect(find.text('WATCH AD (+5m PRO)'), findsOneWidget);
       expect(find.text('RESTORE PREVIOUS PURCHASES'), findsOneWidget);
     });
 
@@ -194,7 +194,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // MK-III should be locked
-        expect(find.text('LOCKED • UNLOCK PRO / AD PASS'), findsWidgets);
+        expect(find.text('UNLOCK PRO'), findsWidgets);
 
         // Unlock Pro
         await PersistenceService.instance.setProUnlocked(true);

@@ -542,7 +542,7 @@ void main() {
         expect(find.text('CRITICAL REACTOR DEPLETION'), findsOneWidget);
         expect(find.text('Emergency Orbital Flare Available'), findsOneWidget);
 
-        await tester.tap(find.text('CHANNEL (+8)'));
+        await tester.tap(find.text('WATCH AD (+8 CORES)'));
         await tester.pumpAndSettle();
 
         expect(awarded, 8);

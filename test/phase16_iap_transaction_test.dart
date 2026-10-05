@@ -360,7 +360,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap the primary unlock button
-        await tester.tap(find.text('UNLOCK PRO COMMANDER — \$1.29'));
+        await tester.tap(find.text('UNLOCK PRO — \$1.29'));
         await tester.pump(); // Enter processing state
 
         // Simulate user dismissing the Google Play bottom sheet
@@ -419,7 +419,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap the primary unlock button
-        await tester.tap(find.text('UNLOCK PRO COMMANDER — \$1.29'));
+        await tester.tap(find.text('UNLOCK PRO — \$1.29'));
         await tester.pump(); // Enter processing state
 
         // Simulate user completing payment
