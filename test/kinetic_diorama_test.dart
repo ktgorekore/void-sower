@@ -82,7 +82,7 @@ void main() {
       // Verify key titles remain available
       expect(find.text('BAO ORBITAL CODEX'), findsOneWidget);
       expect(find.text('1. NAMUA (CORE INJECTION)'), findsOneWidget);
-      expect(find.text('2. QUADRATIC LANCES (D = α · M²)'), findsOneWidget);
+      expect(find.text('2. CHARGED LASERS (STACKING POWER)'), findsOneWidget);
       expect(
         find.text('3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)'),
         findsOneWidget,

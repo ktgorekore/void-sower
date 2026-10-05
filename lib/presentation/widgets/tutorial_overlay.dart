@@ -403,7 +403,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       case 1:
         return '2. SOWING TRAVERSAL';
       case 2:
-        return '3. QUADRATIC LANCE DISCHARGE';
+        return '3. CHARGED LASER BLAST';
       case 3:
         return '4. ORBITAL PLATFORM ALIGNMENT';
       case 4:
@@ -435,7 +435,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       case 1:
         return 'Swipe left or right to distribute cores across bays.';
       case 2:
-        return 'Frontline bays fire Particle Lances (Damage: D = M²).';
+        return 'Frontline bays fire laser beams. Stacking cores multiplies damage: 4 cores = 16x power!';
       case 3:
         return 'Slide horizontally to align targeting corridor.';
       case 4:

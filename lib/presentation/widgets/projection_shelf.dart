@@ -166,8 +166,8 @@ class ProjectionShelf extends StatelessWidget {
                     const SizedBox(width: 3.0),
                     Text(
                       deepActive
-                          ? 'LANCE: ${p.predictedDamage.toInt()} DMG (α × ${p.finalMass}²)'
-                          : 'LANCE: ${p.predictedDamage.toInt()} DMG (M=${p.finalMass})',
+                          ? 'LASER: ${p.predictedDamage.toInt()} DMG (α × ${p.finalMass}²)'
+                          : 'LASER: ${p.predictedDamage.toInt()} DMG (${p.finalMass} CORES)',
                       style: const TextStyle(
                         color: VoidTheme.plasmaCyan,
                         fontSize: 10.5,

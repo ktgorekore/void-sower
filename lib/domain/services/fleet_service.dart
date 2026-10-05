@@ -104,7 +104,7 @@ class FleetService {
         chassisId: 'mk2_monsoon',
         name: 'MK-II Monsoon Vanguard',
         description:
-            'Enhanced Nyumba conduits with 15% amplified quadratic lance discharge.',
+            'Enhanced Nyumba conduits with 15% amplified laser beam power.',
         coreCapacity: 36,
         lanceAlphaBonus: 1.15,
         isUnlocked: isChassisUnlocked('mk2_monsoon'),
@@ -114,7 +114,7 @@ class FleetService {
         chassisId: 'mk3_singularity',
         name: 'MK-III Singularity Sovereign',
         description:
-            'Graviton containment core with 40 cores and +30% quadratic lance alpha.',
+            'Graviton containment core with 40 cores and +30% laser beam power.',
         coreCapacity: 40,
         lanceAlphaBonus: 1.30,
         isUnlocked: isChassisUnlocked('mk3_singularity'),
@@ -124,7 +124,7 @@ class FleetService {
         chassisId: 'mk4_golden_sovereign',
         name: 'MK-IV Golden Sovereign',
         description:
-            'Gilded solar lattice flagship with 44 cores, +40% lance alpha, and radiant antimatter trails.',
+            'Gilded solar lattice flagship with 44 cores, +40% laser power, and radiant antimatter trails.',
         coreCapacity: 44,
         lanceAlphaBonus: 1.40,
         isUnlocked: isChassisUnlocked('mk4_golden_sovereign'),

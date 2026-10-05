@@ -71,7 +71,7 @@ void main() {
       // Step to next
       await tester.tap(find.text('NEXT'));
       await tester.pumpAndSettle();
-      expect(find.text('3. QUADRATIC LANCE DISCHARGE'), findsOneWidget);
+      expect(find.text('3. CHARGED LASER BLAST'), findsOneWidget);
 
       // Step to next
       await tester.tap(find.text('NEXT'));
@@ -168,7 +168,7 @@ void main() {
       expect(find.text('BAO ORBITAL CODEX'), findsOneWidget);
       expect(find.text('ANCIENT MATHEMATICAL ROOTS'), findsOneWidget);
       expect(find.text('1. NAMUA (CORE INJECTION)'), findsOneWidget);
-      expect(find.text('2. QUADRATIC LANCES (D = α · M²)'), findsOneWidget);
+      expect(find.text('2. CHARGED LASERS (STACKING POWER)'), findsOneWidget);
       expect(
         find.text('3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)'),
         findsOneWidget,
@@ -309,7 +309,7 @@ void main() {
         );
 
         expect(find.text('BAY 0 → BAY 3'), findsOneWidget);
-        expect(find.text('LANCE: 16 DMG (M=4)'), findsOneWidget);
+        expect(find.text('LASER: 16 DMG (4 CORES)'), findsOneWidget);
       },
     );
   });

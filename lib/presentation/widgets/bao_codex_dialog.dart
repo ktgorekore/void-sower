@@ -85,7 +85,7 @@ class BaoCodexDialog extends StatelessWidget {
                       chips: const [
                         '16 CAPACITOR BAYS',
                         'COUNT & CAPTURE',
-                        'AXIAL LANCES',
+                        'CHARGED LASERS',
                       ],
                       icon: Icons.history_edu,
                       color: VoidTheme.solarGold,
@@ -106,13 +106,13 @@ class BaoCodexDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
-                      title: '2. QUADRATIC LANCES (D = α · M²)',
+                      title: '2. CHARGED LASERS (STACKING POWER)',
                       body:
-                          'Frontline bays discharge mass as axial particle lances with quadratic bloom.',
+                          'Frontline bays fire laser beams. Stacking cores multiplies damage: 4 cores = 16x power!',
                       chips: const [
                         '⚡ 100x BASE',
-                        '4 CORES = 16x DAMAGE',
-                        'AXIAL BEAM',
+                        '4 CORES = 16x POWER',
+                        'LASER BEAM',
                       ],
                       icon: Icons.flash_on,
                       color: VoidTheme.crimsonFlare,

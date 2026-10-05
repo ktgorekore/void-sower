@@ -282,9 +282,9 @@ class _DioramaPainter extends CustomPainter {
   // ---------------------------------------------------------------------------
   void _paintQuadraticDamage(Canvas canvas, Size size) {
     final isMassFour = (progress % 1.0) >= 0.5;
-    final mass = isMassFour ? 4 : 1;
+    final coresLabel = isMassFour ? '4 CORES' : '1 CORE';
     final beamWidth = isMassFour ? 20.0 : 4.0;
-    final damageLabel = isMassFour ? '16x DMG (M²=16)' : '1x DMG (M²=1)';
+    final damageLabel = isMassFour ? '16x POWER (MASSIVE)' : '1x POWER (BASE)';
 
     final centerX = size.width * 0.35;
     final bottomY = size.height * 0.85;
@@ -315,7 +315,7 @@ class _DioramaPainter extends CustomPainter {
     // Devastation Gauge Text
     final tp = TextPainter(
       text: TextSpan(
-        text: '$mass CORES\n$damageLabel',
+        text: '$coresLabel\n$damageLabel',
         style: TextStyle(
           color: isMassFour
               ? VoidTheme.crimsonFlare

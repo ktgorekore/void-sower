@@ -74,7 +74,7 @@ class DailySortieService {
       case SectorCombatDoctrine.voidSwarm:
         return 'Continuous reinforcement hordes drop from deep space. Neutralizing invaders harvests +2 auxiliary cores directly into the reactor.';
       case SectorCombatDoctrine.standardOrbital:
-        return 'Standard attack corridors. High-energy quadratic particle lances inflict maximum devastation.';
+        return 'Standard attack corridors. High-energy charged laser beams inflict maximum damage.';
     }
   }
 

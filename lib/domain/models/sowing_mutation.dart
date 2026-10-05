@@ -155,10 +155,10 @@ class SowingMutation {
     ),
     SowingMutation(
       id: 'quadratic_focus',
-      title: 'QUADRATIC FOCUS',
-      subtitle: 'HIGH-ENERGY LANCE',
+      title: 'BEAM OVERCHARGE',
+      subtitle: 'HIGH-ENERGY LASER',
       description:
-          'Increases lance focal damage coefficient by +35% across all battery discharges.',
+          'Increases laser beam damage by +35% across all battery discharges.',
       icon: Icons.offline_bolt,
       accentColor: VoidTheme.plasmaCyan,
       rarity: MutationRarity.common,

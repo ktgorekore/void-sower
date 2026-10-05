@@ -665,10 +665,11 @@ class CombatPainter extends CustomPainter {
         .clamp(0.0, 1.0);
     // 3D perspective depth scaling: 0.65x in deep space -> 1.0x at defense line
     final depthScale = 0.65 + 0.35 * normDepth;
+    // Balanced vessel size ratios: Drones fit agilely, Cruisers occupy lane, Flagships command
     final sizeRatio = enemy.vesselType == 2
-        ? 1.5
-        : (enemy.vesselType == 1 ? 1.15 : 0.85);
-    final scale = (width / 48.0) * sizeRatio * depthScale;
+        ? 0.74
+        : (enemy.vesselType == 1 ? 0.64 : 0.60);
+    final scale = (width / 50.0) * sizeRatio * depthScale;
 
     // 1. Render true 3D Polygonal Mesh with cosmic shading & warp-in FX
     _invaderMesh.projectAndPaint(
@@ -685,9 +686,9 @@ class CombatPainter extends CustomPainter {
     );
 
     // 2. Health / Shield Gauges (positioned above the 3D craft)
-    final barW = 32.0 * sizeRatio * depthScale;
+    final barW = 28.0 * (sizeRatio / 0.64) * depthScale;
     const barH = 3.0;
-    final barY = y - (22.0 * sizeRatio * depthScale) - 8.0;
+    final barY = y - (28.0 * sizeRatio * depthScale) - 6.0;
 
     // Hull bar
     final hullFraction = (enemy.currentHull / math.max(enemy.maxHull, 1.0))

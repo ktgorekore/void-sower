@@ -766,7 +766,7 @@ class CombatCoordinator extends ChangeNotifier {
           damageNumbers.add(
             FloatingDamageNumber(
               text: lance.totalDamage >= 2.0
-                  ? 'QUADRATIC CRIT +$dmgVal'
+                  ? 'SUPER CRIT +$dmgVal'
                   : '+$dmgVal',
               x: lanceX,
               y: viewportSize.height * 0.32,

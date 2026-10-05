@@ -465,7 +465,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                       return DropdownMenuItem<String>(
                         value: c.chassisId,
                         child: Text(
-                          '${c.name} (${c.coreCapacity} Cores • α ${(c.lanceAlphaBonus * 100).toInt()}%)',
+                          '${c.name} (${c.coreCapacity} Cores • ${(c.lanceAlphaBonus * 100).toInt()}% Power)',
                           style: const TextStyle(
                             color: VoidTheme.starWhite,
                             fontSize: 11.5,

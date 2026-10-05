@@ -169,13 +169,13 @@ class TacticalDirectivesModal extends StatelessWidget {
                   ),
                   const SizedBox(height: 10.0),
 
-                  // Card 3: Quadratic Lance
+                  // Card 3: Charged Laser Beams
                   _buildRuleCard(
                     stepNumber: '3',
-                    title: 'QUADRATIC LANCE',
-                    subtitle: 'LANCE (D = M²)',
+                    title: 'CHARGED LASERS',
+                    subtitle: 'POWER MULTIPLIER',
                     description:
-                        'Frontline bays fire Particle Lances. Damage scales quadratically (4 cores = 16x).',
+                        'Frontline bays shoot laser beams. Stacking cores multiplies damage: 4 cores = 16x power!',
                     icon: Icons.bolt,
                     accentColor: VoidTheme.emeraldShield,
                     dioramaType: DioramaType.quadraticDamage,

@@ -97,7 +97,7 @@ class CampaignService {
           subtitle: 'Lateral Evasive Corridors',
           tacticalBriefing:
               'Hostile carrier wings employ lateral thrusters and phase-displacement fields. '
-              'Invaders dynamically oscillate between firing corridors to evade axial quadratic lances.',
+              'Invaders dynamically oscillate between firing corridors to evade forward laser beams.',
           isProRequired: true,
           defaultDoctrine: SectorCombatDoctrine.phantomDrift,
           baseSectorId: 10,

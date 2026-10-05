@@ -22,13 +22,13 @@ enum ProFeature {
   /// Holographic real-time next-move suggestion on active bays.
   aiMoveAdvisor,
 
-  /// Heavy MK-III Singularity Sovereign flagship chassis (+30% lance alpha).
+  /// Heavy MK-III Singularity Sovereign flagship chassis (+30% laser power).
   mk3SingularityChassis,
 
   /// Exclusive solar-gilded MK-IV Golden Sovereign hull and engine trails.
   goldenSovereignSkin,
 
-  /// Full multi-lap cascade spline trajectories and quadratic damage previews.
+  /// Full multi-lap cascade spline trajectories and beam power multiplier previews.
   deepSensorTelemetry,
 
   /// In-combat time-dilation rewinds restoring prior turn state.
@@ -87,7 +87,7 @@ class ProFeatureMeta {
       feature: ProFeature.mk3SingularityChassis,
       title: 'MK-III SINGULARITY SOVEREIGN',
       shortDescription:
-          'Heavy 40-core dreadnought with +30% lance alpha and expanded flak blast radius.',
+          'Heavy 40-core dreadnought with +30% laser power and expanded flak blast radius.',
       icon: Icons.rocket_launch,
     ),
     ProFeature.goldenSovereignSkin: ProFeatureMeta(
@@ -129,7 +129,7 @@ class ProFeatureMeta {
       feature: ProFeature.tacticalPause,
       title: 'TACTICAL TIME DILATION',
       shortDescription:
-          'Freeze invader advancement to analyze trajectory lanes and calibrate axial lance strikes.',
+          'Freeze invader advancement to analyze trajectory lanes and calibrate laser strikes.',
       icon: Icons.pause_circle_outline,
     ),
   };

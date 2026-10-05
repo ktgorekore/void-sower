@@ -268,7 +268,7 @@ void main() {
         ),
       );
 
-      expect(find.textContaining('M=6'), findsOneWidget);
+      expect(find.textContaining('6 CORES'), findsOneWidget);
       expect(find.textContaining('α × 6²'), findsNothing);
       expect(find.textContaining('RISK'), findsNothing);
     });
