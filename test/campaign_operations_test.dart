@@ -363,7 +363,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // 1. By default, Campaign Sectors is active
-        expect(find.text('CAMPAIGN SECTORS'), findsOneWidget);
+        expect(find.text('CAMPAIGN'), findsOneWidget);
         expect(find.text('SPECIAL OPS'), findsOneWidget);
         expect(find.text('KILWA BASIN'), findsOneWidget);
         expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
@@ -395,7 +395,7 @@ void main() {
         expect(find.text('KILWA BASIN'), findsNothing);
 
         // 3. Switch back to CAMPAIGN SECTORS via top tab
-        await tester.tap(find.text('CAMPAIGN SECTORS'));
+        await tester.tap(find.text('CAMPAIGN'));
         await tester.pumpAndSettle();
 
         expect(find.text('KILWA BASIN'), findsOneWidget);

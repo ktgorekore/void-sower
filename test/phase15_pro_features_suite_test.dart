@@ -286,7 +286,7 @@ void main() {
 
         expect(find.text('ORBITAL SIMULATION LAB'), findsOneWidget);
         expect(find.text('PRO COMMANDER CLEARANCE REQUIRED'), findsOneWidget);
-        expect(find.text('UNLOCK PRO CLEARANCE'), findsOneWidget);
+        expect(find.text('UNLOCK PRO'), findsOneWidget);
       },
     );
 
@@ -300,22 +300,19 @@ void main() {
           MaterialApp(home: SimulationLabScreen(engine: engine)),
         );
 
-        expect(find.text('CUSTOM SORTIE'), findsOneWidget);
+        expect(find.text('SORTIE'), findsOneWidget);
         expect(find.text('MCTS ARENA'), findsOneWidget);
-        expect(find.text('ENDLESS HORDE'), findsOneWidget);
+        expect(find.text('ENDLESS'), findsOneWidget);
 
         // Switch to MCTS Benchmark Arena tab
         await tester.tap(find.text('MCTS ARENA'));
         await tester.pumpAndSettle();
 
         expect(find.text('NATIVE C++ MCTS SOLVER STRESS-TEST'), findsOneWidget);
-        expect(
-          find.text('EXECUTE 100-ITERATION MCTS BENCHMARK'),
-          findsOneWidget,
-        );
+        expect(find.text('RUN 100-STEP BENCHMARK'), findsOneWidget);
 
         // Trigger Benchmark execution
-        await tester.tap(find.text('EXECUTE 100-ITERATION MCTS BENCHMARK'));
+        await tester.tap(find.text('RUN 100-STEP BENCHMARK'));
         await tester.pump(); // Starts timer
 
         // Allow 50ms Timer and 100 iterations to run

@@ -526,7 +526,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                     TextButton(
                       onPressed: _handleRestore,
                       child: const Text(
-                        'RESTORE PREVIOUS PURCHASES',
+                        'RESTORE PURCHASES',
                         style: TextStyle(
                           color: VoidTheme.textMuted,
                           fontSize: 10.5,

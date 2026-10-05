@@ -388,17 +388,17 @@ void main() {
         );
 
         // Immediate taps during desperate shooting cooldown should be ignored
-        await tester.tap(find.text('TRY AGAIN'));
+        await tester.tap(find.text('RETRY'));
         await tester.pump();
         expect(retried, isFalse);
 
-        await tester.tap(find.text('SECTOR MAP'));
+        await tester.tap(find.text('STAR MAP'));
         await tester.pump();
         expect(returnedToMap, isFalse);
 
         // After 500ms safety cooldown, buttons arm and taps succeed
         await tester.pump(const Duration(milliseconds: 500));
-        await tester.tap(find.text('TRY AGAIN'));
+        await tester.tap(find.text('RETRY'));
         await tester.pumpAndSettle();
         expect(retried, isTrue);
       },

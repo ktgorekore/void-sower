@@ -140,11 +140,11 @@ void main() {
         expect(find.text('4200'), findsNWidgets(2));
         expect(find.text('18'), findsOneWidget);
 
-        await tester.tap(find.text('ADVANCE TO NEXT SECTOR'));
+        await tester.tap(find.text('NEXT SECTOR'));
         await tester.pumpAndSettle();
         expect(advanced, isTrue);
 
-        await tester.tap(find.text('RETURN TO STAR MAP'));
+        await tester.tap(find.text('STAR MAP'));
         await tester.pumpAndSettle();
         expect(returnedToMap, isTrue);
       },
@@ -171,13 +171,13 @@ void main() {
         );
 
         // Immediate tap during shooting cooldown should be ignored
-        await tester.tap(find.text('ADVANCE TO NEXT SECTOR'));
+        await tester.tap(find.text('NEXT SECTOR'));
         await tester.pump();
         expect(advanced, isFalse);
 
         // After 500ms safety cooldown, button arms and tap succeeds
         await tester.pump(const Duration(milliseconds: 500));
-        await tester.tap(find.text('ADVANCE TO NEXT SECTOR'));
+        await tester.tap(find.text('NEXT SECTOR'));
         await tester.pumpAndSettle();
         expect(advanced, isTrue);
       },
@@ -268,10 +268,10 @@ void main() {
 
       expect(find.text('IMPERIAL ORBITAL BLOCKADE DETECTED'), findsOneWidget);
       expect(find.text('CLEARANCE REQUIREMENT'), findsOneWidget);
-      expect(find.text('DEPLOY TO SECTOR 1'), findsOneWidget);
+      expect(find.text('DEPLOY • S1'), findsOneWidget);
 
       // Dismiss locked intel sheet
-      await tester.tap(find.text('DISMISS INTEL'));
+      await tester.tap(find.text('DISMISS'));
       await tester.pumpAndSettle();
       expect(find.text('IMPERIAL ORBITAL BLOCKADE DETECTED'), findsNothing);
     });
@@ -296,7 +296,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Tap Flight Academy button to launch Flight Academy tutorial
-        final simButton = find.text('LAUNCH FLIGHT ACADEMY');
+        final simButton = find.text('FLIGHT ACADEMY');
         expect(simButton, findsOneWidget);
         await tester.tap(simButton);
         await tester.pump();

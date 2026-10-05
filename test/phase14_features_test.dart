@@ -380,10 +380,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('FLEET SYSTEM CONFIG'), findsOneWidget);
-      expect(find.text('AUDIO & HAPTICS'), findsOneWidget);
+      expect(find.text('AUDIO'), findsOneWidget);
       expect(find.text('GRAPHICS'), findsOneWidget);
       expect(find.text('DIAGNOSTICS'), findsOneWidget);
-      expect(find.text('LEGAL & ABOUT'), findsOneWidget);
+      expect(find.text('LEGAL'), findsOneWidget);
     });
 
     testWidgets(
@@ -447,10 +447,10 @@ void main() {
         await tester.tap(find.text('DIAGNOSTICS'));
         await tester.pumpAndSettle();
 
-        expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
-        expect(find.text('RESET FLIGHT ACADEMY TUTORIAL'), findsOneWidget);
+        expect(find.text('ACADEMY'), findsOneWidget);
+        expect(find.text('RESET TUTORIAL'), findsOneWidget);
 
-        await tester.tap(find.text('FLIGHT ACADEMY'));
+        await tester.tap(find.text('ACADEMY'));
         await tester.pumpAndSettle();
 
         expect(academyLaunched, isTrue);
@@ -507,7 +507,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('TERMS OF SERVICE'), findsOneWidget);
-      expect(find.text('AGREE & CLOSE'), findsOneWidget);
+      expect(find.text('AGREE'), findsOneWidget);
     });
 
     testWidgets('ConsentPreferencesDialog renders GDPR controls', (
@@ -521,7 +521,7 @@ void main() {
       expect(find.text('CONSENT PREFERENCES'), findsOneWidget);
       expect(find.text('Personalized Advertising'), findsOneWidget);
       expect(find.text('Anonymous Crash Telemetry'), findsOneWidget);
-      expect(find.text('DATA ERASURE (GDPR / CCPA)'), findsOneWidget);
+      expect(find.text('ERASE DATA'), findsOneWidget);
     });
 
     testWidgets(

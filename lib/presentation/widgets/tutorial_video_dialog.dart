@@ -381,11 +381,11 @@ class _TutorialVideoDialogState extends State<TutorialVideoDialog> {
                   ],
                 ),
                 TactileButton(
-                  label: 'BACK TO ACADEMY',
-                  icon: Icons.school,
+                  label: 'DISMISS',
+                  icon: Icons.close,
                   isPrimary: false,
                   accentColor: VoidTheme.plasmaCyan,
-                  height: 38.0,
+                  height: 40.0,
                   minWidth: 150.0,
                   onPressed: () {
                     HapticService.instance.sowTick();

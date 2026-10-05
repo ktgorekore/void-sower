@@ -94,9 +94,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Trigger benchmark
-        final runButtonFinder = find.text(
-          'EXECUTE 100-ITERATION MCTS BENCHMARK',
-        );
+        final runButtonFinder = find.text('RUN 100-STEP BENCHMARK');
         expect(runButtonFinder, findsOneWidget);
         await tester.tap(runButtonFinder);
         await tester.pump(); // Start the 50ms timer

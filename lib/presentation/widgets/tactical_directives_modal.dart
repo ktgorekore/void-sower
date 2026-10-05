@@ -221,7 +221,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                       label: const FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          'LAUNCH FLIGHT ACADEMY',
+                          'FLIGHT ACADEMY',
                           style: TextStyle(
                             color: VoidTheme.plasmaCyan,
                             fontSize: 10.5,
@@ -264,7 +264,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                       label: const FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          'ORBITAL SIMULATION LAB (PRO)',
+                          'SIM LAB • PRO',
                           style: TextStyle(
                             color: VoidTheme.solarGold,
                             fontSize: 10.5,
@@ -295,7 +295,7 @@ class TacticalDirectivesModal extends StatelessWidget {
 
                   // Primary Engage Combat Button
                   TactileButton(
-                    label: 'ENGAGE COMBAT',
+                    label: 'ENGAGE',
                     icon: Icons.rocket_launch,
                     accentColor: VoidTheme.plasmaCyan,
                     isPrimary: true,

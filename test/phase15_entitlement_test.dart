@@ -158,7 +158,7 @@ void main() {
       expect(find.text('Lifetime License • \$1.29 One-Time'), findsOneWidget);
       expect(find.text('UNLOCK PRO — \$1.29'), findsOneWidget);
       expect(find.text('WATCH AD (+5m PRO)'), findsOneWidget);
-      expect(find.text('RESTORE PREVIOUS PURCHASES'), findsOneWidget);
+      expect(find.text('RESTORE PURCHASES'), findsOneWidget);
     });
 
     testWidgets(
@@ -187,7 +187,7 @@ void main() {
         expect(find.text('EQUIPPED'), findsOneWidget);
 
         // MK-II is free to equip
-        expect(find.text('EQUIP SHIP'), findsOneWidget);
+        expect(find.text('EQUIP'), findsOneWidget);
 
         // Scroll down to reveal MK-III
         await tester.drag(find.byType(ListView), const Offset(0, -250));
@@ -214,8 +214,8 @@ void main() {
         await tester.drag(find.byType(ListView), const Offset(0, -250));
         await tester.pumpAndSettle();
 
-        // Now MK-III should have EQUIP SHIP
-        expect(find.text('EQUIP SHIP'), findsWidgets);
+        // Now MK-III should have EQUIP
+        expect(find.text('EQUIP'), findsWidgets);
       },
     );
   });

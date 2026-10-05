@@ -237,7 +237,7 @@ These terms shall be governed and interpreted under applicable laws without rega
             ),
             const SizedBox(height: 16),
             TactileButton(
-              label: 'AGREE & CLOSE',
+              label: 'AGREE',
               icon: Icons.check,
               accentColor: VoidTheme.solarGold,
               height: 44.0,

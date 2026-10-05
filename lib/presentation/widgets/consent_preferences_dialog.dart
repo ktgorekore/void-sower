@@ -194,7 +194,7 @@ class _ConsentPreferencesDialogState extends State<ConsentPreferencesDialog> {
               // Right-to-be-forgotten GDPR Wipe
               if (!_confirmingErase)
                 TactileButton(
-                  label: 'DATA ERASURE (GDPR / CCPA)',
+                  label: 'ERASE DATA',
                   icon: Icons.delete_forever,
                   accentColor: VoidTheme.crimsonFlare,
                   height: 40.0,
@@ -229,7 +229,7 @@ class _ConsentPreferencesDialogState extends State<ConsentPreferencesDialog> {
                             child: TactileButton(
                               label: 'CANCEL',
                               accentColor: VoidTheme.starWhite,
-                              height: 36.0,
+                              height: 40.0,
                               onPressed: () =>
                                   setState(() => _confirmingErase = false),
                             ),
@@ -237,10 +237,10 @@ class _ConsentPreferencesDialogState extends State<ConsentPreferencesDialog> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: TactileButton(
-                              label: 'CONFIRM WIPE',
+                              label: 'WIPE DATA',
                               icon: Icons.warning,
                               accentColor: VoidTheme.crimsonFlare,
-                              height: 36.0,
+                              height: 40.0,
                               onPressed: _executeDataWipe,
                             ),
                           ),
@@ -253,7 +253,7 @@ class _ConsentPreferencesDialogState extends State<ConsentPreferencesDialog> {
               const SizedBox(height: 16),
 
               TactileButton(
-                label: 'SAVE PREFERENCES',
+                label: 'SAVE',
                 icon: Icons.save,
                 accentColor: VoidTheme.solarGold,
                 height: 44.0,

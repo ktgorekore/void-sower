@@ -480,11 +480,11 @@ void main() {
         expect(find.text('Sorties / Win Rate'), findsOneWidget);
 
         await tester.scrollUntilVisible(
-          find.text('VIEW FULL FLEET TELEMETRY'),
+          find.text('FLEET TELEMETRY'),
           150.0,
           scrollable: find.byType(Scrollable).first,
         );
-        expect(find.text('VIEW FULL FLEET TELEMETRY'), findsOneWidget);
+        expect(find.text('FLEET TELEMETRY'), findsOneWidget);
       },
     );
   });

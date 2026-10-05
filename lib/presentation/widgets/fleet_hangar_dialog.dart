@@ -119,7 +119,8 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
 
             // Dismiss Button
             TactileButton(
-              label: 'CLOSE HANGAR',
+              label: 'DISMISS',
+              height: 40.0,
               onPressed: () => Navigator.of(context).pop(),
               accentColor: VoidTheme.plasmaCyan,
             ),
@@ -246,10 +247,10 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
           if (!isEquipped) ...[
             if (chassis.isUnlocked)
               TactileButton(
-                label: 'EQUIP SHIP',
+                label: 'EQUIP',
                 onPressed: () => _selectChassis(chassis.chassisId),
                 accentColor: VoidTheme.solarGold,
-                height: 38.0,
+                height: 40.0,
               )
             else ...[
               TactileButton(
@@ -257,7 +258,7 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
                 icon: Icons.lock_outline,
                 onPressed: () => _promptProChassis(chassis),
                 accentColor: VoidTheme.crimsonFlare,
-                height: 38.0,
+                height: 40.0,
               ),
               const SizedBox(height: 6.0),
               Center(

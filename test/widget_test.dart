@@ -90,7 +90,7 @@ void main() {
       expect(find.text('ORBITAL FLEET HANGAR'), findsOneWidget);
 
       // Dismiss Fleet Hangar Modal
-      await tester.tap(find.text('CLOSE HANGAR'));
+      await tester.tap(find.text('DISMISS'));
       await tester.pumpAndSettle();
       expect(find.text('ORBITAL FLEET HANGAR'), findsNothing);
     },

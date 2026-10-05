@@ -185,10 +185,10 @@ class _SettingsModalState extends State<SettingsModal>
                   ),
                   isScrollable: true,
                   tabs: const [
-                    Tab(text: 'AUDIO & HAPTICS'),
+                    Tab(text: 'AUDIO'),
                     Tab(text: 'GRAPHICS'),
                     Tab(text: 'DIAGNOSTICS'),
-                    Tab(text: 'LEGAL & ABOUT'),
+                    Tab(text: 'LEGAL'),
                   ],
                 ),
               ),
@@ -210,7 +210,7 @@ class _SettingsModalState extends State<SettingsModal>
               Padding(
                 padding: const EdgeInsets.all(14.0),
                 child: TactileButton(
-                  label: 'RETURN TO COCKPIT',
+                  label: 'DISMISS',
                   icon: Icons.check,
                   accentColor: VoidTheme.solarGold,
                   height: 44.0,
@@ -324,10 +324,10 @@ class _SettingsModalState extends State<SettingsModal>
                 ),
               ),
               TactileButton(
-                label: 'TEST SFX DISCHARGE',
+                label: 'TEST SFX',
                 icon: Icons.play_arrow,
                 accentColor: VoidTheme.plasmaCyan,
-                height: 36.0,
+                height: 40.0,
                 onPressed:
                     (_isSoundEnabled && !_isSfxMuted && _sfxVolume > 0.001)
                     ? () {
@@ -691,7 +691,7 @@ class _SettingsModalState extends State<SettingsModal>
         const SizedBox(height: 12.0),
 
         TactileButton(
-          label: 'TACTICAL DIRECTIVES (RULES & BRIEFING)',
+          label: 'TACTICAL DIRECTIVES',
           icon: Icons.military_tech,
           accentColor: VoidTheme.plasmaCyan,
           isPrimary: false,
@@ -714,7 +714,7 @@ class _SettingsModalState extends State<SettingsModal>
 
         if (widget.onLaunchAcademy != null) ...[
           TactileButton(
-            label: 'FLIGHT ACADEMY',
+            label: 'ACADEMY',
             icon: Icons.school,
             accentColor: VoidTheme.solarGold,
             isPrimary: true,
@@ -728,11 +728,11 @@ class _SettingsModalState extends State<SettingsModal>
         ],
 
         TactileButton(
-          label: 'RESET FLIGHT ACADEMY TUTORIAL',
+          label: 'RESET TUTORIAL',
           icon: Icons.restart_alt,
           accentColor: VoidTheme.textSecondary,
           isPrimary: false,
-          height: 38.0,
+          height: 40.0,
           onPressed: () async {
             await PersistenceService.instance.setCompletedTutorial(false);
             widget.onResetTutorial?.call();
@@ -757,7 +757,7 @@ class _SettingsModalState extends State<SettingsModal>
       padding: const EdgeInsets.all(16.0),
       children: [
         TactileButton(
-          label: 'IN-APP PRIVACY POLICY',
+          label: 'PRIVACY POLICY',
           icon: Icons.privacy_tip,
           accentColor: VoidTheme.plasmaCyan,
           height: 40.0,
@@ -783,7 +783,7 @@ class _SettingsModalState extends State<SettingsModal>
         ),
         const SizedBox(height: 10.0),
         TactileButton(
-          label: 'CONSENT PREFERENCES & GDPR',
+          label: 'PRIVACY CONSENT',
           icon: Icons.security,
           accentColor: VoidTheme.starWhite,
           height: 40.0,
@@ -797,7 +797,7 @@ class _SettingsModalState extends State<SettingsModal>
         ),
         const SizedBox(height: 10.0),
         TactileButton(
-          label: 'OPEN SOURCE LICENSES',
+          label: 'LICENSES',
           icon: Icons.code,
           accentColor: VoidTheme.plasmaCyanLight,
           height: 40.0,

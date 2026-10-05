@@ -419,9 +419,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     final canAdvance =
                         widget.canAdvance ?? (widget.sectorId < 9);
                     return TactileButton(
-                      label: canAdvance
-                          ? 'ADVANCE TO NEXT SECTOR'
-                          : 'REPLAY SECTOR',
+                      label: canAdvance ? 'NEXT SECTOR' : 'REPLAY',
                       icon: canAdvance ? Icons.arrow_forward : Icons.replay,
                       onPressed: _isArmed ? widget.onNextSector : null,
                       accentColor: _isArmed
@@ -436,7 +434,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                 if (widget.onReturnToMap != null) ...[
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'RETURN TO STAR MAP',
+                    label: 'STAR MAP',
                     icon: Icons.map_outlined,
                     onPressed: _isArmed ? widget.onReturnToMap! : null,
                     accentColor: _isArmed
@@ -444,21 +442,21 @@ class _VictoryDialogState extends State<VictoryDialog> {
                         : VoidTheme.plasmaCyan.withValues(alpha: 0.4),
                     isPrimary: false,
                     minWidth: double.infinity,
-                    height: 38.0,
+                    height: 40.0,
                     fontSize: 11.0,
                   ),
                 ],
                 if (widget.onUpgradePro != null) ...[
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'UNLOCK ALL SECTORS • PRO',
+                    label: 'UNLOCK PRO',
                     icon: Icons.workspace_premium,
                     onPressed: _isArmed ? widget.onUpgradePro! : null,
                     accentColor: _isArmed
                         ? VoidTheme.solarGold
                         : VoidTheme.solarGold.withValues(alpha: 0.4),
                     minWidth: double.infinity,
-                    height: 36.0,
+                    height: 40.0,
                     fontSize: 11.0,
                   ),
                 ],

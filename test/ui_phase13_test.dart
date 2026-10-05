@@ -155,7 +155,7 @@ void main() {
 
       expect(find.text('FLIGHT ACADEMY • VIDEO BRIEFING'), findsOneWidget);
       expect(find.byTooltip('Close Video'), findsOneWidget);
-      expect(find.text('BACK TO ACADEMY'), findsOneWidget);
+      expect(find.text('DISMISS'), findsOneWidget);
     });
 
     testWidgets('BaoCodexDialog displays rules and lore and video option', (
@@ -174,7 +174,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('WATCH VIDEO TUTORIAL (60s)'), findsNothing);
-      expect(find.text('DISMISS CODEX'), findsOneWidget);
+      expect(find.text('DISMISS'), findsOneWidget);
     });
 
     testWidgets(
@@ -192,10 +192,10 @@ void main() {
           ),
         );
 
-        expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
+        expect(find.text('ACADEMY'), findsOneWidget);
         expect(find.byIcon(Icons.school), findsOneWidget);
 
-        await tester.tap(find.text('FLIGHT ACADEMY'));
+        await tester.tap(find.text('ACADEMY'));
         await tester.pumpAndSettle();
 
         expect(academyLaunched, isTrue);
@@ -234,7 +234,7 @@ void main() {
       // Scroll back up and equip MK-II
       await tester.drag(find.byType(ListView), const Offset(0, 300));
       await tester.pumpAndSettle();
-      final equipButtons = find.text('EQUIP SHIP');
+      final equipButtons = find.text('EQUIP');
       expect(equipButtons, findsWidgets);
       await tester.tap(equipButtons.first);
       await tester.pumpAndSettle();

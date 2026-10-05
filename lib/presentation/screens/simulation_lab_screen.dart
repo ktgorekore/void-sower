@@ -333,7 +333,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                     children: [
                       _buildTabButton(
                         tab: SimulationLabTab.customSortie,
-                        label: 'CUSTOM SORTIE',
+                        label: 'SORTIE',
                         icon: Icons.tune,
                       ),
                       _buildTabButton(
@@ -343,7 +343,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                       ),
                       _buildTabButton(
                         tab: SimulationLabTab.endlessHorde,
-                        label: 'ENDLESS HORDE',
+                        label: 'ENDLESS',
                         icon: Icons.all_inclusive,
                       ),
                     ],
@@ -675,7 +675,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
 
           // Launch Action
           TactileButton(
-            label: 'LAUNCH SIMULATION',
+            label: 'LAUNCH SORTIE',
             icon: Icons.rocket_launch,
             onPressed: _launchCustomSortie,
             accentColor: VoidTheme.solarGold,
@@ -828,8 +828,8 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
 
           TactileButton(
             label: _isBenchmarking
-                ? 'EXECUTING BENCHMARK...'
-                : 'EXECUTE 100-ITERATION MCTS BENCHMARK',
+                ? 'RUNNING BENCHMARK...'
+                : 'RUN 100-STEP BENCHMARK',
             icon: Icons.speed,
             onPressed: _isBenchmarking ? null : _runMctsBenchmark,
             accentColor: VoidTheme.plasmaCyan,
@@ -887,7 +887,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Text(
-                  'ENDLESS HORDE CRUCIBLE',
+                  'ENDLESS HORDE',
                   style: TextStyle(
                     color: VoidTheme.crimsonFlare,
                     fontSize: 11.0,
@@ -910,7 +910,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
           const SizedBox(height: 16.0),
 
           TactileButton(
-            label: 'LAUNCH ENDLESS HORDE SURVIVAL',
+            label: 'LAUNCH ENDLESS',
             icon: Icons.all_inclusive,
             onPressed: _launchEndlessHorde,
             accentColor: VoidTheme.crimsonFlare,
@@ -958,7 +958,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
             ),
             const SizedBox(height: 16.0),
             TactileButton(
-              label: 'UNLOCK PRO CLEARANCE',
+              label: 'UNLOCK PRO',
               icon: Icons.workspace_premium,
               onPressed: () {
                 showDialog<void>(

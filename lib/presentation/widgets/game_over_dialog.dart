@@ -271,7 +271,7 @@ class _GameOverDialogState extends State<GameOverDialog> {
               children: [
                 Expanded(
                   child: TactileButton(
-                    label: 'SECTOR MAP',
+                    label: 'STAR MAP',
                     icon: Icons.map_outlined,
                     onPressed: _isArmed ? widget.onReturnToMap : null,
                     accentColor: _isArmed
@@ -285,7 +285,7 @@ class _GameOverDialogState extends State<GameOverDialog> {
                 const SizedBox(width: 8.0),
                 Expanded(
                   child: TactileButton(
-                    label: 'TRY AGAIN',
+                    label: 'RETRY',
                     icon: Icons.refresh,
                     onPressed: _isArmed ? widget.onRetry : null,
                     accentColor: _isArmed

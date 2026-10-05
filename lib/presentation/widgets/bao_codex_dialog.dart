@@ -168,7 +168,7 @@ class BaoCodexDialog extends StatelessWidget {
             // Interactive Flight Academy Onboarding Launch Button
             if (onLaunchAcademy != null) ...[
               TactileButton(
-                label: 'FLIGHT ACADEMY',
+                label: 'ACADEMY',
                 icon: Icons.school,
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -176,18 +176,18 @@ class BaoCodexDialog extends StatelessWidget {
                 },
                 accentColor: VoidTheme.solarGold,
                 isPrimary: true,
-                height: 42.0,
+                height: 44.0,
               ),
               const SizedBox(height: 8.0),
             ],
 
             // Close Button
             TactileButton(
-              label: 'DISMISS CODEX',
+              label: 'DISMISS',
               onPressed: () => Navigator.of(context).pop(),
               accentColor: VoidTheme.plasmaCyan,
               isPrimary: onLaunchAcademy == null,
-              height: 42.0,
+              height: 40.0,
             ),
           ],
         ),

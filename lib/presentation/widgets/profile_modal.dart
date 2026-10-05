@@ -884,10 +884,10 @@ class _ProfileModalState extends State<ProfileModal> {
                     ),
                     const SizedBox(height: 8.0),
                     TactileButton(
-                      label: 'VIEW FULL FLEET TELEMETRY',
+                      label: 'FLEET TELEMETRY',
                       icon: Icons.analytics_outlined,
                       accentColor: VoidTheme.solarGold,
-                      height: 38.0,
+                      height: 40.0,
                       fontSize: 11.0,
                       onPressed: () {
                         Navigator.of(context).push(
@@ -1035,7 +1035,7 @@ class _ProfileModalState extends State<ProfileModal> {
                       label: 'SIGN IN WITH GOOGLE',
                       icon: Icons.login,
                       accentColor: VoidTheme.plasmaCyan,
-                      height: 38.0,
+                      height: 40.0,
                       onPressed: _linkGoogleAccount,
                     ),
                   ),
@@ -1053,10 +1053,10 @@ class _ProfileModalState extends State<ProfileModal> {
               ),
           ] else ...[
             TactileButton(
-              label: 'DISCONNECT CLOUD IDENTITY',
+              label: 'SIGN OUT',
               icon: Icons.logout,
               accentColor: VoidTheme.crimsonFlare,
-              height: 36.0,
+              height: 40.0,
               onPressed: _unlinkGoogleAccount,
             ),
           ],
@@ -1165,7 +1165,7 @@ class _ProfileModalState extends State<ProfileModal> {
                     label: 'CREATE PILOT',
                     icon: Icons.check,
                     accentColor: VoidTheme.plasmaCyan,
-                    height: 36.0,
+                    height: 40.0,
                     onPressed: _submitNewProfile,
                   ),
                 ],

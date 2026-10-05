@@ -177,9 +177,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                   children: [
                     Expanded(
                       child: Text(
-                        isPro
-                            ? 'TIER: PRO COMMANDER'
-                            : 'WATCH AD: +${AdConfig.emergencyCoresReward} CORES',
+                        isPro ? 'TIER: PRO COMMANDER' : 'EMERGENCY CORES',
                         style: TextStyle(
                           color: isPro
                               ? VoidTheme.solarGold

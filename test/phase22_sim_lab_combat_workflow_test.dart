@@ -40,7 +40,7 @@ void main() {
 
   group('Phase 22: Simulation Lab UI & Custom Sortie Streamlining', () {
     testWidgets(
-      'SimulationLabScreen displays clean labels, doctrine selector, and LAUNCH SIMULATION button',
+      'SimulationLabScreen displays clean labels, doctrine selector, and LAUNCH SORTIE button',
       (tester) async {
         final mockEngine = MockVoidSowerEngine();
 
@@ -61,7 +61,7 @@ void main() {
         expect(find.text('SWARM'), findsOneWidget);
 
         // 3. Verify streamlined launch button
-        expect(find.text('LAUNCH SIMULATION'), findsOneWidget);
+        expect(find.text('LAUNCH SORTIE'), findsOneWidget);
         expect(find.text('INITIALIZE CUSTOM SIMULATION SORTIE'), findsNothing);
       },
     );
@@ -90,7 +90,7 @@ void main() {
     });
 
     testWidgets(
-      'Tapping LAUNCH SIMULATION navigates to CombatScreen with custom parameters',
+      'Tapping LAUNCH SORTIE navigates to CombatScreen with custom parameters',
       (tester) async {
         final mockEngine = MockVoidSowerEngine();
 
@@ -99,8 +99,8 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Tap LAUNCH SIMULATION
-        await tester.tap(find.text('LAUNCH SIMULATION'));
+        // Tap LAUNCH SORTIE
+        await tester.tap(find.text('LAUNCH SORTIE'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 
@@ -331,10 +331,10 @@ void main() {
 
         // Verify VictoryDialog is visible
         expect(find.byType(VictoryDialog), findsOneWidget);
-        expect(find.text('UNLOCK ALL SECTORS • PRO'), findsOneWidget);
+        expect(find.text('UNLOCK PRO'), findsOneWidget);
 
-        // Tap UNLOCK ALL SECTORS • PRO
-        await tester.tap(find.text('UNLOCK ALL SECTORS • PRO'));
+        // Tap UNLOCK PRO
+        await tester.tap(find.text('UNLOCK PRO'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
 
@@ -390,10 +390,10 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
 
         expect(find.byType(VictoryDialog), findsOneWidget);
-        expect(find.text('UNLOCK ALL SECTORS • PRO'), findsOneWidget);
+        expect(find.text('UNLOCK PRO'), findsOneWidget);
 
-        // Tap UNLOCK ALL SECTORS • PRO
-        await tester.tap(find.text('UNLOCK ALL SECTORS • PRO'));
+        // Tap UNLOCK PRO
+        await tester.tap(find.text('UNLOCK PRO'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 300));
 
@@ -407,8 +407,8 @@ void main() {
         // Verify ProUpgradeModal closed and VictoryDialog is re-presented
         expect(find.byType(ProUpgradeModal), findsNothing);
         expect(find.byType(VictoryDialog), findsOneWidget);
-        expect(find.text('REPLAY SECTOR'), findsOneWidget);
-        expect(find.text('RETURN TO STAR MAP'), findsOneWidget);
+        expect(find.text('REPLAY'), findsOneWidget);
+        expect(find.text('STAR MAP'), findsOneWidget);
       },
     );
 

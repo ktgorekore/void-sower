@@ -393,7 +393,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   Expanded(
                     flex: 3,
                     child: TactileButton(
-                      label: 'ENGAGE BATTLE',
+                      label: 'LAUNCH',
                       icon: Icons.rocket_launch,
                       onPressed: () {
                         Navigator.of(context).pop();
@@ -599,17 +599,17 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   ),
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'DISMISS INTEL',
+                    label: 'DISMISS',
                     icon: Icons.close,
                     onPressed: () => Navigator.of(context).pop(),
                     accentColor: VoidTheme.textMuted,
                     isPrimary: false,
-                    height: 38.0,
+                    height: 40.0,
                   ),
                 ] else if (requiredSector != null &&
                     requiredSector.isUnlocked) ...[
                   TactileButton(
-                    label: 'DEPLOY TO SECTOR ${sector.requiredSectorId}',
+                    label: 'DEPLOY • S${sector.requiredSectorId}',
                     icon: Icons.rocket_launch,
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -620,16 +620,16 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   ),
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'DISMISS INTEL',
+                    label: 'DISMISS',
                     icon: Icons.close,
                     onPressed: () => Navigator.of(context).pop(),
                     accentColor: VoidTheme.textMuted,
                     isPrimary: false,
-                    height: 38.0,
+                    height: 40.0,
                   ),
                 ] else ...[
                   TactileButton(
-                    label: 'DISMISS INTEL',
+                    label: 'DISMISS',
                     icon: Icons.close,
                     onPressed: () => Navigator.of(context).pop(),
                     accentColor: VoidTheme.textMuted,
@@ -641,7 +641,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                     !EntitlementService.instance.isProUnlocked) ...[
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'INSTANTLY UNLOCK ALL SECTORS • PRO',
+                    label: 'UNLOCK PRO — \$1.29',
                     icon: Icons.workspace_premium,
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -832,7 +832,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                       ),
                       const SizedBox(width: 6.0),
                       Text(
-                        'CAMPAIGN SECTORS',
+                        'CAMPAIGN',
                         style: TextStyle(
                           color: !isSpecial
                               ? Colors.white
@@ -1802,7 +1802,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
               ),
               icon: const Icon(Icons.bolt, size: 14.0),
               label: const Text(
-                'OPEN SPECIAL OPS',
+                'SPECIAL OPS',
                 style: TextStyle(
                   fontSize: 10.5,
                   fontWeight: FontWeight.w900,
