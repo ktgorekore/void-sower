@@ -352,5 +352,65 @@ void main() {
         expect(find.text('SWARM • S19'), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'Operational View Switcher cleanly toggles between Campaign Sectors and Special Ops deck',
+      (tester) async {
+        final mockEngine = MockVoidSowerEngine();
+        await tester.pumpWidget(
+          MaterialApp(home: CampaignMapScreen(engine: mockEngine)),
+        );
+        await tester.pumpAndSettle();
+
+        // 1. By default, Campaign Sectors is active
+        expect(find.text('CAMPAIGN SECTORS'), findsOneWidget);
+        expect(find.text('SPECIAL OPS'), findsOneWidget);
+        expect(find.text('KILWA BASIN'), findsOneWidget);
+        expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+
+        // Daily Sortie & Void Incursion hero cards are NOT visible in Campaign Sectors mode
+        expect(find.text('DAILY SORTIE'), findsNothing);
+        expect(find.text('ENDLESS WAVES'), findsNothing);
+
+        // 2. Switch to SPECIAL OPS via top segmented tab
+        await tester.tap(find.text('SPECIAL OPS'));
+        await tester.pumpAndSettle();
+
+        // Special Operations view is rendered
+        expect(find.text('TACTICAL COMMAND'), findsOneWidget);
+        expect(find.text('SPECIAL OPERATIONS'), findsOneWidget);
+        expect(find.text('DAILY SORTIE'), findsOneWidget);
+        expect(find.text('LAUNCH SORTIE'), findsOneWidget);
+        expect(find.text('VOID INCURSION'), findsOneWidget);
+        expect(find.text('START INCURSION'), findsOneWidget);
+
+        // Scroll down in Special Ops ListView to reveal Pro Overcharge card
+        await tester.drag(find.byType(ListView), const Offset(0.0, -400.0));
+        await tester.pumpAndSettle();
+
+        expect(find.text('PRO OVERCHARGE'), findsOneWidget);
+        expect(find.text('+5m PRO BOOST'), findsOneWidget);
+
+        // Campaign theater tabs are hidden while in Special Ops
+        expect(find.text('KILWA BASIN'), findsNothing);
+
+        // 3. Switch back to CAMPAIGN SECTORS via top tab
+        await tester.tap(find.text('CAMPAIGN SECTORS'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('KILWA BASIN'), findsOneWidget);
+        expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+
+        // 4. Test bottom navigation SECTORS tab resets to Campaign Sectors
+        await tester.tap(find.text('SPECIAL OPS'));
+        await tester.pumpAndSettle();
+        expect(find.text('SPECIAL OPERATIONS'), findsOneWidget);
+
+        await tester.tap(find.text('SECTORS'));
+        await tester.pumpAndSettle();
+        expect(find.text('KILWA BASIN'), findsOneWidget);
+        expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+      },
+    );
   });
 }
