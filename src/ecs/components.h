@@ -128,7 +128,7 @@ struct SowingStateComponent {
 };
 
 /**
- * @brief Encapsulates descending enemy assault craft.
+ * @brief Encapsulates descending enemy assault craft with 3D spatial telemetry.
  */
 struct EnemyVesselComponent {
   uint32_t entity_id{0};  ///< Unique combatant handle.
@@ -143,7 +143,15 @@ struct EnemyVesselComponent {
   float current_hull{0.0f};     ///< Structural integrity points.
   float max_hull{0.0f};         ///< Base hull capacity.
   uint8_t vessel_type{0};  ///< VesselType (0: Escort, 1: Cruiser, 2: Flagship).
-  uint8_t is_destroyed{0};  ///< 1 if marked for removal.
+  uint8_t is_destroyed{0};     ///< 1 if marked for removal.
+  float world_pos_z{0.0f};     ///< Spatial altitude depth (0.0 to 1.0).
+  float velocity_x{0.0f};      ///< Lateral velocity for weaving and flanking.
+  float velocity_z{0.0f};      ///< Vertical dive speed.
+  float bank_angle_rad{0.0f};  ///< 3D roll angle during banking (-0.6 to +0.6).
+  float pitch_angle_rad{0.0f};  ///< 3D pitch angle during dives (-0.4 to +0.4).
+  uint8_t behavior_mode{
+      0};  ///< 0: Standard, 1: Swooper, 2: Weaver, 3: Kamikaze, 4: Splitter.
+  float warp_in_progress{1.0f};  ///< 0.0 to 1.0 holographic rift distortion.
 };
 
 /**

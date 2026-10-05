@@ -299,6 +299,11 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI* out_enemies,
       out_enemies[count].max_hull = enemy.max_hull;
       out_enemies[count].vessel_type = enemy.vessel_type;
       out_enemies[count].is_destroyed = enemy.is_destroyed;
+      out_enemies[count].world_pos_z = enemy.world_pos_z;
+      out_enemies[count].bank_angle_rad = enemy.bank_angle_rad;
+      out_enemies[count].pitch_angle_rad = enemy.pitch_angle_rad;
+      out_enemies[count].behavior_mode = enemy.behavior_mode;
+      out_enemies[count].warp_in_progress = enemy.warp_in_progress;
       count++;
     }
     return count;

@@ -61,6 +61,11 @@ typedef struct {
   float max_hull;
   uint8_t vessel_type;
   uint8_t is_destroyed;
+  float world_pos_z;
+  float bank_angle_rad;
+  float pitch_angle_rad;
+  uint8_t behavior_mode;
+  float warp_in_progress;
 } VoidSowerEnemyFFI;
 
 /**

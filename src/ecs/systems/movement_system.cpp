@@ -59,17 +59,78 @@ void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,
     auto& enemy = view.get<EnemyVesselComponent>(entity);
     if (enemy.is_destroyed != 0) continue;
 
-    enemy.world_pos_y -= enemy.velocity_y * delta_time;
+    // 1. Holographic warp-in distortion progress
+    if (enemy.warp_in_progress < 1.0f) {
+      enemy.warp_in_progress =
+          std::min(1.0f, enemy.warp_in_progress + delta_time * 2.5f);
+    }
 
-    if (lateral_drift) {
-      const float phase = static_cast<float>(enemy.entity_id) * 1.57f;
-      const float lateral_velocity =
-          std::sin(elapsed_time * 2.8f + phase) * 0.28f;
+    // 2. Behavioral flight patterns
+    float lateral_velocity = 0.0f;
+    const float phase = static_cast<float>(enemy.entity_id) * 1.57f;
+
+    switch (enemy.behavior_mode) {
+      case 1: {
+        // Swooper: Elliptical swoop arc with dynamic pitch and roll
+        const float swoop_speed = 2.2f;
+        lateral_velocity = std::cos(elapsed_time * swoop_speed + phase) * 0.35f;
+        enemy.pitch_angle_rad =
+            std::sin(elapsed_time * swoop_speed + phase) * 0.35f;
+        enemy.bank_angle_rad = std::clamp(lateral_velocity * 1.8f, -0.6f, 0.6f);
+        enemy.world_pos_y -=
+            enemy.velocity_y *
+            (1.0f + 0.4f * std::max(0.0f, enemy.pitch_angle_rad)) * delta_time;
+        break;
+      }
+      case 2: {
+        // Lane Weaver: Fast evasive S-curve dodging
+        const float weave_speed = 3.4f;
+        lateral_velocity = std::sin(elapsed_time * weave_speed + phase) * 0.42f;
+        enemy.bank_angle_rad =
+            std::clamp(lateral_velocity * 1.6f, -0.55f, 0.55f);
+        enemy.pitch_angle_rad +=
+            (0.0f - enemy.pitch_angle_rad) * 4.0f * delta_time;
+        enemy.world_pos_y -= enemy.velocity_y * delta_time;
+        break;
+      }
+      case 3: {
+        // Kamikaze: Accelerates towards defense line when damaged
+        const bool is_damaged = (enemy.current_hull < enemy.max_hull ||
+                                 enemy.current_shields < enemy.max_shields);
+        const float speed_mult = is_damaged ? 1.75f : 1.0f;
+        enemy.pitch_angle_rad = is_damaged ? 0.42f : 0.0f;
+        enemy.bank_angle_rad +=
+            (0.0f - enemy.bank_angle_rad) * 4.0f * delta_time;
+        enemy.world_pos_y -= enemy.velocity_y * speed_mult * delta_time;
+        break;
+      }
+      default: {
+        // Standard flight
+        enemy.bank_angle_rad +=
+            (0.0f - enemy.bank_angle_rad) * 4.0f * delta_time;
+        enemy.pitch_angle_rad +=
+            (0.0f - enemy.pitch_angle_rad) * 4.0f * delta_time;
+        enemy.world_pos_y -= enemy.velocity_y * delta_time;
+        break;
+      }
+    }
+
+    // 3. Phantom Drift Doctrine: Add global lateral oscillation if enabled
+    if (lateral_drift && enemy.behavior_mode == 0) {
+      lateral_velocity = std::sin(elapsed_time * 2.8f + phase) * 0.28f;
+      enemy.bank_angle_rad = std::clamp(lateral_velocity * 1.6f, -0.55f, 0.55f);
+    }
+
+    if (lateral_velocity != 0.0f) {
+      enemy.velocity_x = lateral_velocity;
       enemy.world_pos_x = std::clamp(
           enemy.world_pos_x + lateral_velocity * delta_time, 0.06f, 0.94f);
-      enemy.assigned_corridor = static_cast<uint16_t>(
-          std::clamp(static_cast<int>(enemy.world_pos_x * 8.0f), 0, 7));
     }
+
+    // 4. Update assigned corridor and 3D spatial altitude depth
+    enemy.assigned_corridor = static_cast<uint16_t>(
+        std::clamp(static_cast<int>(enemy.world_pos_x * 8.0f), 0, 7));
+    enemy.world_pos_z = std::clamp(1.0f - enemy.world_pos_y, 0.0f, 1.0f);
   }
 }
 

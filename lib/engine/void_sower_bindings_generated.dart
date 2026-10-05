@@ -483,6 +483,21 @@ final class VoidSowerEnemyFFI extends ffi.Struct {
 
   @ffi.Uint8()
   external int is_destroyed;
+
+  @ffi.Float()
+  external double world_pos_z;
+
+  @ffi.Float()
+  external double bank_angle_rad;
+
+  @ffi.Float()
+  external double pitch_angle_rad;
+
+  @ffi.Uint8()
+  external int behavior_mode;
+
+  @ffi.Float()
+  external double warp_in_progress;
 }
 
 /// @brief Flat C representation of an active particle lance beam.

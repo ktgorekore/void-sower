@@ -136,6 +136,13 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig& config) {
                              static_cast<float>(kCorridorCount);
     const float half_health = enemy_info.health * 0.5f;
 
+    uint8_t behavior = 0;
+    if (enemy_info.type == VesselType::Escort) {
+      behavior = (next_id % 2 == 0) ? 1 : 2;  // Swooper or Weaver
+    } else if (enemy_info.type == VesselType::Cruiser) {
+      behavior = (next_id % 3 == 0) ? 3 : 0;  // Kamikaze or Heavy Cruiser
+    }
+
     registry_.emplace<EnemyVesselComponent>(
         enemy_entity,
         EnemyVesselComponent{
@@ -156,6 +163,13 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig& config) {
                             : enemy_info.health,
             .vessel_type = static_cast<uint8_t>(enemy_info.type),
             .is_destroyed = 0,
+            .world_pos_z = std::clamp(1.0f - base_y, 0.0f, 1.0f),
+            .velocity_x = 0.0f,
+            .velocity_z = 0.0f,
+            .bank_angle_rad = 0.0f,
+            .pitch_angle_rad = 0.0f,
+            .behavior_mode = behavior,
+            .warp_in_progress = 1.0f,
         });
 
     base_y = std::max(0.60f, base_y - 0.08f);

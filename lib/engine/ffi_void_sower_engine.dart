@@ -326,6 +326,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
           maxHull: e.max_hull,
           vesselType: e.vessel_type,
           isDestroyed: isDestroyed,
+          worldPosZ: e.world_pos_z,
+          bankAngleRad: e.bank_angle_rad,
+          pitchAngleRad: e.pitch_angle_rad,
+          behaviorMode: e.behavior_mode,
+          warpInProgress: e.warp_in_progress,
         );
       } else {
         _cachedEnemiesList.add(
@@ -341,6 +346,11 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
             maxHull: e.max_hull,
             vesselType: e.vessel_type,
             isDestroyed: isDestroyed,
+            worldPosZ: e.world_pos_z,
+            bankAngleRad: e.bank_angle_rad,
+            pitchAngleRad: e.pitch_angle_rad,
+            behaviorMode: e.behavior_mode,
+            warpInProgress: e.warp_in_progress,
           ),
         );
       }

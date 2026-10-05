@@ -139,7 +139,6 @@ class MutationSelectionDialog extends StatelessWidget {
         rarityColor = VoidTheme.plasmaCyanLight;
         break;
       case MutationRarity.common:
-      default:
         rarityLabel = 'STANDARD MODIFIER';
         rarityColor = VoidTheme.emeraldShield;
         break;

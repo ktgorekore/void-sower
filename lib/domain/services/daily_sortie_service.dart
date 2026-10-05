@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/foundation.dart';
-
 import '../models/campaign_sector.dart';
 import '../models/sector_combat_doctrine.dart';
 import 'persistence_service.dart';
@@ -64,7 +62,6 @@ class DailySortieService {
       case SectorCombatDoctrine.voidSwarm:
         return 'HORDE CRUCIBLE & CORE SIPHON';
       case SectorCombatDoctrine.standardOrbital:
-      default:
         return 'SINGULARITY ION STREAM';
     }
   }
@@ -77,7 +74,6 @@ class DailySortieService {
       case SectorCombatDoctrine.voidSwarm:
         return 'Continuous reinforcement hordes drop from deep space. Neutralizing invaders harvests +2 auxiliary cores directly into the reactor.';
       case SectorCombatDoctrine.standardOrbital:
-      default:
         return 'Standard attack corridors. High-energy quadratic particle lances inflict maximum devastation.';
     }
   }

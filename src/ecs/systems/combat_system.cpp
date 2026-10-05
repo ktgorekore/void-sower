@@ -237,20 +237,28 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
   auto entity = registry_.create();
   const float corridor_x = (static_cast<float>(corridor) + 0.5f) /
                            static_cast<float>(kCorridorCount);
-  registry_.emplace<EnemyVesselComponent>(entity,
-                                          EnemyVesselComponent{
-                                              .entity_id = s_reinforcement_id++,
-                                              .assigned_corridor = corridor,
-                                              .world_pos_x = corridor_x,
-                                              .world_pos_y = world_pos_y,
-                                              .velocity_y = velocity_y,
-                                              .current_shields = shields,
-                                              .max_shields = shields,
-                                              .current_hull = hull,
-                                              .max_hull = hull,
-                                              .vessel_type = vessel_type,
-                                              .is_destroyed = 0,
-                                          });
+  registry_.emplace<EnemyVesselComponent>(
+      entity, EnemyVesselComponent{
+                  .entity_id = s_reinforcement_id++,
+                  .assigned_corridor = corridor,
+                  .world_pos_x = corridor_x,
+                  .world_pos_y = world_pos_y,
+                  .velocity_y = velocity_y,
+                  .current_shields = shields,
+                  .max_shields = shields,
+                  .current_hull = hull,
+                  .max_hull = hull,
+                  .vessel_type = vessel_type,
+                  .is_destroyed = 0,
+                  .world_pos_z = std::clamp(1.0f - world_pos_y, 0.0f, 1.0f),
+                  .velocity_x = 0.0f,
+                  .velocity_z = 0.0f,
+                  .bank_angle_rad = 0.0f,
+                  .pitch_angle_rad = 0.0f,
+                  .behavior_mode = static_cast<uint8_t>(
+                      (vessel_type == 0) ? (s_reinforcement_id % 2 + 1) : 0),
+                  .warp_in_progress = 0.0f,  // Triggers holographic warp-in
+              });
   RebuildSpatialGrid();
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {

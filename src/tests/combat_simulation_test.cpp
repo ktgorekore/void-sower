@@ -605,4 +605,31 @@ TEST(CombatSimulationTest, DefaultBoundaryLineIsFifteenHundredths) {
   }
 }
 
+TEST(CombatSimulationTest, Invader3DTelemetryAndFlightBehaviors) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought();
+
+  // 1. Spawn a Swooper Drone
+  EXPECT_TRUE(combat.SpawnEnemy(2, 0.85f, 0.05f, 50.0f, 100.0f, 0));
+  auto view = registry.view<EnemyVesselComponent>();
+  entt::entity swooper_entity = *view.begin();
+  auto& swooper = registry.get<EnemyVesselComponent>(swooper_entity);
+  swooper.behavior_mode = 1;  // Swooper
+  swooper.warp_in_progress = 0.0f;
+
+  // 2. Advance simulation multiple frames
+  for (int f = 0; f < 30; ++f) {
+    combat.Update(kFixedTimeStep);
+  }
+
+  // 3. Verify warp-in materialized and 3D telemetry calculated
+  EXPECT_GT(swooper.warp_in_progress, 0.5f);
+  EXPECT_FLOAT_EQ(swooper.world_pos_z, 1.0f - swooper.world_pos_y);
+  EXPECT_NE(swooper.bank_angle_rad, 0.0f);
+  EXPECT_NE(swooper.pitch_angle_rad, 0.0f);
+  EXPECT_GE(swooper.assigned_corridor, 0);
+  EXPECT_LE(swooper.assigned_corridor, 7);
+}
+
 }  // namespace void_sower::ecs
