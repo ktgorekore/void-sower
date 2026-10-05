@@ -27,6 +27,7 @@ class VoidTheme {
   static const Color plasmaCyanLight = Color(0xFF84FFFF);
   static const Color crimsonFlare = Color(0xFFFF1744);
   static const Color nebulaAmethyst = Color(0xFF7C4DFF);
+  static const Color nebulaAmethystLight = Color(0xFFB388FF);
   static const Color emeraldShield = Color(0xFF00FFA3);
 
   static const Color textPrimary = Color(0xFFF0F4FC);

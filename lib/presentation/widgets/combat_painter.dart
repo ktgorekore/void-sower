@@ -24,6 +24,7 @@ import '../../domain/models/lance_beam.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
 import 'dreadnought_3d_mesh.dart';
+import 'invader_3d_mesh.dart';
 
 /// Retained Skia static background layer rendering the 8 tactical corridors,
 /// atmospheric defense boundary line, and planetary defense rails.
@@ -162,11 +163,12 @@ class CombatPainter extends CustomPainter {
   final bool isLowBattery;
 
   static final Dreadnought3DMesh _dreadMesh = Dreadnought3DMesh();
+  static final Invader3DMesh _invaderMesh = Invader3DMesh();
 
   // ---------------------------------------------------------------------------
   // Reusable Path Scratchpads & Pre-compiled Static Geometry
   // ---------------------------------------------------------------------------
-  static final Path _scratchEnemyHullPath = Path();
+  static final Path _scratchVolumetricLancePath = Path();
   static final Path _scratchLeftFlamePath = Path();
   static final Path _scratchRightFlamePath = Path();
 
@@ -208,23 +210,6 @@ class CombatPainter extends CustomPainter {
     ..strokeWidth = 3.0;
 
   static final Paint _flakPaint = Paint()..style = PaintingStyle.stroke;
-
-  static final Paint _enemyDroneHullPaint = Paint()
-    ..color = VoidTheme.nebulaAmethyst
-    ..style = PaintingStyle.fill;
-
-  static final Paint _enemyCruiserHullPaint = Paint()
-    ..color = VoidTheme.nebulaAmethyst
-    ..style = PaintingStyle.fill;
-
-  static final Paint _enemyFlagshipHullPaint = Paint()
-    ..color = VoidTheme.crimsonFlare
-    ..style = PaintingStyle.fill;
-
-  static final Paint _enemyOutlinePaint = Paint()
-    ..color = Colors.white.withValues(alpha: 0.8)
-    ..strokeWidth = 1.5
-    ..style = PaintingStyle.stroke;
 
   static final Paint _healthBgPaint = Paint()..color = Colors.black54;
   static final Paint _healthHullPaint = Paint()..color = Colors.redAccent;
@@ -505,15 +490,21 @@ class CombatPainter extends CustomPainter {
           : lance.beamWidth;
       final beamW = math.max(rawWidth, 12.0);
 
-      // Lance outer glow (Zero-allocation static shader with hardware canvas transform)
-      canvas.save();
-      canvas.translate(centerX, 0);
-      canvas.scale(beamW * 1.5, shipProwY);
-      canvas.drawRect(const Rect.fromLTWH(-1.0, 0, 2.0, 1.0), _lanceGlowPaint);
-      canvas.restore();
+      // Volumetric 3D perspective beam cone tapering into deep space (Y = 0)
+      final prowW = beamW * 1.3;
+      final deepSpaceW = beamW * 0.45;
+      _scratchVolumetricLancePath.reset();
+      _scratchVolumetricLancePath.moveTo(centerX - prowW * 0.5, shipProwY);
+      _scratchVolumetricLancePath.lineTo(centerX - deepSpaceW * 0.5, 0);
+      _scratchVolumetricLancePath.lineTo(centerX + deepSpaceW * 0.5, 0);
+      _scratchVolumetricLancePath.lineTo(centerX + prowW * 0.5, shipProwY);
+      _scratchVolumetricLancePath.close();
+
+      // Outer glow along volumetric cone
+      canvas.drawPath(_scratchVolumetricLancePath, _lanceGlowPaint);
 
       // Core axial laser beam
-      _lanceCorePaint.strokeWidth = math.max(beamW * 0.4, 4.0);
+      _lanceCorePaint.strokeWidth = math.max(beamW * 0.35, 3.5);
       canvas.drawLine(
         Offset(centerX, shipProwY),
         Offset(centerX, 0),
@@ -675,33 +666,28 @@ class CombatPainter extends CustomPainter {
     // 3D perspective depth scaling: 0.65x in deep space -> 1.0x at defense line
     final depthScale = 0.65 + 0.35 * normDepth;
     final sizeRatio = enemy.vesselType == 2
-        ? 1.6
-        : (enemy.vesselType == 1 ? 1.2 : 0.8);
-    final w = (width * 0.5) * sizeRatio * depthScale;
-    final h = (width * 0.4) * sizeRatio * depthScale;
+        ? 1.5
+        : (enemy.vesselType == 1 ? 1.15 : 0.85);
+    final scale = (width / 48.0) * sizeRatio * depthScale;
 
-    _scratchEnemyHullPath.reset();
-    _scratchEnemyHullPath.moveTo(x, y + h); // Nose pointing downward
-    _scratchEnemyHullPath.lineTo(x - w / 2, y - h / 2);
-    _scratchEnemyHullPath.lineTo(x, y - h / 4);
-    _scratchEnemyHullPath.lineTo(x + w / 2, y - h / 2);
-    _scratchEnemyHullPath.close();
+    // 1. Render true 3D Polygonal Mesh with cosmic shading & warp-in FX
+    _invaderMesh.projectAndPaint(
+      canvas,
+      center: Offset(x, y),
+      vesselType: enemy.vesselType,
+      pitchRad: enemy.pitchAngleRad,
+      rollRad: enemy.bankAngleRad,
+      yawRad: 0.0,
+      scale: scale,
+      warpInProgress: enemy.warpInProgress,
+      animationTime: animationTime,
+      isLowBattery: isLowBattery,
+    );
 
-    // Hull fill
-    final hullPaint = enemy.vesselType == 2
-        ? _enemyFlagshipHullPaint
-        : (enemy.vesselType == 1
-              ? _enemyCruiserHullPaint
-              : _enemyDroneHullPaint);
-    canvas.drawPath(_scratchEnemyHullPath, hullPaint);
-
-    // Hull outline
-    canvas.drawPath(_scratchEnemyHullPath, _enemyOutlinePaint);
-
-    // Health / Shield Gauges
-    final barW = w * 1.2;
+    // 2. Health / Shield Gauges (positioned above the 3D craft)
+    final barW = 32.0 * sizeRatio * depthScale;
     const barH = 3.0;
-    final barY = y - h / 2 - 8.0;
+    final barY = y - (22.0 * sizeRatio * depthScale) - 8.0;
 
     // Hull bar
     final hullFraction = (enemy.currentHull / math.max(enemy.maxHull, 1.0))
