@@ -105,7 +105,7 @@ TEST(CombatSimulationTest, CrossDischargeDestroysEnemy) {
 
   // Verify enemy in corridor 0 took lance damage (D(1) = 100, absorbs 50 shield
   // + 50 hull -> 50 hull remaining)
-  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_EQ(vessel.current_shields, 0.0f);
   EXPECT_FLOAT_EQ(vessel.current_hull, 50.0f);
   EXPECT_EQ(vessel.is_destroyed, 0);
@@ -150,7 +150,7 @@ TEST(CombatSimulationTest, AxialLanceFiresFromDreadnoughtPosition) {
   bool found_lance = false;
   auto lance_view = registry.view<ParticleLanceComponent>();
   for (auto l_entity : lance_view) {
-    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    const auto &lance = lance_view.get<ParticleLanceComponent>(l_entity);
     if (lance.active == 0) continue;
     EXPECT_NEAR(lance.origin_x, 0.4375f, 0.05f);
     EXPECT_EQ(lance.active, 1);
@@ -160,7 +160,7 @@ TEST(CombatSimulationTest, AxialLanceFiresFromDreadnoughtPosition) {
 
   // Verify enemy in Corridor 3 received lance damage (D(1) = 100 -> 100 hull
   // remaining)
-  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
@@ -250,7 +250,7 @@ TEST(CombatSimulationTest,
 
   // Spawn an initial enemy
   EXPECT_TRUE(engine.SpawnEnemy(2, 0.80f, 0.05f, 0.0f, 10.0f, 0));
-  auto& registry = engine.GetRegistry();
+  auto &registry = engine.GetRegistry();
   auto view = registry.view<EnemyVesselComponent>();
   ASSERT_NE(view.begin(), view.end());
 
@@ -333,7 +333,7 @@ TEST(CombatSimulationTest, Bay15KichwaLanceDischarge) {
   // Frontline Bay 14 must have received the deposited unit, NOT reservoir Bay 0
   auto bay_view = registry.view<BatteryComponent>();
   for (auto b_entity : bay_view) {
-    const auto& b = bay_view.get<BatteryComponent>(b_entity);
+    const auto &b = bay_view.get<BatteryComponent>(b_entity);
     if (b.bay_index == 14) {
       EXPECT_EQ(b.charge_units, 1);
     } else if (b.bay_index == 0) {
@@ -348,14 +348,14 @@ TEST(CombatSimulationTest, Bay15KichwaLanceDischarge) {
   bool found_lance = false;
   auto lance_view = registry.view<ParticleLanceComponent>();
   for (auto l_entity : lance_view) {
-    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    const auto &lance = lance_view.get<ParticleLanceComponent>(l_entity);
     if (lance.active == 0) continue;
     EXPECT_NEAR(lance.origin_x, 0.8125f, 0.05f);
     found_lance = true;
   }
   EXPECT_TRUE(found_lance);
 
-  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
@@ -394,7 +394,7 @@ TEST(CombatSimulationTest, Bay8KichwaLanceDischarge) {
   // Frontline Bay 9 must have received the deposited unit, NOT reservoir Bay 7
   auto bay_view = registry.view<BatteryComponent>();
   for (auto b_entity : bay_view) {
-    const auto& b = bay_view.get<BatteryComponent>(b_entity);
+    const auto &b = bay_view.get<BatteryComponent>(b_entity);
     if (b.bay_index == 9) {
       EXPECT_EQ(b.charge_units, 1);
     } else if (b.bay_index == 7) {
@@ -409,14 +409,14 @@ TEST(CombatSimulationTest, Bay8KichwaLanceDischarge) {
   bool found_lance = false;
   auto lance_view = registry.view<ParticleLanceComponent>();
   for (auto l_entity : lance_view) {
-    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    const auto &lance = lance_view.get<ParticleLanceComponent>(l_entity);
     if (lance.active == 0) continue;
     EXPECT_NEAR(lance.origin_x, 0.1875f, 0.05f);
     found_lance = true;
   }
   EXPECT_TRUE(found_lance);
 
-  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
@@ -481,7 +481,7 @@ TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
   // Bay 0:  0 (never entered inner reservoir)
   auto bay_view = registry.view<BatteryComponent>();
   for (auto b_entity : bay_view) {
-    const auto& b = bay_view.get<BatteryComponent>(b_entity);
+    const auto &b = bay_view.get<BatteryComponent>(b_entity);
     if (b.bay_index == 13) {
       EXPECT_EQ(b.charge_units, 0);
     } else if (b.bay_index == 14) {
@@ -494,7 +494,7 @@ TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
   }
 
   // Verify enemy in Corridor 6 took damage from 2-unit lance: D(2) = 400.0f
-  const auto& vessel = registry.get<EnemyVesselComponent>(enemy);
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
@@ -544,7 +544,7 @@ TEST(CombatSimulationTest,
   // NOT Corridor 5 (0.6875f)
   auto lance_view = registry.view<ParticleLanceComponent>();
   for (auto l_entity : lance_view) {
-    const auto& lance = lance_view.get<ParticleLanceComponent>(l_entity);
+    const auto &lance = lance_view.get<ParticleLanceComponent>(l_entity);
     if (lance.active == 0) continue;
     EXPECT_NEAR(lance.origin_x, 0.3125f, 0.05f);
     EXPECT_NE(lance.origin_x, 0.6875f);
@@ -552,7 +552,7 @@ TEST(CombatSimulationTest,
 
   // The enemy in Corridor 5 must NOT have taken damage because dreadnought was
   // aiming at Corridor 2
-  const auto& vessel_c5 = registry.get<EnemyVesselComponent>(enemy_c5);
+  const auto &vessel_c5 = registry.get<EnemyVesselComponent>(enemy_c5);
   EXPECT_FLOAT_EQ(vessel_c5.current_hull, 500.0f);
 }
 
@@ -599,7 +599,7 @@ TEST(CombatSimulationTest, DefaultBoundaryLineIsFifteenHundredths) {
   combat.InitializeDreadnought();
   auto view = registry.view<DreadnoughtStateComponent>();
   for (auto entity : view) {
-    const auto& state = view.get<DreadnoughtStateComponent>(entity);
+    const auto &state = view.get<DreadnoughtStateComponent>(entity);
     EXPECT_FLOAT_EQ(state.boundary_line_y, 0.15f);
     EXPECT_FLOAT_EQ(state.orbital_position_y, 0.15f);
   }
@@ -614,7 +614,7 @@ TEST(CombatSimulationTest, Invader3DTelemetryAndFlightBehaviors) {
   EXPECT_TRUE(combat.SpawnEnemy(2, 0.85f, 0.05f, 50.0f, 100.0f, 0));
   auto view = registry.view<EnemyVesselComponent>();
   entt::entity swooper_entity = *view.begin();
-  auto& swooper = registry.get<EnemyVesselComponent>(swooper_entity);
+  auto &swooper = registry.get<EnemyVesselComponent>(swooper_entity);
   swooper.behavior_mode = 1;  // Swooper
   swooper.warp_in_progress = 0.0f;
 
@@ -630,6 +630,20 @@ TEST(CombatSimulationTest, Invader3DTelemetryAndFlightBehaviors) {
   EXPECT_NE(swooper.pitch_angle_rad, 0.0f);
   EXPECT_GE(swooper.assigned_corridor, 0);
   EXPECT_LE(swooper.assigned_corridor, 7);
+}
+
+TEST(CombatSimulationTest, StepFSMInvalidEntityHandle) {
+  entt::registry registry;
+  DischargeSystem discharge_system;
+  MatchLifecycleSystem match_lifecycle_system;
+  SpatialGrid spatial_grid;
+  BaoCascadeSystem bao_cascade_system;
+  std::array<entt::entity, kTotalBays> bay_entities{};
+  bay_entities.fill(entt::null);
+
+  // Calling StepFSM with an invalid (null) dreadnought entity should not crash
+  bao_cascade_system.StepFSM(registry, entt::null, bay_entities, spatial_grid,
+                             discharge_system, match_lifecycle_system, 0.016f);
 }
 
 }  // namespace void_sower::ecs

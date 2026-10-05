@@ -18,6 +18,7 @@
 
 #include <atomic>
 #include <thread>
+#include <cmath>
 #include <vector>
 
 #include "void_sower.h"
@@ -96,8 +97,21 @@ TEST(FfiBoundaryTest, NullPointerAndUninitializedEngineSafety) {
   void_sower_get_dreadnought_state(nullptr);
   EXPECT_EQ(void_sower_solve_tactical_step(nullptr, nullptr, nullptr, nullptr),
             0);
+  uint8_t out_bay = 0;
+  int8_t out_dir = 0;
+  float out_conf = 0.0f;
+  float out_dmg = 0.0f;
+  EXPECT_EQ(
+      void_sower_solve_tactical_step(&out_bay, &out_dir, nullptr, &out_dmg), 0);
+  EXPECT_EQ(
+      void_sower_solve_tactical_step(&out_bay, &out_dir, &out_conf, nullptr),
+      0);
   EXPECT_EQ(void_sower_generate_wave(nullptr), 0);
   void_sower_restore_snapshot(nullptr, 10, 500);
+
+  // Test lance alpha validation
+  void_sower_set_lance_alpha(NAN);
+  void_sower_set_lance_alpha(-1.0f);
 
   // Reading when g_engine is null should safely return empty/default values
   std::array<VoidSowerBayFFI, 16> bays{};
@@ -161,7 +175,7 @@ TEST(FfiBoundaryTest, ConcurrentMultiThreadedReaders) {
   }
 
   running.store(false, std::memory_order_relaxed);
-  for (auto& r : readers) {
+  for (auto &r : readers) {
     r.join();
   }
 

@@ -508,8 +508,14 @@ class Invader3DMesh {
     // Dynamic chromatic aberration arc
     _scratchWarpRingPath.reset();
     final arcAngle = animationTime * 8.0;
+    final arcRadius = ringRadius * 0.7;
     _scratchWarpRingPath.addArc(
-      Rect.fromCircle(center: center, radius: ringRadius * 0.7),
+      Rect.fromLTWH(
+        center.dx - arcRadius,
+        center.dy - arcRadius,
+        arcRadius * 2,
+        arcRadius * 2,
+      ),
       arcAngle,
       math.pi * 0.8,
     );

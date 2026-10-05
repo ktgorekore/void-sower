@@ -61,7 +61,8 @@ class CampaignMapScreen extends StatefulWidget {
   State<CampaignMapScreen> createState() => _CampaignMapScreenState();
 }
 
-class _CampaignMapScreenState extends State<CampaignMapScreen> {
+class _CampaignMapScreenState extends State<CampaignMapScreen>
+    with WidgetsBindingObserver {
   late String _activeCampaignId;
   late List<CampaignSector> _sectors;
   String _selectedChassisId = 'mk1_bastion';
@@ -71,6 +72,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     if (widget.initialCampaignId != null &&
         widget.initialCampaignId!.isNotEmpty) {
       _activeCampaignId = widget.initialCampaignId!;
@@ -87,9 +89,23 @@ class _CampaignMapScreenState extends State<CampaignMapScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _boostCountdownTimer?.cancel();
     EntitlementService.instance.removeListener(_onEntitlementChanged);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) {
+      _boostCountdownTimer?.cancel();
+      _boostCountdownTimer = null;
+    } else {
+      if (mounted) {
+        _startBoostTimerIfNeeded();
+        setState(() {});
+      }
+    }
   }
 
   void _onEntitlementChanged() {

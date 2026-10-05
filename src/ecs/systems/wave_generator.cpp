@@ -25,9 +25,9 @@
 
 namespace void_sower::ecs {
 
-WaveGenerator::WaveGenerator(entt::registry& registry) : registry_(registry) {}
+WaveGenerator::WaveGenerator(entt::registry &registry) : registry_(registry) {}
 
-bool WaveGenerator::GenerateWave(const WaveGeneratorConfig& config) {
+bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
   // Clear any existing enemy entities
   auto view = registry_.view<EnemyVesselComponent>();
   registry_.destroy(view.begin(), view.end());
@@ -123,14 +123,16 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig& config) {
   // 3. Apply simulated initial charges back to registry batteries
   auto bay_view = registry_.view<BatteryComponent>();
   for (auto entity : bay_view) {
-    auto& bay = bay_view.get<BatteryComponent>(entity);
-    bay.charge_units = simulated_bays[bay.bay_index];
+    auto &bay = bay_view.get<BatteryComponent>(entity);
+    if (bay.bay_index < kTotalBays) {
+      bay.charge_units = simulated_bays[bay.bay_index];
+    }
   }
 
   // 4. Instantiate planned enemies in their corridors
   float base_y = 0.90f;
   uint32_t next_id = 1000;
-  for (const auto& enemy_info : planned_enemies) {
+  for (const auto &enemy_info : planned_enemies) {
     auto enemy_entity = registry_.create();
     const float corridor_x = (static_cast<float>(enemy_info.corridor) + 0.5f) /
                              static_cast<float>(kCorridorCount);

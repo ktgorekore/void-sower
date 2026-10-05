@@ -23,8 +23,8 @@
 namespace void_sower::ecs {
 
 bool BaoCascadeSystem::InjectCore(
-    entt::registry& registry, entt::entity dreadnought_entity,
-    std::array<entt::entity, kTotalBays>& bay_entities, uint8_t target_bay,
+    entt::registry &registry, entt::entity dreadnought_entity,
+    std::array<entt::entity, kTotalBays> &bay_entities, uint8_t target_bay,
     int8_t direction) {
   VLOG(6) << "BaoCascadeSystem::InjectCore: target_bay="
           << static_cast<int>(target_bay)
@@ -42,7 +42,7 @@ bool BaoCascadeSystem::InjectCore(
     return false;
   }
 
-  auto& dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
+  auto &dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
   if (dread.reserve_cores == 0 || dread.is_cascading != 0) {
     return false;
   }
@@ -62,7 +62,7 @@ bool BaoCascadeSystem::InjectCore(
   dread.cores_used++;
 
   // Increment target bay mass by +1
-  auto& bay = registry.get<BatteryComponent>(bay_entities[target_bay]);
+  auto &bay = registry.get<BatteryComponent>(bay_entities[target_bay]);
   bay.charge_units += 1;
 
   // Namua placement scoops all contained plasma units from the chamber
@@ -91,12 +91,15 @@ bool BaoCascadeSystem::InjectCore(
 }
 
 void BaoCascadeSystem::StepFSM(
-    entt::registry& registry, entt::entity dreadnought_entity,
-    std::array<entt::entity, kTotalBays>& bay_entities,
-    const SpatialGrid& spatial_grid, DischargeSystem& discharge_system,
-    MatchLifecycleSystem& match_lifecycle_system, float delta_time) {
+    entt::registry &registry, entt::entity dreadnought_entity,
+    std::array<entt::entity, kTotalBays> &bay_entities,
+    const SpatialGrid &spatial_grid, DischargeSystem &discharge_system,
+    MatchLifecycleSystem &match_lifecycle_system, float delta_time) {
+  if (dreadnought_entity == entt::null || !registry.valid(dreadnought_entity)) {
+    return;
+  }
   (void)delta_time;
-  auto& dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
+  auto &dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
   auto current_state = static_cast<SimulationState>(dread.current_sim_state);
 
   switch (current_state) {
@@ -107,7 +110,7 @@ void BaoCascadeSystem::StepFSM(
         break;
       }
 
-      auto& sowing = registry.get<SowingStateComponent>(dreadnought_entity);
+      auto &sowing = registry.get<SowingStateComponent>(dreadnought_entity);
       if (sowing.remaining_units == 0) {
         dread.current_sim_state =
             static_cast<uint8_t>(SimulationState::EvaluateDestination);
@@ -122,7 +125,7 @@ void BaoCascadeSystem::StepFSM(
       // Deposit 1 plasma unit
       if (next_bay < kTotalBays && bay_entities[next_bay] != entt::null &&
           registry.valid(bay_entities[next_bay])) {
-        auto& bay = registry.get<BatteryComponent>(bay_entities[next_bay]);
+        auto &bay = registry.get<BatteryComponent>(bay_entities[next_bay]);
         bay.charge_units += 1;
       }
       sowing.remaining_units -= 1;
@@ -144,7 +147,7 @@ void BaoCascadeSystem::StepFSM(
       if (sowing.cascade_depth > 0 && next_bay < kTotalBays &&
           bay_entities[next_bay] != entt::null &&
           registry.valid(bay_entities[next_bay])) {
-        const auto& bay =
+        const auto &bay =
             registry.get<BatteryComponent>(bay_entities[next_bay]);
         const float col_x = IsFrontlineBay(next_bay)
                                 ? (static_cast<float>(next_bay - 8) + 0.5f) /
@@ -170,7 +173,7 @@ void BaoCascadeSystem::StepFSM(
         break;
       }
 
-      const auto& sowing =
+      const auto &sowing =
           registry.get<SowingStateComponent>(dreadnought_entity);
       const uint8_t term_bay = sowing.current_bay;
       if (term_bay >= kTotalBays || bay_entities[term_bay] == entt::null ||
@@ -179,11 +182,11 @@ void BaoCascadeSystem::StepFSM(
             static_cast<uint8_t>(SimulationState::CleanupCheck);
         break;
       }
-      const auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
+      const auto &bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
       const uint32_t final_mass = bay.charge_units;
 
       if (IsFrontlineBay(term_bay)) {
-        const auto& dread_state =
+        const auto &dread_state =
             registry.get<DreadnoughtStateComponent>(dreadnought_entity);
         const int8_t dread_corridor = static_cast<int8_t>(
             std::clamp(static_cast<int>(dread_state.orbital_position_x *
@@ -238,7 +241,7 @@ void BaoCascadeSystem::StepFSM(
         break;
       }
 
-      auto& sowing = registry.get<SowingStateComponent>(dreadnought_entity);
+      auto &sowing = registry.get<SowingStateComponent>(dreadnought_entity);
       const uint8_t term_bay = sowing.current_bay;
       if (term_bay >= kTotalBays || bay_entities[term_bay] == entt::null ||
           !registry.valid(bay_entities[term_bay])) {
@@ -249,7 +252,7 @@ void BaoCascadeSystem::StepFSM(
 
       if (sowing.cascade_depth >= 10) {
         // Prevent infinite cascade loops by forcing discharge on 10th lap
-        auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
+        auto &bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
         const uint32_t terminal_mass =
             bay.charge_units > 0 ? bay.charge_units : 1;
         dread.current_sim_state =
@@ -260,7 +263,7 @@ void BaoCascadeSystem::StepFSM(
         break;
       }
 
-      auto& bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
+      auto &bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
 
       const uint32_t scooped_mass = bay.charge_units;
       bay.charge_units = 0;
@@ -307,9 +310,9 @@ void BaoCascadeSystem::StepFSM(
 }
 
 BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
-    const entt::registry& registry,
-    const std::array<entt::entity, kTotalBays>& bay_entities,
-    const SpatialGrid& spatial_grid, uint8_t start_bay,
+    const entt::registry &registry,
+    const std::array<entt::entity, kTotalBays> &bay_entities,
+    const SpatialGrid &spatial_grid, uint8_t start_bay,
     int8_t direction) const {
   PredictionResult result{
       .terminal_bay = start_bay,

@@ -316,6 +316,11 @@ class CombatPainter extends CustomPainter {
   static TextPainter _getDamageTagPainter(int dmgValue) {
     var painter = _damageTagPainters[dmgValue];
     if (painter == null) {
+      if (_damageTagPainters.length >= 32) {
+        _damageTagPainters.removeWhere(
+          (k, _) => ![16, 32, 64, 128, 256, 512, 1024].contains(k),
+        );
+      }
       painter = _createDamageTagPainter(dmgValue);
       _damageTagPainters[dmgValue] = painter;
     }
@@ -867,8 +872,11 @@ class CombatPainter extends CustomPainter {
             : enemyX + lockSize + 4.0;
         final tagY = ey - tagHeight * 0.5;
 
-        final tagRRect = RRect.fromRectAndRadius(
-          Rect.fromLTWH(tagX, tagY, tagWidth, tagHeight),
+        final tagRRect = RRect.fromLTRBR(
+          tagX,
+          tagY,
+          tagX + tagWidth,
+          tagY + tagHeight,
           const Radius.circular(4.0),
         );
         canvas.drawRRect(tagRRect, _damageTagBgPaint);
@@ -1048,13 +1056,13 @@ class CombatPainter extends CustomPainter {
       final tagW = tagPainter.width + 8.0;
       const tagH = 15.0;
       final tagCenterY = (normForward > 0.08) ? (shipY + 34.0) : (prowY - 26.0);
-      final tagRect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          centerX - tagW * 0.5,
-          tagCenterY - tagH * 0.5,
-          tagW,
-          tagH,
-        ),
+      final tagLeft = centerX - tagW * 0.5;
+      final tagTop = tagCenterY - tagH * 0.5;
+      final tagRect = RRect.fromLTRBR(
+        tagLeft,
+        tagTop,
+        tagLeft + tagW,
+        tagTop + tagH,
         const Radius.circular(3.0),
       );
       canvas.drawRRect(tagRect, _damageTagBgPaint);

@@ -739,6 +739,8 @@ class _CombatScreenState extends State<CombatScreen>
     _directiveNotifier.dispose();
     _coordinator.removeListener(_onCoordinatorStateChanged);
     _coordinator.dispose();
+    AudioService.instance.pauseBgm();
+    AudioService.instance.releaseAudioFocus();
     super.dispose();
   }
 

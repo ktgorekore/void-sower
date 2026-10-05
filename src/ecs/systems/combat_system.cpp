@@ -22,9 +22,7 @@
 
 namespace void_sower::ecs {
 
-static uint32_t s_reinforcement_id = 10000;
-
-CombatSystem::CombatSystem(entt::registry& registry) : registry_(registry) {
+CombatSystem::CombatSystem(entt::registry &registry) : registry_(registry) {
   bay_entities_.fill(entt::null);
 }
 
@@ -32,7 +30,7 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
                                          float boundary_y) {
   VLOG(6) << "CombatSystem::InitializeDreadnought: starting_cores="
           << starting_cores << ", boundary_y=" << boundary_y;
-  s_reinforcement_id = 10000;
+  reinforcement_id_ = 10000;
   if (dreadnought_entity_ == entt::null ||
       !registry_.valid(dreadnought_entity_)) {
     dreadnought_entity_ = registry_.create();
@@ -98,7 +96,7 @@ bool CombatSystem::InjectCore(uint8_t target_bay, int8_t direction) {
 void CombatSystem::SetTargetPositionX(float target_x) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     SetTargetPosition(target_x, dread.target_position_y);
   }
 }
@@ -106,7 +104,7 @@ void CombatSystem::SetTargetPositionX(float target_x) {
 void CombatSystem::SetTargetPosition(float target_x, float target_y) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.target_position_x = std::clamp(target_x, 0.0f, 1.0f);
     dread.target_position_y =
         std::clamp(target_y, dread.boundary_line_y, 0.65f);
@@ -127,7 +125,7 @@ void CombatSystem::SetTargetPosition(float target_x, float target_y) {
 void CombatSystem::SetActiveQuest(uint8_t quest_type) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.active_quest_type = quest_type;
     dread.quest_status = (quest_type != 0)
                              ? static_cast<uint8_t>(QuestStatus::InProgress)
@@ -139,7 +137,7 @@ void CombatSystem::SetActiveQuest(uint8_t quest_type) {
 void CombatSystem::UpdateQuest(float progress, uint8_t status) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.quest_progress = std::clamp(progress, 0.0f, 1.0f);
     dread.quest_status = status;
   }
@@ -148,7 +146,7 @@ void CombatSystem::UpdateQuest(float progress, uint8_t status) {
 SimulationState CombatSystem::GetSimulationState() const {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    const auto& dread =
+    const auto &dread =
         registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     return static_cast<SimulationState>(dread.current_sim_state);
   }
@@ -171,7 +169,7 @@ void CombatSystem::Update(float delta_time) {
                               match_lifecycle_system_, delta_time);
 
   // 3. Advance enemies during active match phases
-  auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+  auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
   auto sim_state = static_cast<SimulationState>(dread.current_sim_state);
   if (sim_state == SimulationState::OrbitalIdle ||
       sim_state == SimulationState::SowingTraversal ||
@@ -197,7 +195,7 @@ void CombatSystem::RebuildSpatialGrid() {
   spatial_grid_.Clear();
   auto view = registry_.view<EnemyVesselComponent>();
   for (auto entity : view) {
-    const auto& enemy = view.get<EnemyVesselComponent>(entity);
+    const auto &enemy = view.get<EnemyVesselComponent>(entity);
     if (enemy.is_destroyed == 0 && enemy.assigned_corridor < kCorridorCount) {
       spatial_grid_.RegisterEntity(
           static_cast<uint8_t>(enemy.assigned_corridor),
@@ -219,7 +217,7 @@ void CombatSystem::DamageAtmosphere(uint32_t penalty) {
 void CombatSystem::GrantCores(uint32_t count) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.reserve_cores += count;
   }
 }
@@ -239,7 +237,7 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                            static_cast<float>(kCorridorCount);
   registry_.emplace<EnemyVesselComponent>(
       entity, EnemyVesselComponent{
-                  .entity_id = s_reinforcement_id++,
+                  .entity_id = reinforcement_id_++,
                   .assigned_corridor = corridor,
                   .world_pos_x = corridor_x,
                   .world_pos_y = world_pos_y,
@@ -256,13 +254,13 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                   .bank_angle_rad = 0.0f,
                   .pitch_angle_rad = 0.0f,
                   .behavior_mode = static_cast<uint8_t>(
-                      (vessel_type == 0) ? (s_reinforcement_id % 2 + 1) : 0),
+                      (vessel_type == 0) ? (reinforcement_id_ % 2 + 1) : 0),
                   .warp_in_progress = 0.0f,  // Triggers holographic warp-in
               });
   RebuildSpatialGrid();
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     if (dread.current_sim_state ==
         static_cast<uint8_t>(SimulationState::Victory)) {
       dread.current_sim_state =
@@ -279,11 +277,11 @@ void CombatSystem::SetLanceAlphaMultiplier(float multiplier) {
 }
 
 void CombatSystem::RestoreSnapshot(
-    const std::array<uint32_t, kTotalBays>& bay_charges, uint32_t reserve_cores,
+    const std::array<uint32_t, kTotalBays> &bay_charges, uint32_t reserve_cores,
     uint32_t total_score) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
-    auto& dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+    auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.reserve_cores = reserve_cores;
     dread.total_score = total_score;
     dread.is_cascading = 0;
@@ -293,7 +291,7 @@ void CombatSystem::RestoreSnapshot(
 
   for (uint8_t i = 0; i < kTotalBays; ++i) {
     if (registry_.valid(bay_entities_[i])) {
-      auto& bay = registry_.get<BatteryComponent>(bay_entities_[i]);
+      auto &bay = registry_.get<BatteryComponent>(bay_entities_[i]);
       bay.charge_units = bay_charges[i];
     }
   }

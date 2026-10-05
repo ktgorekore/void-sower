@@ -44,7 +44,7 @@ class CombatSystem {
    * @brief Constructs a CombatSystem managing the given EnTT entity registry.
    * @param registry Reference to the active EnTT registry.
    */
-  explicit CombatSystem(entt::registry& registry);
+  explicit CombatSystem(entt::registry &registry);
   ~CombatSystem() = default;
 
   /// Initializes the 16 dreadnought capacitor bays and global state.
@@ -96,7 +96,7 @@ class CombatSystem {
   SimulationState GetSimulationState() const;
 
   /// Returns spatial grid.
-  const SpatialGrid& GetSpatialGrid() const { return spatial_grid_; }
+  const SpatialGrid &GetSpatialGrid() const { return spatial_grid_; }
 
   /// Rebuilds spatial grid indexing enemy vessels by corridor.
   void RebuildSpatialGrid();
@@ -105,11 +105,11 @@ class CombatSystem {
   void SetLanceAlphaMultiplier(float multiplier);
 
   /// Restores bay charges, reserve cores, and score from a prior turn snapshot.
-  void RestoreSnapshot(const std::array<uint32_t, kTotalBays>& bay_charges,
+  void RestoreSnapshot(const std::array<uint32_t, kTotalBays> &bay_charges,
                        uint32_t reserve_cores, uint32_t total_score);
 
  private:
-  entt::registry& registry_;
+  entt::registry &registry_;
   SpatialGrid spatial_grid_;
   MovementSystem movement_system_;
   DischargeSystem discharge_system_;
@@ -119,6 +119,7 @@ class CombatSystem {
   std::array<entt::entity, kTotalBays> bay_entities_{};
   bool lateral_drift_{false};
   float elapsed_combat_time_{0.0f};
+  uint32_t reinforcement_id_{10000};
 };
 
 }  // namespace void_sower::ecs
