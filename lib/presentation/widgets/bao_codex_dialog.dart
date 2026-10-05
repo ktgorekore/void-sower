@@ -81,9 +81,12 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: 'ANCIENT MATHEMATICAL ROOTS',
                       body:
-                          'Void Sower transforms the Swahili count-and-capture game '
-                          'Bao la Kiswahili into a 16-bay orbital dreadnought defense system. '
-                          'Energy distributed along circular trajectories powers axial laser lances.',
+                          '16-bay orbital dreadnought defense system adapted from Bao count-and-capture rules.',
+                      chips: const [
+                        '16 CAPACITOR BAYS',
+                        'COUNT & CAPTURE',
+                        'AXIAL LANCES',
+                      ],
                       icon: Icons.history_edu,
                       color: VoidTheme.solarGold,
                     ),
@@ -91,9 +94,12 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: '1. NAMUA (CORE INJECTION)',
                       body:
-                          'Your reactor pool holds 28 Reserve Cores per sector. '
-                          'Injecting a core into any bay spends 1 reserve core '
-                          '(Bao "Namua" rule) to prime and initiate orbital sowing.',
+                          'Spend 1 core from 28 reactor reserves to prime capacitor bays.',
+                      chips: const [
+                        '⚡ 28 RESERVE CORES',
+                        'PRIME BAY',
+                        'SOWING TRAVERSAL',
+                      ],
                       icon: Icons.bolt,
                       color: VoidTheme.plasmaCyan,
                       dioramaType: DioramaType.sowingAndNamua,
@@ -102,9 +108,12 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: '2. QUADRATIC LANCES (D = α · M²)',
                       body:
-                          'When a sowing sequence finishes on a frontline bay (Bays 8–15 facing an active corridor), '
-                          'its accumulated mass M discharges as an axial Particle Lance (D = 100 · M²). '
-                          'Massive energy bloom scales quadratically!',
+                          'Frontline bays discharge mass as axial particle lances with quadratic bloom.',
+                      chips: const [
+                        '⚡ 100x BASE',
+                        '4 CORES = 16x DAMAGE',
+                        'AXIAL BEAM',
+                      ],
                       icon: Icons.flash_on,
                       color: VoidTheme.crimsonFlare,
                       dioramaType: DioramaType.quadraticDamage,
@@ -113,9 +122,12 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: '3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)',
                       body:
-                          'Nyumba (House) bays act as retention sanctuaries. '
-                          'Units deposited into a Nyumba are stored and amplify subsequent discharges '
-                          'with a +15% quadratic cascade bonus.',
+                          'Nyumba bays retain sanctuary energy and amplify subsequent cascades.',
+                      chips: const [
+                        '🛡️ SANCTUARY BAYS',
+                        '+15% CASCADE BOOST',
+                        'REVERSE VECTORS',
+                      ],
                       icon: Icons.shield,
                       color: VoidTheme.solarGold,
                       dioramaType: DioramaType.relayAndCascade,
@@ -124,8 +136,12 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: '4. KICHWA (HEAD VECTORS 8 & 15)',
                       body:
-                          'Kichwa conduits allow reversing the angular momentum of a sowing wave. '
                           'Advance along the altitude rail for a +60% Vanguard proximity devastation bonus.',
+                      chips: const [
+                        '▲ DEEP SPACE ASCENT',
+                        '+60% PROXIMITY BONUS',
+                        'CORRIDOR AIM',
+                      ],
                       icon: Icons.compare_arrows,
                       color: VoidTheme.nebulaAmethyst,
                       dioramaType: DioramaType.vanguardAltitude,
@@ -134,8 +150,12 @@ class BaoCodexDialog extends StatelessWidget {
                     _buildSectionCard(
                       title: '5. KIMBI (FLANK DEFLECTION BAYS 9 & 14)',
                       body:
-                          'Kimbi chambers focus secondary flak shockwaves. '
-                          'Terminating near a Kimbi redirects explosive flak bursts toward the outer corridors.',
+                          'Charged flank chambers focus secondary flak shockwaves outward.',
+                      chips: const [
+                        '🛡️ DEFLECTION BAYS',
+                        'FLAK SHOCKWAVE',
+                        '+50 PTS',
+                      ],
                       icon: Icons.call_split,
                       color: VoidTheme.emeraldShield,
                     ),
@@ -180,6 +200,7 @@ class BaoCodexDialog extends StatelessWidget {
     required String body,
     required IconData icon,
     required Color color,
+    List<String>? chips,
     DioramaType? dioramaType,
   }) {
     return Container(
@@ -217,13 +238,47 @@ class BaoCodexDialog extends StatelessWidget {
               accentColor: color,
             ),
           ],
+          if (chips != null && chips.isNotEmpty) ...[
+            const SizedBox(height: 8.0),
+            Wrap(
+              spacing: 6.0,
+              runSpacing: 4.0,
+              children: chips
+                  .map(
+                    (c) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6.0,
+                        vertical: 2.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4.0),
+                        border: Border.all(
+                          color: color.withValues(alpha: 0.4),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Text(
+                        c,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
           const SizedBox(height: 6.0),
           Text(
             body,
             style: const TextStyle(
               color: VoidTheme.textSecondary,
-              fontSize: 12.0,
-              height: 1.4,
+              fontSize: 11.5,
+              height: 1.35,
             ),
           ),
         ],

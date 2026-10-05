@@ -53,7 +53,7 @@ class CombatBackgroundPainter extends CustomPainter {
 
   static final TextPainter _thresholdPainter = TextPainter(
     text: TextSpan(
-      text: 'ATMOSPHERIC THRESHOLD',
+      text: '▼ THRESHOLD ▼',
       style: TextStyle(
         color: VoidTheme.crimsonFlare.withValues(alpha: 0.85),
         fontSize: 7.5,
@@ -270,12 +270,12 @@ class CombatPainter extends CustomPainter {
   static final List<TextPainter> _conduitLabelPainters = List.generate(8, (i) {
     final painter = TextPainter(
       text: TextSpan(
-        text: 'DEFENDER CONDUIT [C${i + 1}]',
+        text: '⌖ [C${i + 1}]',
         style: const TextStyle(
           color: VoidTheme.solarGold,
-          fontSize: 9.0,
+          fontSize: 8.5,
           fontWeight: FontWeight.w900,
-          letterSpacing: 1.0,
+          letterSpacing: 0.8,
           shadows: [Shadow(color: Colors.black, blurRadius: 4.0)],
         ),
       ),
@@ -386,7 +386,7 @@ class CombatPainter extends CustomPainter {
 
   static final TextPainter _altimeterOrbitPainter = TextPainter(
     text: const TextSpan(
-      text: 'ORBIT',
+      text: 'ORB',
       style: TextStyle(
         color: VoidTheme.emeraldShield,
         fontSize: 6.5,
@@ -399,7 +399,7 @@ class CombatPainter extends CustomPainter {
 
   static final TextPainter _altimeterStratoPainter = TextPainter(
     text: const TextSpan(
-      text: 'STRATO',
+      text: 'STR',
       style: TextStyle(
         color: VoidTheme.textMuted,
         fontSize: 6.5,
@@ -412,7 +412,7 @@ class CombatPainter extends CustomPainter {
 
   static final TextPainter _altimeterDeepSpacePainter = TextPainter(
     text: const TextSpan(
-      text: 'DEEP SPACE',
+      text: 'DEEP',
       style: TextStyle(
         color: VoidTheme.plasmaCyan,
         fontSize: 6.5,
@@ -425,7 +425,7 @@ class CombatPainter extends CustomPainter {
 
   static final TextPainter _altimeterVanguardPainter = TextPainter(
     text: const TextSpan(
-      text: 'VANGUARD +60%',
+      text: '+60%',
       style: TextStyle(
         color: VoidTheme.solarGold,
         fontSize: 6.5,
@@ -438,12 +438,12 @@ class CombatPainter extends CustomPainter {
 
   static final TextPainter _flightHintPainter = TextPainter(
     text: const TextSpan(
-      text: '▲ DRAG UP FOR DEEP SPACE ▲',
+      text: '▲   ▲   ▲',
       style: TextStyle(
         color: VoidTheme.plasmaCyan,
-        fontSize: 8.5,
+        fontSize: 9.5,
         fontWeight: FontWeight.w900,
-        letterSpacing: 1.0,
+        letterSpacing: 2.0,
         shadows: [
           Shadow(color: Colors.black, blurRadius: 4.0),
           Shadow(color: VoidTheme.plasmaCyan, blurRadius: 8.0),

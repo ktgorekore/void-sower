@@ -251,38 +251,35 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
     }
   }
 
-  Future<void> _handleWatchAd([ProFeature? feature]) async {
-    final targetFeature =
-        feature ?? widget.highlightedFeature ?? _selectedFeature;
+  Future<void> _handleWatchAd() async {
     HapticService.instance.injectionClick();
     setState(() => _isProcessing = true);
 
-    final success = await EntitlementService.instance.unlockWithRewardedAd(
-      targetFeature,
-    );
+    final success = await EntitlementService.instance.unlockWithRewardedAd();
 
     if (mounted) {
       setState(() => _isProcessing = false);
       if (success) {
         widget.onUnlocked?.call();
+        final mins = EntitlementService.instance.boostMinutesRemaining;
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'FREE PASS GRANTED: ${ProFeatureMeta.registry[targetFeature]?.title ?? 'Feature'} unlocked for session!',
+              '⚡ +5 MIN PRO OVERCHARGE ACTIVE! ($mins/60m Stacked • All Pro Features Unlocked)',
               style: const TextStyle(
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.bold,
               ),
             ),
-            backgroundColor: VoidTheme.plasmaCyan,
+            backgroundColor: VoidTheme.solarGold,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Ad unavailable. Please try again shortly.',
+              'Holo-transmission unavailable. Please try again shortly.',
               style: TextStyle(fontFamily: 'monospace'),
             ),
             backgroundColor: VoidTheme.crimsonFlare,
@@ -379,7 +376,6 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
   @override
   Widget build(BuildContext context) {
     final highlighted = widget.highlightedFeature ?? _selectedFeature;
-    final targetFeature = highlighted;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -498,6 +494,24 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Stackable Pro Boost Gauge (Voluntary Rewarded Ad)
+                    _buildBoostGauge(),
+                    const SizedBox(height: 10.0),
+
+                    // Voluntary Rewarded Ad CTA (Stackable +5m up to 60m)
+                    TactileButton(
+                      label: EntitlementService.instance.isMaxBoostReached
+                          ? 'MAX OVERCHARGE ACTIVE (60 MIN)'
+                          : 'WATCH AD (FREE PASS)',
+                      icon: Icons.ondemand_video,
+                      accentColor: VoidTheme.plasmaCyan,
+                      height: 44.0,
+                      onPressed: EntitlementService.instance.isMaxBoostReached
+                          ? null
+                          : _handleWatchAd,
+                    ),
+                    const SizedBox(height: 10.0),
+
                     // Primary 1-Time Purchase CTA
                     TactileButton(
                       label: 'UNLOCK PRO COMMANDER — \$1.29',
@@ -506,17 +520,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                       height: 46.0,
                       onPressed: _handlePurchase,
                     ),
-                    const SizedBox(height: 8.0),
-
-                    // Contextual Rewarded Ad Option
-                    TactileButton(
-                      label: 'WATCH AD (FREE PASS)',
-                      icon: Icons.ondemand_video,
-                      accentColor: VoidTheme.plasmaCyan,
-                      height: 42.0,
-                      onPressed: () => _handleWatchAd(targetFeature),
-                    ),
-                    const SizedBox(height: 8.0),
+                    const SizedBox(height: 6.0),
 
                     // Restore Purchases
                     TextButton(
@@ -536,6 +540,86 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBoostGauge() {
+    final ent = EntitlementService.instance;
+    final litSegments = ent.boostSegmentsLit;
+    final mins = ent.boostMinutesRemaining;
+    final isMax = ent.isMaxBoostReached;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 10.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF070E1E),
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(
+          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
+          width: 1.0,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Row(
+                children: [
+                  Icon(Icons.bolt, color: VoidTheme.solarGold, size: 14.0),
+                  SizedBox(width: 4.0),
+                  Text(
+                    'PRO TEMPORAL OVERCHARGE',
+                    style: TextStyle(
+                      color: VoidTheme.starWhite,
+                      fontSize: 10.0,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                isMax ? 'MAX (60m)' : '$mins / 60 MIN',
+                style: TextStyle(
+                  color: isMax ? VoidTheme.emeraldShield : VoidTheme.plasmaCyan,
+                  fontSize: 10.0,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.6,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8.0),
+          // 12-segment battery pips
+          Row(
+            children: List.generate(12, (index) {
+              final isLit = index < litSegments;
+              return Expanded(
+                child: Container(
+                  height: 6.0,
+                  margin: EdgeInsets.only(right: index < 11 ? 2.5 : 0.0),
+                  decoration: BoxDecoration(
+                    color: isLit
+                        ? VoidTheme.solarGold
+                        : const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(2.0),
+                    boxShadow: isLit
+                        ? [
+                            BoxShadow(
+                              color: VoidTheme.solarGold.withValues(alpha: 0.6),
+                              blurRadius: 4.0,
+                            ),
+                          ]
+                        : null,
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }

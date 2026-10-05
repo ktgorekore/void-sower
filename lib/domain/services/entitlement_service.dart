@@ -135,16 +135,36 @@ class EntitlementService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Total remaining minutes of active Pro boost rounded up, or 0.
+  int get boostMinutesRemaining => (remainingBoostTime.inSeconds + 59) ~/ 60;
+
+  /// Maximum allowed Pro boost minutes (60 minutes).
+  int get maxBoostMinutes => 60;
+
+  /// Fraction of max boost active (0.0 to 1.0).
+  double get boostFraction =>
+      (remainingBoostTime.inSeconds / 3600.0).clamp(0.0, 1.0);
+
+  /// Number of 5-minute segments lit (0 to 12) out of 12.
+  int get boostSegmentsLit =>
+      (remainingBoostTime.inSeconds / 300.0).ceil().clamp(0, 12);
+
+  /// Whether player has reached or is near the maximum stacked boost limit.
+  bool get isMaxBoostReached =>
+      remainingBoostTime >= const Duration(minutes: 58);
+
   /// Initiates rewarded ad flow to unlock a stackable 5-minute Pro Boost app-wide.
+  ///
+  /// Always awards 5 minutes of full Pro access across ALL features, stackable
+  /// up to 60 minutes.
   Future<bool> unlockWithRewardedAd([ProFeature? feature]) async {
     final success = await AdService.instance.showRewardedAd(
       isEmergencyFlare: false,
     );
     if (success) {
+      grantStackableBoost();
       if (feature != null) {
         grantTemporaryPass(feature);
-      } else {
-        grantStackableBoost();
       }
       return true;
     }

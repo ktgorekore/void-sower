@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'bao_codex_dialog.dart';
+import 'kinetic_rule_diorama.dart';
 import 'tactile_button.dart';
 
 /// Interactive hands-on Flight Academy onboarding overlay teaching Bao orbital mechanics.
@@ -267,7 +268,26 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                           height: 1.35,
                         ),
                       ),
-                      const SizedBox(height: 12.0),
+                      const SizedBox(height: 8.0),
+
+                      // Kinetic 60 FPS Visual Rule Diorama
+                      Container(
+                        height: 64.0,
+                        margin: const EdgeInsets.only(bottom: 10.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF060B17),
+                          borderRadius: BorderRadius.circular(10.0),
+                          border: Border.all(
+                            color: _getStepAccent().withValues(alpha: 0.35),
+                            width: 1.0,
+                          ),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: KineticRuleDiorama(
+                          type: _getStepDiorama(),
+                          accentColor: _getStepAccent(),
+                        ),
+                      ),
 
                       // Interactive Hands-On Simulation Widget
                       _buildInteractiveWidget(),
@@ -392,19 +412,35 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
     }
   }
 
+  DioramaType _getStepDiorama() {
+    switch (_currentStep) {
+      case 0:
+        return DioramaType.sowingAndNamua;
+      case 1:
+        return DioramaType.sowingAndNamua;
+      case 2:
+        return DioramaType.quadraticDamage;
+      case 3:
+        return DioramaType.vanguardAltitude;
+      case 4:
+      default:
+        return DioramaType.relayAndCascade;
+    }
+  }
+
   String _getStepBody() {
     switch (_currentStep) {
       case 0:
-        return 'Tap a bay to inject 1 fuel core. Save fuel reserves to survive!';
+        return 'Tap bay to prime capacitor (-1 Core).';
       case 1:
-        return 'Swipe left or right to sow cores. Land on charged bays for free cascade laps!';
+        return 'Swipe left or right to distribute cores across bays.';
       case 2:
-        return 'Frontline bays fire Particle Lances. Higher mass = quadratic damage!';
+        return 'Frontline bays fire Particle Lances (Damage: D = M²).';
       case 3:
-        return 'Slide the platform to align your dreadnought prow with descending invaders.';
+        return 'Slide horizontally to align targeting corridor.';
       case 4:
       default:
-        return 'Charged bays deflect falling bombs safely. Empty bays take EMP breaches!';
+        return 'Charged frontline bays deflect falling bombs (+50 PTS).';
     }
   }
 
