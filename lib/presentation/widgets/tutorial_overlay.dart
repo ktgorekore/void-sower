@@ -801,7 +801,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             children: [
               Expanded(
                 child: Text(
-                  'MASS (M): $_demoMass CORES',
+                  'STACKED: $_demoMass CORES',
                   style: const TextStyle(
                     color: VoidTheme.solarGold,
                     fontSize: 10.5,
@@ -810,7 +810,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 ),
               ),
               Text(
-                'LANCE YIELD: $damage DMG',
+                'BEAM POWER: $damage DMG',
                 style: const TextStyle(
                   color: VoidTheme.crimsonFlare,
                   fontSize: 11.0,
@@ -851,7 +851,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             label: Text(
               _lanceFired
                   ? '⚡ DIRECT HIT! $damage DMG'
-                  : 'TEST FIRE AXIAL LANCE',
+                  : 'TEST FIRE CHARGED LASER',
               style: const TextStyle(
                 fontSize: 10.0,
                 fontWeight: FontWeight.w900,
