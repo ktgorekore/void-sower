@@ -346,7 +346,7 @@ void main() {
       expect(AdConfig.androidRewardedTestId, isNotEmpty);
       expect(AdConfig.iosRewardedTestId, isNotEmpty);
       expect(AdConfig.rewardedCooldown.inMinutes, 3);
-      expect(AdConfig.emergencyCoresReward, 8);
+      expect(AdConfig.emergencyCoresReward, 56);
     });
 
     test('AdService grants instant bypass for Pro commanders', () async {
@@ -568,10 +568,10 @@ void main() {
         expect(find.text('CRITICAL REACTOR DEPLETION'), findsOneWidget);
         expect(find.text('Emergency Orbital Flare Available'), findsOneWidget);
 
-        await tester.tap(find.text('WATCH AD (+8 CORES)'));
+        await tester.tap(find.text('WATCH AD (+56 CORES)'));
         await tester.pumpAndSettle();
 
-        expect(awarded, 8);
+        expect(awarded, 56);
       },
     );
   });

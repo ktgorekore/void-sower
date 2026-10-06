@@ -24,6 +24,7 @@ import 'package:void_sower/presentation/controllers/combat_coordinator.dart';
 import 'package:void_sower/presentation/screens/campaign_map_screen.dart';
 import 'package:void_sower/presentation/screens/combat_screen.dart';
 import 'package:void_sower/presentation/widgets/hud_header.dart';
+import 'package:void_sower/presentation/widgets/pro_boost_modal.dart';
 import 'package:void_sower/presentation/widgets/pro_upgrade_modal.dart';
 
 void main() {
@@ -35,6 +36,9 @@ void main() {
     await PersistenceService.instance.setCompletedTutorial(true);
     AdService.instance.resetCooldownForTesting();
     AdService.instance.setSimulateMobileForTesting(false);
+    await PersistenceService.instance.setProBoostExpiry(null);
+    await PersistenceService.instance.setProUnlocked(false);
+    EntitlementService.instance.syncStateFromPersistence();
   });
 
   group('Phase 20 Fix 1: AdService Reward Verification & Bypass Elimination', () {
@@ -203,8 +207,8 @@ void main() {
       await tester.tap(find.text('PRO'));
       await tester.pump(const Duration(milliseconds: 200));
 
-      // ProUpgradeModal is presented
-      expect(find.byType(ProUpgradeModal), findsOneWidget);
+      // ProBoostModal is presented
+      expect(find.byType(ProBoostModal), findsOneWidget);
     });
 
     testWidgets(
@@ -269,7 +273,7 @@ void main() {
           // Open Pro modal
           await tester.tap(find.text('PRO'));
           await tester.pump(const Duration(milliseconds: 200));
-          expect(find.byType(ProUpgradeModal), findsOneWidget);
+          expect(find.byType(ProBoostModal), findsOneWidget);
 
           // Close modal
           final closeButton = find.byIcon(Icons.close);
@@ -279,7 +283,7 @@ void main() {
             await tester.tapAt(const Offset(10, 10));
           }
           await tester.pump(const Duration(milliseconds: 200));
-          expect(find.byType(ProUpgradeModal), findsNothing);
+          expect(find.byType(ProBoostModal), findsNothing);
 
           // Simulate app backgrounding and foregrounding as during AdMob AdActivity
           tester.binding.handleAppLifecycleStateChanged(
