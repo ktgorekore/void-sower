@@ -395,5 +395,68 @@ void main() {
         );
       },
     );
+
+    test(
+      'quickFireActiveCorridor self-heals even when dreadnought is in GameOver state if reserve cores > 0',
+      () {
+        expect(coordinator.dreadnought.reserveCores, equals(28));
+        coordinator.setMatchStatusForTesting(CombatMatchStatus.defeat);
+        coordinator.dreadnought = coordinator.dreadnought.copyWith(
+          currentSimState: 8, // SimulationState::GameOver
+        );
+        expect(coordinator.dreadnought.isGameOver, isTrue);
+
+        // Firing quick-fire axial lance must self-heal both status and simState
+        coordinator.quickFireActiveCorridor();
+        expect(
+          coordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+        expect(coordinator.dreadnought.isGameOver, isFalse);
+        expect(coordinator.dreadnought.currentSimState, equals(0));
+        expect(coordinator.dreadnought.reserveCores, equals(27));
+      },
+    );
+
+    test(
+      'grantEmergencyCores resets cascade and GameOver state and restores activeCombat',
+      () {
+        coordinator.setMatchStatusForTesting(CombatMatchStatus.defeat);
+        coordinator.dreadnought = coordinator.dreadnought.copyWith(
+          reserveCores: 0,
+          currentSimState: 8,
+          isCascading: true,
+        );
+
+        coordinator.grantEmergencyCores(8);
+        expect(coordinator.dreadnought.reserveCores, greaterThanOrEqualTo(8));
+        expect(coordinator.dreadnought.isGameOver, isFalse);
+        expect(coordinator.dreadnought.isCascading, isFalse);
+        expect(coordinator.dreadnought.currentSimState, equals(0));
+        expect(
+          coordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+      },
+    );
+
+    test(
+      'injectCore self-heals defeat or GameOver state when reserve cores > 0',
+      () {
+        expect(coordinator.dreadnought.reserveCores, equals(28));
+        coordinator.setMatchStatusForTesting(CombatMatchStatus.defeat);
+        coordinator.dreadnought = coordinator.dreadnought.copyWith(
+          currentSimState: 8,
+        );
+
+        coordinator.injectCore(8, 1);
+        expect(
+          coordinator.state.status,
+          equals(CombatMatchStatus.activeCombat),
+        );
+        expect(coordinator.dreadnought.isGameOver, isFalse);
+        expect(coordinator.dreadnought.currentSimState, equals(0));
+      },
+    );
   });
 }

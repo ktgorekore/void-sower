@@ -312,7 +312,33 @@ void main() {
         audio.isAudioActive,
         isTrue,
       ); // settings unchanged, just focus released
+      expect(audio.isAudioFocusReleased, isTrue);
     });
+
+    test(
+      'updateAudioFocus dynamically releases focus when audio is disabled and requests focus when enabled',
+      () async {
+        final audio = AudioService.instance;
+        await audio.initialize();
+
+        // Enable all audio
+        await audio.setSoundEnabled(true);
+        await audio.setMusicEnabled(true);
+        expect(audio.isAudioActive, isTrue);
+        expect(audio.isAudioFocusReleased, isFalse);
+
+        // Disabling sound and music must release/abandon audio focus so other apps can play
+        await audio.setSoundEnabled(false);
+        await audio.setMusicEnabled(false);
+        expect(audio.isAudioActive, isFalse);
+        expect(audio.isAudioFocusReleased, isTrue);
+
+        // Re-enabling sound effects re-acquires exclusive audio focus to pause other apps
+        await audio.setSoundEnabled(true);
+        expect(audio.isAudioActive, isTrue);
+        expect(audio.isAudioFocusReleased, isFalse);
+      },
+    );
   });
 
   group('Phase 14: Monetization Tests', () {

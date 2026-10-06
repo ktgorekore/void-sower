@@ -148,6 +148,7 @@ class _CombatScreenState extends State<CombatScreen>
 
     _ticker = createTicker(_onTick);
     _resumeTicker();
+    unawaited(AudioService.instance.updateAudioFocus());
   }
 
   @override
@@ -1142,7 +1143,14 @@ class _CombatScreenState extends State<CombatScreen>
                                             );
                                           },
                                           onPanEnd: (details) {
-                                            if (!matchState.canReceiveInput) {
+                                            if (!matchState.canReceiveInput &&
+                                                (_coordinator
+                                                            .dreadnought
+                                                            .reserveCores <=
+                                                        0 ||
+                                                    _coordinator
+                                                        .state
+                                                        .isAutoSolving)) {
                                               return;
                                             }
                                             final vx = details
@@ -1164,15 +1172,24 @@ class _CombatScreenState extends State<CombatScreen>
                                             final activeBay =
                                                 activeCorridor + 8;
 
-                                            // 1. Upward flick -> Quick-fire axial lance / inject core (Namua)
-                                            if ((vy < -140.0 ||
+                                            final totalDragDistance =
+                                                _viewportDragDx.abs() +
+                                                _viewportDragDy.abs();
+
+                                            // 1. Minimal displacement tap -> Quick-fire axial lance
+                                            if (totalDragDistance < 15.0) {
+                                              _coordinator
+                                                  .quickFireActiveCorridor();
+                                            }
+                                            // 2. Upward flick -> Quick-fire axial lance / inject core (Namua)
+                                            else if ((vy < -140.0 ||
                                                     _viewportDragDy < -20.0) &&
                                                 _viewportDragDy.abs() >
                                                     _viewportDragDx.abs()) {
                                               _coordinator
                                                   .quickFireActiveCorridor();
                                             }
-                                            // 2. Swiped RIGHT (Clockwise)
+                                            // 3. Swiped RIGHT (Clockwise)
                                             else if (_viewportDragDx > 10.0 &&
                                                 (vx > 90.0 ||
                                                     _viewportDragDx > 25.0)) {
@@ -1189,7 +1206,7 @@ class _CombatScreenState extends State<CombatScreen>
                                                 resolvedDir,
                                               );
                                             }
-                                            // 3. Swiped LEFT (Counter-Clockwise)
+                                            // 4. Swiped LEFT (Counter-Clockwise)
                                             else if (_viewportDragDx < -10.0 &&
                                                 (vx < -90.0 ||
                                                     _viewportDragDx < -25.0)) {
@@ -1221,16 +1238,12 @@ class _CombatScreenState extends State<CombatScreen>
                                             }
                                           },
                                           onDoubleTap: () {
-                                            if (matchState.canReceiveInput) {
-                                              _coordinator
-                                                  .quickFireActiveCorridor();
-                                            }
+                                            _coordinator
+                                                .quickFireActiveCorridor();
                                           },
                                           onTap: () {
-                                            if (matchState.canReceiveInput) {
-                                              _coordinator
-                                                  .quickFireActiveCorridor();
-                                            }
+                                            _coordinator
+                                                .quickFireActiveCorridor();
                                           },
                                           child: Stack(
                                             fit: StackFit.expand,

@@ -237,11 +237,30 @@ void CombatSystem::GrantCores(uint32_t count) {
       registry_.valid(dreadnought_entity_)) {
     auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.reserve_cores += count;
-    if (dread.current_sim_state ==
-        static_cast<uint8_t>(SimulationState::GameOver)) {
-      dread.current_sim_state =
-          static_cast<uint8_t>(SimulationState::OrbitalIdle);
+
+    // Clear any in-progress or stale cascade state so the player can
+    // immediately fire lances
+    if (registry_.all_of<SowingStateComponent>(dreadnought_entity_)) {
+      registry_.remove<SowingStateComponent>(dreadnought_entity_);
     }
+    dread.is_cascading = 0;
+    dread.current_sim_state =
+        static_cast<uint8_t>(SimulationState::OrbitalIdle);
+
+    // Repel any breaching or encroaching enemies above the atmospheric boundary
+    // to give the revived player breathing room and prevent immediate
+    // re-defeat.
+    auto enemy_view = registry_.view<EnemyVesselComponent>();
+    for (auto entity : enemy_view) {
+      auto &enemy = enemy_view.get<EnemyVesselComponent>(entity);
+      if (enemy.is_destroyed == 0) {
+        if (enemy.world_pos_y <= dread.boundary_line_y + 0.20f) {
+          enemy.world_pos_y = std::max(enemy.world_pos_y + 0.35f,
+                                       dread.boundary_line_y + 0.30f);
+        }
+      }
+    }
+    RebuildSpatialGrid();
   }
 }
 

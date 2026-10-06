@@ -701,4 +701,63 @@ TEST(CombatSimulationTest, ReapDestroyedEnemiesAfterTenTicks) {
   EXPECT_FALSE(registry.valid(enemy_entity));
 }
 
+TEST(CombatSimulationTest,
+     InjectCoreDuringActiveSowingTraversalSelfHealsAndInjects) {
+  Engine engine;
+  engine.Initialize(10, 0.15f);
+
+  auto &registry = engine.GetRegistry();
+  auto dread_view = registry.view<DreadnoughtStateComponent>();
+  ASSERT_NE(dread_view.begin(), dread_view.end());
+  auto dread_entity = *dread_view.begin();
+  auto &dread = registry.get<DreadnoughtStateComponent>(dread_entity);
+
+  // 1. First injection starts sowing traversal
+  EXPECT_TRUE(engine.InjectCore(8, 1));
+  EXPECT_EQ(dread.reserve_cores, 9u);
+  EXPECT_EQ(dread.current_sim_state,
+            static_cast<uint8_t>(SimulationState::SowingTraversal));
+  EXPECT_EQ(dread.is_cascading, 1);
+  EXPECT_TRUE(registry.all_of<SowingStateComponent>(dread_entity));
+
+  // 2. Second rapid injection while mid-traversal should self-heal and inject
+  // immediately
+  EXPECT_TRUE(engine.InjectCore(8, 1));
+  EXPECT_EQ(dread.reserve_cores, 8u);
+  EXPECT_EQ(dread.current_sim_state,
+            static_cast<uint8_t>(SimulationState::SowingTraversal));
+  EXPECT_EQ(dread.is_cascading, 1);
+}
+
+TEST(CombatSimulationTest,
+     GrantCoresRepelsBreachingEnemiesAndSelfHealsGameOver) {
+  Engine engine;
+  engine.Initialize(10, 0.15f);
+
+  // Spawn enemy right at atmospheric boundary (breaching position)
+  EXPECT_TRUE(engine.SpawnEnemy(2, 0.14f, 0.02f, 0.0f, 50.0f, 0));
+
+  // Update should flag GameOver due to breach
+  engine.Update(0.016f);
+  EXPECT_EQ(engine.GetSimulationState(), SimulationState::GameOver);
+
+  // Grant cores (e.g. from watching an ad or emergency flare)
+  engine.GrantCores(8);
+  EXPECT_EQ(engine.GetSimulationState(), SimulationState::OrbitalIdle);
+
+  auto &registry = engine.GetRegistry();
+  auto view = registry.view<EnemyVesselComponent>();
+  ASSERT_NE(view.begin(), view.end());
+  auto enemy_entity = *view.begin();
+  const auto &enemy = view.get<EnemyVesselComponent>(enemy_entity);
+
+  // Enemy must be repelled safely above the boundary line (>= 0.15 + 0.30 =
+  // 0.45)
+  EXPECT_GE(enemy.world_pos_y, 0.45f);
+
+  // Next simulation tick should NOT immediately re-trigger GameOver
+  engine.Update(0.016f);
+  EXPECT_EQ(engine.GetSimulationState(), SimulationState::OrbitalIdle);
+}
+
 }  // namespace void_sower::ecs

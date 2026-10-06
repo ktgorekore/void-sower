@@ -418,10 +418,12 @@ class CombatCoordinator extends ChangeNotifier {
     dreadnought = dreadnought.copyWith(
       reserveCores: dreadnought.reserveCores + bonusCores,
       currentSimState: 0,
+      isCascading: false,
     );
     if (_state.status == CombatMatchStatus.defeat) {
       _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
     }
+    _syncDomainState();
     notifyListeners();
   }
 
@@ -503,21 +505,27 @@ class CombatCoordinator extends ChangeNotifier {
 
     // If game is in tactical tutorial briefing, paused, defeated, or victorious, freeze combat simulation!
     // This guarantees enemies stop moving and shooting when the match reaches a terminal state.
-    // Self-heal: If match status was flagged as defeat due to temporary core depletion,
-    // but reserve cores exist (e.g. from tactical core siphon) and no enemy breached,
-    // restore activeCombat immediately so the match continues without freezing simulation.
-    if (_state.status == CombatMatchStatus.defeat &&
+    // Self-heal: If match status was flagged as defeat or GameOver occurred,
+    // but reserve cores exist (e.g. from watching an ad or tactical core siphon)
+    // and living enemies remain, restore activeCombat and OrbitalIdle immediately
+    // so the player can fire lances and resume combat.
+    if ((_state.status == CombatMatchStatus.defeat || dreadnought.isGameOver) &&
         dreadnought.reserveCores > 0 &&
-        !dreadnought.isGameOver) {
+        enemies.any((e) => !e.isDestroyed)) {
       _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+      dreadnought = dreadnought.copyWith(
+        currentSimState: 0,
+        isCascading: false,
+      );
     }
 
     final bool allEnemiesDestroyed =
         enemies.isNotEmpty && enemies.every((e) => e.isDestroyed);
     final bool isTerminalState =
-        _state.status == CombatMatchStatus.defeat ||
+        (_state.status == CombatMatchStatus.defeat &&
+            dreadnought.reserveCores <= 0) ||
         _state.status == CombatMatchStatus.victory ||
-        dreadnought.isGameOver ||
+        (dreadnought.isGameOver && dreadnought.reserveCores <= 0) ||
         (dreadnought.isVictory &&
             _remainingReinforcements <= 0 &&
             allEnemiesDestroyed);
@@ -1004,7 +1012,20 @@ class CombatCoordinator extends ChangeNotifier {
 
   /// Direct core injection into a designated bay.
   void injectCore(int bayIndex, int direction) {
-    if (!_state.canReceiveInput) return;
+    if (!_state.canReceiveInput) {
+      if ((_state.status == CombatMatchStatus.defeat ||
+              _state.status == CombatMatchStatus.sowingSequence ||
+              dreadnought.isGameOver) &&
+          dreadnought.reserveCores > 0) {
+        _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+        dreadnought = dreadnought.copyWith(
+          currentSimState: 0,
+          isCascading: false,
+        );
+      } else {
+        return;
+      }
+    }
     final resolvedDirection = BayRole.resolveSowDirection(bayIndex, direction);
     final steps = engine.injectCore(bayIndex, resolvedDirection);
     if (steps <= 0) return;
@@ -1037,10 +1058,15 @@ class CombatCoordinator extends ChangeNotifier {
   void quickFireActiveCorridor() {
     _finalizePendingSow();
     if (!_state.canReceiveInput) {
-      if (_state.status == CombatMatchStatus.defeat &&
-          dreadnought.reserveCores > 0 &&
-          !dreadnought.isGameOver) {
+      if ((_state.status == CombatMatchStatus.defeat ||
+              _state.status == CombatMatchStatus.sowingSequence ||
+              dreadnought.isGameOver) &&
+          dreadnought.reserveCores > 0) {
         _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+        dreadnought = dreadnought.copyWith(
+          currentSimState: 0,
+          isCascading: false,
+        );
       } else {
         return;
       }
