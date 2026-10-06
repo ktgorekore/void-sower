@@ -14,7 +14,7 @@
   limitations under the License.
 -->
 
-# Google Play Console Release Notes — v0.2.34 (Build 36)
+# Google Play Console Release Notes — v0.2.34 (Build 37)
 
 ## Release Track: Internal Testing / Closed Testing (Alpha / Beta) / Production
 
