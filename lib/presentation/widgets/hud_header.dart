@@ -54,12 +54,14 @@ class HudHeader extends StatelessWidget {
     this.onTutorialTap,
     this.onEmergencyFlareTap,
     this.onProTap,
+    this.isUnlimitedCores = false,
   });
 
   final int reserveCores;
   final int score;
   final int highScore;
   final bool isPro;
+  final bool isUnlimitedCores;
   final int difficultyTier;
   final int sectorId;
   final String sectorName;
@@ -307,9 +309,10 @@ class HudHeader extends StatelessWidget {
     final remaining = invadersRemaining ?? 0;
     final total = totalInvaders ?? 0;
     final eliminated = total > remaining ? total - remaining : 0;
-    final coreColor = reserveCores <= 5
-        ? VoidTheme.crimsonFlare
-        : VoidTheme.solarGold;
+    final bool unlimited = isUnlimitedCores || reserveCores >= 9000;
+    final coreColor = unlimited
+        ? VoidTheme.solarGold
+        : (reserveCores <= 5 ? VoidTheme.crimsonFlare : VoidTheme.solarGold);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
@@ -421,15 +424,17 @@ class HudHeader extends StatelessWidget {
           const SizedBox(width: 6.0),
 
           // 2. Integrated Core Fuel Gauge: ⚡ 28 CORES Pill
-          // Only permit Emergency Flare modal when cores are in critical depletion (<= 3),
-          // preventing accidental mis-taps near the Pause button from claiming depletion.
           Tooltip(
-            message: reserveCores <= 3
-                ? 'Critical Core Reserves ($reserveCores) — Tap for Emergency Flare'
-                : 'Plasma Core Reserves: $reserveCores units',
+            message: unlimited
+                ? 'Pro Commander: Unlimited Plasma Cores (Void Incursion)'
+                : (reserveCores <= 3
+                      ? 'Critical Core Reserves ($reserveCores) — Tap for Emergency Flare'
+                      : 'Plasma Core Reserves: $reserveCores units'),
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: (reserveCores <= 3) ? onEmergencyFlareTap : null,
+              onTap: (reserveCores <= 3 && !unlimited)
+                  ? onEmergencyFlareTap
+                  : null,
               child: Container(
                 height: 28.0,
                 padding: const EdgeInsets.symmetric(
@@ -440,9 +445,11 @@ class HudHeader extends StatelessWidget {
                   color: const Color(0xFF0F172A),
                   borderRadius: BorderRadius.circular(14.0),
                   border: Border.all(
-                    color: reserveCores <= 3
-                        ? VoidTheme.crimsonFlare
-                        : const Color(0xFF0284C7),
+                    color: unlimited
+                        ? VoidTheme.solarGold
+                        : (reserveCores <= 3
+                              ? VoidTheme.crimsonFlare
+                              : const Color(0xFF0284C7)),
                     width: 1.2,
                   ),
                 ),
@@ -466,10 +473,10 @@ class HudHeader extends StatelessWidget {
                     ),
                     const SizedBox(width: 5.0),
                     Text(
-                      '$reserveCores',
+                      unlimited ? '∞' : '$reserveCores',
                       style: TextStyle(
                         color: coreColor,
-                        fontSize: 13.0,
+                        fontSize: unlimited ? 16.0 : 13.0,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.3,
                       ),
@@ -618,14 +625,15 @@ class _ProHudBadgeState extends State<_ProHudBadge> {
       bgColor = VoidTheme.plasmaCyan.withValues(alpha: 0.2);
       badgeIcon = Icons.timer;
       badgeText = ent.formattedRemainingBoostTime;
-      tooltipMessage = 'Pro Boost: ${ent.formattedRemainingBoostTime}';
+      tooltipMessage =
+          'Pro Boost: ${ent.formattedRemainingBoostTime} (Tap to Stack +5m)';
     } else {
       // Curiosity-triggering prominent red lock badge indicating unlock needed
       badgeColor = VoidTheme.crimsonFlare;
       bgColor = VoidTheme.crimsonFlare.withValues(alpha: 0.18);
       badgeIcon = Icons.lock_outline;
       badgeText = 'PRO';
-      tooltipMessage = 'Unlock Pro Commander';
+      tooltipMessage = 'Unlock Pro Commander or Stack +5m Boost';
     }
 
     return Tooltip(

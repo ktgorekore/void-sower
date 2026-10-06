@@ -29,8 +29,8 @@ class AdConfig {
   /// Minimum duration between consecutive rewarded ad impressions.
   static const Duration rewardedCooldown = Duration(minutes: 3);
 
-  /// Number of plasma cores replenished upon rewarded ad completion.
-  static const int emergencyCoresReward = 8;
+  /// Number of plasma cores replenished upon rewarded ad completion (2x standard initial core capacity).
+  static const int emergencyCoresReward = 56;
 
   /// Returns appropriate rewarded ad unit ID for the host operating system.
   static String get rewardedAdUnitId {

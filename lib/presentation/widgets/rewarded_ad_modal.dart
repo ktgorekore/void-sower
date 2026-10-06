@@ -21,11 +21,16 @@ import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'tactile_button.dart';
 
-/// Modal dialog prompting the pilot for an Emergency Reactor Charge (+8 Cores).
+/// Modal dialog prompting the pilot for an Emergency Reactor Charge and Pro Overcharge.
 class RewardedAdModal extends StatefulWidget {
-  const RewardedAdModal({super.key, required this.onCoresGranted});
+  const RewardedAdModal({
+    super.key,
+    required this.onCoresGranted,
+    this.rewardCores = AdConfig.emergencyCoresReward,
+  });
 
   final void Function(int cores) onCoresGranted;
+  final int rewardCores;
 
   @override
   State<RewardedAdModal> createState() => _RewardedAdModalState();
@@ -45,13 +50,13 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
-        widget.onCoresGranted(AdConfig.emergencyCoresReward);
+        widget.onCoresGranted(widget.rewardCores);
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'EMERGENCY FLARE RECEIVED: +8 Plasma Cores Injected!',
-              style: TextStyle(
+              'EMERGENCY FLARE RECEIVED: +${widget.rewardCores} Plasma Cores & +5m Pro Boost Injected!',
+              style: const TextStyle(
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.bold,
               ),
@@ -149,8 +154,8 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
               // Lore / Description
               Text(
                 isPro
-                    ? 'PRO COMMANDER PRIVILEGE: Summon an instantaneous +${AdConfig.emergencyCoresReward} plasma core relay from the Kilwa flagship without watching ads.'
-                    : 'Siphon auxiliary energy reserves from the orbital fleet. Sponsoring this emergency broadcast will immediately deliver +${AdConfig.emergencyCoresReward} plasma cores into your active capacitor ring.',
+                    ? 'PRO COMMANDER PRIVILEGE: Summon an instantaneous +${widget.rewardCores} plasma core relay from the Kilwa flagship without watching ads.'
+                    : 'Siphon auxiliary energy reserves from the orbital fleet. Sponsoring this emergency broadcast will immediately deliver +${widget.rewardCores} plasma cores and +5 minutes of Pro Boost into your active systems.',
                 style: const TextStyle(
                   color: VoidTheme.starWhite,
                   fontSize: 12.0,
@@ -177,7 +182,9 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                   children: [
                     Expanded(
                       child: Text(
-                        isPro ? 'TIER: PRO COMMANDER' : 'EMERGENCY CORES',
+                        isPro
+                            ? 'TIER: PRO COMMANDER'
+                            : 'EMERGENCY CORES & BOOST',
                         style: TextStyle(
                           color: isPro
                               ? VoidTheme.solarGold
@@ -190,10 +197,10 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                     ),
                     const SizedBox(width: 8.0),
                     Text(
-                      '+${AdConfig.emergencyCoresReward} CORES',
+                      '+${widget.rewardCores} CORES • +5m PRO',
                       style: const TextStyle(
                         color: VoidTheme.solarGold,
-                        fontSize: 11.5,
+                        fontSize: 10.5,
                         fontWeight: FontWeight.w900,
                         fontFamily: 'monospace',
                       ),
@@ -231,7 +238,9 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                     const SizedBox(width: 10.0),
                     Expanded(
                       child: TactileButton(
-                        label: isPro ? 'SUMMON FLARE' : 'WATCH AD (+8 CORES)',
+                        label: isPro
+                            ? 'SUMMON FLARE'
+                            : 'WATCH AD (+${widget.rewardCores} CORES)',
                         icon: isPro ? Icons.bolt : Icons.play_circle_filled,
                         accentColor: canRequest
                             ? (isPro

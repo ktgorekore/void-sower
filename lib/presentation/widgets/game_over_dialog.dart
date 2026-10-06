@@ -39,6 +39,8 @@ class GameOverDialog extends StatefulWidget {
     this.rewindsRemaining = 0,
     this.onRewind,
     this.onWatchAdForCores,
+    this.rewardCores = 56,
+    this.watchAdLabel,
   });
 
   /// Mission score attained prior to defeat.
@@ -71,8 +73,14 @@ class GameOverDialog extends StatefulWidget {
   /// Callback to rewind the combat state before defeat.
   final VoidCallback? onRewind;
 
-  /// Callback to watch a rewarded ad for auxiliary cores (+8 cores).
+  /// Callback to watch a rewarded ad for auxiliary cores and Pro Boost (+5m).
   final VoidCallback? onWatchAdForCores;
+
+  /// Number of auxiliary plasma cores granted upon watching a rewarded ad.
+  final int rewardCores;
+
+  /// Custom label override for the rewarded ad button.
+  final String? watchAdLabel;
 
   @override
   State<GameOverDialog> createState() => _GameOverDialogState();
@@ -230,10 +238,12 @@ class _GameOverDialogState extends State<GameOverDialog> {
             ),
             const SizedBox(height: 12.0),
 
-            // Rewarded Ad Emergency Core Infusion
+            // Rewarded Ad Emergency Core Infusion & Pro Overcharge
             if (widget.onWatchAdForCores != null) ...[
               TactileButton(
-                label: 'WATCH AD (+8 CORES)',
+                label:
+                    widget.watchAdLabel ??
+                    'WATCH AD (+${widget.rewardCores} CORES & +5m PRO)',
                 icon: Icons.play_circle_filled,
                 onPressed: _isArmed ? widget.onWatchAdForCores : null,
                 accentColor: _isArmed
@@ -241,7 +251,7 @@ class _GameOverDialogState extends State<GameOverDialog> {
                     : VoidTheme.emeraldShield.withValues(alpha: 0.35),
                 isPrimary: true,
                 height: 40.0,
-                fontSize: 11.0,
+                fontSize: 10.5,
               ),
               const SizedBox(height: 8.0),
             ],

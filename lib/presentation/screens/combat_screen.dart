@@ -41,6 +41,7 @@ import '../widgets/mutation_selection_dialog.dart';
 import '../widgets/pause_menu_dialog.dart';
 import '../widgets/profile_modal.dart';
 import '../../domain/models/bay_role.dart';
+import '../widgets/pro_boost_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/rewarded_ad_modal.dart';
 import '../widgets/settings_modal.dart';
@@ -144,6 +145,7 @@ class _CombatScreenState extends State<CombatScreen>
       initialVelocity: widget.initialVelocity,
       autoStartSolver: widget.autoStartSolver,
       startWithTutorial: widget.startWithTutorial,
+      isIncursionRun: widget.isIncursionRun,
     );
 
     _ticker = createTicker(_onTick);
@@ -334,6 +336,13 @@ class _CombatScreenState extends State<CombatScreen>
     }
     _overlayState = CombatOverlayState.defeatModal;
 
+    final bool isPermanentPro =
+        EntitlementService.instance.isProUnlocked ||
+        PersistenceService.instance.isProUnlocked;
+    final bool isIncursion =
+        widget.isIncursionRun || _coordinator.isIncursionRun;
+    final int rewardCores = _coordinator.initialCores * 2;
+
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -345,19 +354,29 @@ class _CombatScreenState extends State<CombatScreen>
         armDuration: const Duration(milliseconds: 500),
         canRewind: _coordinator.canChronoRewind,
         rewindsRemaining: _coordinator.chronoRewindsRemaining,
-        onWatchAdForCores: () async {
-          _autoAdvanceTimer?.cancel();
-          final rewarded = await AdService.instance.showRewardedAd();
-          if (!dialogContext.mounted) return;
-          if (rewarded && mounted) {
-            Navigator.of(dialogContext).pop();
-            _coordinator.grantEmergencyCores(8);
-            _coordinator.resumeCombat();
-            _overlayState = CombatOverlayState.none;
-            _resumeTicker();
-            if (mounted) setState(() {});
-          }
-        },
+        rewardCores: rewardCores,
+        watchAdLabel: isIncursion
+            ? 'WATCH AD (UNLOCK 5m PRO & UNLIMITED CORES)'
+            : null,
+        onWatchAdForCores: (isPermanentPro && isIncursion)
+            ? null
+            : () async {
+                _autoAdvanceTimer?.cancel();
+                final rewarded = await AdService.instance.showRewardedAd();
+                if (!dialogContext.mounted) return;
+                if (rewarded && mounted) {
+                  Navigator.of(dialogContext).pop();
+                  final coresToGrant =
+                      (_coordinator.isUnlimitedCores || isIncursion)
+                      ? 5000
+                      : rewardCores;
+                  _coordinator.grantEmergencyCores(coresToGrant);
+                  _coordinator.resumeCombat();
+                  _overlayState = CombatOverlayState.none;
+                  _resumeTicker();
+                  if (mounted) setState(() {});
+                }
+              },
         onRewind: () {
           _autoAdvanceTimer?.cancel();
           Navigator.of(dialogContext).pop();
@@ -608,6 +627,7 @@ class _CombatScreenState extends State<CombatScreen>
       difficulty: _currentDifficultyTier,
       sector: incursionSector,
       autoStartSolver: _coordinator.state.isAutoSolving,
+      isIncursionRun: true,
     );
     _resumeTicker();
     if (mounted) setState(() {});
@@ -635,8 +655,11 @@ class _CombatScreenState extends State<CombatScreen>
     if (mounted) setState(() {});
   }
 
-  void _openCodex() {
-    if (_overlayState != CombatOverlayState.none) return;
+  void _openCodex({bool returnToPauseMenu = false}) {
+    if (_overlayState != CombatOverlayState.none &&
+        _overlayState != CombatOverlayState.paused) {
+      return;
+    }
     _overlayState = CombatOverlayState.codex;
     _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
@@ -655,17 +678,23 @@ class _CombatScreenState extends State<CombatScreen>
     ).then((_) {
       _overlayState = CombatOverlayState.none;
       if (mounted) {
-        if (_coordinator.state.status != CombatMatchStatus.briefing) {
-          _coordinator.resumeCombat();
-          if (wasTicking) _resumeTicker();
+        if (returnToPauseMenu) {
+          _openPauseMenu();
+        } else {
+          if (_coordinator.state.status != CombatMatchStatus.briefing) {
+            _resumeCombat();
+          }
         }
         setState(() {});
       }
     });
   }
 
-  void _openSettings() {
-    if (_overlayState != CombatOverlayState.none) return;
+  void _openSettings({bool returnToPauseMenu = false}) {
+    if (_overlayState != CombatOverlayState.none &&
+        _overlayState != CombatOverlayState.paused) {
+      return;
+    }
     _overlayState = CombatOverlayState.settings;
     _coordinator.pauseCombat();
     final wasTicking = _ticker.isTicking;
@@ -687,9 +716,46 @@ class _CombatScreenState extends State<CombatScreen>
         _targetFps = PersistenceService.instance.lowBatteryMode
             ? 30
             : PersistenceService.instance.targetFps;
-        if (_coordinator.state.status != CombatMatchStatus.briefing) {
-          _coordinator.resumeCombat();
-          if (wasTicking) _resumeTicker();
+        if (returnToPauseMenu) {
+          _openPauseMenu();
+        } else {
+          if (_coordinator.state.status != CombatMatchStatus.briefing) {
+            _resumeCombat();
+          }
+        }
+        setState(() {});
+      }
+    });
+  }
+
+  void _openProBoostModal({bool returnToPauseMenu = false}) {
+    if (_overlayState != CombatOverlayState.none &&
+        _overlayState != CombatOverlayState.paused) {
+      return;
+    }
+    final previousOverlay = _overlayState;
+    _overlayState = CombatOverlayState.proUpgrade;
+    final wasActive =
+        _coordinator.state.status == CombatMatchStatus.activeCombat;
+    if (wasActive) _coordinator.pauseCombat();
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
+
+    showDialog<void>(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.75),
+      builder: (context) => ProBoostModal(
+        onBoostUpdated: () {
+          if (mounted) setState(() {});
+        },
+      ),
+    ).then((_) {
+      _overlayState = CombatOverlayState.none;
+      if (mounted) {
+        if (returnToPauseMenu) {
+          _openPauseMenu();
+        } else if (previousOverlay != CombatOverlayState.paused && wasActive) {
+          _resumeCombat();
         }
         setState(() {});
       }
@@ -703,9 +769,11 @@ class _CombatScreenState extends State<CombatScreen>
     final wasTicking = _ticker.isTicking;
     if (wasTicking) _ticker.stop();
 
+    final rewardCores = _coordinator.initialCores * 2;
     showDialog<void>(
       context: context,
       builder: (context) => RewardedAdModal(
+        rewardCores: rewardCores,
         onCoresGranted: (cores) {
           _coordinator.grantEmergencyCores(cores);
         },
@@ -713,8 +781,7 @@ class _CombatScreenState extends State<CombatScreen>
     ).then((_) {
       _overlayState = CombatOverlayState.none;
       if (mounted) {
-        _coordinator.resumeCombat();
-        if (wasTicking) _resumeTicker();
+        _resumeCombat();
         setState(() {});
       }
     });
@@ -919,7 +986,7 @@ class _CombatScreenState extends State<CombatScreen>
             shouldResumeOnClose = false;
             Navigator.of(dialogContext).pop();
             _overlayState = CombatOverlayState.none;
-            _openCodex();
+            _openCodex(returnToPauseMenu: true);
           },
           onAcademy: () {
             shouldResumeOnClose = false;
@@ -931,7 +998,13 @@ class _CombatScreenState extends State<CombatScreen>
             shouldResumeOnClose = false;
             Navigator.of(dialogContext).pop();
             _overlayState = CombatOverlayState.none;
-            _openSettings();
+            _openSettings(returnToPauseMenu: true);
+          },
+          onProBoost: () {
+            shouldResumeOnClose = false;
+            Navigator.of(dialogContext).pop();
+            _overlayState = CombatOverlayState.none;
+            _openProBoostModal(returnToPauseMenu: true);
           },
           isAutoSolving: _coordinator.state.isAutoSolving,
           onToggleAutoSolve: () {
@@ -963,7 +1036,11 @@ class _CombatScreenState extends State<CombatScreen>
   }
 
   void _toggleTacticalPause() {
-    _openPauseMenu();
+    if (_coordinator.state.status == CombatMatchStatus.paused) {
+      _resumeCombat();
+    } else {
+      _openPauseMenu();
+    }
   }
 
   @override
@@ -1080,7 +1157,8 @@ class _CombatScreenState extends State<CombatScreen>
                               onCodexTap: _openCodex,
                               onTutorialTap: _coordinator.showTutorial,
                               onEmergencyFlareTap: _openEmergencyFlare,
-                              onProTap: _openProUpgradeModal,
+                              onProTap: _openProBoostModal,
+                              isUnlimitedCores: _coordinator.isUnlimitedCores,
                               isAutoSolving: matchState.isAutoSolving,
                               onToggleAutoSolve: _toggleAutoSolve,
                             ),
@@ -1541,43 +1619,54 @@ class _CombatScreenState extends State<CombatScreen>
                                       left: 16.0,
                                       right: 16.0,
                                       child: Center(
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10.0,
-                                            vertical: 3.0,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(
-                                              0xFF0F172A,
-                                            ).withValues(alpha: 0.8),
-                                            borderRadius: BorderRadius.circular(
-                                              12.0,
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
+                                          onTap: _resumeCombat,
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12.0,
+                                              vertical: 5.0,
                                             ),
-                                            border: Border.all(
-                                              color: VoidTheme.solarGold
-                                                  .withValues(alpha: 0.8),
-                                              width: 1.0,
-                                            ),
-                                          ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.pause_circle_filled,
-                                                color: VoidTheme.solarGold,
-                                                size: 13.0,
+                                            decoration: BoxDecoration(
+                                              color: const Color(
+                                                0xFF0F172A,
+                                              ).withValues(alpha: 0.9),
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                              border: Border.all(
+                                                color: VoidTheme.solarGold
+                                                    .withValues(alpha: 0.85),
+                                                width: 1.2,
                                               ),
-                                              SizedBox(width: 4.0),
-                                              Text(
-                                                'TACTICAL TIME DILATION • SLIDE TO AIM • TAP TO FIRE',
-                                                style: TextStyle(
-                                                  color: VoidTheme.solarGold,
-                                                  fontSize: 8.0,
-                                                  fontWeight: FontWeight.w800,
-                                                  letterSpacing: 0.3,
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: VoidTheme.solarGold
+                                                      .withValues(alpha: 0.25),
+                                                  blurRadius: 8.0,
+                                                  spreadRadius: 1.0,
                                                 ),
-                                              ),
-                                            ],
+                                              ],
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.play_circle_filled,
+                                                  color: VoidTheme.solarGold,
+                                                  size: 14.0,
+                                                ),
+                                                SizedBox(width: 5.0),
+                                                Text(
+                                                  'PAUSED • TAP TO RESUME',
+                                                  style: TextStyle(
+                                                    color: VoidTheme.solarGold,
+                                                    fontSize: 9.0,
+                                                    fontWeight: FontWeight.w800,
+                                                    letterSpacing: 0.6,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),

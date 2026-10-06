@@ -30,6 +30,7 @@ import '../theme/void_theme.dart';
 import '../widgets/fleet_hangar_dialog.dart';
 import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/profile_modal.dart';
+import '../widgets/pro_boost_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/tactical_directives_modal.dart';
@@ -2099,9 +2100,15 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   GestureDetector(
                     onTap: () {
                       HapticService.instance.sowTick();
-                      setState(() {
-                        _activeViewMode = StarmapViewMode.specialOps;
-                      });
+                      showDialog<void>(
+                        context: context,
+                        barrierColor: Colors.black.withValues(alpha: 0.75),
+                        builder: (context) => ProBoostModal(
+                          onBoostUpdated: () {
+                            if (mounted) setState(() {});
+                          },
+                        ),
+                      );
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(

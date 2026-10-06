@@ -179,6 +179,23 @@ class CombatCoordinator extends ChangeNotifier {
 
   int get competitiveScore => _hasUsedAiSolver ? 0 : dreadnought.totalScore;
 
+  bool _isIncursionRun = false;
+
+  /// Whether current match is part of an active Void Incursion run.
+  bool get isIncursionRun => _isIncursionRun;
+
+  int _initialCores = 28;
+
+  /// Initial core allocation for current sortie.
+  int get initialCores => _initialCores;
+
+  /// Whether pilot holds unlimited plasma cores (Pro user or active Pro Boost in Incursion mode).
+  bool get isUnlimitedCores =>
+      _isIncursionRun &&
+      (EntitlementService.instance.isProUnlocked ||
+          EntitlementService.instance.entitlementState.hasProAccess ||
+          PersistenceService.instance.isProUnlocked);
+
   FleetChassis _equippedChassis = FleetService.instance.getChassis(
     'mk1_bastion',
   );
@@ -294,8 +311,11 @@ class CombatCoordinator extends ChangeNotifier {
     bool autoStartSolver = false,
     bool startWithTutorial = false,
     String? chassisId,
+    bool isIncursionRun = false,
   }) {
     _sector = sector;
+    _isIncursionRun =
+        isIncursionRun || (sector?.campaignId == 'void_incursion');
     _hasUsedAiSolver = autoStartSolver;
     _finalizePendingSow();
     _highScore = PersistenceService.instance.highScore;
@@ -323,15 +343,20 @@ class CombatCoordinator extends ChangeNotifier {
 
     vlog(
       6,
-      'CombatCoordinator: Initializing sector ${sector?.sectorId ?? "custom"} difficulty $_currentDifficulty doctrine $doctrine chassis ${_equippedChassis.chassisId}',
+      'CombatCoordinator: Initializing sector ${sector?.sectorId ?? "custom"} difficulty $_currentDifficulty doctrine $doctrine chassis ${_equippedChassis.chassisId} incursion $_isIncursionRun unlimited $isUnlimitedCores',
     );
-    final initialCores =
+    final standardInitialCores =
         startingCores ??
         ((sector != null && sector.sectorId == 1)
             ? 36
             : _equippedChassis.coreCapacity);
+    _initialCores = standardInitialCores;
+    final initialCores = isUnlimitedCores ? 9999 : standardInitialCores;
     engine.initialize(startingCores: initialCores, boundaryY: boundaryY);
     engine.setLateralDrift(doctrine == SectorCombatDoctrine.phantomDrift);
+
+    EntitlementService.instance.removeListener(_handleEntitlementChanged);
+    EntitlementService.instance.addListener(_handleEntitlementChanged);
     final int waveSeed = sector != null
         ? (sector.sectorId == 1 ? 8 : (sector.sectorId * 7919))
         : 8;
@@ -411,12 +436,23 @@ class CombatCoordinator extends ChangeNotifier {
     }
   }
 
+  void _handleEntitlementChanged() {
+    if (_isDisposed) return;
+    if (isUnlimitedCores && dreadnought.reserveCores < 5000) {
+      grantEmergencyCores(5000);
+    }
+    notifyListeners();
+  }
+
   /// Grants emergency auxiliary plasma cores (e.g. from a rewarded ad).
   void grantEmergencyCores(int bonusCores) {
     if (_isDisposed) return;
-    engine.grantCores(bonusCores);
+    final effectiveBonus = (isUnlimitedCores && bonusCores < 5000)
+        ? 5000
+        : bonusCores;
+    engine.grantCores(effectiveBonus);
     dreadnought = dreadnought.copyWith(
-      reserveCores: dreadnought.reserveCores + bonusCores,
+      reserveCores: dreadnought.reserveCores + effectiveBonus,
       currentSimState: 0,
       isCascading: false,
     );
@@ -614,8 +650,19 @@ class CombatCoordinator extends ChangeNotifier {
       _syncDomainState();
     }
 
+    // Replenish unlimited cores for Pro Incursion
+    if (isUnlimitedCores && dreadnought.reserveCores < 5000) {
+      engine.grantCores(5000);
+      dreadnought = dreadnought.copyWith(
+        reserveCores: dreadnought.reserveCores + 5000,
+        currentSimState: 0,
+        isCascading: false,
+      );
+    }
+
     // Check if orbital was breached, ammo exhausted, or victory achieved during simulation step
     final bool isAmmoExhausted =
+        !isUnlimitedCores &&
         dreadnought.reserveCores <= 0 &&
         !dreadnought.isCascading &&
         !lances.any((l) => l.active) &&
@@ -1016,7 +1063,7 @@ class CombatCoordinator extends ChangeNotifier {
       if ((_state.status == CombatMatchStatus.defeat ||
               _state.status == CombatMatchStatus.sowingSequence ||
               dreadnought.isGameOver) &&
-          dreadnought.reserveCores > 0) {
+          (dreadnought.reserveCores > 0 || isUnlimitedCores)) {
         _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
         dreadnought = dreadnought.copyWith(
           currentSimState: 0,
@@ -1025,6 +1072,12 @@ class CombatCoordinator extends ChangeNotifier {
       } else {
         return;
       }
+    }
+    if (isUnlimitedCores && dreadnought.reserveCores < 100) {
+      engine.grantCores(1000);
+      dreadnought = dreadnought.copyWith(
+        reserveCores: dreadnought.reserveCores + 1000,
+      );
     }
     final resolvedDirection = BayRole.resolveSowDirection(bayIndex, direction);
     final steps = engine.injectCore(bayIndex, resolvedDirection);
@@ -1061,7 +1114,7 @@ class CombatCoordinator extends ChangeNotifier {
       if ((_state.status == CombatMatchStatus.defeat ||
               _state.status == CombatMatchStatus.sowingSequence ||
               dreadnought.isGameOver) &&
-          dreadnought.reserveCores > 0) {
+          (dreadnought.reserveCores > 0 || isUnlimitedCores)) {
         _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
         dreadnought = dreadnought.copyWith(
           currentSimState: 0,
@@ -1070,6 +1123,12 @@ class CombatCoordinator extends ChangeNotifier {
       } else {
         return;
       }
+    }
+    if (isUnlimitedCores && dreadnought.reserveCores < 100) {
+      engine.grantCores(1000);
+      dreadnought = dreadnought.copyWith(
+        reserveCores: dreadnought.reserveCores + 1000,
+      );
     }
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final activeBay = corridor + 8;
@@ -1260,6 +1319,7 @@ class CombatCoordinator extends ChangeNotifier {
   @override
   void dispose() {
     _isDisposed = true;
+    EntitlementService.instance.removeListener(_handleEntitlementChanged);
     _finalizePendingSow();
     damageNumbers.clear();
     bulletManager.clear();

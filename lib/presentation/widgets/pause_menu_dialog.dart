@@ -16,6 +16,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../domain/services/entitlement_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 
@@ -41,6 +42,7 @@ class PauseMenuDialog extends StatelessWidget {
     this.canRewind = false,
     this.rewindsRemaining = 0,
     this.onRewind,
+    this.onProBoost,
   });
 
   final int sectorId;
@@ -60,6 +62,7 @@ class PauseMenuDialog extends StatelessWidget {
   final bool canRewind;
   final int rewindsRemaining;
   final VoidCallback? onRewind;
+  final VoidCallback? onProBoost;
 
   String get _tierName {
     switch (difficultyTier) {
@@ -317,6 +320,66 @@ class PauseMenuDialog extends StatelessWidget {
                   const SizedBox(height: 10.0),
                 ] else ...[
                   const SizedBox(height: 4.0),
+                ],
+
+                // Stackable Pro Boost Strip
+                if (onProBoost != null &&
+                    !EntitlementService.instance.isProUnlocked) ...[
+                  GestureDetector(
+                    onTap: () {
+                      HapticService.instance.injectionClick();
+                      onProBoost!();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 8.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: EntitlementService.instance.isBoostActive
+                            ? VoidTheme.plasmaCyan.withValues(alpha: 0.15)
+                            : VoidTheme.solarGold.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: EntitlementService.instance.isBoostActive
+                              ? VoidTheme.plasmaCyan
+                              : VoidTheme.solarGold,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.bolt,
+                            color: EntitlementService.instance.isBoostActive
+                                ? VoidTheme.plasmaCyan
+                                : VoidTheme.solarGold,
+                            size: 15.0,
+                          ),
+                          const SizedBox(width: 6.0),
+                          Flexible(
+                            child: Text(
+                              EntitlementService.instance.isBoostActive
+                                  ? 'PRO BOOST: ${EntitlementService.instance.formattedRemainingBoostTime} • TAP TO STACK (+5m)'
+                                  : 'UNLOCK PRO BOOST • TAP TO STACK (+5m)',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                color: EntitlementService.instance.isBoostActive
+                                    ? VoidTheme.plasmaCyan
+                                    : VoidTheme.solarGold,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10.0),
                 ],
 
                 // Primary Simulation Controls (Icon-Focused, Self-Explanatory)

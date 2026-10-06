@@ -19,6 +19,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../config/ad_config.dart';
+import 'entitlement_service.dart';
 import 'persistence_service.dart';
 import 'privacy_service.dart';
 
@@ -152,6 +153,10 @@ class AdService {
       if (isEmergencyFlare) {
         _lastEmergencyFlareTime = DateTime.now();
       }
+      if (PersistenceService.instance.areAdsDisabled &&
+          !PersistenceService.instance.isProUnlocked) {
+        EntitlementService.instance.grantStackableBoost();
+      }
       return true;
     }
 
@@ -165,6 +170,7 @@ class AdService {
       if (isEmergencyFlare) {
         _lastEmergencyFlareTime = DateTime.now();
       }
+      EntitlementService.instance.grantStackableBoost();
       return true;
     }
 
@@ -237,6 +243,10 @@ class AdService {
       _lastEmergencyFlareTime = DateTime.now();
     }
 
-    return completer.future;
+    final result = await completer.future;
+    if (result) {
+      EntitlementService.instance.grantStackableBoost();
+    }
+    return result;
   }
 }
