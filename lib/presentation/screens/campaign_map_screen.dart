@@ -576,7 +576,8 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 ),
                 const SizedBox(height: 16.0),
                 // Action Buttons
-                if (sector.isProRequired) ...[
+                if (sector.isProRequired &&
+                    !EntitlementService.instance.hasActivePro) ...[
                   TactileButton(
                     label: 'WATCH AD (+5m PRO)',
                     icon: Icons.play_circle_filled,
@@ -639,7 +640,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   ),
                 ],
                 if (!sector.isProRequired &&
-                    !EntitlementService.instance.isProUnlocked) ...[
+                    !EntitlementService.instance.hasActivePro) ...[
                   const SizedBox(height: 8.0),
                   TactileButton(
                     label: 'UNLOCK PRO — \$1.29',
@@ -663,7 +664,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
   Widget _buildTheaterSwitcher() {
     final List<CampaignOperation> operations = CampaignService.instance
         .getOperations();
-    final isPro = EntitlementService.instance.isProUnlocked;
+    final isPro = EntitlementService.instance.hasActivePro;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),

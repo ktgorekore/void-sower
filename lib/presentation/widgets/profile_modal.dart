@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 
 import '../../domain/models/user_profile.dart';
 import '../../domain/services/auth_service.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/persistence_service.dart';
 import '../screens/stats_dashboard_screen.dart';
 import '../services/haptic_service.dart';
@@ -506,8 +507,11 @@ class _ProfileModalState extends State<ProfileModal> {
                                             ),
                                           ),
                                           if (PersistenceService
-                                              .instance
-                                              .isProUnlocked) ...[
+                                                  .instance
+                                                  .isProUnlocked ||
+                                              EntitlementService
+                                                  .instance
+                                                  .hasActivePro) ...[
                                             const SizedBox(width: 8.0),
                                             Container(
                                               padding:
@@ -1231,7 +1235,8 @@ class _ProfileModalState extends State<ProfileModal> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (PersistenceService.instance.isProUnlocked) ...[
+                        if (PersistenceService.instance.isProUnlocked ||
+                            EntitlementService.instance.hasActivePro) ...[
                           const SizedBox(width: 6.0),
                           Container(
                             padding: const EdgeInsets.symmetric(

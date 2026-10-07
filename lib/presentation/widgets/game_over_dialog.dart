@@ -41,6 +41,7 @@ class GameOverDialog extends StatefulWidget {
     this.onWatchAdForCores,
     this.rewardCores = 56,
     this.watchAdLabel,
+    this.isPro = false,
   });
 
   /// Mission score attained prior to defeat.
@@ -81,6 +82,9 @@ class GameOverDialog extends StatefulWidget {
 
   /// Custom label override for the rewarded ad button.
   final String? watchAdLabel;
+
+  /// Whether the player holds an active Pro Commander privilege (zero ads, instant infusion).
+  final bool isPro;
 
   @override
   State<GameOverDialog> createState() => _GameOverDialogState();
@@ -243,12 +247,18 @@ class _GameOverDialogState extends State<GameOverDialog> {
               TactileButton(
                 label:
                     widget.watchAdLabel ??
-                    'WATCH AD (+${widget.rewardCores} CORES & +5m PRO)',
-                icon: Icons.play_circle_filled,
+                    (widget.isPro
+                        ? 'SUMMON AUXILIARY CORES (+${widget.rewardCores} CORES)'
+                        : 'WATCH AD (+${widget.rewardCores} CORES & +5m PRO)'),
+                icon: widget.isPro ? Icons.bolt : Icons.play_circle_filled,
                 onPressed: _isArmed ? widget.onWatchAdForCores : null,
                 accentColor: _isArmed
-                    ? VoidTheme.emeraldShield
-                    : VoidTheme.emeraldShield.withValues(alpha: 0.35),
+                    ? (widget.isPro
+                          ? VoidTheme.solarGold
+                          : VoidTheme.emeraldShield)
+                    : (widget.isPro
+                          ? VoidTheme.solarGold.withValues(alpha: 0.35)
+                          : VoidTheme.emeraldShield.withValues(alpha: 0.35)),
                 isPrimary: true,
                 height: 40.0,
                 fontSize: 10.5,

@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 
 import '../../domain/models/user_profile.dart';
 import '../../domain/services/campaign_service.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/persistence_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
@@ -202,7 +203,8 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final profile = _persistence.userProfile;
-    final isPro = _persistence.isProUnlocked;
+    final isPro =
+        _persistence.isProUnlocked || EntitlementService.instance.hasActivePro;
 
     return Scaffold(
       backgroundColor: VoidTheme.obsidianBlack,

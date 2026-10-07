@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 
 import '../../config/ad_config.dart';
 import '../../domain/services/ad_service.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/persistence_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
@@ -55,7 +56,10 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'EMERGENCY FLARE RECEIVED: +${widget.rewardCores} Plasma Cores & +5m Pro Boost Injected!',
+              (EntitlementService.instance.hasActivePro ||
+                      PersistenceService.instance.isProUnlocked)
+                  ? 'EMERGENCY FLARE RECEIVED: +${widget.rewardCores} Plasma Cores Injected (Pro Link Active)!'
+                  : 'EMERGENCY FLARE RECEIVED: +${widget.rewardCores} Plasma Cores & +5m Pro Boost Injected!',
               style: const TextStyle(
                 fontFamily: 'monospace',
                 fontWeight: FontWeight.bold,
@@ -80,7 +84,9 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
 
   @override
   Widget build(BuildContext context) {
-    final isPro = PersistenceService.instance.isProUnlocked;
+    final isPro =
+        EntitlementService.instance.hasActivePro ||
+        PersistenceService.instance.isProUnlocked;
     final canRequest = AdService.instance.canRequestEmergencyFlare;
 
     return Dialog(
@@ -197,7 +203,9 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                     ),
                     const SizedBox(width: 8.0),
                     Text(
-                      '+${widget.rewardCores} CORES • +5m PRO',
+                      isPro
+                          ? '+${widget.rewardCores} CORES • INSTANT'
+                          : '+${widget.rewardCores} CORES • +5m PRO',
                       style: const TextStyle(
                         color: VoidTheme.solarGold,
                         fontSize: 10.5,

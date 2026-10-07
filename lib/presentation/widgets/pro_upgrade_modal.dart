@@ -490,6 +490,53 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                     ),
                   ),
                 )
+              else if (EntitlementService.instance.isProUnlocked)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14.0,
+                        vertical: 12.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: VoidTheme.solarGold.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: VoidTheme.solarGold,
+                          width: 1.0,
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.workspace_premium,
+                            color: VoidTheme.solarGold,
+                            size: 18.0,
+                          ),
+                          SizedBox(width: 8.0),
+                          Text(
+                            'PRO COMMANDER LIFETIME ACTIVE',
+                            style: TextStyle(
+                              color: VoidTheme.solarGold,
+                              fontSize: 11.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12.0),
+                    TactileButton(
+                      label: 'CLOSE',
+                      accentColor: VoidTheme.solarGold,
+                      height: 44.0,
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                )
               else
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,

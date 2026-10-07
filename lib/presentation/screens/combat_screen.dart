@@ -30,6 +30,7 @@ import '../../domain/services/void_incursion_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../controllers/combat_coordinator.dart';
 import '../controllers/combat_overlay_state.dart';
+import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'campaign_map_screen.dart';
 import '../widgets/combat_painter.dart';
@@ -336,8 +337,8 @@ class _CombatScreenState extends State<CombatScreen>
     }
     _overlayState = CombatOverlayState.defeatModal;
 
-    final bool isPermanentPro =
-        EntitlementService.instance.isProUnlocked ||
+    final bool hasActivePro =
+        EntitlementService.instance.hasActivePro ||
         PersistenceService.instance.isProUnlocked;
     final bool isIncursion =
         widget.isIncursionRun || _coordinator.isIncursionRun;
@@ -355,26 +356,54 @@ class _CombatScreenState extends State<CombatScreen>
         canRewind: _coordinator.canChronoRewind,
         rewindsRemaining: _coordinator.chronoRewindsRemaining,
         rewardCores: rewardCores,
-        watchAdLabel: isIncursion
-            ? 'WATCH AD (UNLOCK 5m PRO & UNLIMITED CORES)'
-            : null,
-        onWatchAdForCores: (isPermanentPro && isIncursion)
+        isPro: hasActivePro,
+        watchAdLabel: hasActivePro
+            ? (isIncursion
+                  ? null
+                  : 'SUMMON AUXILIARY CORES (+$rewardCores CORES)')
+            : (isIncursion
+                  ? 'WATCH AD (UNLOCK 5m PRO & UNLIMITED CORES)'
+                  : 'WATCH AD (+$rewardCores CORES & +5m PRO)'),
+        onWatchAdForCores: (hasActivePro && isIncursion)
             ? null
             : () async {
                 _autoAdvanceTimer?.cancel();
-                final rewarded = await AdService.instance.showRewardedAd();
+                if (!hasActivePro) {
+                  final rewarded = await AdService.instance.showRewardedAd();
+                  if (!dialogContext.mounted) return;
+                  if (!rewarded) return;
+                }
                 if (!dialogContext.mounted) return;
-                if (rewarded && mounted) {
-                  Navigator.of(dialogContext).pop();
-                  final coresToGrant =
-                      (_coordinator.isUnlimitedCores || isIncursion)
-                      ? 5000
-                      : rewardCores;
-                  _coordinator.grantEmergencyCores(coresToGrant);
-                  _coordinator.resumeCombat();
-                  _overlayState = CombatOverlayState.none;
-                  _resumeTicker();
-                  if (mounted) setState(() {});
+                Navigator.of(dialogContext).pop();
+                HapticService.instance.injectionClick();
+                final coresToGrant =
+                    (_coordinator.isUnlimitedCores || isIncursion)
+                    ? 5000
+                    : rewardCores;
+                _coordinator.grantEmergencyCores(coresToGrant);
+                _coordinator.resumeCombat();
+                _overlayState = CombatOverlayState.none;
+                _resumeTicker();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        hasActivePro
+                            ? '⚡ PRO AUXILIARY CORES INJECTED (+$coresToGrant CORES)'
+                            : '⚡ EMERGENCY CORES INJECTED (+$coresToGrant CORES)',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      backgroundColor: hasActivePro
+                          ? VoidTheme.solarGold
+                          : VoidTheme.emeraldShield,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                  setState(() {});
                 }
               },
         onRewind: () {
@@ -467,7 +496,7 @@ class _CombatScreenState extends State<CombatScreen>
     final operation = CampaignService.instance.getOperation(
       currentSector.campaignId,
     );
-    final isPro = EntitlementService.instance.isProUnlocked;
+    final isPro = EntitlementService.instance.hasActivePro;
     final maxSectorInOperation =
         operation.baseSectorId + operation.sectors.length - 1;
     final nextSectorCandidate = _currentSectorId < maxSectorInOperation
@@ -546,7 +575,7 @@ class _CombatScreenState extends State<CombatScreen>
                   ),
                 ).then((_) {
                   if (!mounted) return;
-                  if (EntitlementService.instance.isProUnlocked) {
+                  if (EntitlementService.instance.hasActivePro) {
                     final currSector = CampaignService.instance.getSector(
                       _currentSectorId,
                     );
@@ -1058,7 +1087,7 @@ class _CombatScreenState extends State<CombatScreen>
     final operation = CampaignService.instance.getOperation(
       currentSector.campaignId,
     );
-    final isPro = EntitlementService.instance.isProUnlocked;
+    final isPro = EntitlementService.instance.hasActivePro;
     final maxSectorInOperation =
         operation.baseSectorId + operation.sectors.length - 1;
     final nextSectorCandidate = _currentSectorId < maxSectorInOperation
@@ -1122,7 +1151,7 @@ class _CombatScreenState extends State<CombatScreen>
                               score: _coordinator.competitiveScore,
                               highScore: _coordinator.highScore,
                               isAiAssisted: _coordinator.hasUsedAiSolver,
-                              isPro: EntitlementService.instance.isProUnlocked,
+                              isPro: EntitlementService.instance.hasActivePro,
                               difficultyTier: _currentDifficultyTier,
                               sectorId: _currentSectorId,
                               sectorName: CampaignService.instance
