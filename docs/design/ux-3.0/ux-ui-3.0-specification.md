@@ -86,28 +86,35 @@ All UI text utilizes the system sans-serif font family (`-apple-system, BlinkMac
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│ [S1 PATROL • ZANZIBAR REEF]   [⚡ 36 CORES]    [🛡️ 2/2]    [⏸ PAUSE]   │
+│ [S1 • ZANZIBAR]  [⚡ 14:28 PRO]   [⚡ 36 CORES]    [🛡️ 2/2]    [⏸ PAUSE]│
 ├────────────────────────────────────────────────────────────────────────┤
+│ ( APOGEE HORIZON  Z: +40km )                                           │
 │                                                                        │
-│                                                                        │
-│     [FOE IN LANE 2]                 [QUADRATIC ×16]                    │
-│            ▼                        [CRIT IMPACT  ]                    │
-│                                            ▲                           │
-│                                            │ (PULSING LANCE)           │
-│                                            │                           │
-│                          [DEFLECT +50]     │                           │
-│                          [MINE IN L6 ]     │                           │
-│                                            │                           │
-│                                            │                           │
-│ - - - - - - - - - - - - - - - - - - - - - -│- - - - - - - - - - - - - -│
-│                                         [SHIP @ C4]                    │
+│       \  [IMPERIAL SCOUT]   /        \   [HEAVY WARSHIP]   /           │
+│        \  (DIVING DOWN)    /          \   (DIVING DOWN)   /            │
+│         \       ▼         /            \   [QUADRATIC ×16]             │
+│          \      │        /              \  [CRIT DISINTEGR]            │
+│           \     │       /                \        ▲       /            │
+│            \    ▼      /                  \       │      /             │
+│ ( MID-COMBAT HORIZON Z: +20km )            \      │     /              │
+│                                             \     │    /               │
+│                            [DEFLECT +50]     \    │   /                │
+│                            [MINE IN L6 ]      \   │  / (FOCUSED LANCE) │
+│                                                \  │ /                  │
+│                                                 \ │/                   │
+│                                           [DEFENDER NOSE @ C4]         │
+│ ──[Z: +12km]───────────────────────────────[ ADVANCED IN 3D ]───────── │
+│ ( FORWARD ENGAGE HORIZON Z: +10km )               │ (Uplink Conduit)   │
+│ - - - - - - - - - - - - - - - - - - - - - - - - - │ - - - - - - - - - -│
+│ [ATMOSPHERIC RE-ENTRY THRESHOLD]          [C4 PROJECTION ANCHOR]       │
 ├────────────────────────────────────────────────────────────────────────┤
-│ ORBITAL BATTERY CONDUITS (C1–C8)                  ‹ SWIPE PIT TO SOW › │
-│ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐ ┌───┐                        │
-│ │ 1 │ │ 5 │ │ 0 │ │ 6 │ │ 2 │ │ 4 │ │ 1 │ │ 2 │  (Frontline Cells)    │
-│ │   │ │▓▓▓│ │   │ │FIRE│ │   │ │▓▓▓│ │   │ │   │                        │
-│ │C1 │ │C2 │ │C3 │ │C4 │ │C5 │ │C6 │ │C7 │ │C8 │                        │
-│ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘ └───┘                        │
+│ ORBITAL BATTERY CONDUITS (C1–C8)          ‹ SWIPE TO SOW • TAP TO FIRE ›
+│ ┌───┐ ┌───┐ ┌───┐ ╔═════╗ ┌───┐ ┌───┐ ┌───┐ ┌───┐                      │
+│ │ 1 │ │ 5 │ │ 0 │ ║  6  ║ │ 2 │ │ 4 │ │ 1 │ │ 2 │ (Frontline Cells)   │
+│ │   │ │▓▓▓│ │   │ ║▓▓▓▓▓║ │   │ │▓▓▓│ │   │ │   │                      │
+│ │C1 │ │C2 │ │C3 │ ║FIRE ║ │C5 │ │C6 │ │C7 │ │C8 │                      │
+│ └───┘ └───┘ └───┘ ╚═════╝ └───┘ └───┘ └───┘ └───┘                      │
+│                      ▲ [ALIGNED PRIMED CONDUIT CORRESPONDING TO SHIP]  │
 │ ───┬───────────────────┬───────────────┬───────────────────┬────────── │
 │   [1]     [2]     [0]  │ [ 7 ]   [ 6 ] │    [1]     [3]   [0]          │
 │   B0      B1      B2   │   NYUMBA VAULT│    B5      B6    B7           │
@@ -115,21 +122,34 @@ All UI text utilizes the system sans-serif font family (`-apple-system, BlinkMac
 ```
 
 #### Architectural Enhancements:
-1. **Slimline Top HUD (Height: 38px, Y: 48):**
-   - Translucent capsule housing Sector Name (`#38bdf8`) & Score (`#ffffff`).
-   - Reactor Cores Capsule with gold glowing sphere, numerical balance (`36`), and unit label (`CORES`).
-   - Shield Capsule showing active canopy count (`2/2`).
-   - Quick Pause Capsule with dual minimal slate bars.
-2. **Unobstructed Combat Theater (~560px Open Height):**
-   - 8 subtle dashed lane tracks (`#38bdf8` at 0.12 opacity).
-   - Active attack conduit column (C4) gently illuminated (`#00f0ff` at 0.04 opacity).
-   - In-world floating feedback tags: `DEFLECT +50` (blue/gold pill) and `QUADRATIC ×16` (gold/slate badge).
-   - Minimalist Interceptor Ship chassis positioned cleanly at the atmospheric boundary line ($Y = 635$).
-3. **Ultra-Compact Battery Mancala Dock (Height: 142px, Y: 665 to 807):**
-   - **Row 1 (Frontline Batteries C1–C8, Height: 52px):** 28×52px vertical pills. Displays real-time core count, segmented charge bars, shield canopy caps when primed (C2, C6), and an integrated **`FIRE`** tap trigger on the active/overloaded conduit (C4).
-   - **Row 2 (Return Capacitors B0–B7 & Gold Nyumba Vault, Height: 30px):** Mini cells B0–B2 and B5–B7 (24×20px), flanking the central **Gold Nyumba Vault** (B3 & B4, 64×24px, `#291503` fill, `#f59e0b` border with gold bloom).
-   - **Dynamic Sow Trajectory Arc:** Golden dashed arc directly indicating sowing flow from source pit to destination pit.
-4. **Ergonomic Reminder:** `SWIPE BATTERIES TO SOW • TAP PRIMED CELL TO DISCHARGE` in subtle `#475569`.
+1. **Integrated Pro Commander HUD Pill (User Feedback Point 3):**
+   - Translucent top capsule explicitly presenting the pilot's Pro status:
+     - **Active Pro Boost:** Glowing amber badge `[⚡ 14:28 PRO]` with live minute/second countdown timer and pulsing core icon.
+     - **Lifetime Pro Commander:** High-prestige gold capsule `[★ PRO COMMANDER]` with persistent aura.
+     - **Non-Pro Pilot:** Sleek locked pill `[🔒 +5m PRO]`, which opens the 5-minute reward boost modal upon tap.
+   - Sits alongside Sector/Score (`S1 • ZANZIBAR` / `034,820`), Reactor Cores (`36 CORES`), Canopy Shields (`2/2`), and Pause (`[ || ]`) in a single balanced 38px row.
+
+2. **3D Deep Space Simulation & Vertical Flight Envelope (User Feedback Point 1):**
+   - **Converging 3D Perspective Grid:** 8 corridor tracks converge subtly towards a distant celestial vanishing point in deep space rather than running as flat 2D lines.
+   - **Concentric Depth Horizon Rings:** Elliptical orbital depth curves segment the battlefield into tactical combat zones:
+     - `APOGEE HORIZON (Z: +40km)`
+     - `MID-COMBAT HORIZON (Z: +20km)`
+     - `FORWARD ENGAGE HORIZON (Z: +10km)`
+     - `ATMOSPHERIC RE-ENTRY THRESHOLD (Z: 0km)`
+   - **Vertical Maneuverability & Depth Indicator:** The defender is no longer confined to a flat baseline; it can maneuver forward into deep space ($Y = 460$ to $635$) to intercept falling mines or retreat to safety. A dedicated altitude rail on the screen margin displays real-time depth (`Z: +12km`), while a ground projection anchor ring tracks the ship's horizontal corridor alignment at the atmospheric threshold.
+
+3. **Descending Invader Redesign (User Feedback Point 2):**
+   - **Downward Prow Orientation:** All hostile craft (Scout Interceptors, Heavy Void Frigates, Orbital Siphon Mines) are oriented **downwards**, plunging directly toward the defender ship.
+   - **Upward-Trailing Engine Plumes:** Crimson and violet thruster trails stream upwards behind the invaders into deep space, providing immediate directional clarity.
+   - **Aggressive Attack Postures:** Menacing downward-pointing weapon mandibles, crimson optical targeting lines, and dynamic impact effects (disintegrating shield rings on hit, floating `QUADRATIC ×16` badges).
+
+4. **Front-Bow Discharge & Aligned Primed Cell (User Feedback Point 4):**
+   - **Front-Bow Firing Origin:** Discharging always originates **directly from the front bow tip of the defender ship**, shooting forward into deep space into the aligned corridor.
+   - **Synchronized Primed Conduit:** The active primed cell in the Mancala Battery Dock is strictly locked to the defender's current corridor location ($C_k$):
+     - When the defender is positioned at Corridor 4, Conduit C4 illuminates with a white/cyan overload pulse frame and displays the **`FIRE`** tap trigger.
+     - An energetic vertical uplink conduit connects Battery C4 to the defender ship's propulsion manifold.
+     - Non-aligned batteries (C1, C2, C3, C5, C6, C7, C8) remain in their clean, passive stored states, eliminating visual confusion over which battery will fire.
+   - **Central Nyumba Vault:** Retains the compact dual-chamber vault (B3 & B4, holding 7 and 6 cores) directly accessible for sub-deck kinetic bomb deflection.
 
 ---
 

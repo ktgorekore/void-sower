@@ -1,14 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 860" width="100%" height="100%" style="background:#05070f; border-radius:36px; box-shadow:0 25px 60px rgba(0,0,0,0.85); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <defs>
     <!-- Glow Filters -->
-    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="5" result="blur" />
+    <filter id="glow-cyan" x="-25%" y="-25%" width="150%" height="150%">
+      <feGaussianBlur stdDeviation="4.5" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
       </feMerge>
     </filter>
     <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-crimson" x="-20%" y="-20%" width="140%" height="140%">
       <feGaussianBlur stdDeviation="4" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
@@ -26,9 +33,9 @@
     <!-- Gradients -->
     <linearGradient id="beam-lance" x1="0" y1="1" x2="0" y2="0">
       <stop offset="0%" stop-color="#00f0ff" stop-opacity="1" />
-      <stop offset="25%" stop-color="#ffffff" stop-opacity="1" />
-      <stop offset="85%" stop-color="#00f0ff" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#00f0ff" stop-opacity="0" />
+      <stop offset="20%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="85%" stop-color="#00f0ff" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.1" />
     </linearGradient>
 
     <linearGradient id="glass-dock" x1="0" y1="0" x2="0" y2="1">
@@ -45,12 +52,18 @@
       <stop offset="0%" stop-color="#38bdf8" />
       <stop offset="100%" stop-color="#0284c7" />
     </linearGradient>
+
+    <linearGradient id="depth-haze" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#030712" stop-opacity="0.8" />
+      <stop offset="40%" stop-color="#07152b" stop-opacity="0.3" />
+      <stop offset="100%" stop-color="#05070f" stop-opacity="0.0" />
+    </linearGradient>
   </defs>
 
-  <!-- SCREEN BACKGROUND WITH SUBTLE COMBAT GRID -->
+  <!-- SCREEN BACKGROUND WITH COSMIC OBSIDIAN -->
   <rect width="400" height="860" rx="36" fill="#05070f" />
 
-  <!-- STATUS BAR / PHONE FRAME -->
+  <!-- DYNAMIC ISLAND / STATUS BAR -->
   <rect x="145" y="10" width="110" height="28" rx="14" fill="#000000" />
   <circle cx="162" cy="24" r="4.5" fill="#0f172a" />
   <circle cx="235" cy="24" r="3.5" fill="#0284c7" opacity="0.3" />
@@ -59,96 +72,194 @@
   <rect x="344" y="23" width="11" height="4" fill="#64748b" rx="1" />
 
   <!-- ============================================================== -->
-  <!-- 1. SLIMLINE TOP HUD (HEIGHT: 38px) -->
+  <!-- 1. SLIMLINE TOP HUD WITH PRO BADGE & METRICS (HEIGHT: 38px) -->
   <!-- ============================================================== -->
-  <g transform="translate(16, 48)">
-    <!-- Sector Name & Score -->
-    <rect x="0" y="0" width="160" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#1e293b" stroke-width="1" />
-    <text x="12" y="15" fill="#38bdf8" font-size="8.5" font-weight="700" letter-spacing="0.5">S1 PATROL • ZANZIBAR REEF</text>
-    <text x="12" y="28" fill="#ffffff" font-size="11" font-weight="800">SCORE: 034,820</text>
+  <g transform="translate(14, 48)">
+    <!-- 1. Sector Name & Score Pill -->
+    <rect x="0" y="0" width="116" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#1e293b" stroke-width="1" />
+    <text x="10" y="15" fill="#38bdf8" font-size="8" font-weight="800" letter-spacing="0.5">S1 • ZANZIBAR</text>
+    <text x="10" y="28" fill="#ffffff" font-size="10.5" font-weight="900">034,820</text>
 
-    <!-- Cores Stored -->
-    <g transform="translate(168, 0)">
-      <rect x="0" y="0" width="94" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#d97706" stroke-width="1" stroke-opacity="0.3" />
-      <circle cx="16" cy="18" r="6.5" fill="url(#gold-cell)" />
-      <text x="29" y="22" fill="#fbbf24" font-size="12.5" font-weight="800">36</text>
-      <text x="49" y="21" fill="#94a3b8" font-size="8" font-weight="700">CORES</text>
+    <!-- 2. PRO STATUS BADGE / COUNTDOWN TIMER (FEEDBACK POINT 3) -->
+    <g transform="translate(122, 0)">
+      <rect x="0" y="0" width="86" height="36" rx="10" fill="#201503" fill-opacity="0.7" stroke="#f59e0b" stroke-width="1.2" filter="url(#glow-gold)" />
+      <!-- Pulsing Lightning Core -->
+      <circle cx="14" cy="18" r="6" fill="#f59e0b" />
+      <polygon points="14,13 11,18 14,18 13,23 17,17 14,17" fill="#05070f" />
+      <text x="24" y="16" fill="#fbbf24" font-size="8" font-weight="900" letter-spacing="0.3">PRO BOOST</text>
+      <text x="24" y="29" fill="#fef3c7" font-size="10" font-weight="900">14:28</text>
     </g>
 
-    <!-- Shield & Pause -->
-    <g transform="translate(270, 0)">
-      <rect x="0" y="0" width="46" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#0284c7" stroke-width="1" stroke-opacity="0.3" />
-      <path d="M14 11 l5 -2.5 l5 2.5 v5 c0 4 -5 7 -5 7 s-5 -3 -5 -7 z" fill="#0284c7" fill-opacity="0.4" stroke="#38bdf8" stroke-width="1.2" />
-      <text x="29" y="22" fill="#e0f2fe" font-size="10" font-weight="800">2/2</text>
+    <!-- 3. Reactor Cores Stored -->
+    <g transform="translate(214, 0)">
+      <rect x="0" y="0" width="72" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#d97706" stroke-width="1" stroke-opacity="0.4" />
+      <circle cx="14" cy="18" r="5.5" fill="url(#gold-cell)" />
+      <text x="24" y="22" fill="#fbbf24" font-size="12" font-weight="900">36</text>
+      <text x="42" y="21" fill="#94a3b8" font-size="7.5" font-weight="800">CORES</text>
     </g>
 
-    <g transform="translate(324, 0)">
-      <rect x="0" y="0" width="44" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#1e293b" stroke-width="1" />
-      <rect x="18" y="12" width="2.5" height="12" fill="#94a3b8" rx="1" />
-      <rect x="23.5" y="12" width="2.5" height="12" fill="#94a3b8" rx="1" />
+    <!-- 4. Canopy Shield -->
+    <g transform="translate(292, 0)">
+      <rect x="0" y="0" width="44" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#0284c7" stroke-width="1" stroke-opacity="0.4" />
+      <path d="M12 11 l4.5 -2.5 l4.5 2.5 v5 c0 3.5 -4.5 6.5 -4.5 6.5 s-4.5 -3 -4.5 -6.5 z" fill="#0284c7" fill-opacity="0.4" stroke="#38bdf8" stroke-width="1.2" />
+      <text x="24" y="22" fill="#e0f2fe" font-size="10" font-weight="900">2/2</text>
+    </g>
+
+    <!-- 5. Pause Menu -->
+    <g transform="translate(342, 0)">
+      <rect x="0" y="0" width="30" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#1e293b" stroke-width="1" />
+      <rect x="11.5" y="12" width="2" height="12" fill="#94a3b8" rx="1" />
+      <rect x="16.5" y="12" width="2" height="12" fill="#94a3b8" rx="1" />
     </g>
   </g>
 
   <!-- ============================================================== -->
-  <!-- 2. EXPANDED COMBAT THEATER (HEIGHT: ~560px OF OPEN GAMEPLAY!) -->
+  <!-- 2. EXPANDED 3D COMBAT THEATER & DEPTH SIMULATION (FEEDBACK 1) -->
   <!-- ============================================================== -->
-  <!-- 8 Subtle Lane Tracks: 42.5, 87.5, 132.5, 177.5, 222.5, 267.5, 312.5, 357.5 -->
-  <g opacity="0.12">
-    <line x1="42.5" y1="92" x2="42.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
-    <line x1="87.5" y1="92" x2="87.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
-    <line x1="132.5" y1="92" x2="132.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
-    <line x1="177.5" y1="92" x2="177.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
-    <line x1="222.5" y1="92" x2="222.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
-    <line x1="267.5" y1="92" x2="267.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
-    <line x1="312.5" y1="92" x2="312.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
-    <line x1="357.5" y1="92" x2="357.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+  <!-- Deep Space Atmosphere Gradient -->
+  <rect x="0" y="88" width="400" height="570" fill="url(#depth-haze)" />
+
+  <!-- 3D Perspective Orbital Horizon Curves (Simulating Depth into Space) -->
+  <ellipse cx="200" cy="160" rx="170" ry="24" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="2 6" opacity="0.6" />
+  <text x="382" y="163" fill="#334155" font-size="7" font-weight="700" text-anchor="end">APOGEE Z: +40km</text>
+
+  <ellipse cx="200" cy="340" rx="185" ry="34" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="2 6" opacity="0.5" />
+  <text x="382" y="343" fill="#334155" font-size="7" font-weight="700" text-anchor="end">MID-COMBAT Z: +20km</text>
+
+  <ellipse cx="200" cy="520" rx="195" ry="44" fill="none" stroke="#0284c7" stroke-width="1" stroke-dasharray="3 5" opacity="0.4" />
+  <text x="382" y="523" fill="#0284c7" font-size="7" font-weight="800" text-anchor="end">FORWARD ENGAGE Z: +10km</text>
+
+  <!-- 8 Converging 3D Lane Tracks (Corridors 1 to 8 Converging into Space) -->
+  <g opacity="0.18">
+    <line x1="42.5" y1="635" x2="68" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.2" />
+    <line x1="87.5" y1="635" x2="106" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.2" />
+    <line x1="132.5" y1="635" x2="144" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.2" />
+    <line x1="177.5" y1="635" x2="182" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.5" />
+    <line x1="222.5" y1="635" x2="218" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.2" />
+    <line x1="267.5" y1="635" x2="256" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.2" />
+    <line x1="312.5" y1="635" x2="294" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.2" />
+    <line x1="357.5" y1="635" x2="332" y2="100" stroke="#38bdf8" stroke-dasharray="4 8" stroke-width="1.2" />
   </g>
 
-  <!-- Lane 4 (Active Attack Conduit) Ambient Column -->
-  <rect x="160" y="92" width="35" height="548" fill="#00f0ff" fill-opacity="0.04" />
-
-  <!-- INCOMING FOES -->
-  <!-- Enemy in Lane 2 -->
-  <g transform="translate(87.5, 180)">
-    <polygon points="0,-14 12,8 0,3 -12,8" fill="#e11d48" filter="url(#glow-cyan)" />
-    <polygon points="0,-8 6,3 0,1 -6,3" fill="#ffffff" />
-    <line x1="0" y1="12" x2="0" y2="35" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.6" />
+  <!-- 3D Maneuver Runway Guide for Defender (Vertical Flight Envelope) -->
+  <g opacity="0.25">
+    <line x1="165.5" y1="460" x2="165.5" y2="635" stroke="#00f0ff" stroke-width="1" stroke-dasharray="2 4" />
+    <line x1="189.5" y1="460" x2="189.5" y2="635" stroke="#00f0ff" stroke-width="1" stroke-dasharray="2 4" />
+    <!-- Altitude Elevator Rail on Left Margin -->
+    <line x1="10" y1="460" x2="10" y2="635" stroke="#334155" stroke-width="2" />
+    <line x1="6" y1="540" x2="14" y2="540" stroke="#00f0ff" stroke-width="2" />
+    <polygon points="16,540 22,536 22,544" fill="#00f0ff" />
+    <text x="26" y="543" fill="#00f0ff" font-size="7" font-weight="900">Z: +12km</text>
   </g>
 
-  <!-- Heavy Orbital Mine in Lane 6 (Deflected by Bay 13 Canopy) -->
-  <g transform="translate(267.5, 360)">
-    <circle cx="0" cy="0" r="14" fill="#0369a1" fill-opacity="0.3" stroke="#38bdf8" stroke-width="1.5" />
-    <circle cx="0" cy="0" r="4" fill="#fbbf24" />
-    <!-- Floating Deflect Tag -->
-    <rect x="-30" y="-24" width="60" height="15" rx="7.5" fill="#0284c7" stroke="#38bdf8" stroke-width="1" />
-    <text x="0" y="-14" fill="#ffffff" font-size="8" font-weight="800" text-anchor="middle">DEFLECT +50</text>
-  </g>
+  <!-- Active Attack Conduit Corridor 4 Projected Beam Glow -->
+  <polygon points="144,100 218,100 222.5,635 132.5,635" fill="#00f0ff" fill-opacity="0.03" />
 
-  <!-- ACTIVE PARTICLE LANCE BEAM (Fired from C4) -->
-  <g transform="translate(177.5, 0)">
-    <line x1="0" y1="630" x2="0" y2="150" stroke="url(#beam-lance)" stroke-width="12" stroke-linecap="round" filter="url(#glow-beam)" />
-    <line x1="0" y1="630" x2="0" y2="150" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
-    
-    <!-- Target Impact / Dissolution -->
-    <circle cx="0" cy="150" r="18" fill="#00f0ff" fill-opacity="0.4" filter="url(#glow-cyan)" />
-    <circle cx="0" cy="150" r="7" fill="#ffffff" />
-    <!-- Crit Damage Floating Badge -->
-    <rect x="-50" y="115" width="100" height="20" rx="10" fill="#0f172a" stroke="#fbbf24" stroke-width="1.2" />
-    <text x="0" y="128.5" fill="#fbbf24" font-size="9" font-weight="900" text-anchor="middle">QUADRATIC ×16</text>
-  </g>
-
-  <!-- ATMOSPHERIC BOUNDARY & DREADNOUGHT -->
-  <line x1="20" y1="635" x2="380" y2="635" stroke="#f43f5e" stroke-width="1" stroke-dasharray="3 4" opacity="0.35" />
+  <!-- ============================================================== -->
+  <!-- 3. DESCENDING INVADERS GOING DOWN TOWARDS DEFENDER (FEEDBACK 2) -->
+  <!-- ============================================================== -->
   
-  <!-- Interceptor Ship Chassis at C4 (Y: 635) -->
-  <g transform="translate(177.5, 635)">
-    <path d="M-28,-4 Q0,-18 28,-4" fill="none" stroke="#00f0ff" stroke-width="2" filter="url(#glow-cyan)" />
-    <polygon points="0,-16 14,4 6,8 0,3 -6,8 -14,4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2" />
-    <circle cx="0" cy="-2" r="3" fill="#ffffff" />
+  <!-- ENEMY 1: Imperial Scout Interceptor (Lane 2, Diving DOWNWARDS) -->
+  <g transform="translate(93, 200)">
+    <!-- Upward Thruster Exhaust Plume (Behind descending ship) -->
+    <line x1="-5" y1="-12" x2="-5" y2="-32" stroke="#f43f5e" stroke-width="2" stroke-dasharray="3 3" opacity="0.8" />
+    <line x1="5" y1="-12" x2="5" y2="-32" stroke="#f43f5e" stroke-width="2" stroke-dasharray="3 3" opacity="0.8" />
+    <circle cx="-5" cy="-12" r="2.5" fill="#f43f5e" filter="url(#glow-crimson)" />
+    <circle cx="5" cy="-12" r="2.5" fill="#f43f5e" filter="url(#glow-crimson)" />
+
+    <!-- Aggressive Downward-Oriented Invader Hull (Pointing DOWN at Defender) -->
+    <polygon points="0,18 -15,-10 -6,-6 0,-10 6,-6 15,-10" fill="#9f1239" stroke="#e11d48" stroke-width="1.5" filter="url(#glow-crimson)" />
+    <!-- Menacing Red Visor / Weapon Prow pointing DOWN -->
+    <polygon points="0,14 -4,4 4,4" fill="#ffffff" />
+    <!-- Downward Targeting Tracer -->
+    <line x1="0" y1="20" x2="0" y2="44" stroke="#f43f5e" stroke-width="1.2" stroke-dasharray="2 3" opacity="0.7" />
+  </g>
+
+  <!-- ENEMY 2: Descending Heavy Void Frigate (Lane 4, Impacted by Lance) -->
+  <g transform="translate(178, 150)">
+    <!-- Heavy Warship Hull Heading DOWNWARDS towards Defender -->
+    <polygon points="0,24 -24,-18 -10,-12 0,-16 10,-12 24,-18" fill="#4c0519" stroke="#e11d48" stroke-width="2" filter="url(#glow-crimson)" />
+    <!-- Top Thrusters Wash Streaming UP -->
+    <line x1="-12" y1="-18" x2="-12" y2="-40" stroke="#f43f5e" stroke-width="2.5" stroke-dasharray="4 4" opacity="0.6" />
+    <line x1="12" y1="-18" x2="12" y2="-40" stroke="#f43f5e" stroke-width="2.5" stroke-dasharray="4 4" opacity="0.6" />
+    <!-- Heavy Forward Mandibles pointing DOWN -->
+    <polygon points="-8,18 -14,6 -6,6" fill="#be123c" />
+    <polygon points="8,18 14,6 6,6" fill="#be123c" />
+
+    <!-- LANCE IMPACT & DISINTEGRATION RINGS -->
+    <circle cx="0" cy="18" r="22" fill="#00f0ff" fill-opacity="0.35" filter="url(#glow-cyan)" />
+    <circle cx="0" cy="18" r="9" fill="#ffffff" />
+    <circle cx="0" cy="18" r="32" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0.6" stroke-dasharray="4 4" />
+    
+    <!-- Floating Quadratic Crit Multiplier -->
+    <g transform="translate(0, -32)">
+      <rect x="-54" y="-12" width="108" height="22" rx="11" fill="#0a101d" stroke="#fbbf24" stroke-width="1.4" filter="url(#glow-gold)" />
+      <text x="0" y="2.5" fill="#fbbf24" font-size="9.5" font-weight="900" text-anchor="middle">QUADRATIC ×16</text>
+    </g>
+  </g>
+
+  <!-- ENEMY 3: Heavy Orbital Mine (Lane 6, Descending DOWN & Deflected) -->
+  <g transform="translate(262, 380)">
+    <!-- Downward Spikes & Mine Core -->
+    <circle cx="0" cy="0" r="14" fill="#0369a1" fill-opacity="0.3" stroke="#38bdf8" stroke-width="1.5" />
+    <polygon points="0,18 -6,8 6,8" fill="#e11d48" />
+    <polygon points="-16,-6 -6,-4 -10,6" fill="#0284c7" />
+    <polygon points="16,-6 6,-4 10,6" fill="#0284c7" />
+    <circle cx="0" cy="0" r="4.5" fill="#fbbf24" />
+
+    <!-- Defensive Canopy Reflection Arc -->
+    <path d="M-22,12 Q0,24 22,12" fill="none" stroke="#00f0ff" stroke-width="2.5" filter="url(#glow-cyan)" />
+    
+    <!-- Floating Deflect Tag -->
+    <g transform="translate(0, -22)">
+      <rect x="-32" y="-10" width="64" height="18" rx="9" fill="#0284c7" stroke="#38bdf8" stroke-width="1.2" />
+      <text x="0" y="2.5" fill="#ffffff" font-size="8.5" font-weight="900" text-anchor="middle">DEFLECT +50</text>
+    </g>
   </g>
 
   <!-- ============================================================== -->
-  <!-- 3. ULTRA-COMPACT BATTERY MANCALA DOCK (TOTAL HEIGHT: 142px) -->
+  <!-- 4. DEFENDER SHIP & DIRECT BOW DISCHARGE (FEEDBACK 1 & 4) -->
+  <!-- ============================================================== -->
+  
+  <!-- Atmospheric Baseline Boundary (Y: 635) -->
+  <line x1="20" y1="635" x2="380" y2="635" stroke="#f43f5e" stroke-width="1" stroke-dasharray="3 4" opacity="0.35" />
+  <text x="380" y="630" fill="#f43f5e" font-size="6.5" font-weight="800" text-anchor="end" opacity="0.6">ATMOSPHERIC RE-ENTRY THRESHOLD</text>
+
+  <!-- Corridor 4 Baseline Holographic Footprint / Position Shadow -->
+  <ellipse cx="177.5" cy="635" rx="20" ry="6" fill="#00f0ff" fill-opacity="0.15" stroke="#00f0ff" stroke-width="1.2" stroke-dasharray="2 2" />
+
+  <!-- Vertical Conduit Uplink Beam (From Dock C4 at Y:665 to Defender at Y:540) -->
+  <line x1="177.5" y1="665" x2="177.5" y2="560" stroke="#00f0ff" stroke-width="2" stroke-dasharray="2 3" opacity="0.75" />
+
+  <!-- ACTIVE PARTICLE LANCE BEAM: Erupts DIRECTLY from Defender's Bow at Y:518! -->
+  <g transform="translate(177.5, 0)">
+    <!-- Heavy Focused Lance Beam Fired FORWARD from Ship's Nose into Deep Space -->
+    <line x1="0" y1="518" x2="0" y2="168" stroke="url(#beam-lance)" stroke-width="13" stroke-linecap="round" filter="url(#glow-beam)" />
+    <line x1="0" y1="518" x2="0" y2="168" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" />
+    
+    <!-- Energy Muzzle Flash directly at Defender's Bow Tip -->
+    <circle cx="0" cy="518" r="8" fill="#ffffff" filter="url(#glow-cyan)" />
+  </g>
+
+  <!-- DEFENDER SHIP (ADVANCED FORWARD IN 3D SPACE AT Y: 535) -->
+  <g transform="translate(177.5, 535)">
+    <!-- 3D Altitude Floating Shield Ring -->
+    <ellipse cx="0" cy="8" rx="34" ry="10" fill="none" stroke="#00f0ff" stroke-width="1.2" opacity="0.4" stroke-dasharray="3 3" />
+    
+    <!-- Interceptor Forward Canopy Arc -->
+    <path d="M-30,-2 Q0,-18 30,-2" fill="none" stroke="#00f0ff" stroke-width="2.2" filter="url(#glow-cyan)" />
+    
+    <!-- Interceptor Hull (Pointing FORWARD into Space) -->
+    <polygon points="0,-18 16,8 8,12 0,6 -8,12 -16,8" fill="#081e36" stroke="#38bdf8" stroke-width="1.5" />
+    <!-- Cockpit Sensor Core -->
+    <circle cx="0" cy="-2" r="3.5" fill="#ffffff" />
+    <!-- Rear Thruster Plasma Trails -->
+    <circle cx="-8" cy="12" r="2.5" fill="#00f0ff" filter="url(#glow-cyan)" />
+    <circle cx="8" cy="12" r="2.5" fill="#00f0ff" filter="url(#glow-cyan)" />
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 5. BATTERY MANCALA DOCK WITH ALIGNED PRIMED CELL (FEEDBACK 4) -->
   <!-- ============================================================== -->
   <g transform="translate(12, 665)">
     <!-- Master Shielded Dock Frame (Compact Height: 142px) -->
@@ -156,7 +267,7 @@
 
     <!-- Dock Header Bar (Height: 16px) -->
     <text x="14" y="14" fill="#64748b" font-size="7.5" font-weight="800" letter-spacing="1">ORBITAL BATTERY CONDUITS (C1–C8)</text>
-    <text x="362" y="14" fill="#0284c7" font-size="7" font-weight="700" text-anchor="end">‹ SWIPE PIT TO SOW ›</text>
+    <text x="362" y="14" fill="#0284c7" font-size="7" font-weight="700" text-anchor="end">‹ SWIPE PIT TO SOW • TAP TO FIRE ›</text>
 
     <!-- ============================================================ -->
     <!-- ROW 1: 8 FRONTLINE BATTERY CELLS (C1 to C8) -->
@@ -171,17 +282,14 @@
       <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C1</text>
     </g>
 
-    <!-- C2 Battery (5 Cores - Shield Primed) -->
+    <!-- C2 Battery (5 Cores - Inactive Stored) -->
     <g transform="translate(75.5, 22)">
-      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#04182b" stroke="#00f0ff" stroke-width="1.5" filter="url(#glow-cyan)" />
-      <!-- Segmented battery power fill -->
-      <rect x="-11" y="14" width="22" height="5" rx="1" fill="#38bdf8" />
-      <rect x="-11" y="21" width="22" height="5" rx="1" fill="#38bdf8" />
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#081324" stroke="#1e293b" stroke-width="1" />
+      <rect x="-11" y="14" width="22" height="5" rx="1" fill="#0284c7" />
+      <rect x="-11" y="21" width="22" height="5" rx="1" fill="#0284c7" />
       <rect x="-11" y="28" width="22" height="5" rx="1" fill="#0284c7" />
-      <text x="0" y="11" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">5</text>
-      <!-- Shield Emitter Cap -->
-      <path d="M-8,-2 Q0,-6 8,-2" stroke="#38bdf8" stroke-width="1.8" fill="none" />
-      <text x="0" y="47" fill="#38bdf8" font-size="6.5" font-weight="900" text-anchor="middle">C2</text>
+      <text x="0" y="11" fill="#e2e8f0" font-size="10" font-weight="800" text-anchor="middle">5</text>
+      <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C2</text>
     </g>
 
     <!-- C3 Battery (0 Cores) -->
@@ -191,16 +299,20 @@
       <text x="0" y="47" fill="#334155" font-size="6.5" font-weight="800" text-anchor="middle">C3</text>
     </g>
 
-    <!-- C4 Battery (6 Cores - ACTIVE DISCHARGING / OVERLOAD) -->
-    <g transform="translate(165.5, 20)">
+    <!-- C4 Battery: ALIGNED PRIMED CELL CORRESPONDING TO DEFENDER (FEEDBACK 4) -->
+    <g transform="translate(165.5, 18)">
+      <!-- Alignment Indicator Arrow (Linking Dock to Defender) -->
+      <polygon points="0,-6 -6,-1 6,-1" fill="#00f0ff" filter="url(#glow-cyan)" />
+      
       <!-- Overload Pulse Shell -->
-      <rect x="-15" y="0" width="30" height="54" rx="6" fill="#022a4a" stroke="#ffffff" stroke-width="2" filter="url(#glow-cyan)" />
+      <rect x="-16" y="0" width="32" height="56" rx="7" fill="#022a4a" stroke="#ffffff" stroke-width="2" filter="url(#glow-cyan)" />
       <!-- Solid charged core fluid -->
-      <rect x="-11" y="8" width="22" height="28" rx="2" fill="url(#cyan-cell)" />
-      <text x="0" y="26" fill="#ffffff" font-size="13" font-weight="900" text-anchor="middle">6</text>
-      <!-- Subtle Direct-Tap Discharge Trigger Label -->
-      <rect x="-14" y="38" width="28" height="12" rx="3" fill="#ffffff" />
-      <text x="0" y="47" fill="#0369a1" font-size="6.5" font-weight="900" text-anchor="middle">FIRE</text>
+      <rect x="-12" y="7" width="24" height="28" rx="2" fill="url(#cyan-cell)" />
+      <text x="0" y="26" fill="#ffffff" font-size="13.5" font-weight="900" text-anchor="middle">6</text>
+      
+      <!-- Direct-Tap Discharge Trigger Button (Discharges through Defender bow!) -->
+      <rect x="-14" y="38" width="28" height="14" rx="4" fill="#ffffff" />
+      <text x="0" y="49" fill="#0369a1" font-size="7" font-weight="900" letter-spacing="0.4" text-anchor="middle">FIRE</text>
     </g>
 
     <!-- C5 Battery (2 Cores) -->
@@ -211,14 +323,13 @@
       <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C5</text>
     </g>
 
-    <!-- C6 Battery (4 Cores - Shield Primed) -->
+    <!-- C6 Battery (4 Cores - Stored) -->
     <g transform="translate(255.5, 22)">
-      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#04182b" stroke="#00f0ff" stroke-width="1.5" filter="url(#glow-cyan)" />
-      <rect x="-11" y="20" width="22" height="5" rx="1" fill="#38bdf8" />
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#081324" stroke="#1e293b" stroke-width="1" />
+      <rect x="-11" y="20" width="22" height="5" rx="1" fill="#0284c7" />
       <rect x="-11" y="27" width="22" height="5" rx="1" fill="#0284c7" />
-      <text x="0" y="13" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">4</text>
-      <path d="M-8,-2 Q0,-6 8,-2" stroke="#38bdf8" stroke-width="1.8" fill="none" />
-      <text x="0" y="47" fill="#38bdf8" font-size="6.5" font-weight="900" text-anchor="middle">C6</text>
+      <text x="0" y="13" fill="#e2e8f0" font-size="10" font-weight="800" text-anchor="middle">4</text>
+      <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C6</text>
     </g>
 
     <!-- C7 Battery (1 Core) -->
@@ -291,11 +402,11 @@
       </g>
     </g>
 
-    <!-- Subtle Sow Trajectory Guidance (Dotted Arc C6 -> C2) -->
-    <path d="M255.5,18 Q165.5,-6 75.5,18" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.7" />
+    <!-- Sow Trajectory Guidance (Dotted Arc C6 -> C2) -->
+    <path d="M255.5,18 Q165.5,-6 75.5,18" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.5" />
   </g>
 
   <!-- MINIMAL GESTURE REMINDER & HOME BAR -->
-  <text x="200" y="828" fill="#475569" font-size="7.5" font-weight="600" letter-spacing="0.5" text-anchor="middle">SWIPE BATTERIES TO SOW • TAP PRIMED CELL TO DISCHARGE</text>
+  <text x="200" y="828" fill="#475569" font-size="7.5" font-weight="600" letter-spacing="0.5" text-anchor="middle">SLIDE DEFENDER IN 3D SPACE • SWIPE TO SOW • TAP CONDUIT TO FIRE</text>
   <rect x="135" y="846" width="130" height="4" rx="2" fill="#334155" />
 </svg>
