@@ -14,7 +14,7 @@
   limitations under the License.
 -->
 
-# Google Play Store Listing Metadata & Localized Copy
+# Google Play Store Listing Metadata & Localized Copy (UX 3.0 Revamp)
 
 This document defines the official production store listing copy, keywords, localized metadata, and asset specifications for **Void Sower: Kinetic Mancala** (`com.voidsower.app`).
 
@@ -26,46 +26,51 @@ This document defines the official production store listing copy, keywords, loca
 `Void Sower: Kinetic Mancala`
 
 ### Short Description (Max 80 characters)
-`Afrofuturist orbital dreadnought defense powered by kinetic count-and-capture.`
+`3D deep space dreadnought combat powered by kinetic count-and-capture Mancala.`
 
 ### Full Description (Max 4,000 characters)
 ```text
-Command the ultimate orbital dreadnought and defend the galaxy in Void Sower: Kinetic Mancala—a high-speed tactical arcade strategy game that reimagines the ancient Swahili board game Bao la Kiswahili into an energetic interstellar combat system!
+Command an interstellar dreadnought and liberate the galaxy in Void Sower: Kinetic Mancala—a high-octane tactical space combat game that transforms the ancient African board game Bao la Kiswahili into an energetic deep-space weapons system!
 
-Defend the frontier against descending waves of hostile assault craft. Instead of firing conventional turrets, your flagship's weapons platform is driven by a 16-bay circular capacitor ring. Harness ancient count-and-capture mathematical laws, inject reserve plasma cores, and sow energetic charges along circular trajectories to unleash devastating axial Particle Lances!
+Defend orbital frontiers against descending armadas of hostile assault craft. Your flagship's primary weapon isn't a conventional turret—it is a 16-bay circular capacitor ring driven by kinetic count-and-capture mathematics. Inject plasma cores, sow energy along circular trajectories, and align your bow to unleash devastating axial Particle Lances!
 
-⚔️ REVOLUTIONARY KINETIC COMBAT
-• Count-and-Capture Tactics: Inject plasma cores (Namua) into capacitor bays and swipe to sow charges along the ring in clockwise or counter-clockwise cadence.
-• 28-Core Finite Economy: Manage your dreadnought's finite 28-core reactor fuel—every injection draws from reserve power to trigger strategic cascades.
-• Quadratic Particle Lances: When your sowing sequence terminates in an occupied frontline bay, its accumulated mass discharges as a devastating laser beam. Damage scales quadratically: D = α · M²!
-• Cascade Relays & Conduit Shields: Trigger multi-lap chain reactions across the ring and deflect incoming enemy ordnance with charged frontline batteries. Deflected plasma bombs convert into bonus energy!
+🚀 3D DEEP SPACE COMBAT ARENA
+• True Spatial Depth: Maneuver your flagship across Apogee (+40km), Mid-Combat (+20km), and Forward Engage (+10km) horizons with ground projection anchor telemetry.
+• 8 Tactical Corridors: Bank laterally across corridors C1–C8 to frame descending alien gunships directly in your forward firing axis.
+• Directional Thrusters & Fluid Flight: Full one-thumb flight controls engineered for portrait mobile play.
+
+⚔️ KINETIC COUNT-AND-CAPTURE COMBAT
+• Ancient Mathematical Weaponry: Inject plasma cores (Namua) and swipe to sow charges along the 16-bay ring in clockwise or counter-clockwise cadence.
+• Finite Reactor Economy: Balance your dreadnought's reserve cores—every tactical injection fuels multi-lap cascades and frontline overcharges.
+• Quadratic Particle Lances: When your sowing sequence finishes in an active frontline bay, stored mass discharges as a devastating laser beam with quadratic scaling (D = α · M²)!
+• Deflector Shields: Block incoming enemy ordnance with charged frontline batteries, turning hostile fire into tactical energy reserves.
 
 🌌 3 CAMPAIGN THEATERS • 27 SECTORS
-• Kilwa Nebula Basin: Master standard orbital siege defense across 9 contested sectors, from the Outer Bastions to the vital Core Siphon.
-• Phantom Drift Theater: Face 9 sectors of elusive, high-speed assault craft utilizing agile thruster evasion and lateral dodging maneuvers.
-• Void Swarm Theater: Endure 9 sectors of dense, respawning horde incursions requiring rapid tactical core siphoning and flawless cascade rhythm.
+• Kilwa Nebula Basin: Master orbital siege combat across 9 contested sectors, from outer defense perimeters to the vital Core Siphon.
+• Phantom Drift Theater: Face 9 sectors of high-speed stealth fighters executing agile thruster evasions and lateral dodge maneuvers.
+• Void Swarm Theater: Endure 9 sectors of dense, respawning alien swarms demanding rapid cascade timing and relentless core cycling.
 
-🤖 NATIVE AI TACTICAL ADVISOR & SIMULATION LAB
-• Autonomous AI Auto-Solver: Activate the native C++ AI Tactical Advisor to execute Grandmaster cascades and solve complex combat states in real time.
-• Orbital Simulation Lab: Engineer custom enemy waves, test combat doctrines, and analyze MCTS solvability in an unrestricted tactical sandbox.
-• Chrono-Anchor Rewind: Reverse combat miscalculations in real time with temporal rewind charges.
-• Real-Time Holographic Telemetry: Inspect live damage projections, shield-break probabilities, and corridor trajectories on the tactical Projection Shelf.
+🎮 UX 3.0 STREAMLINED EXPERIENCE
+• Zero-Friction Flow: Instant deployment into combat or tactical planning on the uncluttered Campaign Star Map.
+• Respectful Sortie Flow: Defeat brings an honest Orbital Breach screen—zero intrusive mid-game popups demanding core purchases.
+• Seamless Tactical Pause: Inspect live sortie telemetry, adjust flight doctrine, or activate Chrono-Rewinds—resuming is instantaneous with zero freezes.
+• Universal Tactical Advisory: Subtle real-time AI corridor scanning available for all pilots without stealing screen real estate.
 
-🎖️ FLEET HANGAR & PILOT PROGRESSION
-• 3 Tactical Dreadnought Chassis: Command the balanced MK-I Bastion, the high-capacity MK-II Monsoon Vanguard, or the devastating MK-III Singularity Sovereign (plus Golden Dreadnought variant).
-• Custom Pilot Dossier: Register your callsign, earn 6 military ranks, and track lifetime combat telemetry (lances fired, high scores, cascade laps).
-• Cultural Insignias: Adorn your flagship with historic motifs including the Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown, and Swahili Navigator.
-• Tamper-Proof Save Mobility: Easily export and import your mission progress across devices with cryptographically verified save codes.
+🤖 NATIVE AI TACTICAL ADVISOR & SIM LAB
+• MCTS Heuristic Solver: Activate the native C++ AI Tactical Advisor to demonstrate Grandmaster sowing cascades in real time.
+• Orbital Simulation Lab: Unrestricted tactical sandbox to engineer custom enemy waves, test fleet doctrines, and analyze game states.
+• Chrono-Anchor Rewind: Correct tactical miscalculations instantly with temporal rewind charges.
 
-🚀 CLUTTER-FREE ERGONOMIC CONTROLS
-• One-Thumb Command Arc: All flight controls, corridor alignment notches (C1-C8), and sowing buttons are ergonomically placed in the lower 30% screen zone.
-• Decluttered Star Map: Navigate campaigns via intuitive visual connection splines, mission objective cards, and a clean five-tab bottom deck.
-• Interactive Flight Academy: Master core mechanics through a guided 5-step tutorial and the comprehensive in-game Bao Codex.
+🛸 FLEET HANGAR & PILOT PROGRESSION
+• 3 Flagship Chassis: Command the balanced MK-I Bastion, the agile MK-II Monsoon Vanguard, or the devastating MK-III Singularity Sovereign (plus Golden Flagship hull).
+• Custom Pilot Dossier: Register your callsign, earn 6 naval ranks, and track lifetime telemetry (lances fired, high scores, cascade laps).
+• Historic Cultural Insignias: Adorn your hull with the Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown, and Swahili Navigator.
 
-💎 100% NATIVE C++ PERFORMANCE
-• Zero runtime memory allocations during active combat.
+💎 ZERO-ALLOCATION NATIVE C++ PERFORMANCE
+• 100% C++17 ECS simulation core operating with zero runtime dynamic memory allocations during active combat.
 • Cache-aligned 64-byte power-of-two ring buffers with bitwise index masking (& 0x0F).
-• Smooth 60/120 FPS Flutter Impeller rendering optimized for Android 16 KB memory page size alignment.
+• Silky 60/120 FPS Impeller rendering optimized for Android 16 KB memory page size alignment.
+• Fully playable offline—no mandatory internet connection required.
 
 Join the fleet, master the sacred cadence, and liberate the stars!
 ```
@@ -78,44 +83,50 @@ Join the fleet, master the sacred cadence, and liberate the stars!
 `Void Sower: Mancala ya Anga`
 
 ### Maelezo Mafupi (Short Description)
-`Ulinzi wa manowari za angani unaoendeshwa na mbinu za mchezo wa asili wa Bao.`
+`Vita vya manowari za angani katika 3D vinavyoendeshwa na mbinu za mchezo wa Bao.`
 
 ### Maelezo Kamili (Full Description)
 ```text
-Ongoza manowari kubwa ya anga na linda galaksi katika Void Sower: Mancala ya Anga—mchezo wa kusisimua wa mikakati unaobadilisha mchezo wa asili wa Kiafrika wa Bao la Kiswahili kuwa vita vya nyota!
+Ongoza manowari ya kisasa ya angani na ukomboe galaksi katika Void Sower: Mancala ya Anga—mchezo wa kusisimua wa mikakati unaobadilisha mchezo wa jadi wa Kiafrika wa Bao la Kiswahili kuwa silaha kali ya vita vya nyota!
 
-Kinga mipaka dhidi ya makundi ya meli za adui zinazoshambulia. Mfumo wa silaha wa meli yako unaendeshwa na pete ya vituo 16 vya nishati ya capacitor. Tumia kanuni za hesabu za kale za kupanda na kuteka, weka chembe za plazma (Namua), na panda nishati kwenye mzunguko ili kurusha miale mikali ya Particle Lance!
+Kinga mipaka ya sayari dhidi ya makundi ya meli za adui zinazoshuka kutoka angani. Silaha kuu ya meli yako inaendeshwa na pete ya vituo 16 vya nishati ya capacitor. Weka chembe za plazma (Namua), panda nishati kwenye mzunguko kwa kufuata kanuni za hisabati za Bao, na elekeza chombo chako kurusha miale mikali ya Particle Lance!
+
+🚀 UWANJA WA VITA WA 3D WA ANGA
+• Kina Halisi cha Anga (3D Depth): Sogeza manowari yako katika kimo cha Apogee (+40km), Mid-Combat (+20km), na Forward Engage (+10km).
+• Njia 8 za Mashambulizi (Corridors C1–C8): Elekeza pua ya meli yako kulenga meli za adui moja kwa moja.
+• Udhibiti Rahisi wa Kidole Kimoja: Mfumo ulioundwa mahsusi kwa uchezaji rahisi na wenye wepesi kwenye simu ya mkononi.
 
 ⚔️ VITA VYA KISASA VYA MANCALA
-• Mbinu za Bao la Kiswahili: Weka nishati (Namua) kwenye vyumba vya manowari na telezesha kidole ili kupanda nishati mzungukoni (mwelekeo wa saa au kinyume).
-• Uchumi wa Chembe 28: Dhibiti akiba ya mafuta ya chembe 28 za reakta—kila upandaji unatumia nishati kuanzisha msururu wa mashambulizi.
-• Miale ya Nguvu (D = α · M²): Upandaji unapokamilika kwenye chumba chenye nishati, mualiko mkali wa leza unarushwa kupitia njia ya vita!
-• Ngao ya Kinga: Zuia mabomu ya plasma ya adui na uyabadilishe kuwa nishati ya ziada ya meli yako!
+• Mbinu za Bao la Kiswahili: Weka nishati (Namua) kwenye vyumba vya manowari na telezesha kidole kupanda nishati mzungukoni (mwelekeo wa saa au kinyume).
+• Uchumi wa Chembe za Reakta: Dhibiti akiba ya nishati—kila upandaji unalisha msururu wa mashambulizi makali.
+• Miale ya Nguvu (D = α · M²): Upandaji unapokamilika kwenye chumba chenye nishati, mualiko mkali wa leza unarushwa kwa nguvu inayoongezeka mara dufu!
+• Ngao ya Kinga: Zuia mabomu ya adui na uyageuze kuwa nishati ya ziada ya meli yako!
 
 🌌 MAENEO 3 YA VITA • SEKTA 27
-• Ukanda wa Kilwa Nebula: Shinda vita vya kawaida vya anga katika sekta 9, kuanzia Ngome za Nje hadi Chemchemi Kuu.
-• Ukanda wa Phantom Drift: Pambana na sekta 9 za meli zenye kasi kubwa zinazokwepa mashambulizi kwa kuruka pembeni.
+• Ukanda wa Kilwa Nebula: Sekta 9 za ulinzi wa kawaida wa anga kutoka ngome za nje hadi chemchemi kuu.
+• Ukanda wa Phantom Drift: Pambana na sekta 9 za meli zenye mbio zinazokwepa mashambulizi kwa kuruka pembeni.
 • Ukanda wa Void Swarm: Kabiliana na sekta 9 za makundi ya adui yanayofufuka mfululizo yanayohitaji uvunaji wa haraka wa nishati.
 
-🤖 MSAIDIZI WA AI & MAABARA YA ANGA
-• Msaidizi wa AI (Auto-Solver): Washa akili bandia ya kiwango cha juu (C++ MCTS) kutatua na kuongoza mashambulizi kwa ustadi.
-• Maabara ya Anga (Simulation Lab): Tengeneza mawimbi ya adui na fanya majaribio ya mikakati bila vikwazo.
-• Kurudisha Nyuma Wakati (Chrono-Rewind): Sahihisha makosa ya mapigano papo hapo kwa kutumia uwezo wa kurudisha nyuma wakati.
-• Mwongozo wa Hologramu: Tazama makadirio ya uharibifu na njia za mashambulizi kwa wakati halisi.
+🎮 MFUMO MPYA WA UX 3.0
+• Urambazaji Mwepesi: Anza mapigano mara moja au panga mikakati kwenye Ramani ya Nyota safi isiyo na msongamano.
+• Heshima kwa Mchezaji: Mchezo ukiisha unaona skrini safi ya Orbital Breach—bila visumbufu vya kulazimisha ununuzi wa chembe.
+• Sitisha Mapigano Papo Hapo: Tazama takwimu, badili mipangilio, au rudisha nyuma wakati (Chrono-Rewind)—na kurudi vitani bila kukwama.
+• Mwongozo Safi wa AI: Ufuatiliaji wa njia za adui unaoonekana kwa marubani wote bila kujaza skrini.
 
-🎖️ MANOWARI & MAENDELEO YA RUBANI
-• Aina 3 za Manowari: Chagua MK-I Bastion, MK-II Monsoon, au MK-III Singularity Sovereign (pamoja na muundo wa dhahabu).
-• Wasifu wa Rubani: Sajili jina lako la kijeshi, panda vyeo 6, na fuatilia rekodi zako zote za ushindi.
+🤖 MSAIDIZI WA AI & MAABARA YA ANGA
+• Msaidizi wa AI (MCTS Solver): Washa akili bandia ya C++ kukuonyesha upandaji bora wa nishati kwa wakati halisi.
+• Maabara ya Anga (Simulation Lab): Tengeneza mawimbi ya adui na fanya majaribio ya mikakati bila vikwazo.
+• Kurudisha Nyuma Wakati: Sahihisha makosa ya mapigano papo hapo kwa kutumia uwezo wa Chrono-Rewind.
+
+🛸 MANOWARI & MAENDELEO YA RUBANI
+• Aina 3 za Manowari: Chagua MK-I Bastion, MK-II Monsoon Vanguard, au MK-III Singularity Sovereign (pamoja na muundo wa dhahabu).
+• Wasifu wa Rubani: Sajili jina lako, panda vyeo 6, na fuatilia rekodi zako zote za ushindi.
 • Nembo za Kihistoria: Pamba chombo chako kwa alama za Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown, na Swahili Navigator.
 
-🚀 UDHIBITI RAHISI NA SAFI
-• Mfumo Safi wa Kidole Kimoja: Vitufe vyote vya kurusha na kuelekeza viko eneo la chini la skrini kwa urahisi wa kutumia.
-• Ramani ya Nyota Iliyoboreshwa: Angalia njia na malengo ya kila sekta kwa urahisi bila msongamano.
-• Chuo cha Mafunzo ya Anga: Jifunze hatua kwa hatua kupitia mafunzo ya mwingiliano na mwongozo wa Bao Codex.
-
 💎 UTENDAJI WA JUU WA C++
-• Kasi ya juu ya 60/120 FPS bila kukwama wala kutumia kumbukumbu ya ziada.
-• Imeboreshwa mahsusi kwa Android 15 na mpangilio wa kurasa za 16 KB.
+• Mfumo unaoendeshwa kwa 100% C++ bila kukwama wala kupoteza kumbukumbu wakati wa mapigano.
+• Kasi ya juu ya 60/120 FPS iliyoboreshwa mahsusi kwa Android 16 KB.
+• Inachezeka bila intaneti (100% Offline).
 
 Jiunge na jeshi la anga, fuata mdundo wa kale, na ukomboe nyota sasa!
 ```
@@ -128,7 +139,7 @@ Jiunge na jeshi la anga, fuata mdundo wa kale, na ukomboe nyota sasa!
 `Void Sower: Ogun Ayò Ayé`
 
 ### Apejuwe Kukuru (Short Description)
-`Idaabobo ọkọ ofurufu ti a ṣe pẹlu awọn ilana iṣiro Ayò Olópon ti ilẹ Afirika.`
+`Ogun ọkọ ofurufu 3D ti a ṣe pẹlu awọn ilana iṣiro Ayò Olópon ti ilẹ Afirika.`
 
 ### Apejuwe Kikun (Full Description)
 ```text
@@ -136,9 +147,14 @@ Jiunge na jeshi la anga, fuata mdundo wa kale, na ukomboe nyota sasa!
 
 Dabobo agbegbe rẹ lodi si awọn ọta ti n sọkalẹ. Eto ohun ija ọkọ rẹ nlo oruka capacitor ti o ni ihò 16. Lo awọn ofin iṣiro gbingbin ati ikore Ayò, fi agbara plasma (Namua) sinu awọn ihò, ki o si gbin agbara lati ta awọn ina Particle Lance ti o lagbara pupọ!
 
+🚀 AGBEGBE OGUN 3D NI OFURURU
+• Ijinle 3D Gidi: Ṣe itọsọna ọkọ rẹ kọja awọn ipele Apogee (+40km), Mid-Combat (+20km), ati Forward Engage (+10km).
+• Opopona Ogun 8 (C1–C8): Yi ọkọ rẹ pada lati dojukọ awọn ọta taara ni iwaju rẹ.
+• Iṣakoso ika Kan: Iṣakoso ti o rọrun ti a ṣe fun awọn foonu alagbeka.
+
 ⚔️ OGUN KINETIC TI AYÒ
 • Ilana Gbingbin Ayò: Fi agbara sinu awọn ihò ki o ra ika rẹ lati gbin agbara ni ọna ti o yika (si ọtun tabi si osi).
-• Eto Agbara 28: Ṣakoso agbara ọkọ rẹ—gbogbo igbiyanju gbingbin nlo agbara lati tan awọn ina nla.
+• Eto Agbara Reakta: Ṣakoso agbara ọkọ rẹ—gbogbo igbiyanju gbingbin nlo agbara lati tan awọn ina nla.
 • Ina Alagbara (D = α · M²): Nigbati gbingbin ba pari sinu ihò ti o ni agbara, ina nla yoo ta lati pa awọn ọta run!
 • Asa Idaabobo: Yi awọn bọmbu ọta pada si agbara fun ọkọ rẹ!
 
@@ -147,11 +163,26 @@ Dabobo agbegbe rẹ lodi si awọn ọta ti n sọkalẹ. Eto ohun ija ọkọ r
 • Phantom Drift Theater: Koju awọn ọta 9 ti o yara ti wọn si n yẹra fun ibọn pẹlu ẹrọ iyara.
 • Void Swarm Theater: Koju awọn ọta 9 ti n pọ si loorekoore ti o nilo gbigba agbara kiakia.
 
+🎮 ÌRÍRÍ TITUN UX 3.0
+• Lilọ kiri Ti O Rọrun: Bẹrẹ ogun lẹsẹkẹsẹ tabi ṣe eto lori Maapu Irawọ ti o mọ laisi idarudapọ.
+• Ibọwọ Fun Oṣere: Ti ere ba pari, iwọ yoo rii iboju Orbital Breach ti o mọ—ko si awọn ifitonileti ti o n bẹbẹ fun rira agbara.
+• Idaduro Ogun Lẹsẹkẹsẹ: Wo awọn iṣiro ogun, yi awọn eto pada, tabi yiyipada akoko (Chrono-Rewind)—laisi didi eyikeyi.
+• Imọran AI: Imọran ọlọgbọn ti o han gbangba fun gbogbo awọn atukọ laisi gbigba gbogbo iboju.
+
 🤖 OLÙRÒNÚ TACTICAL IA & YÀRÁ ÌWÁDÌÍ
 • Olùrànlọ́wọ́ AI: Lo oye ẹrọ C++ ti o lagbara lati yanju awọn ipo ogun to nira ni kiakia.
 • Yàrá Ìwádìí (Simulation Lab): Ṣe afihan awọn ọta tuntun ki o ṣe idanwo awọn ilana ogun laisi idiwọ.
 • Yiyipada Akoko (Chrono-Rewind): Tun awọn aṣiṣe ogun ṣe ni kiakia nipa yiyipada akoko pada.
-• Awọn Ọkọ Oju-Ofurufu 3: Ṣe olori MK-I Bastion, MK-II Monsoon, tabi MK-III Singularity Sovereign.
+
+🛸 AWỌN ỌKỌ OJU-OFURUFU & ILỌSIWAJU
+• Awọn Ọkọ Oju-Ofurufu 3: Ṣe olori MK-I Bastion, MK-II Monsoon Vanguard, tabi MK-III Singularity Sovereign.
+• Akọsilẹ Atukọ: Forukọsilẹ orukọ rẹ, gba awọn ipo 6, ki o si tẹle gbogbo awọn igbasilẹ rẹ.
+• Awọn Ami Asa: Ṣe ọṣọ ọkọ rẹ pẹlu Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown, ati Swahili Navigator.
+
+💎 RENDIMENTO C++ ALAGBARA
+• 100% C++17 ti ko lo iranti pupọ lakoko ogun.
+• 60/120 FPS ti o dan daradara ti a ṣe fun Android 16 KB.
+• O le ṣiṣẹ laisi intanẹẹti (100% Offline).
 
 Darapọ mọ ogun, kọ ẹkọ ilana atijọ, ki o si gba awọn irawọ la!
 ```
@@ -164,44 +195,51 @@ Darapọ mọ ogun, kọ ẹkọ ilana atijọ, ki o si gba awọn irawọ la!
 `Void Sower: Mancala Cinétique`
 
 ### Brève description (Short Description)
-`Défense orbitale afrofuturiste propulsée par le jeu de semis traditionnel Bao.`
+`Combat spatial 3D de cuirassés propulsé par la mécanique traditionnelle du Bao.`
 
 ### Description Complète (Full Description)
 ```text
-Prenez les commandes du cuirassé orbital ultime et défendez la galaxie dans Void Sower: Mancala Cinétique—un jeu d'arcade tactique palpitant qui réinvente le jeu traditionnel d'Afrique de l'Est Bao la Kiswahili en un système de combat stellaire à haute énergie !
+Prenez les commandes d'un cuirassé interstellaire et libérez la galaxie dans Void Sower: Mancala Cinétique—un jeu d'action et de stratégie spatiale haletant qui réinvente le jeu ancestral d'Afrique de l'Est Bao la Kiswahili en un système d'armement spatial à haute énergie !
 
-Défendez la frontière spatiale contre des vagues d'assaut extraterrestres. Le système d'armement de votre vaisseau amiral est alimenté par un anneau circulaire de 16 condensateurs plasma. Injectez des cœurs d'énergie (Namua) et semez les charges le long des trajectoires circulaires pour déclencher de redoutables Lances de Particules axiales !
+Défendez les frontières orbitales contre des vagues d'assaut extraterrestres. L'arme principale de votre vaisseau n'est pas une tourelle classique : c'est un anneau circulaire de 16 condensateurs plasma régi par les lois mathématiques du semis et de la capture. Injectez des cœurs d'énergie (Namua), semez les charges et alignez votre proue pour déchaîner de redoutables Lances de Particules axiales !
 
-⚔️ COMBAT KINÉTIQUE RÉVOLUTIONNAIRE
-• Mécanique de Semis & Capture : Injectez des cœurs de plasma et balayez pour semer les charges dans le sens horaire ou antihoraire.
-• Économie Finie à 28 Cœurs : Gérez le réacteur de votre cuirassé—chaque semis puise dans vos réserves d'énergie pour déclencher des cascades d'énergie.
-• Lances de Particules Quadratiques : Lorsque votre semis s'achève sur un condensateur chargé, sa masse libère un puissant rayon laser dont les dégâts évoluent de façon quadratique : D = α · M² !
-• Bouclier Harmonique : Défléchissez les tirs ennemis et convertissez les bombes de plasma hostiles en énergie bonus !
+🚀 ARÈNE DE COMBAT SPATIAL EN 3D
+• Profondeur Spatiale Réelle : Manœuvrez votre vaisseau amiral entre les horizons d'Apogée (+40km), Mi-Combat (+20km) et Engagement Rapproché (+10km).
+• 8 Couloirs Tactiques (C1–C8) : Orientez latéralement votre cuirassé pour placer les vaisseaux ennemis directement dans l'axe de tir de votre proue.
+• Commandes Ergonomiques au Pouce : Système de vol conçu spécialement pour une prise en main fluide à une main en mode portrait.
+
+⚔️ COMBAT CINÉTIQUE DU BAO
+• Armement Mathématique Ancestral : Injectez des cœurs de plasma et balayez pour semer les charges dans le sens horaire ou antihoraire.
+• Économie de Réacteur Finie : Gérez vos réserves de cœurs—chaque injection tactique déclenche des réactions en cascade et suralimente vos batteries.
+• Lances de Particules Quadratiques : Lorsque votre semis s'achève sur un condensateur chargé, sa masse libère un puissant rayon laser dont la puissance augmente de façon quadratique : D = α · M² !
+• Boucliers Déflecteurs : Neutralisez les tirs ennemis et convertissez les bombes de plasma en réserves d'énergie pour votre vaisseau !
 
 🌌 3 THÉÂTRES DE CAMPAGNE • 27 SECTEURS
-• Bassin de Kilwa Nebula : Défense de siège orbital standard à travers 9 secteurs stratégiques.
-• Théâtre Phantom Drift : Affrontez 9 secteurs de vaisseaux agiles dotés de propulseurs d'esquive latérale.
-• Théâtre Void Swarm : Survivez à 9 secteurs d'essaims implacables nécessitant un siphonage énergétique continu.
+• Bassin de Kilwa Nebula : Maîtrisez le siège orbital à travers 9 secteurs stratégiques, des avant-postes jusqu'au Siphon Central.
+• Théâtre Phantom Drift : Affrontez 9 secteurs de chasseurs furtifs ultrarapides dotés de propulseurs d'esquive latérale.
+• Théâtre Void Swarm : Survivez à 9 secteurs d'essaims implacables exigeant une cadence de semis parfaite et un siphonage continu.
+
+🎮 EXPÉRIENCE ÉPURÉE UX 3.0
+• Déploiement Immédiat : Lancez-vous instantanément au combat ou planifiez votre progression sur la Carte Stellaire épurée.
+• Respect du Joueur : En cas de défaite, l'écran Rupture Orbitale s'affiche sobrement—aucun pop-up intrusif n'exige l'achat de cœurs.
+• Pause Tactique Fluide : Consultez les télémétries de vol, ajustez votre doctrine ou rembobinez le temps (Chrono-Rewind)—reprise immédiate sans aucun gel d'écran.
+• Conseil Tactique Subtil : Analyse radar IA en temps réel accessible à tous les pilotes sans encombrer l'écran.
 
 🤖 CONSEILLER TACTIQUE IA & LABO ORBITAL
-• Solveur IA Autonome : Activez l'IA tactique native en C++ pour exécuter des cascades de Grand Maître en temps réel.
-• Laboratoire de Simulation Orbitale : Concevez des vagues d'ennemis sur mesure et testez vos stratégies en toute liberté.
-• Ancre Temporelle (Chrono-Rewind) : Annulez vos erreurs tactiques en combat grâce au rembobinage temporel.
-• Télémétrie Holographique : Visualisez les projections de dégâts et les probabilités de perforation de bouclier.
+• Solveur IA Natif (C++ MCTS) : Activez l'intelligence artificielle tactique pour visualiser les meilleures cascades de semis en direct.
+• Laboratoire de Simulation Orbitale : Bac à sable complet pour concevoir des vagues ennemies et éprouver vos doctrines sans limites.
+• Ancre Temporelle (Chrono-Rewind) : Annulez instantanément vos erreurs de trajectoire grâce au rembobinage temporel.
 
-🎖️ HANGAR & PROGRESSION DU PILOTE
-• 3 Châssis de Cuirassé : Pilotez le MK-I Bastion, le MK-II Monsoon ou le destructeur MK-III Singularity Sovereign (avec variante dorée).
-• Dossier de Pilote : Débloquez 6 rangs militaires et suivez vos statistiques de vol à vie.
-• Insignes Historiques : Ornez votre coque des emblèmes Shona Star, Kilwa Crest, Zulu Aegis, Oyo Comet, Songhai Crown et Swahili Navigator.
+🛸 HANGAR DE FLOTTE & DOSSIER DE PILOTE
+• 3 Châssis de Cuirassé : Pilotez le polyvalent MK-I Bastion, l'agile MK-II Monsoon Vanguard ou le destructeur MK-III Singularity Sovereign (avec variante dorée).
+• Dossier de Pilote : Débloquez 6 rangs de la flotte et consultez vos statistiques complètes (tirs de lance, scores records, tours de cascade).
+• Insignes Historiques : Personnalisez votre coque avec le Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown et Swahili Navigator.
 
-🚀 CONTRÔLES ERGONOMIQUES ÉPURÉS
-• Arc de Commande au Pouce : Commandes optimisées dans les 30 % inférieurs de l'écran pour un confort maximal.
-• Carte Stellaire Fluide : Interface claire et épurée avec navigation simplifiée en 5 onglets.
-• Académie de Vol Interactive : Maîtrisez les règles du Bao grâce à des tutoriels interactifs et au Codex complet.
-
-💎 MOTEUR C++ HAUTE PERFORMANCE
-• Zéro allocation dynamique en combat actif.
-• Rendu Flutter Impeller ultra-fluide à 60/120 IPS optimisé pour Android 16 Ko.
+💎 RENDEMENT C++ HAUTE PERFORMANCE
+• Moteur ECS 100% C++17 sans allocation mémoire dynamique pendant le combat actif.
+• Anneaux de mémoire tampon de 64 octets alignés sur les lignes de cache avec masquage binaire (& 0x0F).
+• Fluidité absolue à 60/120 IPS sous Flutter Impeller optimisé pour l'alignement mémoire 16 Ko d'Android.
+• Entièrement jouable hors-ligne sans connexion Internet obligatoire.
 
 Rejoignez la flotte, maîtrisez la cadence sacrée et libérez les étoiles !
 ```
@@ -214,44 +252,51 @@ Rejoignez la flotte, maîtrisez la cadence sacrée et libérez les étoiles !
 `Void Sower: Mancala Cinético`
 
 ### Breve descripción (Short Description)
-`Defensa orbital afrofuturista impulsada por la mecánica tradicional del Bao.`
+`Combate espacial 3D de naves acorazadas impulsado por el tradicional juego Bao.`
 
 ### Descripción Completa (Full Description)
 ```text
-¡Ponte al mando del dreadnought orbital definitivo y defiende la galaxia en Void Sower: Mancala Cinético! Un intenso juego de estrategia táctica que reimagina el milenario juego africano Bao la Kiswahili como un electrizante sistema de combate intergaláctico.
+¡Ponte al mando de un dreadnought interestelar y libera la galaxia en Void Sower: Mancala Cinético! Un trepidante juego de combate táctico que reimagina el milenario juego africano Bao la Kiswahili como un potente sistema de armamento espacial.
 
-Defiende la frontera espacial contra oleadas de naves de asalto hostiles. El sistema de armamento de tu nave insignia se alimenta de un anillo circular de 16 condensadores de plasma. ¡Aplica las leyes matemáticas de siembra y captura, inyecta núcleos de plasma y desata devastadoras Lanzas de Partículas axiales!
+Defiende las fronteras orbitales contra oleadas invasoras de naves de asalto. El arma principal de tu nave no es una torreta ordinaria: es un anillo circular de 16 condensadores de plasma impulsado por las leyes matemáticas de siembra y captura. ¡Inyecta núcleos de plasma (Namua), siembra energía en trayectoria circular y alinea tu proa para descargar devastadoras Lanzas de Partículas axiales!
 
-⚔️ COMBATE CINÉTICO REVOLUCIONARIO
-• Siembra y Captura Táctica: Inyecta núcleos de plasma (Namua) y desliza para sembrar energía en sentido horario o antihorario.
-• Economía de 28 Núcleos: Administra el combustible finito de tu reactor para encadenar reacciones en cascada continuas.
-• Lanzas de Partículas Cuadráticas: Cuando la siembra finaliza en un condensador frontal ocupado, la masa acumulada se dispara en un rayo láser de daño cuadrático: D = α · M².
-• Escudo Armónico Deflector: ¡Desvía las bombas de plasma enemigas y conviértelas en energía adicional para tus baterías!
+🚀 ESCENARIO DE COMBATE ESPACIAL 3D
+• Profundidad Espacial Real: Maniobra tu nave insignia entre los horizontes de Apogeo (+40km), Medio Combate (+20km) y Compromiso Cercano (+10km).
+• 8 Pasillos Tácticos (C1–C8): Desplaza tu nave lateralmente para encuadrar las naves enemigas directamente en tu eje de disparo frontal.
+• Control Ergonómico con un Pulgar: Sistema de vuelo vertical diseñado para una experiencia fluida y reactiva en móviles.
+
+⚔️ COMBATE CINÉTICO TRADICIONAL
+• Armamento Matemático Ancestral: Inyecta núcleos de plasma y desliza para sembrar energía en sentido horario o antihorario.
+• Economía Finita de Reactor: Administra las reservas de núcleos—cada inyección táctica alimenta reacciones en cadena y sobrecargas frontales.
+• Lanzas de Partículas Cuadráticas: Cuando la siembra culmina en un condensador frontal activo, la energía acumulada se dispara en un rayo láser de daño cuadrático (D = α · M²).
+• Escudos Deflectores: ¡Bloquea los proyectiles enemigos y transforma las bombas de plasma en reservas de energía para tu nave!
 
 🌌 3 TEATROS DE CAMPAÑA • 27 SECTORES
-• Cuenca Nebulosa de Kilwa: 9 sectores de defensa orbital estándar desde los Bastiones Exteriores hasta el Sifón Central.
-• Teatro Phantom Drift: 9 sectores repletos de naves veloces con maniobras de evasión lateral y propulsores dinámicos.
-• Teatro Void Swarm: 9 sectores de densas hordas que reaparecen continuamente y exigen un drenaje táctico constante de núcleos.
+• Cuenca Nebulosa de Kilwa: 9 sectores de defensa orbital estándar desde los bastiones exteriores hasta el Sifón Central.
+• Teatro Phantom Drift: 9 sectores repletos de cazas veloces con propulsores de evasión lateral y esquiva dinámica.
+• Teatro Void Swarm: 9 sectores de densas hordas que reaparecen continuamente y demandan un reciclaje constante de núcleos.
+
+🎮 EXPERIENCIA OPTIMIZADA UX 3.0
+• Despliegue Instantáneo: Entra en acción de inmediato o planifica tu ruta en un Mapa Estelar limpio y sin distracciones.
+• Respeto al Jugador: Tras una derrota verás una pantalla limpia de Brecha Orbital—sin molestos avisos pidiendo compras de núcleos.
+• Pausa Táctica Fluida: Consulta la telemetría de vuelo, cambia tu doctrina o activa el Rebobinado Temporal—reanudación instantánea sin congelamientos.
+• Asesoría Táctica No Intrusiva: Escaneo radar de pasillos con IA disponible para todos los pilotos sin saturar la pantalla.
 
 🤖 ASESOR TÁCTICO IA Y LABORATORIO ORBITAL
-• Auto-Solucionador IA: Activa la IA nativa en C++ para ejecutar cascadas de Gran Maestro y resolver estados críticos en tiempo real.
-• Laboratorio de Simulación Orbital: Diseña oleadas personalizadas y prueba doctrinas de combate en un entorno libre.
-• Ancla Temporal (Chrono-Rewind): Corrige errores de combate al instante retrocediendo en el tiempo.
-• Telemetría Holográfica: Consulta proyecciones de daño, trayectorias y probabilidades de ruptura de escudos en vivo.
+• Solucionador Heurístico MCTS: Activa la IA nativa en C++ para visualizar en vivo las mejores secuencias de siembra.
+• Laboratorio de Simulación Orbital: Banco de pruebas completo para crear oleadas enemigas a medida y ensayar tácticas sin restricciones.
+• Ancla Temporal (Chrono-Rewind): Corrige errores de maniobra al instante retrocediendo en el tiempo.
 
-🎖️ HANGAR Y PROGRESIÓN DEL PILOTO
-• 3 Chasis de Dreadnought: Desbloquea y pilota el MK-I Bastion, el MK-II Monsoon y el MK-III Singularity Sovereign (con versión dorada).
-• Expediente de Piloto: Registra tu distintivo de llamada, alcanza 6 rangos militares y revisa tus estadísticas históricas.
-• Insignias Culturales: Personaliza tu nave con emblemas tradicionales como Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown y Swahili Navigator.
+🛸 HANGAR DE FLOTA Y PROGRESIÓN
+• 3 Chasis de Nave Insignia: Pilota el equilibrado MK-I Bastion, el ágil MK-II Monsoon Vanguard o el colosal MK-III Singularity Sovereign (con versión dorada).
+• Expediente de Piloto: Registra tu indicativo de llamada, alcanza 6 rangos navales y sigue tus estadísticas históricas completas.
+• Insignias Culturales Históricas: Personaliza tu nave con el Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown y Swahili Navigator.
 
-🚀 CONTROLES ERGONÓMICOS Y LIMPIOS
-• Arco de Mando a un Pulgar: Todos los controles se sitúan en el 30% inferior de la pantalla para máxima comodidad.
-• Mapa Estelar Rediseñado: Navegación visual fluida entre sectores y barra inferior de 5 pestañas sin distracciones.
-• Academia de Vuelo Interactiva: Aprende paso a paso con tutoriales guiados y el completo Códice Bao.
-
-💎 RENDIMIENTO NATIVO C++
-• Cero asignaciones de memoria durante el combate activo.
-• Gráficos Flutter Impeller a 60/120 FPS optimizados para Android con alineación de páginas de 16 KB.
+💎 RENDIMIENTO NATIVO C++ DE ALTA VELOCIDAD
+• Núcleo de simulación ECS 100% C++17 sin asignación dinámica de memoria durante el combate activo.
+• Búferes circulares de 64 bytes alineados con las líneas de caché y enmascaramiento binario (& 0x0F).
+• Rápida tasa de 60/120 FPS bajo Flutter Impeller optimizado para la alineación de páginas de 16 KB en Android.
+• Completamente jugable sin conexión a internet (100% Offline).
 
 ¡Únete a la flota, domina la cadencia sagrada y libera las estrellas!
 ```
@@ -262,9 +307,10 @@ Defiende la frontera espacial contra oleadas de naves de asalto hostiles. El sis
 
 | Asset | Local File Path | Specifications | Purpose |
 | :--- | :--- | :--- | :--- |
-| **60s Narrated Tutorial Video** | [`store_listing/assets/how_to_play_60s.mp4`](assets/how_to_play_60s.mp4) | 1080x2400 Portrait, 60s @ 60 FPS (3,520 frames), Neural voiceover (`en-US-ChristopherNeural`), HUD subtitles, ambient synth score | Primary YouTube / Play Store trailer explaining rules, controls, and combat |
-| **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30s @ 30 FPS (1,742 frames), Live C++ AI Tactical Solver across Phantom Drift & Void Swarm, synth audio | High-CTR short showcase for YouTube Shorts and mobile store previews |
-| **Animated Promo Gameplay GIF** | [`store_listing/assets/promo_gameplay.gif`](assets/promo_gameplay.gif) | 360x800, 150 frames, optimized 128-color Bayer dither | Lightweight animated preview for developer portals, GitHub READMEs, and store cards |
+| **UX 3.0 Showcase Gameplay Video** | [`docs/media/void_sower_gameplay_showcase.mp4`](../docs/media/void_sower_gameplay_showcase.mp4) | 720x1600 Portrait, 24s @ 60 FPS, H.264 AVC1, 4.82 Mbps. Demonstrates 3D maneuvers, sowing cascade, particle lance crit (+1600), tactical pause, and star map. | Primary Google Play Store gameplay video preview / YouTube Shorts |
+| **60s Narrated Tutorial Video** | [`store_listing/assets/how_to_play_60s.mp4`](assets/how_to_play_60s.mp4) | 1080x2400 Portrait, 60s @ 60 FPS, Neural voiceover (`en-US-ChristopherNeural`), HUD subtitles, ambient synth score | Comprehensive onboarding trailer explaining Bao count-and-capture rules |
+| **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30s @ 30 FPS, Live C++ AI Tactical Solver across Phantom Drift & Void Swarm | Technical showcase for AI solver and high-tier gameplay |
+| **Animated Promo Gameplay GIF** | [`store_listing/assets/promo_gameplay.gif`](assets/promo_gameplay.gif) | 360x800, 150 frames, optimized 128-color Bayer dither | Lightweight animated preview for developer portals and GitHub READMEs |
 
 ---
 
@@ -291,12 +337,13 @@ Defiende la frontera espacial contra oleadas de naves de asalto hostiles. El sis
 - **Default Price**: `$1.29 USD` (Local currency equivalents auto-converted in Play Console)
 - **Status**: Active
 
-### 3. Rewarded Video Ads (Google Mobile Ads / AdMob)
-- **Format**: Rewarded Interstitial Video
+### 3. Rewarded Video Ads Policy (Player-Respecting & Non-Intrusive)
+- **Format**: Optional Rewarded Interstitial Video (User-initiated only)
 - **Ad Unit ID (Production)**: Configure in AdMob Console (linked to `com.voidsower.app`)
 - **Ad Unit ID (Testing)**: `ca-app-pub-3940256099942544/5224354917` (Android)
-- **Reward**: `Emergency Reactor Charge (+8 Cores)` when reactor fuel falls below 2 cores
-- **Cooldown**: 3-minute tactical frequency cap (bypassed instantly for Pro Commanders)
+- **Reward**: `Pro Boost (+5 Minutes)` or `Chrono-Anchor Rewind Charge (+1)`
+- **No Intrusive Defeat Walls**: Zero forced ads upon defeat; normal campaign gameplay provides an immediate clean retry or return to Star Map without intrusive core-purchase popups.
+- **Ad-Free Bypass**: All rewarded perks remain permanently active and ad-free for Pro Commanders.
 
 ### 4. Legal & Privacy Compliance URLs
 - **Privacy Policy**: `https://ktgorekore.github.io/oware-2048-legal/privacy.html`

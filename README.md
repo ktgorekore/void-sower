@@ -22,10 +22,10 @@
 
 ## 🎬 Official Gameplay & Tutorial Media
 
-| 60-Second Narrated Tutorial Video | 30-Second AI Tactical Solver Showcase |
-| :---: | :---: |
-| [![60s Narrated Tutorial Video](store_listing/screenshots/phone/01_tactical_combat_grid.png)](docs/media/void_sower_how_to_play_60s.mp4) | [![30s AI Tactical Solver](docs/media/void_sower_solver_showcase.gif)](docs/media/void_sower_solver_showcase_30s.mp4) |
-| *[Watch 60s Narrated Tutorial (MP4)](docs/media/void_sower_how_to_play_60s.mp4)*<br>Neural voiceover (`ChristopherNeural`), HUD subtitles, ambient synth score | *[Watch 30s Solver Showcase (MP4)](docs/media/void_sower_solver_showcase_30s.mp4)*<br>Heuristic MCTS solver clearing 3 difficulty tiers with quadratic lances |
+| UX 3.0 Gameplay Showcase (24s) | 60-Second Narrated Tutorial Video | 30-Second AI Tactical Solver Showcase |
+| :---: | :---: | :---: |
+| [![UX 3.0 Gameplay Showcase](docs/media/store_screenshots/01_combat_tactical_depth.png)](docs/media/void_sower_gameplay_showcase.mp4) | [![60s Narrated Tutorial Video](store_listing/screenshots/phone/01_tactical_combat_grid.png)](docs/media/void_sower_how_to_play_60s.mp4) | [![30s AI Tactical Solver](docs/media/void_sower_solver_showcase.gif)](docs/media/void_sower_solver_showcase_30s.mp4) |
+| *[Watch 24s Showcase (MP4)](docs/media/void_sower_gameplay_showcase.mp4)*<br>3D flight depth, corridor lances, sowing cascades, and tactical pause | *[Watch 60s Narrated Tutorial (MP4)](docs/media/void_sower_how_to_play_60s.mp4)*<br>Neural voiceover (`ChristopherNeural`), HUD subtitles, ambient synth score | *[Watch 30s Solver Showcase (MP4)](docs/media/void_sower_solver_showcase_30s.mp4)*<br>Heuristic MCTS solver clearing 3 difficulty tiers with quadratic lances |
 
 ---
 
