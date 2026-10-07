@@ -1,0 +1,293 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 860" width="100%" height="100%" style="background:#05070f; border-radius:36px; box-shadow:0 25px 60px rgba(0,0,0,0.85); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <filter id="glow-cyan6" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-gold6" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <linearGradient id="lab-card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c233c" />
+      <stop offset="100%" stop-color="#071322" />
+    </linearGradient>
+  </defs>
+
+  <!-- SCREEN BACKGROUND -->
+  <rect width="400" height="860" rx="36" fill="#05070f" />
+
+  <!-- STATUS BAR -->
+  <rect x="145" y="10" width="110" height="28" rx="14" fill="#000000" />
+  <circle cx="162" cy="24" r="4.5" fill="#0f172a" />
+  <text x="35" y="28" fill="#64748b" font-size="12" font-weight="600">3:56</text>
+
+  <!-- ============================================================== -->
+  <!-- 1. HEADER & ENGINE READOUT -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 52)">
+    <text x="0" y="10" fill="#38bdf8" font-size="8.5" font-weight="800" letter-spacing="1.5">VOID SOWER // SIMULATION LAB</text>
+    <text x="0" y="32" fill="#ffffff" font-size="20" font-weight="900">TACTICAL SOLVER DECK</text>
+    
+    <!-- Engine Status Pill -->
+    <g transform="translate(240, 10)">
+      <rect x="0" y="0" width="120" height="26" rx="13" fill="#032541" stroke="#00f0ff" stroke-width="1" />
+      <circle cx="14" cy="13" r="5" fill="#00f0ff" />
+      <text x="26" y="17" fill="#e0f2fe" font-size="8.5" font-weight="800">MCTS SOLVER READY</text>
+    </g>
+
+    <!-- Progress Track -->
+    <rect x="0" y="44" width="360" height="4" rx="2" fill="#1e293b" />
+    <rect x="0" y="44" width="360" height="4" rx="2" fill="#00f0ff" filter="url(#glow-cyan6)" />
+  </g>
+
+  <!-- LAB TABS -->
+  <g transform="translate(20, 116)">
+    <rect x="0" y="0" width="112" height="32" rx="16" fill="#0284c7" />
+    <text x="56" y="20" fill="#ffffff" font-size="10" font-weight="800" text-anchor="middle">BOARD EDITOR</text>
+
+    <rect x="120" y="0" width="112" height="32" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+    <text x="176" y="20" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">SOLVER TREE</text>
+
+    <rect x="240" y="0" width="120" height="32" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+    <text x="300" y="20" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">SCENARIOS</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 2. INTERACTIVE BATTERY DOCK EDITOR (HERO CARD) -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 164)">
+    <rect x="0" y="0" width="360" height="236" rx="18" fill="url(#lab-card)" stroke="#00f0ff" stroke-width="1.5" />
+
+    <!-- Card Header -->
+    <g transform="translate(18, 16)">
+      <text x="0" y="10" fill="#38bdf8" font-size="8.5" font-weight="800" letter-spacing="1">ORBITAL CAPACITOR RING STATE (16 BAYS)</text>
+      <text x="324" y="10" fill="#fbbf24" font-size="8" font-weight="700" text-anchor="end">TOTAL CORES: 32</text>
+    </g>
+
+    <!-- ROW 1: 8 FRONTLINE CELLS (C1–C8) -->
+    <g transform="translate(18, 38)">
+      <!-- C1 -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="36" height="58" rx="6" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+        <text x="18" y="28" fill="#94a3b8" font-size="12" font-weight="800" text-anchor="middle">2</text>
+        <text x="18" y="48" fill="#64748b" font-size="7.5" font-weight="800" text-anchor="middle">C1</text>
+      </g>
+      <!-- C2 -->
+      <g transform="translate(41, 0)">
+        <rect x="0" y="0" width="36" height="58" rx="6" fill="#04182b" stroke="#00f0ff" stroke-width="1.2" />
+        <text x="18" y="28" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">4</text>
+        <text x="18" y="48" fill="#38bdf8" font-size="7.5" font-weight="900" text-anchor="middle">C2</text>
+      </g>
+      <!-- C3 -->
+      <g transform="translate(82, 0)">
+        <rect x="0" y="0" width="36" height="58" rx="6" fill="#060913" stroke="#1e293b" stroke-width="1" />
+        <text x="18" y="28" fill="#334155" font-size="12" font-weight="800" text-anchor="middle">0</text>
+        <text x="18" y="48" fill="#334155" font-size="7.5" font-weight="800" text-anchor="middle">C3</text>
+      </g>
+      <!-- C4 (SELECTED SOURCE PIT) -->
+      <g transform="translate(123, -2)">
+        <rect x="0" y="0" width="36" height="62" rx="7" fill="#022a4a" stroke="#ffffff" stroke-width="1.8" filter="url(#glow-cyan6)" />
+        <rect x="4" y="8" width="28" height="30" rx="3" fill="#0284c7" />
+        <text x="18" y="28" fill="#ffffff" font-size="13" font-weight="900" text-anchor="middle">6</text>
+        <text x="18" y="52" fill="#ffffff" font-size="8" font-weight="900" text-anchor="middle">C4</text>
+      </g>
+      <!-- C5 -->
+      <g transform="translate(164, 0)">
+        <rect x="0" y="0" width="36" height="58" rx="6" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+        <text x="18" y="28" fill="#94a3b8" font-size="12" font-weight="800" text-anchor="middle">1</text>
+        <text x="18" y="48" fill="#64748b" font-size="7.5" font-weight="800" text-anchor="middle">C5</text>
+      </g>
+      <!-- C6 -->
+      <g transform="translate(205, 0)">
+        <rect x="0" y="0" width="36" height="58" rx="6" fill="#04182b" stroke="#00f0ff" stroke-width="1.2" />
+        <text x="18" y="28" fill="#ffffff" font-size="12" font-weight="900" text-anchor="middle">5</text>
+        <text x="18" y="48" fill="#38bdf8" font-size="7.5" font-weight="900" text-anchor="middle">C6</text>
+      </g>
+      <!-- C7 -->
+      <g transform="translate(246, 0)">
+        <rect x="0" y="0" width="36" height="58" rx="6" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+        <text x="18" y="28" fill="#94a3b8" font-size="12" font-weight="800" text-anchor="middle">3</text>
+        <text x="18" y="48" fill="#64748b" font-size="7.5" font-weight="800" text-anchor="middle">C7</text>
+      </g>
+      <!-- C8 -->
+      <g transform="translate(287, 0)">
+        <rect x="0" y="0" width="36" height="58" rx="6" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+        <text x="18" y="28" fill="#94a3b8" font-size="12" font-weight="800" text-anchor="middle">1</text>
+        <text x="18" y="48" fill="#64748b" font-size="7.5" font-weight="800" text-anchor="middle">C8</text>
+      </g>
+    </g>
+
+    <!-- ROW 2: 8 RETURN CAPACITORS & NYUMBA VAULT -->
+    <g transform="translate(18, 114)">
+      <!-- B0 -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="36" height="34" rx="5" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="18" y="18" fill="#94a3b8" font-size="10.5" font-weight="800" text-anchor="middle">1</text>
+        <text x="18" y="29" fill="#475569" font-size="6.5" font-weight="700" text-anchor="middle">B0</text>
+      </g>
+      <!-- B1 -->
+      <g transform="translate(41, 0)">
+        <rect x="0" y="0" width="36" height="34" rx="5" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="18" y="18" fill="#94a3b8" font-size="10.5" font-weight="800" text-anchor="middle">2</text>
+        <text x="18" y="29" fill="#475569" font-size="6.5" font-weight="700" text-anchor="middle">B1</text>
+      </g>
+      <!-- B2 -->
+      <g transform="translate(82, 0)">
+        <rect x="0" y="0" width="36" height="34" rx="5" fill="#060913" stroke="#1e293b" stroke-width="1" />
+        <text x="18" y="18" fill="#334155" font-size="10.5" font-weight="800" text-anchor="middle">0</text>
+        <text x="18" y="29" fill="#334155" font-size="6.5" font-weight="700" text-anchor="middle">B2</text>
+      </g>
+
+      <!-- GOLD NYUMBA DUAL CHAMBER (B3 & B4) -->
+      <g transform="translate(123, -2)">
+        <rect x="0" y="0" width="77" height="38" rx="6" fill="#201503" stroke="#f59e0b" stroke-width="1.4" filter="url(#glow-gold6)" />
+        <text x="18" y="19" fill="#fbbf24" font-size="11" font-weight="900" text-anchor="middle">4</text>
+        <text x="59" y="19" fill="#fbbf24" font-size="11" font-weight="900" text-anchor="middle">4</text>
+        <text x="38.5" y="32" fill="#fbbf24" font-size="7" font-weight="900" letter-spacing="0.5" text-anchor="middle">NYUMBA</text>
+      </g>
+
+      <!-- B5 -->
+      <g transform="translate(205, 0)">
+        <rect x="0" y="0" width="36" height="34" rx="5" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="18" y="18" fill="#94a3b8" font-size="10.5" font-weight="800" text-anchor="middle">0</text>
+        <text x="18" y="29" fill="#475569" font-size="6.5" font-weight="700" text-anchor="middle">B5</text>
+      </g>
+      <!-- B6 -->
+      <g transform="translate(246, 0)">
+        <rect x="0" y="0" width="36" height="34" rx="5" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="18" y="18" fill="#94a3b8" font-size="10.5" font-weight="800" text-anchor="middle">2</text>
+        <text x="18" y="29" fill="#475569" font-size="6.5" font-weight="700" text-anchor="middle">B6</text>
+      </g>
+      <!-- B7 -->
+      <g transform="translate(287, 0)">
+        <rect x="0" y="0" width="36" height="34" rx="5" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="18" y="18" fill="#94a3b8" font-size="10.5" font-weight="800" text-anchor="middle">1</text>
+        <text x="18" y="29" fill="#475569" font-size="6.5" font-weight="700" text-anchor="middle">B7</text>
+      </g>
+    </g>
+
+    <!-- Editor Step Adjuster Row -->
+    <g transform="translate(18, 172)">
+      <rect x="0" y="0" width="324" height="46" rx="10" fill="#07101d" stroke="#1e293b" stroke-width="1" />
+      <text x="16" y="28" fill="#94a3b8" font-size="10" font-weight="700">SELECTED: CORRIDOR 4 (6 CORES)</text>
+      
+      <!-- Stepper Controls -->
+      <g transform="translate(220, 9)">
+        <rect x="0" y="0" width="28" height="28" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+        <text x="14" y="19" fill="#38bdf8" font-size="14" font-weight="900" text-anchor="middle">-</text>
+
+        <rect x="36" y="0" width="28" height="28" rx="6" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+        <text x="50" y="19" fill="#38bdf8" font-size="14" font-weight="900" text-anchor="middle">+</text>
+
+        <rect x="72" y="0" width="28" height="28" rx="6" fill="#180b11" stroke="#e11d48" stroke-width="0.8" />
+        <text x="86" y="18" fill="#f43f5e" font-size="10" font-weight="900" text-anchor="middle">CLR</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 3. AI TACTICAL SOLVER PREDICTION PANEL -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 416)">
+    <!-- Subheader -->
+    <text x="0" y="12" fill="#38bdf8" font-size="9" font-weight="900" letter-spacing="1">AI TACTICAL ANALYSIS // MCTS DEPTH 8</text>
+
+    <!-- Tactical Recommendation Card -->
+    <g transform="translate(0, 24)">
+      <rect x="0" y="0" width="360" height="110" rx="14" fill="#0a101d" stroke="#00f0ff" stroke-width="1.2" />
+
+      <!-- Best Move Badge -->
+      <g transform="translate(18, 16)">
+        <rect x="0" y="0" width="94" height="20" rx="10" fill="#0284c7" />
+        <text x="47" y="13" fill="#ffffff" font-size="8.5" font-weight="900" letter-spacing="0.5" text-anchor="middle">RECOMMENDED SOW</text>
+        <text x="106" y="15" fill="#ffffff" font-size="13" font-weight="900">C4 → CLOCKWISE (+6)</text>
+      </g>
+
+      <text x="18" y="58" fill="#94a3b8" font-size="10.5" font-weight="600">Triggers Mtaji Overload on C8 • Lance Damage: 36 HP</text>
+      
+      <!-- Metrics Row -->
+      <g transform="translate(18, 74)">
+        <rect x="0" y="0" width="100" height="22" rx="6" fill="#071b2e" />
+        <text x="50" y="15" fill="#00f0ff" font-size="9" font-weight="800" text-anchor="middle">WIN PROB: 98.4%</text>
+
+        <rect x="110" y="0" width="100" height="22" rx="6" fill="#201503" />
+        <text x="160" y="15" fill="#fbbf24" font-size="9" font-weight="800" text-anchor="middle">NET CORES: +4</text>
+
+        <rect x="220" y="0" width="100" height="22" rx="6" fill="#0f172a" />
+        <text x="270" y="15" fill="#e2e8f0" font-size="9" font-weight="800" text-anchor="middle">LANCE: ×36 DMG</text>
+      </g>
+    </g>
+
+    <!-- Execution & Scrubber Controls -->
+    <g transform="translate(0, 150)">
+      <rect x="0" y="0" width="360" height="74" rx="14" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+
+      <!-- Step Counter -->
+      <g transform="translate(18, 14)">
+        <text x="0" y="10" fill="#64748b" font-size="8" font-weight="800">EXECUTION STEP</text>
+        <text x="0" y="26" fill="#ffffff" font-size="13" font-weight="900">STEP 1 / 3</text>
+        <text x="0" y="42" fill="#38bdf8" font-size="8.5" font-weight="700">Namua Priming Stage</text>
+      </g>
+
+      <!-- Action Buttons -->
+      <g transform="translate(170, 16)">
+        <rect x="0" y="0" width="78" height="42" rx="21" fill="#0f172a" stroke="#00f0ff" stroke-width="1" />
+        <text x="39" y="25" fill="#00f0ff" font-size="10" font-weight="800" text-anchor="middle">‹ STEP</text>
+
+        <rect x="86" y="0" width="86" height="42" rx="21" fill="#00f0ff" filter="url(#glow-cyan6)" />
+        <text x="129" y="25" fill="#04182b" font-size="10.5" font-weight="900" text-anchor="middle">PLAY STEP ›</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 4. BOTTOM GLOBAL COMMAND NAVIGATION TABS -->
+  <!-- ============================================================== -->
+  <g transform="translate(0, 776)">
+    <rect x="0" y="0" width="400" height="84" fill="#070c16" stroke="#1e293b" stroke-width="1" />
+
+    <!-- 1. SECTORS -->
+    <g transform="translate(42, 14)">
+      <path d="M8 10 l6 -3 l6 3 v8 c0 4 -6 6 -6 6 s-6 -2 -6 -6 z" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">SECTORS</text>
+    </g>
+
+    <!-- 2. FLEET -->
+    <g transform="translate(118, 14)">
+      <polygon points="14,8 20,20 14,17 8,20" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">FLEET</text>
+    </g>
+
+    <!-- 3. PILOT -->
+    <g transform="translate(194, 14)">
+      <circle cx="14" cy="12" r="4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <path d="M8 22 c0 -3 3 -4 6 -4 s6 1 6 4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">PILOT</text>
+    </g>
+
+    <!-- 4. DIRECTIVES (ACTIVE FOR SIM LAB & CODEX) -->
+    <g transform="translate(270, 14)">
+      <circle cx="14" cy="14" r="12" fill="#00f0ff" fill-opacity="0.15" />
+      <rect x="8" y="9" width="12" height="12" rx="2" fill="none" stroke="#00f0ff" stroke-width="1.5" />
+      <line x1="11" y1="13" x2="17" y2="13" stroke="#00f0ff" stroke-width="1.2" />
+      <line x1="11" y1="17" x2="15" y2="17" stroke="#00f0ff" stroke-width="1.2" />
+      <text x="14" y="36" fill="#00f0ff" font-size="8.5" font-weight="800" text-anchor="middle">DIRECTIVES</text>
+    </g>
+
+    <!-- 5. SETTINGS -->
+    <g transform="translate(344, 14)">
+      <circle cx="14" cy="15" r="4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">SETTINGS</text>
+    </g>
+  </g>
+
+  <!-- HOME SWIPE BAR -->
+  <rect x="135" y="846" width="130" height="4" rx="2" fill="#334155" />
+</svg>

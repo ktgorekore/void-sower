@@ -1,0 +1,301 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 860" width="100%" height="100%" style="background:#05070f; border-radius:36px; box-shadow:0 25px 60px rgba(0,0,0,0.85); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <!-- Glow Filters -->
+    <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-beam" x="-30%" y="-10%" width="160%" height="120%">
+      <feGaussianBlur stdDeviation="7" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- Gradients -->
+    <linearGradient id="beam-lance" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="1" />
+      <stop offset="25%" stop-color="#ffffff" stop-opacity="1" />
+      <stop offset="85%" stop-color="#00f0ff" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#00f0ff" stop-opacity="0" />
+    </linearGradient>
+
+    <linearGradient id="glass-dock" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0e1726" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#070b14" stop-opacity="0.95" />
+    </linearGradient>
+
+    <linearGradient id="gold-cell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+
+    <linearGradient id="cyan-cell" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+  </defs>
+
+  <!-- SCREEN BACKGROUND WITH SUBTLE COMBAT GRID -->
+  <rect width="400" height="860" rx="36" fill="#05070f" />
+
+  <!-- STATUS BAR / PHONE FRAME -->
+  <rect x="145" y="10" width="110" height="28" rx="14" fill="#000000" />
+  <circle cx="162" cy="24" r="4.5" fill="#0f172a" />
+  <circle cx="235" cy="24" r="3.5" fill="#0284c7" opacity="0.3" />
+  <text x="35" y="28" fill="#64748b" font-size="12" font-weight="600">3:56</text>
+  <path d="M342 21 h16 v8 h-16 z M358 23 v4" fill="none" stroke="#64748b" stroke-width="1.2" rx="1.5" />
+  <rect x="344" y="23" width="11" height="4" fill="#64748b" rx="1" />
+
+  <!-- ============================================================== -->
+  <!-- 1. SLIMLINE TOP HUD (HEIGHT: 38px) -->
+  <!-- ============================================================== -->
+  <g transform="translate(16, 48)">
+    <!-- Sector Name & Score -->
+    <rect x="0" y="0" width="160" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#1e293b" stroke-width="1" />
+    <text x="12" y="15" fill="#38bdf8" font-size="8.5" font-weight="700" letter-spacing="0.5">S1 PATROL • ZANZIBAR REEF</text>
+    <text x="12" y="28" fill="#ffffff" font-size="11" font-weight="800">SCORE: 034,820</text>
+
+    <!-- Cores Stored -->
+    <g transform="translate(168, 0)">
+      <rect x="0" y="0" width="94" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#d97706" stroke-width="1" stroke-opacity="0.3" />
+      <circle cx="16" cy="18" r="6.5" fill="url(#gold-cell)" />
+      <text x="29" y="22" fill="#fbbf24" font-size="12.5" font-weight="800">36</text>
+      <text x="49" y="21" fill="#94a3b8" font-size="8" font-weight="700">CORES</text>
+    </g>
+
+    <!-- Shield & Pause -->
+    <g transform="translate(270, 0)">
+      <rect x="0" y="0" width="46" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#0284c7" stroke-width="1" stroke-opacity="0.3" />
+      <path d="M14 11 l5 -2.5 l5 2.5 v5 c0 4 -5 7 -5 7 s-5 -3 -5 -7 z" fill="#0284c7" fill-opacity="0.4" stroke="#38bdf8" stroke-width="1.2" />
+      <text x="29" y="22" fill="#e0f2fe" font-size="10" font-weight="800">2/2</text>
+    </g>
+
+    <g transform="translate(324, 0)">
+      <rect x="0" y="0" width="44" height="36" rx="10" fill="#0f172a" fill-opacity="0.5" stroke="#1e293b" stroke-width="1" />
+      <rect x="18" y="12" width="2.5" height="12" fill="#94a3b8" rx="1" />
+      <rect x="23.5" y="12" width="2.5" height="12" fill="#94a3b8" rx="1" />
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 2. EXPANDED COMBAT THEATER (HEIGHT: ~560px OF OPEN GAMEPLAY!) -->
+  <!-- ============================================================== -->
+  <!-- 8 Subtle Lane Tracks: 42.5, 87.5, 132.5, 177.5, 222.5, 267.5, 312.5, 357.5 -->
+  <g opacity="0.12">
+    <line x1="42.5" y1="92" x2="42.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+    <line x1="87.5" y1="92" x2="87.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+    <line x1="132.5" y1="92" x2="132.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+    <line x1="177.5" y1="92" x2="177.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+    <line x1="222.5" y1="92" x2="222.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+    <line x1="267.5" y1="92" x2="267.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+    <line x1="312.5" y1="92" x2="312.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+    <line x1="357.5" y1="92" x2="357.5" y2="640" stroke="#38bdf8" stroke-dasharray="4 8" />
+  </g>
+
+  <!-- Lane 4 (Active Attack Conduit) Ambient Column -->
+  <rect x="160" y="92" width="35" height="548" fill="#00f0ff" fill-opacity="0.04" />
+
+  <!-- INCOMING FOES -->
+  <!-- Enemy in Lane 2 -->
+  <g transform="translate(87.5, 180)">
+    <polygon points="0,-14 12,8 0,3 -12,8" fill="#e11d48" filter="url(#glow-cyan)" />
+    <polygon points="0,-8 6,3 0,1 -6,3" fill="#ffffff" />
+    <line x1="0" y1="12" x2="0" y2="35" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.6" />
+  </g>
+
+  <!-- Heavy Orbital Mine in Lane 6 (Deflected by Bay 13 Canopy) -->
+  <g transform="translate(267.5, 360)">
+    <circle cx="0" cy="0" r="14" fill="#0369a1" fill-opacity="0.3" stroke="#38bdf8" stroke-width="1.5" />
+    <circle cx="0" cy="0" r="4" fill="#fbbf24" />
+    <!-- Floating Deflect Tag -->
+    <rect x="-30" y="-24" width="60" height="15" rx="7.5" fill="#0284c7" stroke="#38bdf8" stroke-width="1" />
+    <text x="0" y="-14" fill="#ffffff" font-size="8" font-weight="800" text-anchor="middle">DEFLECT +50</text>
+  </g>
+
+  <!-- ACTIVE PARTICLE LANCE BEAM (Fired from C4) -->
+  <g transform="translate(177.5, 0)">
+    <line x1="0" y1="630" x2="0" y2="150" stroke="url(#beam-lance)" stroke-width="12" stroke-linecap="round" filter="url(#glow-beam)" />
+    <line x1="0" y1="630" x2="0" y2="150" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+    
+    <!-- Target Impact / Dissolution -->
+    <circle cx="0" cy="150" r="18" fill="#00f0ff" fill-opacity="0.4" filter="url(#glow-cyan)" />
+    <circle cx="0" cy="150" r="7" fill="#ffffff" />
+    <!-- Crit Damage Floating Badge -->
+    <rect x="-50" y="115" width="100" height="20" rx="10" fill="#0f172a" stroke="#fbbf24" stroke-width="1.2" />
+    <text x="0" y="128.5" fill="#fbbf24" font-size="9" font-weight="900" text-anchor="middle">QUADRATIC ×16</text>
+  </g>
+
+  <!-- ATMOSPHERIC BOUNDARY & DREADNOUGHT -->
+  <line x1="20" y1="635" x2="380" y2="635" stroke="#f43f5e" stroke-width="1" stroke-dasharray="3 4" opacity="0.35" />
+  
+  <!-- Interceptor Ship Chassis at C4 (Y: 635) -->
+  <g transform="translate(177.5, 635)">
+    <path d="M-28,-4 Q0,-18 28,-4" fill="none" stroke="#00f0ff" stroke-width="2" filter="url(#glow-cyan)" />
+    <polygon points="0,-16 14,4 6,8 0,3 -6,8 -14,4" fill="#0f172a" stroke="#38bdf8" stroke-width="1.2" />
+    <circle cx="0" cy="-2" r="3" fill="#ffffff" />
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 3. ULTRA-COMPACT BATTERY MANCALA DOCK (TOTAL HEIGHT: 142px) -->
+  <!-- ============================================================== -->
+  <g transform="translate(12, 665)">
+    <!-- Master Shielded Dock Frame (Compact Height: 142px) -->
+    <rect x="0" y="0" width="376" height="142" rx="18" fill="url(#glass-dock)" stroke="#1e293b" stroke-width="1.2" />
+
+    <!-- Dock Header Bar (Height: 16px) -->
+    <text x="14" y="14" fill="#64748b" font-size="7.5" font-weight="800" letter-spacing="1">ORBITAL BATTERY CONDUITS (C1–C8)</text>
+    <text x="362" y="14" fill="#0284c7" font-size="7" font-weight="700" text-anchor="end">‹ SWIPE PIT TO SOW ›</text>
+
+    <!-- ============================================================ -->
+    <!-- ROW 1: 8 FRONTLINE BATTERY CELLS (C1 to C8) -->
+    <!-- Cell Centers: 30.5, 75.5, 120.5, 165.5, 210.5, 255.5, 300.5, 345.5 -->
+    <!-- ============================================================ -->
+    
+    <!-- C1 Battery (1 Core) -->
+    <g transform="translate(30.5, 22)">
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+      <rect x="-11" y="38" width="22" height="10" rx="2" fill="#0284c7" fill-opacity="0.5" />
+      <text x="0" y="28" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">1</text>
+      <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C1</text>
+    </g>
+
+    <!-- C2 Battery (5 Cores - Shield Primed) -->
+    <g transform="translate(75.5, 22)">
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#04182b" stroke="#00f0ff" stroke-width="1.5" filter="url(#glow-cyan)" />
+      <!-- Segmented battery power fill -->
+      <rect x="-11" y="14" width="22" height="5" rx="1" fill="#38bdf8" />
+      <rect x="-11" y="21" width="22" height="5" rx="1" fill="#38bdf8" />
+      <rect x="-11" y="28" width="22" height="5" rx="1" fill="#0284c7" />
+      <text x="0" y="11" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">5</text>
+      <!-- Shield Emitter Cap -->
+      <path d="M-8,-2 Q0,-6 8,-2" stroke="#38bdf8" stroke-width="1.8" fill="none" />
+      <text x="0" y="47" fill="#38bdf8" font-size="6.5" font-weight="900" text-anchor="middle">C2</text>
+    </g>
+
+    <!-- C3 Battery (0 Cores) -->
+    <g transform="translate(120.5, 22)">
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#060913" stroke="#1e293b" stroke-width="1" />
+      <text x="0" y="28" fill="#334155" font-size="11" font-weight="700" text-anchor="middle">0</text>
+      <text x="0" y="47" fill="#334155" font-size="6.5" font-weight="800" text-anchor="middle">C3</text>
+    </g>
+
+    <!-- C4 Battery (6 Cores - ACTIVE DISCHARGING / OVERLOAD) -->
+    <g transform="translate(165.5, 20)">
+      <!-- Overload Pulse Shell -->
+      <rect x="-15" y="0" width="30" height="54" rx="6" fill="#022a4a" stroke="#ffffff" stroke-width="2" filter="url(#glow-cyan)" />
+      <!-- Solid charged core fluid -->
+      <rect x="-11" y="8" width="22" height="28" rx="2" fill="url(#cyan-cell)" />
+      <text x="0" y="26" fill="#ffffff" font-size="13" font-weight="900" text-anchor="middle">6</text>
+      <!-- Subtle Direct-Tap Discharge Trigger Label -->
+      <rect x="-14" y="38" width="28" height="12" rx="3" fill="#ffffff" />
+      <text x="0" y="47" fill="#0369a1" font-size="6.5" font-weight="900" text-anchor="middle">FIRE</text>
+    </g>
+
+    <!-- C5 Battery (2 Cores) -->
+    <g transform="translate(210.5, 22)">
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+      <rect x="-11" y="32" width="22" height="6" rx="1.5" fill="#0284c7" fill-opacity="0.5" />
+      <text x="0" y="26" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">2</text>
+      <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C5</text>
+    </g>
+
+    <!-- C6 Battery (4 Cores - Shield Primed) -->
+    <g transform="translate(255.5, 22)">
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#04182b" stroke="#00f0ff" stroke-width="1.5" filter="url(#glow-cyan)" />
+      <rect x="-11" y="20" width="22" height="5" rx="1" fill="#38bdf8" />
+      <rect x="-11" y="27" width="22" height="5" rx="1" fill="#0284c7" />
+      <text x="0" y="13" fill="#ffffff" font-size="10" font-weight="900" text-anchor="middle">4</text>
+      <path d="M-8,-2 Q0,-6 8,-2" stroke="#38bdf8" stroke-width="1.8" fill="none" />
+      <text x="0" y="47" fill="#38bdf8" font-size="6.5" font-weight="900" text-anchor="middle">C6</text>
+    </g>
+
+    <!-- C7 Battery (1 Core) -->
+    <g transform="translate(300.5, 22)">
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+      <rect x="-11" y="38" width="22" height="6" rx="1.5" fill="#0284c7" fill-opacity="0.5" />
+      <text x="0" y="28" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">1</text>
+      <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C7</text>
+    </g>
+
+    <!-- C8 Battery (2 Cores) -->
+    <g transform="translate(345.5, 22)">
+      <rect x="-14" y="0" width="28" height="52" rx="5" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+      <rect x="-11" y="32" width="22" height="6" rx="1.5" fill="#0284c7" fill-opacity="0.5" />
+      <text x="0" y="26" fill="#94a3b8" font-size="11" font-weight="700" text-anchor="middle">2</text>
+      <text x="0" y="47" fill="#64748b" font-size="6.5" font-weight="800" text-anchor="middle">C8</text>
+    </g>
+
+    <!-- ============================================================ -->
+    <!-- ROW 2: MINI RETURN CAPACITORS & GOLD NYUMBA VAULT (B0–B7) -->
+    <!-- ============================================================ -->
+    <g transform="translate(0, 84)">
+      <!-- Slim horizontal rail -->
+      <line x1="14" y1="0" x2="362" y2="0" stroke="#1e293b" stroke-width="0.8" />
+      
+      <!-- Regular Return Cells B0, B1, B2 -->
+      <g transform="translate(30.5, 18)">
+        <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="0" y="4" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">1</text>
+        <text x="0" y="19" fill="#475569" font-size="6" font-weight="700" text-anchor="middle">B0</text>
+      </g>
+      <g transform="translate(75.5, 18)">
+        <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="0" y="4" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">2</text>
+        <text x="0" y="19" fill="#475569" font-size="6" font-weight="700" text-anchor="middle">B1</text>
+      </g>
+      <g transform="translate(120.5, 18)">
+        <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+        <text x="0" y="4" fill="#334155" font-size="9" font-weight="700" text-anchor="middle">0</text>
+        <text x="0" y="19" fill="#334155" font-size="6" font-weight="700" text-anchor="middle">B2</text>
+      </g>
+
+      <!-- GOLD NYUMBA VAULT (B3 & B4 - Compact Dual Chamber) -->
+      <g transform="translate(165.5, 18)">
+        <rect x="-32" y="-12" width="64" height="24" rx="5" fill="#291503" stroke="#f59e0b" stroke-width="1.5" filter="url(#glow-gold)" />
+        <!-- B3 Cell -->
+        <rect x="-26" y="-7" width="22" height="14" rx="2" fill="#78350f" />
+        <text x="-15" y="4" fill="#fef3c7" font-size="9.5" font-weight="900" text-anchor="middle">7</text>
+        <!-- B4 Cell -->
+        <rect x="4" y="-7" width="22" height="14" rx="2" fill="#78350f" />
+        <text x="15" y="4" fill="#fef3c7" font-size="9.5" font-weight="900" text-anchor="middle">6</text>
+        <text x="0" y="21" fill="#fbbf24" font-size="6.5" font-weight="900" letter-spacing="0.5" text-anchor="middle">NYUMBA</text>
+      </g>
+
+      <!-- Regular Return Cells B5, B6, B7 -->
+      <g transform="translate(255.5, 18)">
+        <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="0" y="4" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">1</text>
+        <text x="0" y="19" fill="#475569" font-size="6" font-weight="700" text-anchor="middle">B5</text>
+      </g>
+      <g transform="translate(300.5, 18)">
+        <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#080d1a" stroke="#334155" stroke-width="1" />
+        <text x="0" y="4" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">3</text>
+        <text x="0" y="19" fill="#475569" font-size="6" font-weight="700" text-anchor="middle">B6</text>
+      </g>
+      <g transform="translate(345.5, 18)">
+        <rect x="-12" y="-10" width="24" height="20" rx="3" fill="#080d1a" stroke="#1e293b" stroke-width="1" />
+        <text x="0" y="4" fill="#334155" font-size="9" font-weight="700" text-anchor="middle">0</text>
+        <text x="0" y="19" fill="#334155" font-size="6" font-weight="700" text-anchor="middle">B7</text>
+      </g>
+    </g>
+
+    <!-- Subtle Sow Trajectory Guidance (Dotted Arc C6 -> C2) -->
+    <path d="M255.5,18 Q165.5,-6 75.5,18" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.7" />
+  </g>
+
+  <!-- MINIMAL GESTURE REMINDER & HOME BAR -->
+  <text x="200" y="828" fill="#475569" font-size="7.5" font-weight="600" letter-spacing="0.5" text-anchor="middle">SWIPE BATTERIES TO SOW • TAP PRIMED CELL TO DISCHARGE</text>
+  <rect x="135" y="846" width="130" height="4" rx="2" fill="#334155" />
+</svg>

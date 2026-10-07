@@ -1,0 +1,231 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 860" width="100%" height="100%" style="background:#05070f; border-radius:36px; box-shadow:0 25px 60px rgba(0,0,0,0.85); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <filter id="glow-cyan7" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <linearGradient id="settings-card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c233c" />
+      <stop offset="100%" stop-color="#071322" />
+    </linearGradient>
+  </defs>
+
+  <!-- SCREEN BACKGROUND -->
+  <rect width="400" height="860" rx="36" fill="#05070f" />
+
+  <!-- STATUS BAR -->
+  <rect x="145" y="10" width="110" height="28" rx="14" fill="#000000" />
+  <circle cx="162" cy="24" r="4.5" fill="#0f172a" />
+  <text x="35" y="28" fill="#64748b" font-size="12" font-weight="600">3:56</text>
+
+  <!-- ============================================================== -->
+  <!-- 1. HEADER & VERSION READOUT -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 52)">
+    <text x="0" y="10" fill="#38bdf8" font-size="8.5" font-weight="800" letter-spacing="1.5">VOID SOWER // FLEET CONFIG</text>
+    <text x="0" y="32" fill="#ffffff" font-size="20" font-weight="900">SYSTEM SETTINGS</text>
+    
+    <!-- Version Pill -->
+    <g transform="translate(254, 10)">
+      <rect x="0" y="0" width="106" height="26" rx="13" fill="#032541" stroke="#00f0ff" stroke-width="1" />
+      <circle cx="14" cy="13" r="5" fill="#00f0ff" />
+      <text x="26" y="17" fill="#e0f2fe" font-size="8.5" font-weight="800">ENGINE v0.2.36</text>
+    </g>
+
+    <!-- Progress Track -->
+    <rect x="0" y="44" width="360" height="4" rx="2" fill="#1e293b" />
+    <rect x="0" y="44" width="120" height="4" rx="2" fill="#00f0ff" filter="url(#glow-cyan7)" />
+  </g>
+
+  <!-- SETTINGS TABS -->
+  <g transform="translate(20, 116)">
+    <rect x="0" y="0" width="112" height="32" rx="16" fill="#0284c7" />
+    <text x="56" y="20" fill="#ffffff" font-size="10" font-weight="800" text-anchor="middle">AUDIO &amp; HAPTIC</text>
+
+    <rect x="120" y="0" width="112" height="32" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+    <text x="176" y="20" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">DISPLAY &amp; FX</text>
+
+    <rect x="240" y="0" width="120" height="32" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+    <text x="300" y="20" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">ACCOUNT &amp; PRO</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 2. AUDIO & HAPTICS SETTINGS CARD (HERO CARD) -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 164)">
+    <rect x="0" y="0" width="360" height="236" rx="18" fill="url(#settings-card)" stroke="#00f0ff" stroke-width="1.5" />
+
+    <!-- Section Title -->
+    <g transform="translate(18, 16)">
+      <text x="0" y="10" fill="#38bdf8" font-size="8.5" font-weight="800" letter-spacing="1">ACOUSTIC &amp; KINETIC CALIBRATION</text>
+      <text x="324" y="10" fill="#00f0ff" font-size="8" font-weight="700" text-anchor="end">SPATIAL 3D ACTIVE</text>
+    </g>
+
+    <!-- Slider 1: Sound Effects (SFX) -->
+    <g transform="translate(18, 42)">
+      <Row>
+        <text x="0" y="12" fill="#ffffff" font-size="11.5" font-weight="800">Combat Sound Effects (SFX)</text>
+        <text x="324" y="12" fill="#00f0ff" font-size="11.5" font-weight="900" text-anchor="end">85%</text>
+      </Row>
+      <!-- Slider Track -->
+      <g transform="translate(0, 20)">
+        <rect x="0" y="0" width="324" height="6" rx="3" fill="#1e293b" />
+        <rect x="0" y="0" width="275" height="6" rx="3" fill="#00f0ff" filter="url(#glow-cyan7)" />
+        <circle cx="275" cy="3" r="8" fill="#ffffff" stroke="#00f0ff" stroke-width="2" />
+      </g>
+    </g>
+
+    <!-- Slider 2: Tactical Ambient Music -->
+    <g transform="translate(18, 98)">
+      <Row>
+        <text x="0" y="12" fill="#ffffff" font-size="11.5" font-weight="800">Afrofuturist Ambient Music</text>
+        <text x="324" y="12" fill="#00f0ff" font-size="11.5" font-weight="900" text-anchor="end">70%</text>
+      </Row>
+      <!-- Slider Track -->
+      <g transform="translate(0, 20)">
+        <rect x="0" y="0" width="324" height="6" rx="3" fill="#1e293b" />
+        <rect x="0" y="0" width="226" height="6" rx="3" fill="#00f0ff" />
+        <circle cx="226" cy="3" r="8" fill="#ffffff" stroke="#00f0ff" stroke-width="2" />
+      </g>
+    </g>
+
+    <!-- Haptic Feedback Selector Row -->
+    <g transform="translate(18, 154)">
+      <text x="0" y="10" fill="#ffffff" font-size="11.5" font-weight="800">Tactile Haptic Feedback</text>
+      
+      <!-- 4 Segment Buttons -->
+      <g transform="translate(0, 20)">
+        <!-- OFF -->
+        <g transform="translate(0, 0)">
+          <rect x="0" y="0" width="76" height="34" rx="8" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+          <text x="38" y="21" fill="#64748b" font-size="9.5" font-weight="800" text-anchor="middle">OFF</text>
+        </g>
+        <!-- SUBTLE -->
+        <g transform="translate(82, 0)">
+          <rect x="0" y="0" width="76" height="34" rx="8" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+          <text x="38" y="21" fill="#64748b" font-size="9.5" font-weight="800" text-anchor="middle">SUBTLE</text>
+        </g>
+        <!-- CRISP (ACTIVE) -->
+        <g transform="translate(164, 0)">
+          <rect x="0" y="0" width="76" height="34" rx="8" fill="#0284c7" stroke="#00f0ff" stroke-width="1.2" filter="url(#glow-cyan7)" />
+          <text x="38" y="21" fill="#ffffff" font-size="9.5" font-weight="900" text-anchor="middle">CRISP</text>
+        </g>
+        <!-- HEAVY -->
+        <g transform="translate(246, 0)">
+          <rect x="0" y="0" width="76" height="34" rx="8" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+          <text x="38" y="21" fill="#64748b" font-size="9.5" font-weight="800" text-anchor="middle">HEAVY</text>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 3. DISPLAY & ACCESSIBILITY OPTIONS -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 416)">
+    <!-- Subheader -->
+    <text x="0" y="12" fill="#38bdf8" font-size="9" font-weight="900" letter-spacing="1">GRAPHICS &amp; VISUAL ACCESSIBILITY</text>
+
+    <!-- Option 1: 120 FPS High Refresh Rate -->
+    <g transform="translate(0, 24)">
+      <rect x="0" y="0" width="360" height="54" rx="14" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+      <circle cx="26" cy="27" r="14" fill="#071b2e" stroke="#00f0ff" stroke-width="1" />
+      <polygon points="26,18 33,32 26,29 19,32" fill="#00f0ff" />
+      <text x="52" y="24" fill="#ffffff" font-size="12" font-weight="800">120 FPS High Refresh Combat</text>
+      <text x="52" y="38" fill="#64748b" font-size="9" font-weight="600">Smoother corridor tracking &amp; laser bloom</text>
+      <!-- Toggle Switch ON -->
+      <g transform="translate(296, 16)">
+        <rect x="0" y="0" width="46" height="22" rx="11" fill="#00f0ff" />
+        <circle cx="35" cy="11" r="8" fill="#04182b" />
+      </g>
+    </g>
+
+    <!-- Option 2: High Contrast Trajectory Reticles -->
+    <g transform="translate(0, 86)">
+      <rect x="0" y="0" width="360" height="54" rx="14" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+      <circle cx="26" cy="27" r="14" fill="#071b2e" stroke="#00f0ff" stroke-width="1" />
+      <circle cx="26" cy="27" r="7" fill="none" stroke="#00f0ff" stroke-width="1.4" />
+      <circle cx="26" cy="27" r="2" fill="#ffffff" />
+      <text x="52" y="24" fill="#ffffff" font-size="12" font-weight="800">Targeting Trajectory Reticles</text>
+      <text x="52" y="38" fill="#64748b" font-size="9" font-weight="600">High-visibility laser guides and impact boxes</text>
+      <!-- Toggle Switch ON -->
+      <g transform="translate(296, 16)">
+        <rect x="0" y="0" width="46" height="22" rx="11" fill="#00f0ff" />
+        <circle cx="35" cy="11" r="8" fill="#04182b" />
+      </g>
+    </g>
+
+    <!-- Option 3: Colorblind Tactical Shading -->
+    <g transform="translate(0, 148)">
+      <rect x="0" y="0" width="360" height="54" rx="14" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+      <circle cx="26" cy="27" r="14" fill="#0f172a" stroke="#64748b" stroke-width="1" />
+      <circle cx="26" cy="27" r="6" fill="#64748b" />
+      <text x="52" y="24" fill="#ffffff" font-size="12" font-weight="800">Colorblind Assistance Mode</text>
+      <text x="52" y="38" fill="#64748b" font-size="9" font-weight="600">Enhanced shape cues for cores and hostiles</text>
+      <g transform="translate(262, 14)">
+        <rect x="0" y="0" width="80" height="26" rx="13" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+        <text x="40" y="17" fill="#38bdf8" font-size="9" font-weight="800" text-anchor="middle">OFF (DEFAULT)</text>
+      </g>
+    </g>
+
+    <!-- Option 4: Cloud Sync & Purchases -->
+    <g transform="translate(0, 210)">
+      <rect x="0" y="0" width="360" height="54" rx="14" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+      <circle cx="26" cy="27" r="14" fill="#201503" stroke="#f59e0b" stroke-width="1" />
+      <circle cx="26" cy="27" r="5" fill="#fbbf24" />
+      <text x="52" y="24" fill="#ffffff" font-size="12" font-weight="800">Restore Pro Purchases &amp; Sync</text>
+      <text x="52" y="38" fill="#64748b" font-size="9" font-weight="600">Google Play Games cloud save verified</text>
+      <g transform="translate(276, 14)">
+        <rect x="0" y="0" width="68" height="26" rx="13" fill="#0f172a" stroke="#f59e0b" stroke-width="1" />
+        <text x="34" y="17" fill="#fbbf24" font-size="9" font-weight="800" text-anchor="middle">RESTORE</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 4. BOTTOM GLOBAL COMMAND NAVIGATION TABS -->
+  <!-- ============================================================== -->
+  <g transform="translate(0, 776)">
+    <rect x="0" y="0" width="400" height="84" fill="#070c16" stroke="#1e293b" stroke-width="1" />
+
+    <!-- 1. SECTORS -->
+    <g transform="translate(42, 14)">
+      <path d="M8 10 l6 -3 l6 3 v8 c0 4 -6 6 -6 6 s-6 -2 -6 -6 z" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">SECTORS</text>
+    </g>
+
+    <!-- 2. FLEET -->
+    <g transform="translate(118, 14)">
+      <polygon points="14,8 20,20 14,17 8,20" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">FLEET</text>
+    </g>
+
+    <!-- 3. PILOT -->
+    <g transform="translate(194, 14)">
+      <circle cx="14" cy="12" r="4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <path d="M8 22 c0 -3 3 -4 6 -4 s6 1 6 4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">PILOT</text>
+    </g>
+
+    <!-- 4. DIRECTIVES -->
+    <g transform="translate(270, 14)">
+      <rect x="8" y="9" width="12" height="12" rx="2" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <line x1="11" y1="13" x2="17" y2="13" stroke="#64748b" stroke-width="1.2" />
+      <line x1="11" y1="17" x2="15" y2="17" stroke="#64748b" stroke-width="1.2" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">DIRECTIVES</text>
+    </g>
+
+    <!-- 5. SETTINGS (ACTIVE) -->
+    <g transform="translate(344, 14)">
+      <circle cx="14" cy="14" r="12" fill="#00f0ff" fill-opacity="0.15" />
+      <circle cx="14" cy="15" r="4" fill="none" stroke="#00f0ff" stroke-width="1.5" />
+      <text x="14" y="36" fill="#00f0ff" font-size="8.5" font-weight="800" text-anchor="middle">SETTINGS</text>
+    </g>
+  </g>
+
+  <!-- HOME SWIPE BAR -->
+  <rect x="135" y="846" width="130" height="4" rx="2" fill="#334155" />
+</svg>

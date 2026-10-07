@@ -1,0 +1,222 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 860" width="100%" height="100%" style="background:#05070f; border-radius:36px; box-shadow:0 25px 60px rgba(0,0,0,0.85); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <defs>
+    <filter id="glow-cyan3" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="glow-gold3" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <linearGradient id="hangar-card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0c233c" />
+      <stop offset="100%" stop-color="#071322" />
+    </linearGradient>
+    <linearGradient id="ship-holo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00f0ff" stop-opacity="0.9" />
+      <stop offset="60%" stop-color="#0284c7" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#05070f" stop-opacity="0.0" />
+    </linearGradient>
+  </defs>
+
+  <!-- SCREEN BACKGROUND -->
+  <rect width="400" height="860" rx="36" fill="#05070f" />
+
+  <!-- STATUS BAR -->
+  <rect x="145" y="10" width="110" height="28" rx="14" fill="#000000" />
+  <circle cx="162" cy="24" r="4.5" fill="#0f172a" />
+  <text x="35" y="28" fill="#64748b" font-size="12" font-weight="600">3:56</text>
+
+  <!-- ============================================================== -->
+  <!-- 1. HEADER & FLEET READOUT -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 52)">
+    <text x="0" y="10" fill="#38bdf8" font-size="8.5" font-weight="800" letter-spacing="1.5">VOID SOWER // FLEET HANGAR</text>
+    <text x="0" y="32" fill="#ffffff" font-size="20" font-weight="900">ORBITAL DRYDOCK</text>
+    
+    <!-- Active Status Pill -->
+    <g transform="translate(254, 10)">
+      <rect x="0" y="0" width="106" height="26" rx="13" fill="#032541" stroke="#00f0ff" stroke-width="1" />
+      <circle cx="14" cy="13" r="5" fill="#00f0ff" />
+      <text x="26" y="17" fill="#e0f2fe" font-size="9" font-weight="800">CHASSIS 3/5</text>
+    </g>
+
+    <!-- Progress Track -->
+    <rect x="0" y="44" width="360" height="4" rx="2" fill="#1e293b" />
+    <rect x="0" y="44" width="216" height="4" rx="2" fill="#00f0ff" filter="url(#glow-cyan3)" />
+  </g>
+
+  <!-- CLASS SELECTOR TABS -->
+  <g transform="translate(20, 116)">
+    <rect x="0" y="0" width="112" height="32" rx="16" fill="#0284c7" />
+    <text x="56" y="20" fill="#ffffff" font-size="10" font-weight="800" text-anchor="middle">INTERCEPTOR</text>
+
+    <rect x="120" y="0" width="112" height="32" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+    <text x="176" y="20" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">SIEGE DREAD</text>
+
+    <rect x="240" y="0" width="120" height="32" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1" />
+    <text x="300" y="20" fill="#94a3b8" font-size="10" font-weight="700" text-anchor="middle">PHANTOM OPS</text>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 2. HOLOGRAPHIC VESSEL DISPLAY HERO CARD -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 164)">
+    <rect x="0" y="0" width="360" height="330" rx="18" fill="url(#hangar-card)" stroke="#00f0ff" stroke-width="1.5" />
+    
+    <!-- Hologram Grid Stage Rings -->
+    <ellipse cx="180" cy="130" rx="140" ry="46" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 4" opacity="0.6" />
+    <ellipse cx="180" cy="130" rx="90" ry="30" fill="none" stroke="#00f0ff" stroke-width="1.2" opacity="0.4" />
+    <ellipse cx="180" cy="130" rx="40" ry="14" fill="none" stroke="#00f0ff" stroke-width="1.5" filter="url(#glow-cyan3)" />
+
+    <!-- Ship Wireframe / Hologram (Vanguard NX-1 Interceptor) -->
+    <g transform="translate(180, 110)">
+      <!-- Hologram Projection Cone -->
+      <polygon points="0,50 -120,-40 120,-40" fill="url(#ship-holo)" opacity="0.15" />
+      
+      <!-- Ship Hull Structure -->
+      <path d="M-50,20 L0,-45 L50,20 L24,24 L0,12 L-24,24 Z" fill="#082f49" stroke="#00f0ff" stroke-width="2" filter="url(#glow-cyan3)" />
+      <!-- Cockpit Core -->
+      <polygon points="0,-22 10,0 0,6 -10,0" fill="#38bdf8" />
+      <circle cx="0" cy="-6" r="3.5" fill="#ffffff" />
+      
+      <!-- Energy Wing Pylons -->
+      <line x1="-50" y1="20" x2="-68" y2="35" stroke="#38bdf8" stroke-width="1.8" />
+      <line x1="50" y1="20" x2="68" y2="35" stroke="#38bdf8" stroke-width="1.8" />
+      <!-- Plasma Thruster Glows -->
+      <circle cx="-16" cy="22" r="4" fill="#00f0ff" filter="url(#glow-cyan3)" />
+      <circle cx="16" cy="22" r="4" fill="#00f0ff" filter="url(#glow-cyan3)" />
+    </g>
+
+    <!-- Vessel Metadata -->
+    <g transform="translate(20, 204)">
+      <rect x="0" y="0" width="84" height="18" rx="9" fill="#0284c7" />
+      <text x="42" y="12" fill="#ffffff" font-size="8.5" font-weight="900" letter-spacing="0.5" text-anchor="middle">ACTIVE VESSEL</text>
+
+      <text x="0" y="40" fill="#ffffff" font-size="17" font-weight="900">VANGUARD NX-1</text>
+      <text x="0" y="56" fill="#94a3b8" font-size="10" font-weight="600">Light Lateral Interceptor • Class A</text>
+    </g>
+
+    <!-- Tactical Stat Readouts -->
+    <g transform="translate(20, 274)">
+      <!-- Stat 1: Capacitor Bays -->
+      <text x="0" y="12" fill="#64748b" font-size="8" font-weight="800">CAPACITOR</text>
+      <text x="0" y="26" fill="#38bdf8" font-size="12" font-weight="900">16 BAYS</text>
+      <rect x="0" y="32" width="68" height="3" rx="1.5" fill="#0284c7" />
+
+      <!-- Stat 2: Pulse Multiplier -->
+      <text x="86" y="12" fill="#64748b" font-size="8" font-weight="800">LANCE COEF</text>
+      <text x="86" y="26" fill="#fbbf24" font-size="12" font-weight="900">α = 1.25</text>
+      <rect x="86" y="32" width="68" height="3" rx="1.5" fill="#f59e0b" />
+
+      <!-- Stat 3: Nyumba Vault -->
+      <text x="172" y="12" fill="#64748b" font-size="8" font-weight="800">NYUMBA</text>
+      <text x="172" y="26" fill="#fbbf24" font-size="12" font-weight="900">DUAL DOCK</text>
+      <rect x="172" y="32" width="68" height="3" rx="1.5" fill="#d97706" />
+
+      <!-- Deploy Button -->
+      <g transform="translate(254, 2)">
+        <rect x="0" y="0" width="70" height="36" rx="18" fill="#00f0ff" filter="url(#glow-cyan3)" />
+        <text x="35" y="22" fill="#04182b" font-size="10.5" font-weight="900" letter-spacing="0.4" text-anchor="middle">EQUIPPED</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 3. SECONDARY FLEET SHIPS -->
+  <!-- ============================================================== -->
+  <g transform="translate(20, 508)">
+    <!-- Ship 2: Bastion Siege -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="360" height="74" rx="14" fill="#0a101d" stroke="#1e293b" stroke-width="1" />
+      <circle cx="28" cy="37" r="16" fill="#071b2e" stroke="#0284c7" stroke-width="1.2" />
+      <!-- Heavy cruiser icon -->
+      <polygon points="28,26 38,44 28,40 18,44" fill="#38bdf8" />
+      <text x="56" y="28" fill="#ffffff" font-size="13" font-weight="800">Bastion Siege-Dreadnought</text>
+      <text x="56" y="44" fill="#64748b" font-size="9.5" font-weight="600">Heavy Armor • 24 Frontline Conduits</text>
+      <text x="56" y="58" fill="#38bdf8" font-size="8.5" font-weight="700">UNLOCKED • TIER 3</text>
+
+      <g transform="translate(276, 19)">
+        <rect x="0" y="0" width="68" height="34" rx="17" fill="#0f172a" stroke="#00f0ff" stroke-width="1" />
+        <text x="34" y="21" fill="#00f0ff" font-size="9.5" font-weight="800" text-anchor="middle">SELECT</text>
+      </g>
+    </g>
+
+    <!-- Ship 3: Phantom Drift (PRO) -->
+    <g transform="translate(0, 84)">
+      <rect x="0" y="0" width="360" height="74" rx="14" fill="#0a101d" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.5" />
+      <circle cx="28" cy="37" r="16" fill="#201503" stroke="#f59e0b" stroke-width="1.2" />
+      <!-- Phantom wing icon -->
+      <polygon points="28,26 40,42 28,37 16,42" fill="#fbbf24" />
+      <text x="56" y="28" fill="#ffffff" font-size="13" font-weight="800">Phantom Drift Infiltrator</text>
+      <text x="56" y="44" fill="#94a3b8" font-size="9.5" font-weight="600">Instant Lateral Swap • Kinetic Inversion</text>
+      <rect x="56" y="50" width="38" height="14" rx="3" fill="#f59e0b" fill-opacity="0.2" />
+      <text x="75" y="60" fill="#fbbf24" font-size="8" font-weight="900" text-anchor="middle">PRO</text>
+
+      <g transform="translate(276, 19)">
+        <rect x="0" y="0" width="68" height="34" rx="17" fill="#f59e0b" filter="url(#glow-gold3)" />
+        <text x="34" y="21" fill="#1c0f01" font-size="9.5" font-weight="900" text-anchor="middle">UNLOCK</text>
+      </g>
+    </g>
+
+    <!-- Ship 4: Void Swarm Hive Ship (LOCKED) -->
+    <g transform="translate(0, 168)">
+      <rect x="0" y="0" width="360" height="74" rx="14" fill="#080c16" stroke="#1e293b" stroke-width="1" opacity="0.6" />
+      <circle cx="28" cy="37" r="16" fill="#0f172a" stroke="#334155" stroke-width="1" />
+      <path d="M25 37 h6 v6 h-6 z M26 37 v-3 a2 2 0 0 1 4 0 v3" fill="none" stroke="#64748b" stroke-width="1.2" />
+      <text x="56" y="28" fill="#64748b" font-size="13" font-weight="800">Swarm Crucible Flagship</text>
+      <text x="56" y="44" fill="#475569" font-size="9.5" font-weight="600">Requires Sector 9 Liberation</text>
+      <text x="300" y="42" fill="#64748b" font-size="10" font-weight="800">LOCKED</text>
+    </g>
+  </g>
+
+  <!-- ============================================================== -->
+  <!-- 4. BOTTOM GLOBAL COMMAND NAVIGATION TABS -->
+  <!-- ============================================================== -->
+  <g transform="translate(0, 776)">
+    <rect x="0" y="0" width="400" height="84" fill="#070c16" stroke="#1e293b" stroke-width="1" />
+
+    <!-- 1. SECTORS -->
+    <g transform="translate(42, 14)">
+      <path d="M8 10 l6 -3 l6 3 v8 c0 4 -6 6 -6 6 s-6 -2 -6 -6 z" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">SECTORS</text>
+    </g>
+
+    <!-- 2. FLEET (ACTIVE) -->
+    <g transform="translate(118, 14)">
+      <circle cx="14" cy="14" r="12" fill="#00f0ff" fill-opacity="0.15" />
+      <polygon points="14,8 20,20 14,17 8,20" fill="none" stroke="#00f0ff" stroke-width="1.5" />
+      <text x="14" y="36" fill="#00f0ff" font-size="8.5" font-weight="800" text-anchor="middle">FLEET</text>
+    </g>
+
+    <!-- 3. PILOT -->
+    <g transform="translate(194, 14)">
+      <circle cx="14" cy="12" r="4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <path d="M8 22 c0 -3 3 -4 6 -4 s6 1 6 4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">PILOT</text>
+    </g>
+
+    <!-- 4. DIRECTIVES -->
+    <g transform="translate(270, 14)">
+      <rect x="8" y="9" width="12" height="12" rx="2" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <line x1="11" y1="13" x2="17" y2="13" stroke="#64748b" stroke-width="1.2" />
+      <line x1="11" y1="17" x2="15" y2="17" stroke="#64748b" stroke-width="1.2" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">DIRECTIVES</text>
+    </g>
+
+    <!-- 5. SETTINGS -->
+    <g transform="translate(344, 14)">
+      <circle cx="14" cy="15" r="4" fill="none" stroke="#64748b" stroke-width="1.5" />
+      <text x="14" y="36" fill="#64748b" font-size="8.5" font-weight="700" text-anchor="middle">SETTINGS</text>
+    </g>
+  </g>
+
+  <!-- HOME SWIPE BAR -->
+  <rect x="135" y="846" width="130" height="4" rx="2" fill="#334155" />
+</svg>
