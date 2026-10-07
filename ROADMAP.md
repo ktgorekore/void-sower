@@ -924,3 +924,55 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Shortened verbose labels across `VictoryDialog`, `SettingsModal`, `SimulationLabScreen`, `CampaignMapScreen`, `GameOverDialog`, `PauseMenuDialog`, `FleetHangarDialog`, `BaoCodexDialog`, `ProfileModal`, `ConsentPreferencesDialog`, and `TacticalDirectivesModal`.
   - [x] 100% test pass rate across all 281 Flutter tests and native C++ tests with 0 analyzer issues.
 
+---
+
+## 👑 Phase 26: Pro Commander Experience Uniformity, Zero-Ad Audit & Invader Vector Redesign (Completed ✅)
+
+- [x] **Task 26.1: Pro Commander Uniformity & Complete Ad Prompt Elimination**
+  - [x] Unified `EntitlementService.hasActivePro` getter combining persistent entitlement and temporary boost state.
+  - [x] Audited `GameOverDialog`, `VictoryDialog`, `DailySortieScreen`, `CampaignMapScreen`, and `VoidIncursionService` to eliminate all ad prompts for active Pro users.
+  - [x] Replaced ad revive options with instant auxiliary core summoning (`+56 CORES`) for Pro commanders.
+
+- [x] **Task 26.2: High-Fidelity Invader Vector Redesign**
+  - [x] Upgraded invader rendering to high-fidelity vector silhouettes and dynamic thrusters.
+  - [x] Implemented dedicated hull, accent, and thruster rendering for drone, cruiser, and flagship invaders.
+
+- [x] **Task 26.3: Automated Pro Consistency Audit Test Suite**
+  - [x] Authored `test/phase26_pro_consistency_audit_test.dart` verifying 100% zero-ad uniformity across all gameplay flows.
+  - [x] 100% test pass rate across all test suites with 0 analyzer issues.
+
+---
+
+## 🛡️ Phase 27: Skia GPU Optimization, Zero-Alloc Hot Paths & Lifecycle Battery Hardening (Completed ✅)
+
+- [x] **Task 27.1: Skia GPU Optimization & Zero-Alloc Hot Path Pipeline (`CombatPainter`, `Dreadnought3DMesh`, `Starfield3D`)**
+  - [x] Eliminate `canvas.saveLayer` GPU offscreen render target allocations in `CombatPainter` by introducing a 16-step pre-computed alpha lookup table for `_flightHintPainters`.
+  - [x] Replace per-enemy transient `Offset` allocations in reticle crosshairs with a reusable `_scratchReticlePath`.
+  - [x] Implement a 101-step pre-calculated `_shadedColorLUT` in `Dreadnought3DMesh` to eliminate per-facet `Color.fromARGB` heap allocations.
+  - [x] Replace per-nozzle `Rect.fromLTWH` in `Dreadnought3DMesh` with a reusable parametric `_scratchNozzlePath`.
+  - [x] Implement 256-step `_starColorLUT` for White, Cyan, Gold, and Amethyst in `Starfield3DPainter` and batch streak line rendering into per-color paths, eliminating all per-star `Color` and `Offset` allocations.
+
+- [x] **Task 27.2: Mobile Lifecycle Guarding & Background Battery Drain Remediation (`CombatScreen`)**
+  - [x] Cancel and nullify `_autoAdvanceTimer` on `AppLifecycleState.paused`, `inactive`, and `hidden` transitions in `CombatScreen`.
+  - [x] Guard 60 Hz ticker resumption on `resumed` to ensure ticker only starts when `_overlayState == CombatOverlayState.none`.
+  - [x] Track pending auto-advance state across foreground/background switches without executing navigation while hidden.
+
+- [x] **Task 27.3: Audio Focus Restoration & Soundtrack Preservation (`AudioService`)**
+  - [x] Fix `requestExclusiveAudioFocus()` to prevent overwriting `_bgmPlayer`'s audio source with silent bytes.
+  - [x] Preserve active soundtrack track metadata and enable seamless BGM resumption upon returning from pause or background.
+
+- [x] **Task 27.4: Native Simulation Engine Correctness & FFI Test Standardization (`bao_cascade_system.cpp`, `ffi_boundary_test.cpp`)**
+  - [x] Apply `kAlphaLanceDamage * lance_alpha_multiplier_` on loop completion in `bao_cascade_system.cpp:PredictCascadeResult()` to match early break calculations and ensure telemetry parity.
+  - [x] Standardize `ffi_boundary_test.cpp` to `namespace void_sower::tests {`.
+
+- [x] **Task 27.5: Presentation Decoupling & Modularity (`CombatSettingsSheet`, `CombatDialogCoordinator`)**
+  - [x] Modularize `CombatSettingsSheet` in `lib/presentation/widgets/combat_settings_sheet.dart`.
+  - [x] Modularize `CombatDialogCoordinator` in `lib/presentation/controllers/combat_dialog_coordinator.dart` to decouple dialog presentation from `combat_screen.dart`.
+
+- [x] **Task 27.6: Automated Test Suite & Quality Verification (`test/phase27_audit_remediation_test.dart`)**
+  - [x] Author comprehensive unit and widget tests covering zero-allocation rendering, timer cancellation on backgrounding, audio focus preservation, and cascade alpha damage parity.
+  - [x] 100% test pass rate across `flutter test` and C++ `ctest`.
+  - [x] 0 issues in `flutter analyze`.
+  - [x] 100% format verification via `python3 scripts/verify_format.py --all`.
+
+
