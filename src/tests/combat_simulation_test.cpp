@@ -760,4 +760,22 @@ TEST(CombatSimulationTest,
   EXPECT_EQ(engine.GetSimulationState(), SimulationState::OrbitalIdle);
 }
 
+TEST(CombatSimulationTest, Phase27PredictCascadeAlphaMultiplierParity) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought(12, 0.2f);
+
+  // Set lance alpha multiplier to 2.5
+  combat.SetLanceAlphaMultiplier(2.5f);
+
+  // Predict from bay 13, direction 1
+  auto pred = combat.PredictSow(13, 1);
+  EXPECT_TRUE(pred.triggers_lance);
+  EXPECT_GT(pred.final_mass, 0u);
+  // Base quadratic damage: final_mass^2 * 100.0f * 2.5f
+  const float expected_damage =
+      static_cast<float>(pred.final_mass * pred.final_mass) * 100.0f * 2.5f;
+  EXPECT_FLOAT_EQ(pred.predicted_damage, expected_damage);
+}
+
 }  // namespace void_sower::ecs

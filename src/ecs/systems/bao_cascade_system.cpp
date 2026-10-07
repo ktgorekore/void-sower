@@ -397,7 +397,10 @@ BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
   result.terminal_corridor = CorridorForFrontlineBay(cur_bay);
   result.final_mass = temp_bays[cur_bay];
   result.predicted_damage =
-      IsFrontlineBay(cur_bay) ? ComputeLanceDamage(result.final_mass) : 0.0f;
+      IsFrontlineBay(cur_bay)
+          ? ComputeLanceDamage(result.final_mass,
+                               kAlphaLanceDamage * lance_alpha_multiplier_)
+          : 0.0f;
   result.total_cascade_laps = laps;
   if (IsFrontlineBay(cur_bay) && result.final_mass > 0) {
     result.triggers_lance = true;

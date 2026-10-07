@@ -23,7 +23,7 @@
 
 #include "void_sower.h"
 
-namespace void_sower {
+namespace void_sower::tests {
 
 TEST(FfiBoundaryTest, LifecycleAndStateExport) {
   void_sower_init(20, 0.2f);
@@ -183,4 +183,4 @@ TEST(FfiBoundaryTest, ConcurrentMultiThreadedReaders) {
   void_sower_free();
 }
 
-}  // namespace void_sower
+}  // namespace void_sower::tests

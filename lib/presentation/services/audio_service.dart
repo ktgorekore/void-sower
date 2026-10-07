@@ -69,6 +69,10 @@ class AudioService {
   bool _isTestMode = false;
   bool _isBgmPaused = false;
   bool _audioFocusReleased = false;
+  String? _currentBgmAssetPath;
+
+  /// The active BGM asset path, if any.
+  String? get currentBgmAssetPath => _currentBgmAssetPath;
 
   /// Whether background music is explicitly paused.
   bool get isBgmPaused => _isBgmPaused;
@@ -277,10 +281,11 @@ class AudioService {
       if (_bgmPlayer != null) {
         try {
           await _bgmPlayer!.setAudioContext(gameAudioContext);
-          await _bgmPlayer!.setReleaseMode(ReleaseMode.loop);
-          await _bgmPlayer!.setSource(BytesSource(_silentWavBytes));
-          await _bgmPlayer!.setVolume(isMusicActive ? bgmVolume : 0.01);
-          await _bgmPlayer!.resume();
+          // Only resume if music is actively playing and not paused by user
+          if (isMusicActive && !_isBgmPaused) {
+            await _bgmPlayer!.setVolume(bgmVolume);
+            await _bgmPlayer!.resume();
+          }
         } catch (_) {}
       }
       for (final player in _sfxPool) {
@@ -425,6 +430,7 @@ class AudioService {
   /// Starts or restarts looping background music if music is active.
   Future<void> startBgm({String assetPath = 'audio/kilwa_ambient.mp3'}) async {
     _isBgmPaused = false;
+    _currentBgmAssetPath = assetPath;
     if (_bgmPlayer == null || !isMusicActive) return;
     try {
       await _bgmPlayer!.setAudioContext(gameAudioContext);

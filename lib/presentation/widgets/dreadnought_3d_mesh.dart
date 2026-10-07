@@ -69,9 +69,51 @@ class Dreadnought3DMesh {
   static const double _lightDirY = -0.53033;
   static const double _lightDirZ = 0.77055;
 
-  // Reusable scratch path to eliminate per-frame Path allocations
+  // Pre-calculated base colors palette
+  static const List<Color> _baseColors = [
+    Color(0xFF0F172A), // 0: Port/Stbd Forward Flank
+    Color(0xFF1E293B), // 1: Midship Broadside
+    Color(0xFF0A101F), // 2: Ventral Keel & Wing Roots
+    Color(0xFF162033), // 3: Dorsal Deck & Citadel
+  ];
+
+  // Lookup table: [baseColorIndex][lightStep 0..100]
+  static final List<List<Color>> _shadedColorLUT = List.generate(
+    _baseColors.length,
+    (cIdx) {
+      final base = _baseColors[cIdx];
+      return List.generate(101, (step) {
+        final light = step / 100.0;
+        return Color.fromARGB(
+          (base.a * 255.0).round().clamp(0, 255),
+          (base.r * 255.0 * light).round().clamp(0, 255),
+          (base.g * 255.0 * light).round().clamp(0, 255),
+          (base.b * 255.0 * light).round().clamp(0, 255),
+        );
+      });
+    },
+  );
+
+  // Reusable scratch paths to eliminate per-frame allocations
   static final Path _scratchFacetPath = Path();
-  static final Path _scratchEnginePath = Path();
+  static final Path _scratchNozzlePath = Path();
+
+  // Helper mapping base color to LUT index
+  static int _baseColorIndex(Color c) {
+    final val = c.toARGB32() & 0x00FFFFFF;
+    if (val == 0x0F172A) return 0;
+    if (val == 0x1E293B) return 1;
+    if (val == 0x0A101F) return 2;
+    return 3; // 0x162033
+  }
+
+  /// Shaded color lookup table view for unit testing.
+  @visibleForTesting
+  static List<List<Color>> get shadedColorLUT => _shadedColorLUT;
+
+  /// Scratch nozzle path for testing.
+  @visibleForTesting
+  static Path get scratchNozzlePath => _scratchNozzlePath;
 
   // Static pre-cached paint instances
   static final Paint _facetPaint = Paint()..style = PaintingStyle.fill;
@@ -509,15 +551,10 @@ class Dreadnought3DMesh {
     final light = (0.35 + 0.65 * math.max(0.0, dot)).clamp(0.25, 1.0);
     _facetLight[facetIdx] = light;
 
-    // Shade base color
-    final shadedColor = Color.fromARGB(
-      (baseColor.a * 255.0).round().clamp(0, 255),
-      (baseColor.r * 255.0 * light).round().clamp(0, 255),
-      (baseColor.g * 255.0 * light).round().clamp(0, 255),
-      (baseColor.b * 255.0 * light).round().clamp(0, 255),
-    );
-
-    _facetPaint.color = shadedColor;
+    // Shade base color via zero-allocation lookup table
+    final lightStep = (light * 100.0).round().clamp(0, 100);
+    final colorIdx = _baseColorIndex(baseColor);
+    _facetPaint.color = _shadedColorLUT[colorIdx][lightStep];
 
     _scratchFacetPath.reset();
     _scratchFacetPath.moveTo(_projX[i0], _projY[i0]);
@@ -570,14 +607,9 @@ class Dreadnought3DMesh {
     final dot = nx * _lightDirX + ny * _lightDirY + nz * _lightDirZ;
     final light = (0.30 + 0.70 * math.max(0.0, dot)).clamp(0.20, 1.0);
 
-    final shadedColor = Color.fromARGB(
-      (baseColor.a * 255.0).round().clamp(0, 255),
-      (baseColor.r * 255.0 * light).round().clamp(0, 255),
-      (baseColor.g * 255.0 * light).round().clamp(0, 255),
-      (baseColor.b * 255.0 * light).round().clamp(0, 255),
-    );
-
-    _facetPaint.color = shadedColor;
+    final lightStep = (light * 100.0).round().clamp(0, 100);
+    final colorIdx = _baseColorIndex(baseColor);
+    _facetPaint.color = _shadedColorLUT[colorIdx][lightStep];
 
     _scratchFacetPath.reset();
     _scratchFacetPath.moveTo(_projX[i0], _projY[i0]);
@@ -594,7 +626,7 @@ class Dreadnought3DMesh {
 
   /// Renders a 3D cylindrical engine exhaust nozzle at the projected vertex [bellIdx].
   ///
-  /// Rasters an elliptical bell housing using [scale]-adjusted dimensions via [Rect.fromLTWH],
+  /// Rasters an elliptical bell housing using [scale]-adjusted dimensions via [_scratchNozzlePath],
   /// applies an outline stroke (omitted when [isLowBattery] is true), and
   /// renders the glowing inner emitter aperture circle.
   void _paintEngineNozzle(
@@ -608,19 +640,23 @@ class Dreadnought3DMesh {
     final nozzleRadiusX = 5.5 * scale;
     final nozzleRadiusY = 3.5 * scale;
 
-    _scratchEnginePath.reset();
-    _scratchEnginePath.addOval(
-      Rect.fromLTWH(
-        bx - nozzleRadiusX,
-        by - nozzleRadiusY,
-        nozzleRadiusX * 2.0,
-        nozzleRadiusY * 2.0,
-      ),
-    );
+    // Zero-allocation ellipse generation using scratch Path
+    _scratchNozzlePath.reset();
+    for (var step = 0; step < 16; step++) {
+      final theta = step * (2.0 * math.pi / 16.0);
+      final px = bx + nozzleRadiusX * math.cos(theta);
+      final py = by + nozzleRadiusY * math.sin(theta);
+      if (step == 0) {
+        _scratchNozzlePath.moveTo(px, py);
+      } else {
+        _scratchNozzlePath.lineTo(px, py);
+      }
+    }
+    _scratchNozzlePath.close();
 
-    canvas.drawPath(_scratchEnginePath, _engineBellPaint);
+    canvas.drawPath(_scratchNozzlePath, _engineBellPaint);
     if (!isLowBattery) {
-      canvas.drawPath(_scratchEnginePath, _facetOutlinePaint);
+      canvas.drawPath(_scratchNozzlePath, _facetOutlinePaint);
     }
 
     // Inner glowing emitter aperture

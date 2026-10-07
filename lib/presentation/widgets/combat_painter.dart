@@ -172,6 +172,8 @@ class CombatPainter extends CustomPainter {
   static final Path _scratchEnemyHullPath = Path();
   static final Path _scratchEnemyDetailPath = Path();
   static final Path _scratchEnemyThrusterPath = Path();
+  static final Path _scratchReticlePath = Path();
+  static final Path _scratchBarPath = Path();
 
   // ---------------------------------------------------------------------------
   // Pre-allocated Static Paint Pools (Zero Allocations & Zero MaskFilter Blurs)
@@ -400,7 +402,33 @@ class CombatPainter extends CustomPainter {
     )..layout();
   });
 
-  static final Paint _flightHintAlphaPaint = Paint();
+  // Pre-computed flight hint text painters across 16 discrete opacity tiers
+  static final List<TextPainter> _flightHintPainters = List.generate(16, (i) {
+    final alpha = (0.20 + (i / 15.0) * (0.95 - 0.20)).clamp(0.0, 1.0);
+    final painter = TextPainter(
+      text: TextSpan(
+        text: '▲   ▲   ▲',
+        style: TextStyle(
+          color: VoidTheme.plasmaCyan.withValues(alpha: alpha),
+          fontSize: 9.5,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 2.0,
+          shadows: [
+            Shadow(
+              color: Colors.black.withValues(alpha: alpha),
+              blurRadius: 4.0,
+            ),
+            Shadow(
+              color: VoidTheme.plasmaCyan.withValues(alpha: alpha),
+              blurRadius: 8.0,
+            ),
+          ],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    return painter;
+  });
 
   @visibleForTesting
   static List<TextPainter> get vanguardTagPainters => _vanguardTagPainters;
@@ -409,7 +437,16 @@ class CombatPainter extends CustomPainter {
   static Map<int, TextPainter> get damageTagPainters => _damageTagPainters;
 
   @visibleForTesting
-  static TextPainter get flightHintPainter => _flightHintPainter;
+  static TextPainter get flightHintPainter => _flightHintPainters.last;
+
+  @visibleForTesting
+  static List<TextPainter> get flightHintPainters => _flightHintPainters;
+
+  @visibleForTesting
+  static Path get scratchReticlePath => _scratchReticlePath;
+
+  @visibleForTesting
+  static Path get scratchBarPath => _scratchBarPath;
 
   // ---------------------------------------------------------------------------
   // 3D Space Motion & Kinetic Cues Static Paints
@@ -492,23 +529,6 @@ class CombatPainter extends CustomPainter {
         fontSize: 6.5,
         fontWeight: FontWeight.w900,
         letterSpacing: 0.5,
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-
-  static final TextPainter _flightHintPainter = TextPainter(
-    text: const TextSpan(
-      text: '▲   ▲   ▲',
-      style: TextStyle(
-        color: VoidTheme.plasmaCyan,
-        fontSize: 9.5,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 2.0,
-        shadows: [
-          Shadow(color: Colors.black, blurRadius: 4.0),
-          Shadow(color: VoidTheme.plasmaCyan, blurRadius: 8.0),
-        ],
       ),
     ),
     textDirection: TextDirection.ltr,
@@ -811,18 +831,28 @@ class CombatPainter extends CustomPainter {
     final barW = math.max(w * 1.2, 26.0 * depthScale);
     const barH = 3.0;
     final barY = y - hh - 8.0;
+    final barLeft = x - barW / 2;
 
     // Hull bar
     final hullFraction = (enemy.currentHull / math.max(enemy.maxHull, 1.0))
         .clamp(0.0, 1.0);
-    canvas.drawRect(
-      Rect.fromLTWH(x - barW / 2, barY, barW, barH),
-      _healthBgPaint,
-    );
-    canvas.drawRect(
-      Rect.fromLTWH(x - barW / 2, barY, barW * hullFraction, barH),
-      _healthHullPaint,
-    );
+    _scratchBarPath.reset();
+    _scratchBarPath.moveTo(barLeft, barY);
+    _scratchBarPath.lineTo(barLeft + barW, barY);
+    _scratchBarPath.lineTo(barLeft + barW, barY + barH);
+    _scratchBarPath.lineTo(barLeft, barY + barH);
+    _scratchBarPath.close();
+    canvas.drawPath(_scratchBarPath, _healthBgPaint);
+
+    if (hullFraction > 0.0) {
+      _scratchBarPath.reset();
+      _scratchBarPath.moveTo(barLeft, barY);
+      _scratchBarPath.lineTo(barLeft + barW * hullFraction, barY);
+      _scratchBarPath.lineTo(barLeft + barW * hullFraction, barY + barH);
+      _scratchBarPath.lineTo(barLeft, barY + barH);
+      _scratchBarPath.close();
+      canvas.drawPath(_scratchBarPath, _healthHullPaint);
+    }
 
     // Shield bar (if vessel has shields)
     if (enemy.maxShields > 0) {
@@ -830,14 +860,24 @@ class CombatPainter extends CustomPainter {
         0.0,
         1.0,
       );
-      canvas.drawRect(
-        Rect.fromLTWH(x - barW / 2, barY - 4.5, barW, barH),
-        _healthBgPaint,
-      );
-      canvas.drawRect(
-        Rect.fromLTWH(x - barW / 2, barY - 4.5, barW * shieldFraction, barH),
-        _healthShieldPaint,
-      );
+      final sBarY = barY - 4.5;
+      _scratchBarPath.reset();
+      _scratchBarPath.moveTo(barLeft, sBarY);
+      _scratchBarPath.lineTo(barLeft + barW, sBarY);
+      _scratchBarPath.lineTo(barLeft + barW, sBarY + barH);
+      _scratchBarPath.lineTo(barLeft, sBarY + barH);
+      _scratchBarPath.close();
+      canvas.drawPath(_scratchBarPath, _healthBgPaint);
+
+      if (shieldFraction > 0.0) {
+        _scratchBarPath.reset();
+        _scratchBarPath.moveTo(barLeft, sBarY);
+        _scratchBarPath.lineTo(barLeft + barW * shieldFraction, sBarY);
+        _scratchBarPath.lineTo(barLeft + barW * shieldFraction, sBarY + barH);
+        _scratchBarPath.lineTo(barLeft, sBarY + barH);
+        _scratchBarPath.close();
+        canvas.drawPath(_scratchBarPath, _healthShieldPaint);
+      }
     }
   }
 
@@ -1214,63 +1254,56 @@ class CombatPainter extends CustomPainter {
         final lockSize = 16.0 + 2.0 * math.sin(animationTime * 8.0);
         final cornerLen = lockSize * 0.45;
 
-        // 4 High-tech Corner Brackets
-        // Top-left
-        canvas.drawLine(
-          Offset(enemyX - lockSize, ey - lockSize),
-          Offset(enemyX - lockSize + cornerLen, ey - lockSize),
-          _lockPaint,
+        _scratchReticlePath.reset();
+        // Top-left corner
+        _scratchReticlePath.moveTo(
+          enemyX - lockSize + cornerLen,
+          ey - lockSize,
         );
-        canvas.drawLine(
-          Offset(enemyX - lockSize, ey - lockSize),
-          Offset(enemyX - lockSize, ey - lockSize + cornerLen),
-          _lockPaint,
+        _scratchReticlePath.lineTo(enemyX - lockSize, ey - lockSize);
+        _scratchReticlePath.lineTo(
+          enemyX - lockSize,
+          ey - lockSize + cornerLen,
         );
-        // Top-right
-        canvas.drawLine(
-          Offset(enemyX + lockSize, ey - lockSize),
-          Offset(enemyX + lockSize - cornerLen, ey - lockSize),
-          _lockPaint,
+        // Top-right corner
+        _scratchReticlePath.moveTo(
+          enemyX + lockSize - cornerLen,
+          ey - lockSize,
         );
-        canvas.drawLine(
-          Offset(enemyX + lockSize, ey - lockSize),
-          Offset(enemyX + lockSize, ey - lockSize + cornerLen),
-          _lockPaint,
+        _scratchReticlePath.lineTo(enemyX + lockSize, ey - lockSize);
+        _scratchReticlePath.lineTo(
+          enemyX + lockSize,
+          ey - lockSize + cornerLen,
         );
-        // Bottom-left
-        canvas.drawLine(
-          Offset(enemyX - lockSize, ey + lockSize),
-          Offset(enemyX - lockSize + cornerLen, ey + lockSize),
-          _lockPaint,
+        // Bottom-left corner
+        _scratchReticlePath.moveTo(
+          enemyX - lockSize + cornerLen,
+          ey + lockSize,
         );
-        canvas.drawLine(
-          Offset(enemyX - lockSize, ey + lockSize),
-          Offset(enemyX - lockSize, ey + lockSize - cornerLen),
-          _lockPaint,
+        _scratchReticlePath.lineTo(enemyX - lockSize, ey + lockSize);
+        _scratchReticlePath.lineTo(
+          enemyX - lockSize,
+          ey + lockSize - cornerLen,
         );
-        // Bottom-right
-        canvas.drawLine(
-          Offset(enemyX + lockSize, ey + lockSize),
-          Offset(enemyX + lockSize - cornerLen, ey + lockSize),
-          _lockPaint,
+        // Bottom-right corner
+        _scratchReticlePath.moveTo(
+          enemyX + lockSize - cornerLen,
+          ey + lockSize,
         );
-        canvas.drawLine(
-          Offset(enemyX + lockSize, ey + lockSize),
-          Offset(enemyX + lockSize, ey + lockSize - cornerLen),
-          _lockPaint,
+        _scratchReticlePath.lineTo(enemyX + lockSize, ey + lockSize);
+        _scratchReticlePath.lineTo(
+          enemyX + lockSize,
+          ey + lockSize - cornerLen,
         );
+        canvas.drawPath(_scratchReticlePath, _lockPaint);
 
         // Center crosshair pips
-        canvas.drawLine(
-          Offset(enemyX - 3.5, ey),
-          Offset(enemyX + 3.5, ey),
-          _lockCrosshairPaint,
-        );
-        canvas.drawLine(
-          Offset(enemyX, ey - 3.5),
-          Offset(enemyX, ey + 3.5),
-          _lockCrosshairPaint,
-        );
+        _scratchReticlePath.reset();
+        _scratchReticlePath.moveTo(enemyX - 3.5, ey);
+        _scratchReticlePath.lineTo(enemyX + 3.5, ey);
+        _scratchReticlePath.moveTo(enemyX, ey - 3.5);
+        _scratchReticlePath.lineTo(enemyX, ey + 3.5);
+        canvas.drawPath(_scratchReticlePath, _lockCrosshairPaint);
 
         // Clean Damage Preview Tag (⚡ 16x DMG)
         final dmgValue = (predictedDamage != null && predictedDamage! > 0)
@@ -1428,25 +1461,17 @@ class CombatPainter extends CustomPainter {
       _shieldArcPaint,
     );
 
-    // Upward Flight Discovery Hint (Pulsing text when stationary in orbit to teach deep-space flight)
+    // Upward Flight Discovery Hint (Zero-Allocation Pre-Laid Out Opacity Lookup Table)
     if (normForward < 0.25) {
       final pulse = (0.5 + 0.5 * math.sin(animationTime * 4.0)).clamp(
         0.2,
         0.95,
       );
-      final alphaInt = (pulse * 255.0).round().clamp(0, 255);
-      _flightHintAlphaPaint.color = Color.fromARGB(alphaInt, 255, 255, 255);
-      final hintX = centerX - _flightHintPainter.width * 0.5;
+      final bucket = (((pulse - 0.20) / 0.75) * 15.0).round().clamp(0, 15);
+      final painter = _flightHintPainters[bucket];
+      final hintX = centerX - painter.width * 0.5;
       final hintY = shipY - 54.0;
-      final hintBounds = Rect.fromLTWH(
-        hintX - 4.0,
-        hintY - 4.0,
-        _flightHintPainter.width + 8.0,
-        _flightHintPainter.height + 8.0,
-      );
-      canvas.saveLayer(hintBounds, _flightHintAlphaPaint);
-      _flightHintPainter.paint(canvas, Offset(hintX, hintY));
-      canvas.restore();
+      painter.paint(canvas, Offset(hintX, hintY));
     }
 
     // Defender Conduit Label (Zero-Allocation Pre-Laid Out Painter)

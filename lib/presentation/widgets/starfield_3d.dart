@@ -90,6 +90,66 @@ class Starfield3DSimulation {
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round;
 
+  // Pre-allocated Color LUTs: [colorType 0..3][alpha 0..255]
+  static final List<List<Color>> _starColorLUT = [
+    // 0: White
+    List.generate(256, (a) => Color((a << 24) | 0x00FFFFFF)),
+    // 1: Cyan (VoidTheme.plasmaCyan)
+    List.generate(
+      256,
+      (a) => Color((a << 24) | (VoidTheme.plasmaCyan.toARGB32() & 0x00FFFFFF)),
+    ),
+    // 2: Gold (VoidTheme.solarGold)
+    List.generate(
+      256,
+      (a) => Color((a << 24) | (VoidTheme.solarGold.toARGB32() & 0x00FFFFFF)),
+    ),
+    // 3: Amethyst (VoidTheme.nebulaAmethyst)
+    List.generate(
+      256,
+      (a) =>
+          Color((a << 24) | (VoidTheme.nebulaAmethyst.toARGB32() & 0x00FFFFFF)),
+    ),
+  ];
+
+  static final List<Path> _scratchStreakPaths = List.generate(4, (_) => Path());
+
+  @pragma('vm:prefer-inline')
+  static Color _getLUTColor(int colorType, double alpha) {
+    final a = (alpha * 255.0).round().clamp(0, 255);
+    return _starColorLUT[colorType.clamp(0, 3)][a];
+  }
+
+  static Paint _getStreakPaintForColor(int colorType) {
+    switch (colorType) {
+      case 1:
+        return _streakCyanPaint
+          ..color = _getLUTColor(1, 0.45)
+          ..strokeWidth = 1.0;
+      case 2:
+        return _streakGoldPaint
+          ..color = _getLUTColor(2, 0.45)
+          ..strokeWidth = 1.0;
+      case 3:
+        return _streakAmethystPaint
+          ..color = _getLUTColor(3, 0.45)
+          ..strokeWidth = 1.0;
+      case 0:
+      default:
+        return _streakWhitePaint
+          ..color = _getLUTColor(0, 0.45)
+          ..strokeWidth = 1.0;
+    }
+  }
+
+  /// Star color lookup table for testing.
+  @visibleForTesting
+  static List<List<Color>> get starColorLUT => _starColorLUT;
+
+  /// Scratch streak paths for testing.
+  @visibleForTesting
+  static List<Path> get scratchStreakPaths => _scratchStreakPaths;
+
   @visibleForTesting
   static Paint get streakAmethystPaint => _streakAmethystPaint;
 
@@ -97,12 +157,6 @@ class Starfield3DSimulation {
   static Paint get streakCyanPaint => _streakCyanPaint;
 
   static final Paint _nebulaGlowPaint = Paint()..style = PaintingStyle.fill;
-
-  @pragma('vm:prefer-inline')
-  static Color _getAlphaColor(Color baseColor, double alpha) {
-    final a = (alpha * 255.0).round().clamp(0, 255);
-    return Color((a << 24) | (baseColor.toARGB32() & 0x00FFFFFF));
-  }
 
   // Drifting cosmic nebula anchor positions
   double _nebulaPhase = 0.0;
@@ -255,6 +309,12 @@ class Starfield3DSimulation {
     // -------------------------------------------------------------------------
     // 2. 3D Stars & Warp Streaks Pass
     // -------------------------------------------------------------------------
+    if (isWarping) {
+      for (var c = 0; c < 4; c++) {
+        _scratchStreakPaths[c].reset();
+      }
+    }
+
     final activeCount = isLowBattery ? (starCount ~/ 2) : starCount;
     for (var i = 0; i < activeCount; i++) {
       final z = _posZ[i];
@@ -276,22 +336,6 @@ class Starfield3DSimulation {
       );
 
       final colorType = _colorType[i];
-      final Color starColor;
-      switch (colorType) {
-        case 1:
-          starColor = VoidTheme.plasmaCyan;
-          break;
-        case 2:
-          starColor = VoidTheme.solarGold;
-          break;
-        case 3:
-          starColor = VoidTheme.nebulaAmethyst;
-          break;
-        case 0:
-        default:
-          starColor = Colors.white;
-          break;
-      }
 
       if (isWarping && _prevScreenX[i] > -9000.0) {
         // High-velocity warp streaks
@@ -305,48 +349,24 @@ class Starfield3DSimulation {
         final tailX = sx - (nx * streakLen);
         final tailY = sy - (ny * streakLen);
 
-        final Paint streakPaint;
-        switch (colorType) {
-          case 1:
-            streakPaint = _streakCyanPaint
-              ..color = _getAlphaColor(starColor, alpha)
-              ..strokeWidth = 1.0;
-          case 2:
-            streakPaint = _streakGoldPaint
-              ..color = _getAlphaColor(starColor, alpha)
-              ..strokeWidth = 1.0;
-          case 3:
-            streakPaint = _streakAmethystPaint
-              ..color = _getAlphaColor(starColor, alpha)
-              ..strokeWidth = 1.0;
-          case 0:
-          default:
-            streakPaint = _streakWhitePaint
-              ..color = _getAlphaColor(starColor, alpha)
-              ..strokeWidth = 1.0;
-        }
-
-        canvas.drawLine(Offset(tailX, tailY), Offset(sx, sy), streakPaint);
+        _scratchStreakPaths[colorType].moveTo(tailX, tailY);
+        _scratchStreakPaths[colorType].lineTo(sx, sy);
       } else {
         // Ambient celestial pinprick
         final Paint starPaint;
         switch (colorType) {
           case 1:
-            starPaint = _cyanStarPaint
-              ..color = _getAlphaColor(starColor, alpha);
+            starPaint = _cyanStarPaint..color = _getLUTColor(1, alpha);
             break;
           case 2:
-            starPaint = _goldStarPaint
-              ..color = _getAlphaColor(starColor, alpha);
+            starPaint = _goldStarPaint..color = _getLUTColor(2, alpha);
             break;
           case 3:
-            starPaint = _amethystStarPaint
-              ..color = _getAlphaColor(starColor, alpha);
+            starPaint = _amethystStarPaint..color = _getLUTColor(3, alpha);
             break;
           case 0:
           default:
-            starPaint = _whiteStarPaint
-              ..color = _getAlphaColor(starColor, alpha);
+            starPaint = _whiteStarPaint..color = _getLUTColor(0, alpha);
             break;
         }
 
@@ -355,6 +375,14 @@ class Starfield3DSimulation {
 
       _prevScreenX[i] = sx;
       _prevScreenY[i] = sy;
+    }
+
+    if (isWarping) {
+      for (var c = 0; c < 4; c++) {
+        final path = _scratchStreakPaths[c];
+        final paint = _getStreakPaintForColor(c);
+        canvas.drawPath(path, paint);
+      }
     }
   }
 
@@ -379,7 +407,7 @@ class Starfield3DSimulation {
 
     // Cyan orbital ionization cloud
     final alpha1 = (0.04 + 0.03 * normForward).clamp(0.0, 0.12);
-    _nebulaGlowPaint.color = _getAlphaColor(VoidTheme.plasmaCyan, alpha1);
+    _nebulaGlowPaint.color = _getLUTColor(1, alpha1);
     canvas.drawCircle(
       Offset(nebula1X, nebula1Y),
       size.width * 0.42,
@@ -388,7 +416,7 @@ class Starfield3DSimulation {
 
     // Amethyst deep-space rift anomaly
     final alpha2 = (0.035 + 0.035 * normForward).clamp(0.0, 0.12);
-    _nebulaGlowPaint.color = _getAlphaColor(VoidTheme.nebulaAmethyst, alpha2);
+    _nebulaGlowPaint.color = _getLUTColor(3, alpha2);
     canvas.drawCircle(
       Offset(nebula2X, nebula2Y),
       size.width * 0.38,

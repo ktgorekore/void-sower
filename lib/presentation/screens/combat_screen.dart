@@ -29,6 +29,7 @@ import '../../domain/services/persistence_service.dart';
 import '../../domain/services/void_incursion_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../controllers/combat_coordinator.dart';
+import '../controllers/combat_dialog_coordinator.dart';
 import '../controllers/combat_overlay_state.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
@@ -45,7 +46,6 @@ import '../../domain/models/bay_role.dart';
 import '../widgets/pro_boost_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/rewarded_ad_modal.dart';
-import '../widgets/settings_modal.dart';
 import '../widgets/starfield_3d.dart';
 import '../widgets/tactical_directives_modal.dart';
 import '../widgets/tutorial_overlay.dart';
@@ -104,6 +104,17 @@ class _CombatScreenState extends State<CombatScreen>
   int _currentSectorId = 1;
   CombatOverlayState _overlayState = CombatOverlayState.none;
   Timer? _autoAdvanceTimer;
+  bool _hasPendingAutoAdvance = false;
+  late final CombatDialogCoordinator _dialogCoordinator;
+
+  @visibleForTesting
+  CombatDialogCoordinator get dialogCoordinator => _dialogCoordinator;
+
+  @visibleForTesting
+  bool get hasPendingAutoAdvance => _hasPendingAutoAdvance;
+
+  @visibleForTesting
+  Timer? get autoAdvanceTimer => _autoAdvanceTimer;
 
   CampaignSector get _activeSector =>
       widget.sector ?? CampaignService.instance.getSector(_currentSectorId);
@@ -129,6 +140,18 @@ class _CombatScreenState extends State<CombatScreen>
     _starfieldSimulation = Starfield3DSimulation();
     final isLowBattery = PersistenceService.instance.lowBatteryMode;
     _targetFps = isLowBattery ? 30 : PersistenceService.instance.targetFps;
+
+    _dialogCoordinator = CombatDialogCoordinator(
+      onCombatPause: () {
+        _coordinator.pauseCombat();
+        if (_ticker.isActive) _ticker.stop();
+      },
+      onCombatResume: () {
+        _resumeCombat();
+      },
+      onRestartCombat: _restartCombat,
+      onAdvanceSector: _advanceNextSector,
+    );
 
     _currentSectorId = widget.sector?.sectorId ?? widget.sectorId;
     final sector = _activeSector;
@@ -161,8 +184,21 @@ class _CombatScreenState extends State<CombatScreen>
         _resumeTicker();
         AudioService.instance.resumeBgm();
         AudioService.instance.updateAudioFocus();
+      } else if (mounted && _hasPendingAutoAdvance) {
+        _hasPendingAutoAdvance = false;
+        if (_overlayState == CombatOverlayState.defeatModal) {
+          _scheduleDefeatAutoAdvance();
+        } else if (_overlayState == CombatOverlayState.victoryModal) {
+          _scheduleVictoryAutoAdvance();
+        }
       }
     } else {
+      // Inactive, Paused, Detached, or Hidden: terminate background execution
+      if (_autoAdvanceTimer?.isActive ?? false) {
+        _hasPendingAutoAdvance = true;
+        _autoAdvanceTimer?.cancel();
+        _autoAdvanceTimer = null;
+      }
       if (_ticker.isActive) {
         _ticker.stop();
       }
@@ -344,9 +380,8 @@ class _CombatScreenState extends State<CombatScreen>
         widget.isIncursionRun || _coordinator.isIncursionRun;
     final int rewardCores = _coordinator.initialCores * 2;
 
-    showDialog<void>(
+    _dialogCoordinator.showDefeat(
       context: context,
-      barrierDismissible: false,
       builder: (dialogContext) => GameOverDialog(
         score: currentScore,
         highScore: _coordinator.highScore,
@@ -407,7 +442,9 @@ class _CombatScreenState extends State<CombatScreen>
                 }
               },
         onRewind: () {
+          _hasPendingAutoAdvance = false;
           _autoAdvanceTimer?.cancel();
+          _autoAdvanceTimer = null;
           Navigator.of(dialogContext).pop();
           _coordinator.triggerChronoRewind();
           _overlayState = CombatOverlayState.none;
@@ -415,12 +452,16 @@ class _CombatScreenState extends State<CombatScreen>
           if (mounted) setState(() {});
         },
         onRetry: () {
+          _hasPendingAutoAdvance = false;
           _autoAdvanceTimer?.cancel();
+          _autoAdvanceTimer = null;
           Navigator.of(dialogContext).pop();
           _restartCombat();
         },
         onReturnToMap: () {
+          _hasPendingAutoAdvance = false;
           _autoAdvanceTimer?.cancel();
+          _autoAdvanceTimer = null;
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.none;
           _openMap(campaignId: 'kilwa_basin');
@@ -429,13 +470,18 @@ class _CombatScreenState extends State<CombatScreen>
     );
 
     if (_coordinator.state.isAutoSolving) {
-      _autoAdvanceTimer = Timer(const Duration(milliseconds: 1800), () {
-        if (mounted && _overlayState == CombatOverlayState.defeatModal) {
-          Navigator.of(context, rootNavigator: true).pop();
-          _restartCombat();
-        }
-      });
+      _scheduleDefeatAutoAdvance();
     }
+  }
+
+  void _scheduleDefeatAutoAdvance() {
+    _autoAdvanceTimer?.cancel();
+    _autoAdvanceTimer = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted && _overlayState == CombatOverlayState.defeatModal) {
+        Navigator.of(context, rootNavigator: true).pop();
+        _restartCombat();
+      }
+    });
   }
 
   Future<void> _showVictoryModal({bool isReopen = false}) async {
@@ -541,9 +587,8 @@ class _CombatScreenState extends State<CombatScreen>
       );
     }
 
-    showDialog<void>(
+    _dialogCoordinator.showVictory(
       context: context,
-      barrierDismissible: false,
       builder: (dialogContext) => VictoryDialog(
         score: score,
         highScore: _coordinator.highScore,
@@ -595,7 +640,9 @@ class _CombatScreenState extends State<CombatScreen>
               }
             : null,
         onNextSector: () {
+          _hasPendingAutoAdvance = false;
           _autoAdvanceTimer?.cancel();
+          _autoAdvanceTimer = null;
           Navigator.of(dialogContext).pop();
           if (canAdvance) {
             _advanceNextSector();
@@ -604,13 +651,17 @@ class _CombatScreenState extends State<CombatScreen>
           }
         },
         onReturnToMap: () {
+          _hasPendingAutoAdvance = false;
           _autoAdvanceTimer?.cancel();
+          _autoAdvanceTimer = null;
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.none;
           _openMap(campaignId: 'kilwa_basin');
         },
         onDismiss: () {
+          _hasPendingAutoAdvance = false;
           _autoAdvanceTimer?.cancel();
+          _autoAdvanceTimer = null;
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.victoryReview;
           if (mounted) setState(() {});
@@ -619,13 +670,18 @@ class _CombatScreenState extends State<CombatScreen>
     );
 
     if (_coordinator.state.isAutoSolving && canAdvance) {
-      _autoAdvanceTimer = Timer(const Duration(milliseconds: 1800), () {
-        if (mounted && _overlayState == CombatOverlayState.victoryModal) {
-          Navigator.of(context, rootNavigator: true).pop();
-          _advanceNextSector();
-        }
-      });
+      _scheduleVictoryAutoAdvance();
     }
+  }
+
+  void _scheduleVictoryAutoAdvance() {
+    _autoAdvanceTimer?.cancel();
+    _autoAdvanceTimer = Timer(const Duration(milliseconds: 1800), () {
+      if (mounted && _overlayState == CombatOverlayState.victoryModal) {
+        Navigator.of(context, rootNavigator: true).pop();
+        _advanceNextSector();
+      }
+    });
   }
 
   void _restartCombat() {
@@ -725,36 +781,32 @@ class _CombatScreenState extends State<CombatScreen>
       return;
     }
     _overlayState = CombatOverlayState.settings;
-    _coordinator.pauseCombat();
-    final wasTicking = _ticker.isTicking;
-    if (wasTicking) _ticker.stop();
 
-    showDialog<void>(
+    _dialogCoordinator.showSettings(
       context: context,
-      builder: (context) => SettingsModal(
-        onLaunchAcademy: () {
-          _coordinator.showTutorial();
-        },
-        onResetTutorial: () {
-          _coordinator.showTutorial();
-        },
-      ),
-    ).then((_) {
-      _overlayState = CombatOverlayState.none;
-      if (mounted) {
-        _targetFps = PersistenceService.instance.lowBatteryMode
-            ? 30
-            : PersistenceService.instance.targetFps;
-        if (returnToPauseMenu) {
-          _openPauseMenu();
-        } else {
-          if (_coordinator.state.status != CombatMatchStatus.briefing) {
-            _resumeCombat();
+      onLaunchAcademy: () {
+        _coordinator.showTutorial();
+      },
+      onResetTutorial: () {
+        _coordinator.showTutorial();
+      },
+      onDismiss: () {
+        _overlayState = CombatOverlayState.none;
+        if (mounted) {
+          _targetFps = PersistenceService.instance.lowBatteryMode
+              ? 30
+              : PersistenceService.instance.targetFps;
+          if (returnToPauseMenu) {
+            _openPauseMenu();
+          } else {
+            if (_coordinator.state.status != CombatMatchStatus.briefing) {
+              _resumeCombat();
+            }
           }
+          setState(() {});
         }
-        setState(() {});
-      }
-    });
+      },
+    );
   }
 
   void _openProBoostModal({bool returnToPauseMenu = false}) {
@@ -968,94 +1020,95 @@ class _CombatScreenState extends State<CombatScreen>
 
     bool shouldResumeOnClose = true;
 
-    showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      barrierColor: Colors.black.withValues(alpha: 0.75),
-      builder: (dialogContext) => AnimatedBuilder(
-        animation: _coordinator,
-        builder: (context, _) => PauseMenuDialog(
-          sectorId: _currentSectorId,
-          sectorName: _activeSector.name,
-          difficultyTier: _currentDifficultyTier,
-          score: _coordinator.competitiveScore,
-          highScore: _coordinator.highScore,
-          canRewind: _coordinator.canChronoRewind,
-          rewindsRemaining: _coordinator.chronoRewindsRemaining,
-          onRewind: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _coordinator.triggerChronoRewind();
-            _coordinator.resumeCombat();
+    _dialogCoordinator
+        .showPauseMenu(
+          context: context,
+          barrierColor: Colors.black.withValues(alpha: 0.75),
+          builder: (dialogContext) => AnimatedBuilder(
+            animation: _coordinator,
+            builder: (context, _) => PauseMenuDialog(
+              sectorId: _currentSectorId,
+              sectorName: _activeSector.name,
+              difficultyTier: _currentDifficultyTier,
+              score: _coordinator.competitiveScore,
+              highScore: _coordinator.highScore,
+              canRewind: _coordinator.canChronoRewind,
+              rewindsRemaining: _coordinator.chronoRewindsRemaining,
+              onRewind: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _coordinator.triggerChronoRewind();
+                _coordinator.resumeCombat();
+                _overlayState = CombatOverlayState.none;
+                _resumeTicker();
+                if (mounted) setState(() {});
+              },
+              onResume: () {
+                Navigator.of(dialogContext).pop();
+              },
+              onRestart: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _restartCombat();
+              },
+              onAbort: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _overlayState = CombatOverlayState.none;
+                _openMap(campaignId: 'kilwa_basin');
+              },
+              onMap: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _overlayState = CombatOverlayState.none;
+                _openMap(campaignId: 'kilwa_basin');
+              },
+              onCodex: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _overlayState = CombatOverlayState.none;
+                _openCodex(returnToPauseMenu: true);
+              },
+              onAcademy: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _overlayState = CombatOverlayState.none;
+                _coordinator.showTutorial();
+              },
+              onSettings: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _overlayState = CombatOverlayState.none;
+                _openSettings(returnToPauseMenu: true);
+              },
+              onProBoost: () {
+                shouldResumeOnClose = false;
+                Navigator.of(dialogContext).pop();
+                _overlayState = CombatOverlayState.none;
+                _openProBoostModal(returnToPauseMenu: true);
+              },
+              isAutoSolving: _coordinator.state.isAutoSolving,
+              onToggleAutoSolve: () {
+                _toggleAutoSolve();
+              },
+            ),
+          ),
+        )
+        .then((_) {
+          if (_overlayState == CombatOverlayState.paused) {
             _overlayState = CombatOverlayState.none;
+          }
+          if (mounted &&
+              shouldResumeOnClose &&
+              _coordinator.state.status == CombatMatchStatus.paused) {
+            _resumeCombat();
+          } else if (mounted &&
+              wasTicking &&
+              !_ticker.isTicking &&
+              shouldResumeOnClose) {
             _resumeTicker();
-            if (mounted) setState(() {});
-          },
-          onResume: () {
-            Navigator.of(dialogContext).pop();
-          },
-          onRestart: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _restartCombat();
-          },
-          onAbort: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _overlayState = CombatOverlayState.none;
-            _openMap(campaignId: 'kilwa_basin');
-          },
-          onMap: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _overlayState = CombatOverlayState.none;
-            _openMap(campaignId: 'kilwa_basin');
-          },
-          onCodex: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _overlayState = CombatOverlayState.none;
-            _openCodex(returnToPauseMenu: true);
-          },
-          onAcademy: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _overlayState = CombatOverlayState.none;
-            _coordinator.showTutorial();
-          },
-          onSettings: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _overlayState = CombatOverlayState.none;
-            _openSettings(returnToPauseMenu: true);
-          },
-          onProBoost: () {
-            shouldResumeOnClose = false;
-            Navigator.of(dialogContext).pop();
-            _overlayState = CombatOverlayState.none;
-            _openProBoostModal(returnToPauseMenu: true);
-          },
-          isAutoSolving: _coordinator.state.isAutoSolving,
-          onToggleAutoSolve: () {
-            _toggleAutoSolve();
-          },
-        ),
-      ),
-    ).then((_) {
-      if (_overlayState == CombatOverlayState.paused) {
-        _overlayState = CombatOverlayState.none;
-      }
-      if (mounted &&
-          shouldResumeOnClose &&
-          _coordinator.state.status == CombatMatchStatus.paused) {
-        _resumeCombat();
-      } else if (mounted &&
-          wasTicking &&
-          !_ticker.isTicking &&
-          shouldResumeOnClose) {
-        _resumeTicker();
-      }
-    });
+          }
+        });
   }
 
   void _resumeCombat() {
