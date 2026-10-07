@@ -68,6 +68,9 @@ class EntitlementService extends ChangeNotifier {
   /// Whether the player holds a lifetime Pro license.
   bool get isProUnlocked => PersistenceService.instance.isProUnlocked;
 
+  /// Whether the player holds active Pro privileges (lifetime Pro or active timed boost).
+  bool get hasActivePro => isProUnlocked || entitlementState.hasProAccess;
+
   /// Whether an ad-boosted Pro pass is currently active.
   bool get isBoostActive => entitlementState.isBoostActive;
 

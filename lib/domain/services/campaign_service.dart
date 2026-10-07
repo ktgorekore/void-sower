@@ -136,11 +136,11 @@ class CampaignService {
   /// Returns the 9 sectors of a specific campaign operation with dynamic unlock and liberation state.
   List<CampaignSector> getSectorsForCampaign(String campaignId) {
     final persistence = PersistenceService.instance;
-    final isPro = EntitlementService.instance.isProUnlocked;
-    final hasPass = EntitlementService.instance.isFeatureAccessible(
-      ProFeature.proCampaignTheaters,
-    );
-    final hasProAccess = isPro || hasPass;
+    final hasProAccess =
+        EntitlementService.instance.hasActivePro ||
+        EntitlementService.instance.isFeatureAccessible(
+          ProFeature.proCampaignTheaters,
+        );
     final liberatedInCampaign = persistence.getLiberatedSectorsForCampaign(
       campaignId,
     );

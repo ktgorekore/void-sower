@@ -192,8 +192,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Whether pilot holds unlimited plasma cores (Pro user or active Pro Boost in Incursion mode).
   bool get isUnlimitedCores =>
       _isIncursionRun &&
-      (EntitlementService.instance.isProUnlocked ||
-          EntitlementService.instance.entitlementState.hasProAccess ||
+      (EntitlementService.instance.hasActivePro ||
           PersistenceService.instance.isProUnlocked);
 
   FleetChassis _equippedChassis = FleetService.instance.getChassis(
