@@ -16,6 +16,8 @@ import 'package:flutter/material.dart';
 
 import '../../domain/models/bay_role.dart';
 import '../../domain/models/bay_state.dart';
+import '../../domain/models/pro_feature.dart';
+import '../../domain/services/entitlement_service.dart';
 import '../controllers/tactical_solver_controller.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
@@ -69,6 +71,12 @@ class CommandArcWidget extends StatelessWidget {
         : (selected != null && selected < 8 ? selected : 0);
     final activeBay = selected ?? (activeCorridor + 8);
 
+    final bool showAdvisorSlot =
+        EntitlementService.instance.isFeatureAccessible(
+          ProFeature.aiMoveAdvisor,
+        ) ||
+        tacticalAdvice != null;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(4.0, 0.0, 4.0, 2.0),
       padding: const EdgeInsets.fromLTRB(6.0, 3.0, 6.0, 5.0),
@@ -99,75 +107,114 @@ class CommandArcWidget extends StatelessWidget {
           _buildReturnOrbitDeck(backlineBays),
 
           // -------------------------------------------------------------------
-          // 2b. Holographic Tactical Advisor Banner (if primed)
+          // 2b. Holographic Tactical Advisor Banner (if primed or Pro commander)
+          // Maintains a permanent, fixed height of 22dp so bays never jump up/down.
           // -------------------------------------------------------------------
-          if (tacticalAdvice != null) ...[
+          if (showAdvisorSlot) ...[
             const SizedBox(height: 4.0),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8.0,
-                vertical: 3.0,
+            _buildAdvisorBanner(tacticalAdvice),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdvisorBanner(TacticalAdvice? advice) {
+    const double barHeight = 22.0;
+    if (advice != null) {
+      final isBreach = advice.isEmergencyBreach;
+      final accentColor = isBreach
+          ? VoidTheme.crimsonFlare
+          : VoidTheme.solarGold;
+      return SizedBox(
+        height: barHeight,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(6.0),
+            border: Border.all(color: accentColor, width: 1.0),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isBreach ? Icons.warning_amber_rounded : Icons.psychology,
+                size: 12.0,
+                color: accentColor,
               ),
-              decoration: BoxDecoration(
-                color:
-                    (tacticalAdvice!.isEmergencyBreach
-                            ? VoidTheme.crimsonFlare
-                            : VoidTheme.solarGold)
-                        .withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(6.0),
-                border: Border.all(
-                  color: tacticalAdvice!.isEmergencyBreach
-                      ? VoidTheme.crimsonFlare
-                      : VoidTheme.solarGold,
-                  width: 1.0,
+              const SizedBox(width: 4.0),
+              Expanded(
+                child: Text(
+                  advice.explanation,
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    tacticalAdvice!.isEmergencyBreach
-                        ? Icons.warning_amber_rounded
-                        : Icons.psychology,
-                    size: 13.0,
-                    color: tacticalAdvice!.isEmergencyBreach
-                        ? VoidTheme.crimsonFlare
-                        : VoidTheme.solarGold,
-                  ),
-                  const SizedBox(width: 4.0),
-                  Expanded(
-                    child: Text(
-                      tacticalAdvice!.explanation,
-                      style: TextStyle(
-                        color: tacticalAdvice!.isEmergencyBreach
-                            ? VoidTheme.crimsonFlare
-                            : VoidTheme.solarGold,
-                        fontSize: 9.0,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  Text(
-                    'PRO ADVISOR',
-                    style: TextStyle(
-                      color:
-                          (tacticalAdvice!.isEmergencyBreach
-                                  ? VoidTheme.crimsonFlare
-                                  : VoidTheme.solarGold)
-                              .withValues(alpha: 0.8),
-                      fontSize: 7.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+              const SizedBox(width: 4.0),
+              Text(
+                'PRO ADVISOR',
+                style: TextStyle(
+                  color: accentColor.withValues(alpha: 0.9),
+                  fontSize: 7.0,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Standby slot keeping the exact same vertical dimensions so bays never jump.
+    return SizedBox(
+      height: barHeight,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F172A).withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(6.0),
+          border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.psychology_outlined,
+              size: 12.0,
+              color: VoidTheme.textMuted.withValues(alpha: 0.6),
+            ),
+            const SizedBox(width: 4.0),
+            Expanded(
+              child: Text(
+                'TACTICAL AI SCANNING CORRIDORS...',
+                style: TextStyle(
+                  color: VoidTheme.textMuted.withValues(alpha: 0.7),
+                  fontSize: 8.0,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 4.0),
+            Text(
+              'STANDBY',
+              style: TextStyle(
+                color: VoidTheme.textMuted.withValues(alpha: 0.5),
+                fontSize: 7.0,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
               ),
             ),
           ],
-        ],
+        ),
       ),
     );
   }

@@ -378,7 +378,18 @@ class _CombatScreenState extends State<CombatScreen>
         PersistenceService.instance.isProUnlocked;
     final bool isIncursion =
         widget.isIncursionRun || _coordinator.isIncursionRun;
+    final bool isSpecialContinueAllowed = isIncursion || widget.isDailySortie;
     final int rewardCores = _coordinator.initialCores * 2;
+
+    final String? watchAdLabel = isSpecialContinueAllowed
+        ? (hasActivePro
+              ? (isIncursion
+                    ? null
+                    : 'SUMMON AUXILIARY CORES (+$rewardCores CORES)')
+              : (isIncursion
+                    ? 'WATCH AD (UNLOCK 5m PRO & UNLIMITED CORES)'
+                    : 'WATCH AD (+$rewardCores CORES & +5m PRO)'))
+        : null;
 
     _dialogCoordinator.showDefeat(
       context: context,
@@ -392,55 +403,52 @@ class _CombatScreenState extends State<CombatScreen>
         rewindsRemaining: _coordinator.chronoRewindsRemaining,
         rewardCores: rewardCores,
         isPro: hasActivePro,
-        watchAdLabel: hasActivePro
-            ? (isIncursion
+        watchAdLabel: watchAdLabel,
+        onWatchAdForCores: isSpecialContinueAllowed
+            ? ((hasActivePro && isIncursion)
                   ? null
-                  : 'SUMMON AUXILIARY CORES (+$rewardCores CORES)')
-            : (isIncursion
-                  ? 'WATCH AD (UNLOCK 5m PRO & UNLIMITED CORES)'
-                  : 'WATCH AD (+$rewardCores CORES & +5m PRO)'),
-        onWatchAdForCores: (hasActivePro && isIncursion)
-            ? null
-            : () async {
-                _autoAdvanceTimer?.cancel();
-                if (!hasActivePro) {
-                  final rewarded = await AdService.instance.showRewardedAd();
-                  if (!dialogContext.mounted) return;
-                  if (!rewarded) return;
-                }
-                if (!dialogContext.mounted) return;
-                Navigator.of(dialogContext).pop();
-                HapticService.instance.injectionClick();
-                final coresToGrant =
-                    (_coordinator.isUnlimitedCores || isIncursion)
-                    ? 5000
-                    : rewardCores;
-                _coordinator.grantEmergencyCores(coresToGrant);
-                _coordinator.resumeCombat();
-                _overlayState = CombatOverlayState.none;
-                _resumeTicker();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        hasActivePro
-                            ? '⚡ PRO AUXILIARY CORES INJECTED (+$coresToGrant CORES)'
-                            : '⚡ EMERGENCY CORES INJECTED (+$coresToGrant CORES)',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      backgroundColor: hasActivePro
-                          ? VoidTheme.solarGold
-                          : VoidTheme.emeraldShield,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                  setState(() {});
-                }
-              },
+                  : () async {
+                      _autoAdvanceTimer?.cancel();
+                      if (!hasActivePro) {
+                        final rewarded = await AdService.instance
+                            .showRewardedAd();
+                        if (!dialogContext.mounted) return;
+                        if (!rewarded) return;
+                      }
+                      if (!dialogContext.mounted) return;
+                      Navigator.of(dialogContext).pop();
+                      HapticService.instance.injectionClick();
+                      final coresToGrant =
+                          (_coordinator.isUnlimitedCores || isIncursion)
+                          ? 5000
+                          : rewardCores;
+                      _coordinator.grantEmergencyCores(coresToGrant);
+                      _coordinator.resumeCombat();
+                      _overlayState = CombatOverlayState.none;
+                      _resumeTicker();
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              hasActivePro
+                                  ? '⚡ PRO AUXILIARY CORES INJECTED (+$coresToGrant CORES)'
+                                  : '⚡ EMERGENCY CORES INJECTED (+$coresToGrant CORES)',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11.0,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            backgroundColor: hasActivePro
+                                ? VoidTheme.solarGold
+                                : VoidTheme.emeraldShield,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                        setState(() {});
+                      }
+                    })
+            : null,
         onRewind: () {
           _hasPendingAutoAdvance = false;
           _autoAdvanceTimer?.cancel();
@@ -1067,7 +1075,7 @@ class _CombatScreenState extends State<CombatScreen>
                 shouldResumeOnClose = false;
                 Navigator.of(dialogContext).pop();
                 _overlayState = CombatOverlayState.none;
-                _openCodex(returnToPauseMenu: true);
+                _openCodex();
               },
               onAcademy: () {
                 shouldResumeOnClose = false;
@@ -1079,7 +1087,7 @@ class _CombatScreenState extends State<CombatScreen>
                 shouldResumeOnClose = false;
                 Navigator.of(dialogContext).pop();
                 _overlayState = CombatOverlayState.none;
-                _openSettings(returnToPauseMenu: true);
+                _openSettings();
               },
               onProBoost: () {
                 shouldResumeOnClose = false;
@@ -1098,15 +1106,10 @@ class _CombatScreenState extends State<CombatScreen>
           if (_overlayState == CombatOverlayState.paused) {
             _overlayState = CombatOverlayState.none;
           }
-          if (mounted &&
-              shouldResumeOnClose &&
-              _coordinator.state.status == CombatMatchStatus.paused) {
-            _resumeCombat();
-          } else if (mounted &&
-              wasTicking &&
-              !_ticker.isTicking &&
-              shouldResumeOnClose) {
-            _resumeTicker();
+          if (mounted && shouldResumeOnClose) {
+            if (_coordinator.state.status != CombatMatchStatus.briefing) {
+              _resumeCombat();
+            }
           }
         });
   }

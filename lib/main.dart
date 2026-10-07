@@ -33,7 +33,7 @@ import 'presentation/theme/void_theme.dart';
 /// Optional environment flag to launch directly into combat viewport for testing/recording.
 const bool kStartCombat = bool.fromEnvironment(
   'START_COMBAT',
-  defaultValue: true,
+  defaultValue: false,
 );
 
 /// Optional environment flag to start tactical AI solver immediately.
