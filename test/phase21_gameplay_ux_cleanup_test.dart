@@ -48,7 +48,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 50));
 
         // 1. Verify "BAY ... CORRIDOR" telemetry string is NOT present
-        expect(find.textContaining('CORRIDOR'), findsNothing);
+        expect(find.textContaining(RegExp(r'BAY.*CORRIDOR')), findsNothing);
         expect(find.textContaining('BAY 11'), findsNothing);
         expect(find.textContaining('BAY 14'), findsNothing);
 

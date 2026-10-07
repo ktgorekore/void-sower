@@ -377,5 +377,85 @@ void main() {
         expect(clearedBay8Pos.dy, equals(initialBay8Pos.dy));
       },
     );
+
+    testWidgets(
+      'CommandArcWidget renders subtle advisory bar universally for non-Pro/free users with zero jumping',
+      (tester) async {
+        // Explicitly set Pro to false (Free Commander)
+        await PersistenceService.instance.setProUnlocked(false);
+        EntitlementService.instance.syncStateFromPersistence();
+
+        // 1. Build with NO active advice (free user standby state)
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: CommandArcWidget(
+                  bays: testBays,
+                  selectedBay: 8,
+                  sowDirection: 1,
+                  tacticalAdvice: null,
+                  onBaySelected: (_) {},
+                  onSowAction: (_, _) {},
+                  onInjectCore: (_, _) {},
+                  onSlidePosition: (_) {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Check standby bar exists for free user too
+        expect(find.text('TACTICAL AI SCANNING CORRIDORS...'), findsOneWidget);
+        expect(find.text('STANDBY'), findsOneWidget);
+
+        final freeStandbySize = tester.getSize(find.byType(CommandArcWidget));
+        final freeBay8Pos = tester.getTopLeft(
+          find.bySemanticsLabel(RegExp('Bay 8')),
+        );
+
+        // 2. Active advice arrives for free user
+        const freeAdvice = TacticalAdvice(
+          recommendedBay: 12,
+          recommendedDirection: -1,
+          targetCorridor: 4,
+          predictedDamage: 30.0,
+          explanation: 'INTERCEPT SOW BAY 12 CCW',
+          isEmergencyBreach: false,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.bottomCenter,
+                child: CommandArcWidget(
+                  bays: testBays,
+                  selectedBay: 8,
+                  sowDirection: 1,
+                  tacticalAdvice: freeAdvice,
+                  onBaySelected: (_) {},
+                  onSowAction: (_, _) {},
+                  onInjectCore: (_, _) {},
+                  onSlidePosition: (_) {},
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('INTERCEPT SOW BAY 12 CCW'), findsOneWidget);
+        final freeActiveSize = tester.getSize(find.byType(CommandArcWidget));
+        final freeActiveBay8Pos = tester.getTopLeft(
+          find.bySemanticsLabel(RegExp('Bay 8')),
+        );
+
+        expect(freeActiveSize.height, equals(freeStandbySize.height));
+        expect(freeActiveBay8Pos.dy, equals(freeBay8Pos.dy));
+      },
+    );
   });
 }

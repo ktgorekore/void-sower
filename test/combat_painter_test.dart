@@ -200,5 +200,75 @@ void main() {
         );
       },
     );
+
+    test('CombatBackgroundPainter exposes static depth horizon painters', () {
+      expect(
+        CombatBackgroundPainter.apogeePainter.text?.toPlainText(),
+        contains('APOGEE HORIZON'),
+      );
+      expect(
+        CombatBackgroundPainter.midCombatPainter.text?.toPlainText(),
+        contains('MID-COMBAT HORIZON'),
+      );
+      expect(
+        CombatBackgroundPainter.forwardEngagePainter.text?.toPlainText(),
+        contains('FORWARD ENGAGE HORIZON'),
+      );
+    });
+
+    testWidgets(
+      'CombatPainter renders ground projection anchor ring and vertical tether when elevated forward',
+      (tester) async {
+        const elevatedDread = DreadnoughtState(
+          orbitalPositionX: 0.5,
+          targetPositionX: 0.5,
+          orbitalPositionY:
+              0.35, // Elevated into deep space beyond boundaryLineY (0.15)
+          targetPositionY: 0.35,
+          reserveCores: 24,
+          boundaryLineY: 0.15,
+          isCascading: false,
+          totalScore: 750,
+          currentSimState: 0,
+          coresUsed: 2,
+        );
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CustomPaint(
+                size: const Size(800, 1000),
+                painter: CombatPainter(
+                  dreadnought: elevatedDread,
+                  enemies: const [],
+                  lances: const [],
+                  flaks: const [],
+                  particles: const [],
+                  damageNumbers: const [],
+                  enemyBullets: const [],
+                  animationTime: 0.5,
+                ),
+              ),
+            ),
+          ),
+        );
+
+        expect(
+          find.byWidgetPredicate(
+            (w) => w is CustomPaint && w.painter is CombatPainter,
+          ),
+          findsOneWidget,
+        );
+
+        expect(
+          CombatPainter.anchorRingPaint.style,
+          equals(PaintingStyle.stroke),
+        );
+        expect(
+          CombatPainter.anchorTetherPaint.style,
+          equals(PaintingStyle.stroke),
+        );
+      },
+    );
   });
 }

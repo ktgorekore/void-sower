@@ -16,8 +16,6 @@ import 'package:flutter/material.dart';
 
 import '../../domain/models/bay_role.dart';
 import '../../domain/models/bay_state.dart';
-import '../../domain/models/pro_feature.dart';
-import '../../domain/services/entitlement_service.dart';
 import '../controllers/tactical_solver_controller.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
@@ -71,11 +69,9 @@ class CommandArcWidget extends StatelessWidget {
         : (selected != null && selected < 8 ? selected : 0);
     final activeBay = selected ?? (activeCorridor + 8);
 
-    final bool showAdvisorSlot =
-        EntitlementService.instance.isFeatureAccessible(
-          ProFeature.aiMoveAdvisor,
-        ) ||
-        tacticalAdvice != null;
+    // Invariant: Tactical advisor bar is available to ALL commanders (free and Pro),
+    // maintaining a permanent subtle strip so the capacitor bays never jump up or down.
+    const bool showAdvisorSlot = true;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(4.0, 0.0, 4.0, 2.0),
@@ -107,11 +103,11 @@ class CommandArcWidget extends StatelessWidget {
           _buildReturnOrbitDeck(backlineBays),
 
           // -------------------------------------------------------------------
-          // 2b. Holographic Tactical Advisor Banner (if primed or Pro commander)
-          // Maintains a permanent, fixed height of 22dp so bays never jump up/down.
+          // 2b. Holographic Tactical Advisor Banner (Universal for all commanders)
+          // Maintains a permanent, subtle fixed height of 18dp so bays never jump.
           // -------------------------------------------------------------------
           if (showAdvisorSlot) ...[
-            const SizedBox(height: 4.0),
+            const SizedBox(height: 3.0),
             _buildAdvisorBanner(tacticalAdvice),
           ],
         ],
@@ -120,7 +116,7 @@ class CommandArcWidget extends StatelessWidget {
   }
 
   Widget _buildAdvisorBanner(TacticalAdvice? advice) {
-    const double barHeight = 22.0;
+    const double barHeight = 18.0;
     if (advice != null) {
       final isBreach = advice.isEmergencyBreach;
       final accentColor = isBreach
@@ -129,17 +125,20 @@ class CommandArcWidget extends StatelessWidget {
       return SizedBox(
         height: barHeight,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 1.0),
           decoration: BoxDecoration(
-            color: accentColor.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(6.0),
-            border: Border.all(color: accentColor, width: 1.0),
+            color: accentColor.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(4.0),
+            border: Border.all(
+              color: accentColor.withValues(alpha: 0.6),
+              width: 1.0,
+            ),
           ),
           child: Row(
             children: [
               Icon(
                 isBreach ? Icons.warning_amber_rounded : Icons.psychology,
-                size: 12.0,
+                size: 11.0,
                 color: accentColor,
               ),
               const SizedBox(width: 4.0),
@@ -148,7 +147,7 @@ class CommandArcWidget extends StatelessWidget {
                   advice.explanation,
                   style: TextStyle(
                     color: accentColor,
-                    fontSize: 8.5,
+                    fontSize: 8.0,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.3,
                   ),
@@ -163,7 +162,7 @@ class CommandArcWidget extends StatelessWidget {
                   color: accentColor.withValues(alpha: 0.9),
                   fontSize: 7.0,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
+                  letterSpacing: 0.4,
                 ),
               ),
             ],
@@ -176,17 +175,20 @@ class CommandArcWidget extends StatelessWidget {
     return SizedBox(
       height: barHeight,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+        padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 1.0),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A).withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(6.0),
-          border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+          color: const Color(0xFF070C18).withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(4.0),
+          border: Border.all(
+            color: const Color(0xFF1E293B).withValues(alpha: 0.8),
+            width: 1.0,
+          ),
         ),
         child: Row(
           children: [
             Icon(
               Icons.psychology_outlined,
-              size: 12.0,
+              size: 11.0,
               color: VoidTheme.textMuted.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 4.0),
@@ -195,7 +197,7 @@ class CommandArcWidget extends StatelessWidget {
                 'TACTICAL AI SCANNING CORRIDORS...',
                 style: TextStyle(
                   color: VoidTheme.textMuted.withValues(alpha: 0.7),
-                  fontSize: 8.0,
+                  fontSize: 7.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.3,
                 ),
@@ -250,6 +252,7 @@ class CommandArcWidget extends StatelessWidget {
         );
 
         final isSelected = selectedBay == bay.bayIndex;
+        final isAlignedCorridor = corridor == activeCorridor;
         final isSowHop = activeSowBay == bay.bayIndex;
         final isAdvisorBay = tacticalAdvice?.recommendedBay == bay.bayIndex;
 
@@ -264,18 +267,20 @@ class CommandArcWidget extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Raised Positive Terminal Cap
+                  // Raised Positive Terminal Cap (Aligned with Corridor)
                   Container(
                     width: 14.0,
                     height: 3.5,
                     decoration: BoxDecoration(
                       color: isSelected
                           ? VoidTheme.plasmaCyan
-                          : (isAdvisorBay
-                                ? (tacticalAdvice!.isEmergencyBreach
-                                      ? VoidTheme.crimsonFlare
-                                      : VoidTheme.solarGold)
-                                : const Color(0xFF334E68)),
+                          : (isAlignedCorridor
+                                ? VoidTheme.plasmaCyan.withValues(alpha: 0.6)
+                                : (isAdvisorBay
+                                      ? (tacticalAdvice!.isEmergencyBreach
+                                            ? VoidTheme.crimsonFlare
+                                            : VoidTheme.solarGold)
+                                      : const Color(0xFF334E68))),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(2.0),
                       ),
@@ -287,6 +292,7 @@ class CommandArcWidget extends StatelessWidget {
                     bay: bay,
                     corridor: corridor,
                     isSelected: isSelected,
+                    isAlignedCorridor: isAlignedCorridor,
                     isSowHop: isSowHop,
                     isAdvisorBay: isAdvisorBay,
                     activeDirection: sowDirection,
@@ -388,6 +394,7 @@ class _FrontlineBayCylinder extends StatefulWidget {
     required this.bay,
     required this.corridor,
     required this.isSelected,
+    this.isAlignedCorridor = false,
     required this.isSowHop,
     required this.isAdvisorBay,
     required this.activeDirection,
@@ -400,6 +407,7 @@ class _FrontlineBayCylinder extends StatefulWidget {
   final BayState bay;
   final int corridor;
   final bool isSelected;
+  final bool isAlignedCorridor;
   final bool isSowHop;
   final bool isAdvisorBay;
   final int activeDirection;
@@ -420,6 +428,7 @@ class _FrontlineBayCylinderState extends State<_FrontlineBayCylinder> {
   Widget build(BuildContext context) {
     final bay = widget.bay;
     final isSelected = widget.isSelected;
+    final isAlignedCorridor = widget.isAlignedCorridor;
     final isSowHop = widget.isSowHop;
     final isAdvisorBay = widget.isAdvisorBay;
     final tacticalAdvice = widget.tacticalAdvice;
@@ -466,7 +475,11 @@ class _FrontlineBayCylinderState extends State<_FrontlineBayCylinder> {
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF132A40)
-              : (isSowHop ? const Color(0xFF1E293B) : const Color(0xFF101C2E)),
+              : (isAlignedCorridor
+                    ? const Color(0xFF0F1E30)
+                    : (isSowHop
+                          ? const Color(0xFF1E293B)
+                          : const Color(0xFF101C2E))),
           borderRadius: BorderRadius.circular(6.0),
           border: Border.all(
             color: isSelected
@@ -475,14 +488,18 @@ class _FrontlineBayCylinderState extends State<_FrontlineBayCylinder> {
                       ? (tacticalAdvice?.isEmergencyBreach == true
                             ? VoidTheme.crimsonFlare
                             : VoidTheme.solarGold)
-                      : (isSowHop
-                            ? VoidTheme.solarGold
-                            : (bay.isKichwa
-                                  ? VoidTheme.nebulaAmethyst
-                                  : (bay.isKimbi
-                                        ? VoidTheme.emeraldShield
-                                        : const Color(0xFF1E293B))))),
-            width: isSelected || isAdvisorBay ? 1.4 : 1.0,
+                      : (isAlignedCorridor
+                            ? VoidTheme.plasmaCyan.withValues(alpha: 0.5)
+                            : (isSowHop
+                                  ? VoidTheme.solarGold
+                                  : (bay.isKichwa
+                                        ? VoidTheme.nebulaAmethyst
+                                        : (bay.isKimbi
+                                              ? VoidTheme.emeraldShield
+                                              : const Color(0xFF1E293B)))))),
+            width: isSelected || isAdvisorBay
+                ? 1.4
+                : (isAlignedCorridor ? 1.2 : 1.0),
           ),
           boxShadow: isSelected
               ? [
@@ -491,27 +508,34 @@ class _FrontlineBayCylinderState extends State<_FrontlineBayCylinder> {
                     blurRadius: 6.0,
                   ),
                 ]
-              : (isAdvisorBay
+              : (isAlignedCorridor
                     ? [
                         BoxShadow(
-                          color:
-                              (tacticalAdvice?.isEmergencyBreach == true
-                                      ? VoidTheme.crimsonFlare
-                                      : VoidTheme.solarGold)
-                                  .withValues(alpha: 0.45),
-                          blurRadius: 6.0,
+                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.18),
+                          blurRadius: 4.0,
                         ),
                       ]
-                    : (isSowHop
+                    : (isAdvisorBay
                           ? [
                               BoxShadow(
-                                color: VoidTheme.solarGold.withValues(
-                                  alpha: 0.45,
-                                ),
+                                color:
+                                    (tacticalAdvice?.isEmergencyBreach == true
+                                            ? VoidTheme.crimsonFlare
+                                            : VoidTheme.solarGold)
+                                        .withValues(alpha: 0.45),
                                 blurRadius: 6.0,
                               ),
                             ]
-                          : null)),
+                          : (isSowHop
+                                ? [
+                                    BoxShadow(
+                                      color: VoidTheme.solarGold.withValues(
+                                        alpha: 0.45,
+                                      ),
+                                      blurRadius: 6.0,
+                                    ),
+                                  ]
+                                : null))),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -572,9 +596,11 @@ class _FrontlineBayCylinderState extends State<_FrontlineBayCylinder> {
                 style: TextStyle(
                   color: isSelected
                       ? VoidTheme.plasmaCyan
-                      : (bay.chargeUnits > 0
-                            ? VoidTheme.starWhite
-                            : const Color(0xFF64748B)),
+                      : (isAlignedCorridor
+                            ? VoidTheme.plasmaCyanLight
+                            : (bay.chargeUnits > 0
+                                  ? VoidTheme.starWhite
+                                  : const Color(0xFF64748B))),
                   fontSize: 8.0,
                   fontWeight: FontWeight.w800,
                 ),

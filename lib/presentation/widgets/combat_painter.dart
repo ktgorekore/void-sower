@@ -50,6 +50,73 @@ class CombatBackgroundPainter extends CustomPainter {
     ..strokeWidth = 1.5
     ..style = PaintingStyle.stroke;
 
+  static final Paint _horizonArcPaint = Paint()
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.14)
+    ..strokeWidth = 1.0
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _horizonGlowPaint = Paint()
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.05)
+    ..strokeWidth = 2.5
+    ..style = PaintingStyle.stroke;
+
+  static final TextPainter _apogeePainter = TextPainter(
+    text: TextSpan(
+      text: 'APOGEE HORIZON  Z: +40km',
+      style: TextStyle(
+        color: VoidTheme.plasmaCyan.withValues(alpha: 0.40),
+        fontSize: 6.8,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.8,
+        fontFamily: 'monospace',
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final TextPainter _midCombatPainter = TextPainter(
+    text: TextSpan(
+      text: 'MID-COMBAT HORIZON  Z: +20km',
+      style: TextStyle(
+        color: VoidTheme.plasmaCyan.withValues(alpha: 0.40),
+        fontSize: 6.8,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.8,
+        fontFamily: 'monospace',
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final TextPainter _forwardEngagePainter = TextPainter(
+    text: TextSpan(
+      text: 'FORWARD ENGAGE HORIZON  Z: +10km',
+      style: TextStyle(
+        color: VoidTheme.plasmaCyan.withValues(alpha: 0.40),
+        fontSize: 6.8,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.8,
+        fontFamily: 'monospace',
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final Path _scratchArcPath = Path();
+
+  /// Static pre-laid out painter for atmospheric threshold label.
+  @visibleForTesting
+  static TextPainter get thresholdPainter => _thresholdPainter;
+
+  @visibleForTesting
+  static TextPainter get apogeePainter => _apogeePainter;
+
+  @visibleForTesting
+  static TextPainter get midCombatPainter => _midCombatPainter;
+
+  @visibleForTesting
+  static TextPainter get forwardEngagePainter => _forwardEngagePainter;
+
   static final TextPainter _thresholdPainter = TextPainter(
     text: TextSpan(
       text: '▼ THRESHOLD ▼',
@@ -63,9 +130,25 @@ class CombatBackgroundPainter extends CustomPainter {
     textDirection: TextDirection.ltr,
   )..layout();
 
-  /// Static pre-laid out painter for atmospheric threshold label.
-  @visibleForTesting
-  static TextPainter get thresholdPainter => _thresholdPainter;
+  void _drawDepthHorizon(
+    Canvas canvas,
+    Size size,
+    double y,
+    double sag,
+    TextPainter labelPainter,
+  ) {
+    _scratchArcPath.reset();
+    _scratchArcPath.moveTo(0, y);
+    _scratchArcPath.quadraticBezierTo(size.width * 0.5, y + sag, size.width, y);
+    if (!isLowBattery) {
+      canvas.drawPath(_scratchArcPath, _horizonGlowPaint);
+    }
+    canvas.drawPath(_scratchArcPath, _horizonArcPaint);
+    labelPainter.paint(
+      canvas,
+      Offset(size.width - labelPainter.width - 12.0, y + 2.0),
+    );
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -107,6 +190,21 @@ class CombatBackgroundPainter extends CustomPainter {
         }
       }
     }
+
+    // 1b. Concentric 3D Depth Horizon Rings (Apogee, Mid-Combat, Forward Engage)
+    final yApogee = size.height * 0.20;
+    final yMidCombat = size.height * 0.42;
+    final yForwardEngage = size.height * 0.65;
+
+    _drawDepthHorizon(canvas, size, yApogee, 12.0, _apogeePainter);
+    _drawDepthHorizon(canvas, size, yMidCombat, 16.0, _midCombatPainter);
+    _drawDepthHorizon(
+      canvas,
+      size,
+      yForwardEngage,
+      20.0,
+      _forwardEngagePainter,
+    );
 
     // 2. Draw Atmospheric Defense Boundary Line & Futuristic Label
     canvas.drawLine(
@@ -454,6 +552,21 @@ class CombatPainter extends CustomPainter {
   static final Paint _bowShockPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 2.2;
+
+  static final Paint _anchorRingPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.2
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.45);
+
+  static final Paint _anchorTetherPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.0;
+
+  @visibleForTesting
+  static Paint get anchorRingPaint => _anchorRingPaint;
+
+  @visibleForTesting
+  static Paint get anchorTetherPaint => _anchorTetherPaint;
 
   static final Paint _bowShockGlowPaint = Paint()
     ..style = PaintingStyle.stroke
@@ -1346,6 +1459,29 @@ class CombatPainter extends CustomPainter {
     final pitchRad = -normForward * 0.26;
     // 3D Yaw: Slight turning heading into lateral slide
     final yawRad = lateralDisplacement * 0.14;
+
+    // Ground projection anchor ring and vertical depth tether on baseline plane
+    if (normForward > 0.04) {
+      final anchorW = 44.0 * (1.0 - normForward * 0.25) * scale;
+      final anchorH = 12.0 * (1.0 - normForward * 0.25) * scale;
+      final anchorRect = Rect.fromLTWH(
+        centerX - anchorW * 0.5,
+        baselineShipY - anchorH * 0.5,
+        anchorW,
+        anchorH,
+      );
+      canvas.drawOval(anchorRect, _anchorRingPaint);
+
+      final tetherAlpha = (0.15 + 0.35 * normForward).clamp(0.0, 0.5);
+      _anchorTetherPaint.color = VoidTheme.plasmaCyan.withValues(
+        alpha: tetherAlpha,
+      );
+      canvas.drawLine(
+        Offset(centerX, baselineShipY),
+        Offset(centerX, shipY + 18.0 * scale),
+        _anchorTetherPaint,
+      );
+    }
 
     // 1. Render true 3D Polygonal Dreadnought Flagship Mesh
     _dreadMesh.projectAndPaint(
