@@ -30,10 +30,10 @@ import 'presentation/services/audio_service.dart';
 import 'presentation/services/shader_service.dart';
 import 'presentation/theme/void_theme.dart';
 
-/// Optional environment flag to launch directly into combat viewport for testing/recording.
+/// Environment flag to launch directly into combat viewport (defaults to true for immediate action).
 const bool kStartCombat = bool.fromEnvironment(
   'START_COMBAT',
-  defaultValue: false,
+  defaultValue: true,
 );
 
 /// Optional environment flag to start tactical AI solver immediately.
@@ -93,12 +93,17 @@ class VoidSowerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasSeenTutorial = PersistenceService.instance.hasCompletedTutorial;
     return MaterialApp(
       title: 'Void Sower: Bao Orbital Batteries',
       debugShowCheckedModeBanner: false,
       theme: VoidTheme.darkTheme,
       home: startCombat
-          ? CombatScreen(engine: engine, autoStartSolver: kAutoSolve)
+          ? CombatScreen(
+              engine: engine,
+              autoStartSolver: kAutoSolve,
+              startWithTutorial: !hasSeenTutorial,
+            )
           : CampaignMapScreen(engine: engine),
     );
   }

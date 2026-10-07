@@ -29,11 +29,33 @@ void main() {
     await PersistenceService.instance.initialize();
   });
 
+  testWidgets('VoidSowerApp launches directly into combat arena by default', (
+    WidgetTester tester,
+  ) async {
+    await PersistenceService.instance.setCompletedTutorial(true);
+    final mockEngine = MockVoidSowerEngine();
+    await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
+    await tester.pump();
+
+    expect(find.byType(CombatScreen), findsOneWidget);
+    expect(find.byIcon(Icons.pause), findsOneWidget);
+    expect(find.text('PAUSE'), findsNothing);
+
+    // Opening pause menu reveals meta actions (RULES, MAP, etc.)
+    await tester.tap(find.byIcon(Icons.pause));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byIcon(Icons.school), findsOneWidget);
+    expect(find.byIcon(Icons.map_outlined), findsOneWidget);
+  });
+
   testWidgets(
-    'VoidSowerApp launches campaign map screen with command deck UI by default',
+    'VoidSowerApp launches campaign map screen with command deck UI when startCombat is false',
     (WidgetTester tester) async {
       final mockEngine = MockVoidSowerEngine();
-      await tester.pumpWidget(VoidSowerApp(engine: mockEngine));
+      await tester.pumpWidget(
+        VoidSowerApp(engine: mockEngine, startCombat: false),
+      );
       await tester.pumpAndSettle();
 
       // Verify command deck and branding
@@ -71,29 +93,6 @@ void main() {
       await tester.tap(find.text('DISMISS'));
       await tester.pumpAndSettle();
       expect(find.text('ORBITAL FLEET HANGAR'), findsNothing);
-    },
-  );
-
-  testWidgets(
-    'VoidSowerApp launches directly into combat arena when startCombat is true',
-    (WidgetTester tester) async {
-      await PersistenceService.instance.setCompletedTutorial(true);
-      final mockEngine = MockVoidSowerEngine();
-      await tester.pumpWidget(
-        VoidSowerApp(engine: mockEngine, startCombat: true),
-      );
-      await tester.pump();
-
-      expect(find.byType(CombatScreen), findsOneWidget);
-      expect(find.byIcon(Icons.pause), findsOneWidget);
-      expect(find.text('PAUSE'), findsNothing);
-
-      // Opening pause menu reveals meta actions (RULES, MAP, etc.)
-      await tester.tap(find.byIcon(Icons.pause));
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(find.byIcon(Icons.school), findsOneWidget);
-      expect(find.byIcon(Icons.map_outlined), findsOneWidget);
     },
   );
 }

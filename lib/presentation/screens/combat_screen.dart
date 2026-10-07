@@ -1002,20 +1002,18 @@ class _CombatScreenState extends State<CombatScreen>
     } else {
       final wasTicking = _ticker.isTicking;
       if (wasTicking) _ticker.stop();
-      Navigator.of(context)
-          .push(
-            MaterialPageRoute<void>(
-              builder: (context) => CampaignMapScreen(
-                engine: widget.engine,
-                initialCampaignId: targetCampaign,
-              ),
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(
+            builder: (context) => CampaignMapScreen(
+              engine: widget.engine,
+              initialCampaignId: targetCampaign,
             ),
-          )
-          .then((_) {
-            if (mounted && wasTicking) {
-              _resumeTicker();
-            }
-          });
+          ),
+        );
+      }
     }
   }
 
