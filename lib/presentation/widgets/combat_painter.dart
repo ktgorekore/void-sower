@@ -24,7 +24,6 @@ import '../../domain/models/lance_beam.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
 import 'dreadnought_3d_mesh.dart';
-import 'invader_3d_mesh.dart';
 
 /// Retained Skia static background layer rendering the 8 tactical corridors,
 /// atmospheric defense boundary line, and planetary defense rails.
@@ -163,7 +162,6 @@ class CombatPainter extends CustomPainter {
   final bool isLowBattery;
 
   static final Dreadnought3DMesh _dreadMesh = Dreadnought3DMesh();
-  static final Invader3DMesh _invaderMesh = Invader3DMesh();
 
   // ---------------------------------------------------------------------------
   // Reusable Path Scratchpads & Pre-compiled Static Geometry
@@ -171,6 +169,9 @@ class CombatPainter extends CustomPainter {
   static final Path _scratchVolumetricLancePath = Path();
   static final Path _scratchLeftFlamePath = Path();
   static final Path _scratchRightFlamePath = Path();
+  static final Path _scratchEnemyHullPath = Path();
+  static final Path _scratchEnemyDetailPath = Path();
+  static final Path _scratchEnemyThrusterPath = Path();
 
   // ---------------------------------------------------------------------------
   // Pre-allocated Static Paint Pools (Zero Allocations & Zero MaskFilter Blurs)
@@ -210,6 +211,61 @@ class CombatPainter extends CustomPainter {
     ..strokeWidth = 3.0;
 
   static final Paint _flakPaint = Paint()..style = PaintingStyle.stroke;
+
+  // Invader Vessel Vector Rendering Paints (Zero Allocations)
+  static final Paint _enemyDroneHullPaint = Paint()
+    ..color = const Color(0xFF160D2A)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyDroneAccentPaint = Paint()
+    ..color = VoidTheme.nebulaAmethyst
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyCruiserHullPaint = Paint()
+    ..color = const Color(0xFF0C1026)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyCruiserAccentPaint = Paint()
+    ..color = VoidTheme.nebulaAmethyst
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyFlagshipHullPaint = Paint()
+    ..color = const Color(0xFF220A14)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyFlagshipAccentPaint = Paint()
+    ..color = VoidTheme.crimsonFlare
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyOutlinePaint = Paint()
+    ..color = Colors.white.withValues(alpha: 0.85)
+    ..strokeWidth = 1.4
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _enemyCruiserConduitPaint = Paint()
+    ..color = VoidTheme.plasmaCyan
+    ..strokeWidth = 1.5
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _enemyFlagshipGoldPaint = Paint()
+    ..color = VoidTheme.solarGold
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyCorePaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyThrusterFlamePaint = Paint()
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.85)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _enemyThrusterCorePaint = Paint()
+    ..color = Colors.white.withValues(alpha: 0.90)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _warpSingularityPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 2.0;
 
   static final Paint _healthBgPaint = Paint()..color = Colors.black54;
   static final Paint _healthHullPaint = Paint()..color = Colors.redAccent;
@@ -656,7 +712,15 @@ class CombatPainter extends CustomPainter {
   /// Applies 3D perspective scaling ([depthScale]) relative to the atmospheric
   /// defense line ([boundaryY]) and top viewport margin ([topMargin]). Selects hull
   /// geometry and colors based on [EnemyCraft.vesselType] (drone, cruiser, flagship),
-  /// and draws real-time hull and shield energy gauge bars above the vessel.
+  /// Renders an enemy assault craft ([enemy]) at the specified screen coordinate ([x], [y]).
+  ///
+  /// Restores and refines the classic 2D vector arrowhead/delta silhouette aesthetic with:
+  /// - Distinct tactical hull geometries for Drones (0), Cruisers (1), and Flagships (2).
+  /// - 3D perspective depth scaling ([depthScale]) from deep space (0.65x) to defense horizon (1.0x).
+  /// - Smooth banking roll ([bankAngleRad]) and dive pitch ([pitchAngleRad]) transformations.
+  /// - Hyperspace warp-in scaling and collapsing singularity ring FX ([warpInProgress]).
+  /// - Animated engine plasma thruster plumes oriented upward against descent direction.
+  /// - Real-time hull and shield energy gauge bars positioned horizontally above the vessel.
   void _drawEnemyVessel(
     Canvas canvas,
     double x,
@@ -672,28 +736,81 @@ class CombatPainter extends CustomPainter {
     final depthScale = 0.65 + 0.35 * normDepth;
     // Balanced vessel size ratios: Drones fit agilely, Cruisers occupy lane, Flagships command
     final sizeRatio = enemy.vesselType == 2
-        ? 0.74
-        : (enemy.vesselType == 1 ? 0.64 : 0.60);
-    final scale = (width / 50.0) * sizeRatio * depthScale;
+        ? 1.6
+        : (enemy.vesselType == 1 ? 1.2 : 0.8);
+    final w = (width * 0.5) * sizeRatio * depthScale;
+    final h = (width * 0.4) * sizeRatio * depthScale;
+    final hw = w * 0.5;
+    final hh = h * 0.75;
 
-    // 1. Render true 3D Polygonal Mesh with cosmic shading & warp-in FX
-    _invaderMesh.projectAndPaint(
-      canvas,
-      center: Offset(x, y),
-      vesselType: enemy.vesselType,
-      pitchRad: enemy.pitchAngleRad,
-      rollRad: enemy.bankAngleRad,
-      yawRad: 0.0,
-      scale: scale,
-      warpInProgress: enemy.warpInProgress,
-      animationTime: animationTime,
-      isLowBattery: isLowBattery,
-    );
+    final warpProgress = enemy.warpInProgress.clamp(0.0, 1.0);
 
-    // 2. Health / Shield Gauges (positioned above the 3D craft)
-    final barW = 28.0 * (sizeRatio / 0.64) * depthScale;
+    // 1. Draw Collapsing Warp Singularity Ring (if vessel is still warping in)
+    if (warpProgress < 0.95) {
+      final invProgress = (1.0 - warpProgress).clamp(0.0, 1.0);
+      final ringRadius = (w * 1.1) * (0.25 + 0.75 * invProgress);
+      _warpSingularityPaint
+        ..color = VoidTheme.plasmaCyan.withValues(alpha: invProgress * 0.8)
+        ..strokeWidth = 2.0 * depthScale;
+      canvas.drawCircle(Offset(x, y), ringRadius, _warpSingularityPaint);
+    }
+
+    // 2. Transform canvas for banking, pitching, warp-scaling, and translation
+    canvas.save();
+    canvas.translate(x, y);
+
+    if (enemy.bankAngleRad != 0.0) {
+      canvas.rotate(enemy.bankAngleRad * 0.7);
+    }
+
+    // Warp-in scale expansion & pitch foreshortening
+    final warpScale = 0.25 + 0.75 * warpProgress;
+    final pitchFactor = 1.0 + enemy.pitchAngleRad * 0.25;
+    if (warpScale != 1.0 || pitchFactor != 1.0) {
+      canvas.scale(warpScale, warpScale * pitchFactor);
+    }
+
+    // 3. Render Hull Silhouette, Cockpit, and Thrusters by Vessel Type
+    switch (enemy.vesselType) {
+      case 2:
+        _drawFlagshipVessel(
+          canvas,
+          hw,
+          hh,
+          depthScale,
+          warpProgress,
+          enemy.entityId,
+        );
+        break;
+      case 1:
+        _drawCruiserVessel(
+          canvas,
+          hw,
+          hh,
+          depthScale,
+          warpProgress,
+          enemy.entityId,
+        );
+        break;
+      case 0:
+      default:
+        _drawDroneVessel(
+          canvas,
+          hw,
+          hh,
+          depthScale,
+          warpProgress,
+          enemy.entityId,
+        );
+        break;
+    }
+
+    canvas.restore();
+
+    // 4. Health / Shield Gauges (rendered in screen space so they remain horizontal)
+    final barW = math.max(w * 1.2, 26.0 * depthScale);
     const barH = 3.0;
-    final barY = y - (28.0 * sizeRatio * depthScale) - 6.0;
+    final barY = y - hh - 8.0;
 
     // Hull bar
     final hullFraction = (enemy.currentHull / math.max(enemy.maxHull, 1.0))
@@ -714,10 +831,306 @@ class CombatPainter extends CustomPainter {
         1.0,
       );
       canvas.drawRect(
-        Rect.fromLTWH(x - barW / 2, barY - 4.0, barW * shieldFraction, barH),
+        Rect.fromLTWH(x - barW / 2, barY - 4.5, barW, barH),
+        _healthBgPaint,
+      );
+      canvas.drawRect(
+        Rect.fromLTWH(x - barW / 2, barY - 4.5, barW * shieldFraction, barH),
         _healthShieldPaint,
       );
     }
+  }
+
+  void _drawDroneVessel(
+    Canvas canvas,
+    double hw,
+    double hh,
+    double depthScale,
+    double warpProgress,
+    int entityId,
+  ) {
+    // Aft Twin Engine Thrusters
+    final flameH =
+        (5.0 + 2.5 * math.sin(animationTime * 18.0 + entityId * 5.0)) *
+        depthScale;
+    _scratchEnemyThrusterPath.reset();
+    // Port thruster
+    _scratchEnemyThrusterPath.moveTo(-hw * 0.35 - 2.0 * depthScale, -hh * 0.65);
+    _scratchEnemyThrusterPath.lineTo(-hw * 0.35, -hh * 0.65 - flameH);
+    _scratchEnemyThrusterPath.lineTo(-hw * 0.35 + 2.0 * depthScale, -hh * 0.65);
+    _scratchEnemyThrusterPath.close();
+    // Starboard thruster
+    _scratchEnemyThrusterPath.moveTo(hw * 0.35 - 2.0 * depthScale, -hh * 0.65);
+    _scratchEnemyThrusterPath.lineTo(hw * 0.35, -hh * 0.65 - flameH);
+    _scratchEnemyThrusterPath.lineTo(hw * 0.35 + 2.0 * depthScale, -hh * 0.65);
+    _scratchEnemyThrusterPath.close();
+
+    _enemyThrusterFlamePaint.color = VoidTheme.plasmaCyan.withValues(
+      alpha: 0.85 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyThrusterPath, _enemyThrusterFlamePaint);
+
+    // Drone Delta Chevron Hull
+    _scratchEnemyHullPath.reset();
+    _scratchEnemyHullPath.moveTo(0, hh); // Sharp prow pointing towards defender
+    _scratchEnemyHullPath.lineTo(hw * 0.95, -hh * 0.65);
+    _scratchEnemyHullPath.lineTo(hw * 0.85, -hh);
+    _scratchEnemyHullPath.lineTo(hw * 0.35, -hh * 0.65);
+    _scratchEnemyHullPath.lineTo(0, -hh * 0.35);
+    _scratchEnemyHullPath.lineTo(-hw * 0.35, -hh * 0.65);
+    _scratchEnemyHullPath.lineTo(-hw * 0.85, -hh);
+    _scratchEnemyHullPath.lineTo(-hw * 0.95, -hh * 0.65);
+    _scratchEnemyHullPath.close();
+
+    _enemyDroneHullPaint.color = const Color(
+      0xFF160D2A,
+    ).withValues(alpha: warpProgress);
+    canvas.drawPath(_scratchEnemyHullPath, _enemyDroneHullPaint);
+
+    // Inner Amethyst Armor Facet
+    _scratchEnemyDetailPath.reset();
+    _scratchEnemyDetailPath.moveTo(0, hh * 0.45);
+    _scratchEnemyDetailPath.lineTo(hw * 0.40, -hh * 0.15);
+    _scratchEnemyDetailPath.lineTo(0, -hh * 0.05);
+    _scratchEnemyDetailPath.lineTo(-hw * 0.40, -hh * 0.15);
+    _scratchEnemyDetailPath.close();
+
+    _enemyDroneAccentPaint.color = VoidTheme.nebulaAmethyst.withValues(
+      alpha: 0.85 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyDetailPath, _enemyDroneAccentPaint);
+
+    // Crisp Neon Hull Outline
+    _enemyOutlinePaint.color = Colors.white.withValues(
+      alpha: 0.85 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyHullPath, _enemyOutlinePaint);
+
+    // Core Sensor
+    _enemyCorePaint.color = Colors.white.withValues(alpha: 0.95 * warpProgress);
+    canvas.drawCircle(Offset(0, -hh * 0.05), 2.0 * depthScale, _enemyCorePaint);
+  }
+
+  void _drawCruiserVessel(
+    Canvas canvas,
+    double hw,
+    double hh,
+    double depthScale,
+    double warpProgress,
+    int entityId,
+  ) {
+    // Twin Heavy Engine Thrusters
+    final flameH =
+        (7.0 + 3.5 * math.sin(animationTime * 16.0 + entityId * 4.0)) *
+        depthScale;
+    _scratchEnemyThrusterPath.reset();
+    // Port engine nacelle flame
+    _scratchEnemyThrusterPath.moveTo(-hw * 0.75 - 3.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.lineTo(-hw * 0.75, -hh - flameH);
+    _scratchEnemyThrusterPath.lineTo(-hw * 0.75 + 3.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.close();
+    // Starboard engine nacelle flame
+    _scratchEnemyThrusterPath.moveTo(hw * 0.75 - 3.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.lineTo(hw * 0.75, -hh - flameH);
+    _scratchEnemyThrusterPath.lineTo(hw * 0.75 + 3.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.close();
+
+    _enemyThrusterFlamePaint.color = VoidTheme.plasmaCyan.withValues(
+      alpha: 0.85 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyThrusterPath, _enemyThrusterFlamePaint);
+
+    // Heavy Cruiser Stepped Chassis
+    _scratchEnemyHullPath.reset();
+    _scratchEnemyHullPath.moveTo(0, hh * 1.0); // Central plasma rail prow
+    _scratchEnemyHullPath.lineTo(hw * 0.20, hh * 0.55); // Inner mandible notch
+    _scratchEnemyHullPath.lineTo(
+      hw * 0.45,
+      hh * 0.85,
+    ); // Starboard assault mandible
+    _scratchEnemyHullPath.lineTo(hw * 0.55, hh * 0.15); // Waist armor
+    _scratchEnemyHullPath.lineTo(
+      hw * 1.0,
+      -hh * 0.40,
+    ); // Broad delta wing shoulder
+    _scratchEnemyHullPath.lineTo(hw * 0.75, -hh); // Starboard engine nacelle
+    _scratchEnemyHullPath.lineTo(hw * 0.30, -hh * 0.60); // Inner exhaust bay
+    _scratchEnemyHullPath.lineTo(0, -hh * 0.35); // Keel notch
+    _scratchEnemyHullPath.lineTo(-hw * 0.30, -hh * 0.60);
+    _scratchEnemyHullPath.lineTo(-hw * 0.75, -hh);
+    _scratchEnemyHullPath.lineTo(-hw * 1.0, -hh * 0.40);
+    _scratchEnemyHullPath.lineTo(-hw * 0.55, hh * 0.15);
+    _scratchEnemyHullPath.lineTo(-hw * 0.45, hh * 0.85);
+    _scratchEnemyHullPath.lineTo(-hw * 0.20, hh * 0.55);
+    _scratchEnemyHullPath.close();
+
+    _enemyCruiserHullPaint.color = const Color(
+      0xFF0C1026,
+    ).withValues(alpha: warpProgress);
+    canvas.drawPath(_scratchEnemyHullPath, _enemyCruiserHullPaint);
+
+    // Primary Nebula Amethyst Armor Plating
+    _scratchEnemyDetailPath.reset();
+    _scratchEnemyDetailPath.moveTo(0, hh * 0.40);
+    _scratchEnemyDetailPath.lineTo(hw * 0.45, -hh * 0.15);
+    _scratchEnemyDetailPath.lineTo(0, -hh * 0.10);
+    _scratchEnemyDetailPath.lineTo(-hw * 0.45, -hh * 0.15);
+    _scratchEnemyDetailPath.close();
+
+    _enemyCruiserAccentPaint.color = VoidTheme.nebulaAmethyst.withValues(
+      alpha: 0.90 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyDetailPath, _enemyCruiserAccentPaint);
+
+    // Glowing Plasma Conduits along Mandibles
+    _scratchEnemyDetailPath.reset();
+    _scratchEnemyDetailPath.moveTo(hw * 0.42, hh * 0.80);
+    _scratchEnemyDetailPath.lineTo(hw * 0.25, hh * 0.20);
+    _scratchEnemyDetailPath.lineTo(0, 0);
+    _scratchEnemyDetailPath.moveTo(-hw * 0.42, hh * 0.80);
+    _scratchEnemyDetailPath.lineTo(-hw * 0.25, hh * 0.20);
+    _scratchEnemyDetailPath.lineTo(0, 0);
+
+    _enemyCruiserConduitPaint.color = VoidTheme.plasmaCyan.withValues(
+      alpha: 0.90 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyDetailPath, _enemyCruiserConduitPaint);
+
+    // Outer Neon Outline
+    _enemyOutlinePaint.color = Colors.white.withValues(
+      alpha: 0.85 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyHullPath, _enemyOutlinePaint);
+
+    // Central Reactor Singularity Core
+    _enemyCorePaint.color = VoidTheme.plasmaCyanLight.withValues(
+      alpha: 0.95 * warpProgress,
+    );
+    canvas.drawCircle(Offset.zero, 3.0 * depthScale, _enemyCorePaint);
+    _enemyCorePaint.color = Colors.white.withValues(alpha: 0.95 * warpProgress);
+    canvas.drawCircle(Offset.zero, 1.5 * depthScale, _enemyCorePaint);
+  }
+
+  void _drawFlagshipVessel(
+    Canvas canvas,
+    double hw,
+    double hh,
+    double depthScale,
+    double warpProgress,
+    int entityId,
+  ) {
+    // Massive Crimson Thruster Plumes
+    final flameH =
+        (10.0 + 5.0 * math.sin(animationTime * 14.0 + entityId * 3.0)) *
+        depthScale;
+    _scratchEnemyThrusterPath.reset();
+    // Port heavy engine block flame
+    _scratchEnemyThrusterPath.moveTo(-hw * 0.52 - 4.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.lineTo(-hw * 0.52, -hh - flameH);
+    _scratchEnemyThrusterPath.lineTo(-hw * 0.52 + 4.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.close();
+    // Starboard heavy engine block flame
+    _scratchEnemyThrusterPath.moveTo(hw * 0.52 - 4.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.lineTo(hw * 0.52, -hh - flameH);
+    _scratchEnemyThrusterPath.lineTo(hw * 0.52 + 4.0 * depthScale, -hh);
+    _scratchEnemyThrusterPath.close();
+
+    _enemyThrusterFlamePaint.color = VoidTheme.crimsonFlare.withValues(
+      alpha: 0.85 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyThrusterPath, _enemyThrusterFlamePaint);
+
+    // Inner Flame Core
+    if (!isLowBattery) {
+      _scratchEnemyThrusterPath.reset();
+      _scratchEnemyThrusterPath.moveTo(-hw * 0.52 - 2.0 * depthScale, -hh);
+      _scratchEnemyThrusterPath.lineTo(-hw * 0.52, -hh - flameH * 0.55);
+      _scratchEnemyThrusterPath.lineTo(-hw * 0.52 + 2.0 * depthScale, -hh);
+      _scratchEnemyThrusterPath.close();
+      _scratchEnemyThrusterPath.moveTo(hw * 0.52 - 2.0 * depthScale, -hh);
+      _scratchEnemyThrusterPath.lineTo(hw * 0.52, -hh - flameH * 0.55);
+      _scratchEnemyThrusterPath.lineTo(hw * 0.52 + 2.0 * depthScale, -hh);
+      _scratchEnemyThrusterPath.close();
+
+      _enemyThrusterCorePaint.color = VoidTheme.solarGoldLight.withValues(
+        alpha: 0.90 * warpProgress,
+      );
+      canvas.drawPath(_scratchEnemyThrusterPath, _enemyThrusterCorePaint);
+    }
+
+    // Flagship Command Dreadnought Hull
+    _scratchEnemyHullPath.reset();
+    _scratchEnemyHullPath.moveTo(0, hh * 1.05); // Armored beak prow
+    _scratchEnemyHullPath.lineTo(hw * 0.28, hh * 0.72); // Prow armor plate
+    _scratchEnemyHullPath.lineTo(
+      hw * 0.55,
+      hh * 0.35,
+    ); // Forward weapon sponson
+    _scratchEnemyHullPath.lineTo(
+      hw * 1.05,
+      -hh * 0.25,
+    ); // Heavy swept weapon wing
+    _scratchEnemyHullPath.lineTo(hw * 0.88, -hh * 0.85); // Wing armor fin
+    _scratchEnemyHullPath.lineTo(
+      hw * 0.52,
+      -hh,
+    ); // Starboard heavy reactor block
+    _scratchEnemyHullPath.lineTo(hw * 0.22, -hh * 0.65); // Exhaust notch
+    _scratchEnemyHullPath.lineTo(0, -hh * 0.45); // Keel spine
+    _scratchEnemyHullPath.lineTo(-hw * 0.22, -hh * 0.65);
+    _scratchEnemyHullPath.lineTo(-hw * 0.52, -hh);
+    _scratchEnemyHullPath.lineTo(-hw * 0.88, -hh * 0.85);
+    _scratchEnemyHullPath.lineTo(-hw * 1.05, -hh * 0.25);
+    _scratchEnemyHullPath.lineTo(-hw * 0.55, hh * 0.35);
+    _scratchEnemyHullPath.lineTo(-hw * 0.28, hh * 0.72);
+    _scratchEnemyHullPath.close();
+
+    _enemyFlagshipHullPaint.color = const Color(
+      0xFF220A14,
+    ).withValues(alpha: warpProgress);
+    canvas.drawPath(_scratchEnemyHullPath, _enemyFlagshipHullPaint);
+
+    // Crimson Flare Heavy Armor Wings
+    _scratchEnemyDetailPath.reset();
+    _scratchEnemyDetailPath.moveTo(0, hh * 0.60);
+    _scratchEnemyDetailPath.lineTo(hw * 0.65, -hh * 0.10);
+    _scratchEnemyDetailPath.lineTo(hw * 0.45, -hh * 0.40);
+    _scratchEnemyDetailPath.lineTo(0, -hh * 0.20);
+    _scratchEnemyDetailPath.lineTo(-hw * 0.45, -hh * 0.40);
+    _scratchEnemyDetailPath.lineTo(-hw * 0.65, -hh * 0.10);
+    _scratchEnemyDetailPath.close();
+
+    _enemyFlagshipAccentPaint.color = VoidTheme.crimsonFlare.withValues(
+      alpha: 0.90 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyDetailPath, _enemyFlagshipAccentPaint);
+
+    // Solar Gold Command Bridge Citadel
+    _scratchEnemyDetailPath.reset();
+    _scratchEnemyDetailPath.moveTo(0, hh * 0.25);
+    _scratchEnemyDetailPath.lineTo(hw * 0.28, -hh * 0.05);
+    _scratchEnemyDetailPath.lineTo(0, -hh * 0.28);
+    _scratchEnemyDetailPath.lineTo(-hw * 0.28, -hh * 0.05);
+    _scratchEnemyDetailPath.close();
+
+    _enemyFlagshipGoldPaint.color = VoidTheme.solarGold.withValues(
+      alpha: 0.95 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyDetailPath, _enemyFlagshipGoldPaint);
+
+    // Hull Outline
+    _enemyOutlinePaint.color = Colors.white.withValues(
+      alpha: 0.85 * warpProgress,
+    );
+    canvas.drawPath(_scratchEnemyHullPath, _enemyOutlinePaint);
+
+    // Central Singularity Power Core
+    _enemyCorePaint.color = VoidTheme.crimsonFlare.withValues(
+      alpha: 0.95 * warpProgress,
+    );
+    canvas.drawCircle(Offset(0, -hh * 0.05), 3.5 * depthScale, _enemyCorePaint);
+    _enemyCorePaint.color = Colors.white.withValues(alpha: 0.95 * warpProgress);
+    canvas.drawCircle(Offset(0, -hh * 0.05), 1.8 * depthScale, _enemyCorePaint);
   }
 
   /// Renders the flagship dreadnought defense platform, HUD telemetry, and targeting reticles.
