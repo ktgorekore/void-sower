@@ -22,7 +22,7 @@
 
 namespace void_sower::benchmarks {
 
-static void BM_FFI_GetBays_FieldCopy(benchmark::State& state) {
+static void BM_FFI_GetBays_FieldCopy(benchmark::State &state) {
   void_sower_init(32, 0.2f);
   std::array<VoidSowerBayFFI, 16> bays{};
 
@@ -33,10 +33,11 @@ static void BM_FFI_GetBays_FieldCopy(benchmark::State& state) {
 }
 BENCHMARK(BM_FFI_GetBays_FieldCopy);
 
-static void BM_FFI_GetEnemies_FieldCopy(benchmark::State& state) {
+static void BM_FFI_GetEnemies_FieldCopy(benchmark::State &state) {
   void_sower_init(32, 0.2f);
   VoidSowerWaveConfigFFI cfg{
       .difficulty = 0,
+      .reserved = {0, 0, 0},
       .random_seed = 42,
       .core_budget = 64,
       .initial_velocity_y = 0.02f,
@@ -52,10 +53,11 @@ static void BM_FFI_GetEnemies_FieldCopy(benchmark::State& state) {
 }
 BENCHMARK(BM_FFI_GetEnemies_FieldCopy);
 
-static void BM_FFI_GetFullStateSnapshot(benchmark::State& state) {
+static void BM_FFI_GetFullStateSnapshot(benchmark::State &state) {
   void_sower_init(32, 0.2f);
   VoidSowerWaveConfigFFI cfg{
       .difficulty = 0,
+      .reserved = {0, 0, 0},
       .random_seed = 42,
       .core_budget = 64,
       .initial_velocity_y = 0.02f,

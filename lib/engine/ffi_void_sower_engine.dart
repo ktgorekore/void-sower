@@ -514,6 +514,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     required List<int> bayCharges,
     required int reserveCores,
     required int totalScore,
+    int chargesLength = kMaxBays,
   }) {
     if (_isDisposed) return;
     // Zero-fill all 16 slots to guarantee trailing slots do not retain stale memory
@@ -524,6 +525,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     }
     _bindings.void_sower_restore_snapshot(
       _cachedSnapshotChargesPtr,
+      chargesLength,
       reserveCores,
       totalScore,
     );

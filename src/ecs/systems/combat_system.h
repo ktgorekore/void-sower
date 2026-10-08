@@ -24,6 +24,7 @@
 
 #include "../combat_rules.h"
 #include "../components.h"
+#include "absl/container/inlined_vector.h"
 #include "absl/types/span.h"
 #include "bao_cascade_system.h"
 #include "discharge_system.h"
@@ -120,6 +121,9 @@ class CombatSystem {
   bool lateral_drift_{false};
   float elapsed_combat_time_{0.0f};
   uint32_t reinforcement_id_{10000};
+  // Pre-allocated reap buffer to eliminate per-frame heap allocations during
+  // entity destruction.
+  absl::InlinedVector<entt::entity, 128> reap_buffer_;
 };
 
 }  // namespace void_sower::ecs

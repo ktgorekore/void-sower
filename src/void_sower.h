@@ -17,6 +17,7 @@
 #ifndef VOID_SOWER_H_
 #define VOID_SOWER_H_
 
+#include <stddef.h>
 #include <stdint.h>
 
 #if defined(_WIN32)
@@ -29,10 +30,9 @@
 extern "C" {
 #endif
 
-#pragma pack(push, 1)
-
 /**
  * @brief Flat C representation of a single capacitor bay.
+ * Naturally aligned to 4-byte boundaries (16 bytes total).
  */
 typedef struct {
   uint8_t bay_index;          ///< 0 to 15
@@ -48,10 +48,12 @@ typedef struct {
 
 /**
  * @brief Flat C representation of an enemy assault craft.
+ * Naturally aligned to 4-byte boundaries (60 bytes total).
  */
 typedef struct {
   uint32_t entity_id;
   uint16_t assigned_corridor;
+  uint16_t reserved1;
   float world_pos_x;
   float world_pos_y;
   float velocity_y;
@@ -61,18 +63,22 @@ typedef struct {
   float max_hull;
   uint8_t vessel_type;
   uint8_t is_destroyed;
+  uint16_t reserved2;
   float world_pos_z;
   float bank_angle_rad;
   float pitch_angle_rad;
-  uint8_t behavior_mode;
   float warp_in_progress;
+  uint8_t behavior_mode;
+  uint8_t reserved3[3];
 } VoidSowerEnemyFFI;
 
 /**
  * @brief Flat C representation of an active particle lance beam.
+ * Naturally aligned to 4-byte / 8-byte boundaries (32 bytes total).
  */
 typedef struct {
   uint8_t firing_bay_index;
+  uint8_t reserved1[3];
   float origin_x;
   float origin_y;
   float beam_width;
@@ -80,10 +86,12 @@ typedef struct {
   float remaining_duration;
   float total_damage;
   uint8_t active;
+  uint8_t reserved2[3];
 } VoidSowerLanceFFI;
 
 /**
  * @brief Flat C representation of a secondary radial flak burst.
+ * Naturally aligned to 4-byte boundaries (28 bytes total).
  */
 typedef struct {
   float world_pos_x;
@@ -93,10 +101,12 @@ typedef struct {
   float lifetime;
   float remaining_lifetime;
   uint8_t active;
+  uint8_t reserved[3];
 } VoidSowerFlakFFI;
 
 /**
  * @brief Flat C representation of dreadnought state.
+ * Naturally aligned to 4-byte boundaries (44 bytes total).
  */
 typedef struct {
   float orbital_position_x;
@@ -117,29 +127,31 @@ typedef struct {
 
 /**
  * @brief Flat C representation of predictive targeting telemetry.
+ * Naturally aligned to 4-byte / 8-byte boundaries (16 bytes total).
  */
 typedef struct {
   uint8_t terminal_bay;
   int8_t terminal_corridor;
+  uint8_t triggers_lance;
+  uint8_t triggers_relay;
   uint32_t final_mass;
   float predicted_damage;
   uint16_t total_cascade_laps;
-  uint8_t triggers_lance;
-  uint8_t triggers_relay;
+  uint8_t reserved[2];
 } VoidSowerPredictionFFI;
 
 /**
  * @brief Flat C configuration for procedural wave generation.
+ * Naturally aligned to 4-byte / 8-byte boundaries (16 bytes total).
  */
 typedef struct {
   uint8_t
       difficulty;  ///< 0: SectorPatrol, 1: PlanetarySiege, 2: FlagshipBastion
+  uint8_t reserved[3];
   uint32_t random_seed;
   uint32_t core_budget;
   float initial_velocity_y;
 } VoidSowerWaveConfigFFI;
-
-#pragma pack(pop)
 
 #ifdef __cplusplus
 #define VOID_SOWER_NOEXCEPT noexcept
@@ -169,7 +181,7 @@ FFI_PLUGIN_EXPORT void void_sower_init(uint32_t starting_cores,
  * @return 1 on successful wave generation, 0 on failure or null config.
  */
 FFI_PLUGIN_EXPORT int32_t void_sower_generate_wave(
-    const VoidSowerWaveConfigFFI* config) VOID_SOWER_NOEXCEPT;
+    const VoidSowerWaveConfigFFI *config) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Injects a core from the reactor into a bay and executes the sowing
@@ -273,7 +285,7 @@ FFI_PLUGIN_EXPORT int32_t void_sower_spawn_enemy(
  */
 FFI_PLUGIN_EXPORT void void_sower_predict_sow(
     uint8_t start_bay, int8_t direction,
-    VoidSowerPredictionFFI* out_prediction) VOID_SOWER_NOEXCEPT;
+    VoidSowerPredictionFFI *out_prediction) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Exports current battery ring charges and role states into
@@ -282,7 +294,7 @@ FFI_PLUGIN_EXPORT void void_sower_predict_sow(
  * @param max_count Maximum number of bay structures to write.
  */
 FFI_PLUGIN_EXPORT void void_sower_get_bays(
-    VoidSowerBayFFI* out_bays, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+    VoidSowerBayFFI *out_bays, uint32_t max_count) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Exports active enemy craft into pre-allocated memory buffer.
@@ -292,7 +304,7 @@ FFI_PLUGIN_EXPORT void void_sower_get_bays(
  * @return Total number of active enemy craft written to out_enemies.
  */
 FFI_PLUGIN_EXPORT uint32_t void_sower_get_enemies(
-    VoidSowerEnemyFFI* out_enemies, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+    VoidSowerEnemyFFI *out_enemies, uint32_t max_count) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Exports active particle lance beam vectors into pre-allocated buffer.
@@ -302,7 +314,7 @@ FFI_PLUGIN_EXPORT uint32_t void_sower_get_enemies(
  * @return Total number of active lances written to out_lances.
  */
 FFI_PLUGIN_EXPORT uint32_t void_sower_get_lances(
-    VoidSowerLanceFFI* out_lances, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+    VoidSowerLanceFFI *out_lances, uint32_t max_count) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Exports active secondary flak burst zones into pre-allocated buffer.
@@ -311,7 +323,7 @@ FFI_PLUGIN_EXPORT uint32_t void_sower_get_lances(
  * @return Total number of active flaks written to out_flaks.
  */
 FFI_PLUGIN_EXPORT uint32_t void_sower_get_flaks(
-    VoidSowerFlakFFI* out_flaks, uint32_t max_count) VOID_SOWER_NOEXCEPT;
+    VoidSowerFlakFFI *out_flaks, uint32_t max_count) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Exports overall dreadnought state, reserve cores, and simulation FSM
@@ -319,7 +331,7 @@ FFI_PLUGIN_EXPORT uint32_t void_sower_get_flaks(
  * @param out_state Pointer to output VoidSowerDreadnoughtFFI struct.
  */
 FFI_PLUGIN_EXPORT void void_sower_get_dreadnought_state(
-    VoidSowerDreadnoughtFFI* out_state) VOID_SOWER_NOEXCEPT;
+    VoidSowerDreadnoughtFFI *out_state) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Sets the chassis particle lance alpha multiplier for fleet damage
@@ -331,12 +343,13 @@ FFI_PLUGIN_EXPORT void void_sower_set_lance_alpha(float alpha_multiplier)
 
 /**
  * @brief Restores combat simulation state from an archived turn snapshot.
- * @param bay_charges Pointer to 16-element array of bay charge values.
+ * @param bay_charges Pointer to array of bay charge values.
+ * @param charges_length Number of elements in bay_charges buffer.
  * @param reserve_cores Restored reserve plasma core count.
  * @param total_score Restored match score.
  */
 FFI_PLUGIN_EXPORT void void_sower_restore_snapshot(
-    const uint32_t* bay_charges, uint32_t reserve_cores,
+    const uint32_t *bay_charges, size_t charges_length, uint32_t reserve_cores,
     uint32_t total_score) VOID_SOWER_NOEXCEPT;
 
 /**
@@ -352,8 +365,8 @@ FFI_PLUGIN_EXPORT void void_sower_restore_snapshot(
  * parameters.
  */
 FFI_PLUGIN_EXPORT int32_t void_sower_solve_tactical_step(
-    uint8_t* out_bay, int8_t* out_direction, float* out_confidence,
-    float* out_predicted_damage) VOID_SOWER_NOEXCEPT;
+    uint8_t *out_bay, int8_t *out_direction, float *out_confidence,
+    float *out_predicted_damage) VOID_SOWER_NOEXCEPT;
 
 /**
  * @brief Reinitializes the simulation engine with default baseline

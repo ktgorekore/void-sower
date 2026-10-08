@@ -486,8 +486,9 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     required List<int> bayCharges,
     required int reserveCores,
     required int totalScore,
+    int chargesLength = 16,
   }) {
-    for (var i = 0; i < 16 && i < bayCharges.length; i++) {
+    for (var i = 0; i < chargesLength && i < 16 && i < bayCharges.length; i++) {
       _bayCharges[i] = bayCharges[i];
     }
     _reserveCores = reserveCores;

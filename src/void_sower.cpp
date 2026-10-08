@@ -234,11 +234,13 @@ void void_sower_predict_sow(uint8_t start_bay, int8_t direction,
     auto res = g_engine->PredictSow(start_bay, direction);
     out_prediction->terminal_bay = res.terminal_bay;
     out_prediction->terminal_corridor = res.terminal_corridor;
+    out_prediction->triggers_lance = res.triggers_lance ? 1 : 0;
+    out_prediction->triggers_relay = res.triggers_relay ? 1 : 0;
     out_prediction->final_mass = res.final_mass;
     out_prediction->predicted_damage = res.predicted_damage;
     out_prediction->total_cascade_laps = res.total_cascade_laps;
-    out_prediction->triggers_lance = res.triggers_lance ? 1 : 0;
-    out_prediction->triggers_relay = res.triggers_relay ? 1 : 0;
+    out_prediction->reserved[0] = 0;
+    out_prediction->reserved[1] = 0;
   } catch (const std::exception &e) {
     LOG(ERROR) << "Exception in void_sower_predict_sow: " << e.what();
   } catch (...) {
@@ -294,6 +296,7 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI *out_enemies,
       if (enemy.is_destroyed != 0) continue;
       out_enemies[count].entity_id = enemy.entity_id;
       out_enemies[count].assigned_corridor = enemy.assigned_corridor;
+      out_enemies[count].reserved1 = 0;
       out_enemies[count].world_pos_x = enemy.world_pos_x;
       out_enemies[count].world_pos_y = enemy.world_pos_y;
       out_enemies[count].velocity_y = enemy.velocity_y;
@@ -303,11 +306,15 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI *out_enemies,
       out_enemies[count].max_hull = enemy.max_hull;
       out_enemies[count].vessel_type = enemy.vessel_type;
       out_enemies[count].is_destroyed = 0;
+      out_enemies[count].reserved2 = 0;
       out_enemies[count].world_pos_z = enemy.world_pos_z;
       out_enemies[count].bank_angle_rad = enemy.bank_angle_rad;
       out_enemies[count].pitch_angle_rad = enemy.pitch_angle_rad;
-      out_enemies[count].behavior_mode = enemy.behavior_mode;
       out_enemies[count].warp_in_progress = enemy.warp_in_progress;
+      out_enemies[count].behavior_mode = enemy.behavior_mode;
+      out_enemies[count].reserved3[0] = 0;
+      out_enemies[count].reserved3[1] = 0;
+      out_enemies[count].reserved3[2] = 0;
       count++;
     }
     // Pass 2: Append recently destroyed enemies for particle detonation and
@@ -319,6 +326,7 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI *out_enemies,
       if (enemy.is_destroyed == 0) continue;
       out_enemies[count].entity_id = enemy.entity_id;
       out_enemies[count].assigned_corridor = enemy.assigned_corridor;
+      out_enemies[count].reserved1 = 0;
       out_enemies[count].world_pos_x = enemy.world_pos_x;
       out_enemies[count].world_pos_y = enemy.world_pos_y;
       out_enemies[count].velocity_y = enemy.velocity_y;
@@ -328,11 +336,15 @@ uint32_t void_sower_get_enemies(VoidSowerEnemyFFI *out_enemies,
       out_enemies[count].max_hull = enemy.max_hull;
       out_enemies[count].vessel_type = enemy.vessel_type;
       out_enemies[count].is_destroyed = 1;
+      out_enemies[count].reserved2 = 0;
       out_enemies[count].world_pos_z = enemy.world_pos_z;
       out_enemies[count].bank_angle_rad = enemy.bank_angle_rad;
       out_enemies[count].pitch_angle_rad = enemy.pitch_angle_rad;
-      out_enemies[count].behavior_mode = enemy.behavior_mode;
       out_enemies[count].warp_in_progress = enemy.warp_in_progress;
+      out_enemies[count].behavior_mode = enemy.behavior_mode;
+      out_enemies[count].reserved3[0] = 0;
+      out_enemies[count].reserved3[1] = 0;
+      out_enemies[count].reserved3[2] = 0;
       count++;
     }
     return count;
@@ -360,6 +372,9 @@ uint32_t void_sower_get_lances(VoidSowerLanceFFI *out_lances,
           view.get<const void_sower::ecs::ParticleLanceComponent>(entity);
       if (lance.active != 0) {
         out_lances[count].firing_bay_index = lance.firing_bay_index;
+        out_lances[count].reserved1[0] = 0;
+        out_lances[count].reserved1[1] = 0;
+        out_lances[count].reserved1[2] = 0;
         out_lances[count].origin_x = lance.origin_x;
         out_lances[count].origin_y = lance.origin_y;
         out_lances[count].beam_width = lance.beam_width;
@@ -367,6 +382,9 @@ uint32_t void_sower_get_lances(VoidSowerLanceFFI *out_lances,
         out_lances[count].remaining_duration = lance.remaining_duration;
         out_lances[count].total_damage = lance.total_damage;
         out_lances[count].active = lance.active;
+        out_lances[count].reserved2[0] = 0;
+        out_lances[count].reserved2[1] = 0;
+        out_lances[count].reserved2[2] = 0;
         count++;
       }
     }
@@ -401,6 +419,9 @@ uint32_t void_sower_get_flaks(VoidSowerFlakFFI *out_flaks,
         out_flaks[count].lifetime = flak.lifetime;
         out_flaks[count].remaining_lifetime = flak.remaining_lifetime;
         out_flaks[count].active = flak.active;
+        out_flaks[count].reserved[0] = 0;
+        out_flaks[count].reserved[1] = 0;
+        out_flaks[count].reserved[2] = 0;
         count++;
       }
     }
@@ -458,16 +479,20 @@ void void_sower_set_lance_alpha(float alpha_multiplier) noexcept {
 }
 
 void void_sower_restore_snapshot(const uint32_t *bay_charges,
-                                 uint32_t reserve_cores,
+                                 size_t charges_length, uint32_t reserve_cores,
                                  uint32_t total_score) noexcept {
-  if (!bay_charges) return;
+  if (!bay_charges || charges_length == 0) {
+    LOG(WARNING)
+        << "void_sower_restore_snapshot rejected null/empty bay_charges";
+    return;
+  }
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    absl::Span<const uint32_t> charges_span(bay_charges,
-                                            void_sower::ecs::kTotalBays);
+    const size_t copy_count = std::min(
+        charges_length, static_cast<size_t>(void_sower::ecs::kTotalBays));
     std::array<uint32_t, void_sower::ecs::kTotalBays> arr{};
-    for (size_t i = 0; i < void_sower::ecs::kTotalBays; ++i) {
-      arr[i] = charges_span[i];
+    for (size_t i = 0; i < copy_count; ++i) {
+      arr[i] = bay_charges[i];
     }
     GetOrCreateEngineLocked().RestoreSnapshot(arr, reserve_cores, total_score);
   } catch (const std::exception &e) {

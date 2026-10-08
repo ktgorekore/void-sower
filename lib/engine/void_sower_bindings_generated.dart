@@ -334,11 +334,13 @@ class VoidSowerBindings {
 
   void void_sower_restore_snapshot(
     ffi.Pointer<ffi.Uint32> bay_charges,
+    int charges_length,
     int reserve_cores,
     int total_score,
   ) {
     return _void_sower_restore_snapshot(
       bay_charges,
+      charges_length,
       reserve_cores,
       total_score,
     );
@@ -347,11 +349,16 @@ class VoidSowerBindings {
   late final _void_sower_restore_snapshotPtr =
       _lookup<
         ffi.NativeFunction<
-          ffi.Void Function(ffi.Pointer<ffi.Uint32>, ffi.Uint32, ffi.Uint32)
+          ffi.Void Function(
+            ffi.Pointer<ffi.Uint32>,
+            ffi.Size,
+            ffi.Uint32,
+            ffi.Uint32,
+          )
         >
       >('void_sower_restore_snapshot');
   late final _void_sower_restore_snapshot = _void_sower_restore_snapshotPtr
-      .asFunction<void Function(ffi.Pointer<ffi.Uint32>, int, int)>();
+      .asFunction<void Function(ffi.Pointer<ffi.Uint32>, int, int, int)>();
 
   int void_sower_solve_tactical_step(
     ffi.Pointer<ffi.Uint8> out_bay,
@@ -409,7 +416,7 @@ class VoidSowerBindings {
 }
 
 /// @brief Flat C representation of a single capacitor bay.
-@ffi.Packed(1)
+/// Naturally aligned to 4-byte boundaries (16 bytes total).
 final class VoidSowerBayFFI extends ffi.Struct {
   /// < 0 to 15
   @ffi.Uint8()
@@ -449,13 +456,16 @@ final class VoidSowerBayFFI extends ffi.Struct {
 }
 
 /// @brief Flat C representation of an enemy assault craft.
-@ffi.Packed(1)
+/// Naturally aligned to 4-byte boundaries (60 bytes total).
 final class VoidSowerEnemyFFI extends ffi.Struct {
   @ffi.Uint32()
   external int entity_id;
 
   @ffi.Uint16()
   external int assigned_corridor;
+
+  @ffi.Uint16()
+  external int reserved1;
 
   @ffi.Float()
   external double world_pos_x;
@@ -484,6 +494,9 @@ final class VoidSowerEnemyFFI extends ffi.Struct {
   @ffi.Uint8()
   external int is_destroyed;
 
+  @ffi.Uint16()
+  external int reserved2;
+
   @ffi.Float()
   external double world_pos_z;
 
@@ -493,18 +506,24 @@ final class VoidSowerEnemyFFI extends ffi.Struct {
   @ffi.Float()
   external double pitch_angle_rad;
 
+  @ffi.Float()
+  external double warp_in_progress;
+
   @ffi.Uint8()
   external int behavior_mode;
 
-  @ffi.Float()
-  external double warp_in_progress;
+  @ffi.Array(3)
+  external ffi.Array<ffi.Uint8> reserved3;
 }
 
 /// @brief Flat C representation of an active particle lance beam.
-@ffi.Packed(1)
+/// Naturally aligned to 4-byte / 8-byte boundaries (32 bytes total).
 final class VoidSowerLanceFFI extends ffi.Struct {
   @ffi.Uint8()
   external int firing_bay_index;
+
+  @ffi.Array(3)
+  external ffi.Array<ffi.Uint8> reserved1;
 
   @ffi.Float()
   external double origin_x;
@@ -526,10 +545,13 @@ final class VoidSowerLanceFFI extends ffi.Struct {
 
   @ffi.Uint8()
   external int active;
+
+  @ffi.Array(3)
+  external ffi.Array<ffi.Uint8> reserved2;
 }
 
 /// @brief Flat C representation of a secondary radial flak burst.
-@ffi.Packed(1)
+/// Naturally aligned to 4-byte boundaries (28 bytes total).
 final class VoidSowerFlakFFI extends ffi.Struct {
   @ffi.Float()
   external double world_pos_x;
@@ -551,10 +573,13 @@ final class VoidSowerFlakFFI extends ffi.Struct {
 
   @ffi.Uint8()
   external int active;
+
+  @ffi.Array(3)
+  external ffi.Array<ffi.Uint8> reserved;
 }
 
 /// @brief Flat C representation of dreadnought state.
-@ffi.Packed(1)
+/// Naturally aligned to 4-byte boundaries (44 bytes total).
 final class VoidSowerDreadnoughtFFI extends ffi.Struct {
   @ffi.Float()
   external double orbital_position_x;
@@ -600,13 +625,19 @@ final class VoidSowerDreadnoughtFFI extends ffi.Struct {
 }
 
 /// @brief Flat C representation of predictive targeting telemetry.
-@ffi.Packed(1)
+/// Naturally aligned to 4-byte / 8-byte boundaries (16 bytes total).
 final class VoidSowerPredictionFFI extends ffi.Struct {
   @ffi.Uint8()
   external int terminal_bay;
 
   @ffi.Int8()
   external int terminal_corridor;
+
+  @ffi.Uint8()
+  external int triggers_lance;
+
+  @ffi.Uint8()
+  external int triggers_relay;
 
   @ffi.Uint32()
   external int final_mass;
@@ -617,19 +648,19 @@ final class VoidSowerPredictionFFI extends ffi.Struct {
   @ffi.Uint16()
   external int total_cascade_laps;
 
-  @ffi.Uint8()
-  external int triggers_lance;
-
-  @ffi.Uint8()
-  external int triggers_relay;
+  @ffi.Array(2)
+  external ffi.Array<ffi.Uint8> reserved;
 }
 
 /// @brief Flat C configuration for procedural wave generation.
-@ffi.Packed(1)
+/// Naturally aligned to 4-byte / 8-byte boundaries (16 bytes total).
 final class VoidSowerWaveConfigFFI extends ffi.Struct {
   /// < 0: SectorPatrol, 1: PlanetarySiege, 2: FlagshipBastion
   @ffi.Uint8()
   external int difficulty;
+
+  @ffi.Array(3)
+  external ffi.Array<ffi.Uint8> reserved;
 
   @ffi.Uint32()
   external int random_seed;

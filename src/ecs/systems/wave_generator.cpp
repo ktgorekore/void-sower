@@ -140,7 +140,7 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
 
     uint8_t behavior = 0;
     if (enemy_info.type == VesselType::Escort) {
-      behavior = (next_id % 2 == 0) ? 1 : 2;  // Swooper or Weaver
+      behavior = ((next_id & 1) == 0) ? 1 : 2;  // Swooper or Weaver
     } else if (enemy_info.type == VesselType::Cruiser) {
       behavior = (next_id % 3 == 0) ? 3 : 0;  // Kamikaze or Heavy Cruiser
     }

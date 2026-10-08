@@ -36,6 +36,7 @@ TEST(FfiBoundaryTest, LifecycleAndStateExport) {
   // Generate a wave via FFI
   VoidSowerWaveConfigFFI cfg{
       .difficulty = 0,
+      .reserved = {0, 0, 0},
       .random_seed = 1234,
       .core_budget = 15,
       .initial_velocity_y = 0.02f,
@@ -67,6 +68,7 @@ TEST(FfiBoundaryTest, ContinuousSimulationStressLeakTest) {
 
   VoidSowerWaveConfigFFI cfg{
       .difficulty = 1,
+      .reserved = {0, 0, 0},
       .random_seed = 9999,
       .core_budget = 20,
       .initial_velocity_y = 0.01f,
@@ -107,7 +109,7 @@ TEST(FfiBoundaryTest, NullPointerAndUninitializedEngineSafety) {
       void_sower_solve_tactical_step(&out_bay, &out_dir, &out_conf, nullptr),
       0);
   EXPECT_EQ(void_sower_generate_wave(nullptr), 0);
-  void_sower_restore_snapshot(nullptr, 10, 500);
+  void_sower_restore_snapshot(nullptr, 0, 10, 500);
 
   // Test lance alpha validation
   void_sower_set_lance_alpha(NAN);
@@ -125,11 +127,69 @@ TEST(FfiBoundaryTest, NullPointerAndUninitializedEngineSafety) {
   void_sower_free();
 }
 
+TEST(FfiBoundaryTest, NaturallyAlignedStructMemoryLayout) {
+  // Static compile-time assertions for 4-byte natural alignment
+  static_assert(sizeof(VoidSowerBayFFI) == 16, "VoidSowerBayFFI size mismatch");
+  static_assert(alignof(VoidSowerBayFFI) == 4,
+                "VoidSowerBayFFI alignment mismatch");
+
+  static_assert(sizeof(VoidSowerEnemyFFI) == 60,
+                "VoidSowerEnemyFFI size mismatch");
+  static_assert(alignof(VoidSowerEnemyFFI) == 4,
+                "VoidSowerEnemyFFI alignment mismatch");
+
+  static_assert(sizeof(VoidSowerLanceFFI) == 32,
+                "VoidSowerLanceFFI size mismatch");
+  static_assert(alignof(VoidSowerLanceFFI) == 4,
+                "VoidSowerLanceFFI alignment mismatch");
+
+  static_assert(sizeof(VoidSowerFlakFFI) == 28,
+                "VoidSowerFlakFFI size mismatch");
+  static_assert(alignof(VoidSowerFlakFFI) == 4,
+                "VoidSowerFlakFFI alignment mismatch");
+
+  static_assert(sizeof(VoidSowerDreadnoughtFFI) == 44,
+                "VoidSowerDreadnoughtFFI size mismatch");
+  static_assert(alignof(VoidSowerDreadnoughtFFI) == 4,
+                "VoidSowerDreadnoughtFFI alignment mismatch");
+
+  static_assert(sizeof(VoidSowerPredictionFFI) == 16,
+                "VoidSowerPredictionFFI size mismatch");
+  static_assert(alignof(VoidSowerPredictionFFI) == 4,
+                "VoidSowerPredictionFFI alignment mismatch");
+
+  static_assert(sizeof(VoidSowerWaveConfigFFI) == 16,
+                "VoidSowerWaveConfigFFI size mismatch");
+  static_assert(alignof(VoidSowerWaveConfigFFI) == 4,
+                "VoidSowerWaveConfigFFI alignment mismatch");
+}
+
+TEST(FfiBoundaryTest, RestoreSnapshotBoundsRejection) {
+  void_sower_init(20, 0.2f);
+
+  // Null pointer rejection
+  void_sower_restore_snapshot(nullptr, 0, 10, 100);
+
+  // Truncated array safely clamped
+  std::array<uint32_t, 4> short_charges = {5, 5, 5, 5};
+  void_sower_restore_snapshot(short_charges.data(), short_charges.size(), 15,
+                              200);
+
+  VoidSowerDreadnoughtFFI dread{};
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_EQ(dread.reserve_cores, 15);
+  EXPECT_EQ(dread.total_score, 200);
+
+  void_sower_reset();
+  void_sower_free();
+}
+
 TEST(FfiBoundaryTest, ConcurrentMultiThreadedReaders) {
   void_sower_init(32, 0.2f);
 
   VoidSowerWaveConfigFFI cfg{
       .difficulty = 1,
+      .reserved = {0, 0, 0},
       .random_seed = 42,
       .core_budget = 24,
       .initial_velocity_y = 0.015f,

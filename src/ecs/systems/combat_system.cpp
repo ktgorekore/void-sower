@@ -191,16 +191,16 @@ void CombatSystem::Update(float delta_time) {
   // state, allowing FFI polling to capture the kill while preventing unbounded
   // entity bloat.
   auto enemy_view = registry_.view<EnemyVesselComponent>();
-  absl::InlinedVector<entt::entity, 16> to_reap;
+  reap_buffer_.clear();
   for (auto entity : enemy_view) {
     auto &enemy = enemy_view.get<EnemyVesselComponent>(entity);
     if (enemy.is_destroyed != 0) {
       if (++enemy.death_ticks >= 10) {
-        to_reap.push_back(entity);
+        reap_buffer_.push_back(entity);
       }
     }
   }
-  for (auto entity : to_reap) {
+  for (auto entity : reap_buffer_) {
     registry_.destroy(entity);
   }
 
@@ -296,7 +296,7 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                   .bank_angle_rad = 0.0f,
                   .pitch_angle_rad = 0.0f,
                   .behavior_mode = static_cast<uint8_t>(
-                      (vessel_type == 0) ? (reinforcement_id_ % 2 + 1) : 0),
+                      (vessel_type == 0) ? ((reinforcement_id_ & 1) + 1) : 0),
                   .warp_in_progress = 0.0f,  // Triggers holographic warp-in
               });
   RebuildSpatialGrid();

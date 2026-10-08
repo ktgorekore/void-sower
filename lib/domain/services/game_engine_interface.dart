@@ -117,6 +117,7 @@ abstract class IVoidSowerEngine {
     required List<int> bayCharges,
     required int reserveCores,
     required int totalScore,
+    int chargesLength = 16,
   });
 
   /// Solves the optimal single tactical move using native MCTS lookahead.
