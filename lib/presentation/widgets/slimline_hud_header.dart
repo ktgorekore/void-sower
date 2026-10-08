@@ -125,6 +125,11 @@ class SlimlineHudHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (onMapTap != null) ...[
+            _buildBackButton(),
+            const SizedBox(width: 5.0),
+          ],
+
           // 1. Sector Badge & Score Pill (flex: 28)
           Expanded(flex: 28, child: _buildSectorScorePill()),
           const SizedBox(width: 5.0),
@@ -144,6 +149,27 @@ class SlimlineHudHeader extends StatelessWidget {
           // 5. Pause Button (flex: 13)
           Expanded(flex: 13, child: _buildPauseButton()),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBackButton() {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onMapTap,
+      child: Container(
+        width: 34.0,
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
+          borderRadius: BorderRadius.circular(10.0),
+          border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+        ),
+        alignment: Alignment.center,
+        child: const Icon(
+          Icons.arrow_back_ios_new,
+          color: Color(0xFF38BDF8),
+          size: 13.0,
+        ),
       ),
     );
   }

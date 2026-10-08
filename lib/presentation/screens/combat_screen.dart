@@ -997,24 +997,22 @@ class _CombatScreenState extends State<CombatScreen>
   void _openMap({String? campaignId}) {
     final targetCampaign = campaignId ?? 'kilwa_basin';
     PersistenceService.instance.setActiveCampaignId(targetCampaign);
-    if (widget.onReturnToMap != null) {
-      widget.onReturnToMap!();
-    } else {
-      final wasTicking = _ticker.isTicking;
-      if (wasTicking) _ticker.stop();
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop();
-      } else {
-        Navigator.of(context).pushReplacement(
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
+    Navigator.of(context)
+        .push(
           MaterialPageRoute<void>(
             builder: (context) => CampaignMapScreen(
               engine: widget.engine,
               initialCampaignId: targetCampaign,
             ),
           ),
-        );
-      }
-    }
+        )
+        .then((_) {
+          if (mounted && wasTicking) {
+            _resumeTicker();
+          }
+        });
   }
 
   void _openPauseMenu() {

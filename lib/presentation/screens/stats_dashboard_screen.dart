@@ -20,10 +20,9 @@ import '../../domain/services/campaign_service.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/persistence_service.dart';
 import '../services/haptic_service.dart';
-import '../theme/void_theme.dart';
 import '../widgets/tactile_button.dart';
 
-/// Comprehensive player profile and lifetime combat telemetry dashboard.
+/// Comprehensive player profile and lifetime combat telemetry dashboard designed to UX 3.0 standards.
 class StatsDashboardScreen extends StatefulWidget {
   const StatsDashboardScreen({super.key});
 
@@ -63,11 +62,18 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
         context: context,
         builder: (dialogContext) => StatefulBuilder(
           builder: (ctx, setModalState) => AlertDialog(
-            backgroundColor: VoidTheme.cardSurface,
+            backgroundColor: const Color(0xFF0F172A),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18.0),
+              side: BorderSide(
+                color: const Color(0xFF00F0FF).withValues(alpha: 0.6),
+                width: 1.2,
+              ),
+            ),
             title: const Text(
               'RESTORE TELEMETRY SAVE',
               style: TextStyle(
-                color: VoidTheme.solarGold,
+                color: Color(0xFFFBBF24),
                 fontSize: 14.0,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1.0,
@@ -78,10 +84,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               children: [
                 const Text(
                   'Paste your base64 encoded save string with embedded checksum verification.',
-                  style: TextStyle(
-                    color: VoidTheme.textSecondary,
-                    fontSize: 12.0,
-                  ),
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.0),
                 ),
                 const SizedBox(height: 12.0),
                 TextField(
@@ -90,13 +93,17 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 12.0),
                   decoration: InputDecoration(
                     hintText: 'Paste export payload...',
-                    hintStyle: const TextStyle(color: VoidTheme.textMuted),
+                    hintStyle: const TextStyle(color: Color(0xFF475569)),
                     errorText: errorText,
                     filled: true,
-                    fillColor: VoidTheme.deepSpaceVoid,
+                    fillColor: const Color(0xFF070C18),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: VoidTheme.plasmaCyan),
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(color: Color(0xFF00F0FF)),
                     ),
                   ),
                 ),
@@ -106,14 +113,17 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               TextButton(
                 child: const Text(
                   'CANCEL',
-                  style: TextStyle(color: VoidTheme.textMuted),
+                  style: TextStyle(color: Color(0xFF64748B)),
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: VoidTheme.solarGold,
+                  backgroundColor: const Color(0xFFF59E0B),
                   foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
                 child: const Text('RESTORE'),
                 onPressed: () async {
@@ -155,11 +165,15 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: VoidTheme.cardSurface,
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18.0),
+          side: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+        ),
         title: const Text(
           'ERASE GUEST TELEMETRY?',
           style: TextStyle(
-            color: VoidTheme.crimsonFlare,
+            color: Color(0xFFEF4444),
             fontSize: 14.0,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.0,
@@ -167,20 +181,23 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
         ),
         content: const Text(
           'This will permanently reset all campaign stars, personal scores, streaks, and unlocked chassis. This action cannot be undone under GDPR privacy mandates.',
-          style: TextStyle(color: VoidTheme.textSecondary, fontSize: 13.0),
+          style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.0),
         ),
         actions: [
           TextButton(
             child: const Text(
               'CANCEL',
-              style: TextStyle(color: VoidTheme.textMuted),
+              style: TextStyle(color: Color(0xFF64748B)),
             ),
             onPressed: () => Navigator.of(dialogContext).pop(false),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: VoidTheme.crimsonFlare,
+              backgroundColor: const Color(0xFFEF4444),
               foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
             ),
             child: const Text('CONFIRM PURGE'),
             onPressed: () => Navigator.of(dialogContext).pop(true),
@@ -206,50 +223,216 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     final isPro =
         _persistence.isProUnlocked || EntitlementService.instance.hasActivePro;
 
-    return Scaffold(
-      backgroundColor: VoidTheme.obsidianBlack,
-      appBar: AppBar(
-        backgroundColor: VoidTheme.obsidianBlack,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: VoidTheme.solarGold),
-        title: const Text(
-          'FLEET TELEMETRY',
-          style: TextStyle(
-            color: VoidTheme.solarGold,
-            letterSpacing: 2.0,
-            fontSize: 16.0,
-            fontWeight: FontWeight.bold,
+    return PopScope(
+      canPop: Navigator.of(context).canPop(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF05070F),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // UX 3.0 Header Bar with tactile back button & glowing neon track
+              _buildUx3Header(isPro),
+
+              // Scrollable Telemetry Deck
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
+                  child: Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 640.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildPilotDossierCard(profile, isPro),
+                          const SizedBox(height: 14.0),
+                          _buildDeploymentStreaksCard(profile),
+                          const SizedBox(height: 14.0),
+                          _buildMissionOutcomesCard(profile),
+                          const SizedBox(height: 14.0),
+                          _buildTacticalGridCard(profile),
+                          const SizedBox(height: 14.0),
+                          _buildCampaignMasteryCard(),
+                          const SizedBox(height: 14.0),
+                          _buildChassisDeploymentCard(profile),
+                          const SizedBox(height: 18.0),
+                          _buildDataManagementCard(),
+                          const SizedBox(height: 28.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-          child: Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 640.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildPilotDossierCard(profile, isPro),
-                  const SizedBox(height: 14.0),
-                  _buildDeploymentStreaksCard(profile),
-                  const SizedBox(height: 14.0),
-                  _buildMissionOutcomesCard(profile),
-                  const SizedBox(height: 14.0),
-                  _buildTacticalGridCard(profile),
-                  const SizedBox(height: 14.0),
-                  _buildCampaignMasteryCard(),
-                  const SizedBox(height: 14.0),
-                  _buildChassisDeploymentCard(profile),
-                  const SizedBox(height: 16.0),
-                  _buildDataManagementCard(),
-                  const SizedBox(height: 24.0),
-                ],
-              ),
-            ),
-          ),
+    );
+  }
+
+  /// UX 3.0 Cybernetic Header Bar with tactile back button and glowing 4px neon track.
+  Widget _buildUx3Header(bool isPro) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 10.0),
+      decoration: const BoxDecoration(
+        color: Color(0xFF070C18),
+        border: Border(
+          bottom: BorderSide(color: Color(0xFF1E293B), width: 1.0),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Tactile Back Button [ < ]
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticService.instance.sowTick();
+                  Navigator.of(context).pop();
+                },
+                child: Container(
+                  width: 44.0,
+                  height: 44.0,
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(right: 8.0),
+                  child: Container(
+                    width: 38.0,
+                    height: 38.0,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(19.0),
+                      border: Border.all(
+                        color: const Color(0xFF1E293B),
+                        width: 1.0,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Color(0xFF38BDF8),
+                      size: 16.0,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Title and Eyebrow Block
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'VOID SOWER // TELEMETRY',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Color(0xFF38BDF8),
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    SizedBox(height: 2.0),
+                    Text(
+                      'FLEET TELEMETRY',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 8.0),
+
+              // Pro Status Pill
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10.0,
+                  vertical: 4.5,
+                ),
+                decoration: BoxDecoration(
+                  color: isPro
+                      ? const Color(0xFF201503)
+                      : const Color(0xFF03202A),
+                  borderRadius: BorderRadius.circular(13.0),
+                  border: Border.all(
+                    color: isPro
+                        ? const Color(0xFFF59E0B)
+                        : const Color(0xFF00F0FF),
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isPro ? Icons.workspace_premium : Icons.shield_outlined,
+                      color: isPro
+                          ? const Color(0xFFFBBF24)
+                          : const Color(0xFF38BDF8),
+                      size: 13.0,
+                    ),
+                    const SizedBox(width: 4.0),
+                    Text(
+                      isPro ? 'PRO COMMANDER' : 'STANDARD CADET',
+                      style: TextStyle(
+                        color: isPro
+                            ? const Color(0xFFFEF3C7)
+                            : const Color(0xFFBAE6FD),
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8.0),
+
+          // 4px Glowing Neon Track
+          Stack(
+            children: [
+              Container(
+                height: 4.0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(2.0),
+                ),
+              ),
+              Container(
+                height: 4.0,
+                width: 140.0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00F0FF),
+                  borderRadius: BorderRadius.circular(2.0),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0xFF00F0FF), blurRadius: 6.0),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -259,12 +442,18 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface,
-        borderRadius: BorderRadius.circular(14.0),
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(16.0),
         border: Border.all(
-          color: VoidTheme.solarGold.withValues(alpha: 0.3),
+          color: const Color(0xFF00F0FF).withValues(alpha: 0.35),
           width: 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00F0FF).withValues(alpha: 0.08),
+            blurRadius: 16.0,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,12 +465,15 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                 height: 48.0,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: VoidTheme.deepSpaceVoid,
-                  border: Border.all(color: VoidTheme.solarGold, width: 1.5),
+                  color: const Color(0xFF080D1A),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B),
+                    width: 1.5,
+                  ),
                 ),
                 child: Icon(
                   profile.insignia.iconData,
-                  color: VoidTheme.solarGold,
+                  color: const Color(0xFFFBBF24),
                   size: 26.0,
                 ),
               ),
@@ -303,7 +495,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                     Text(
                       profile.insignia.displayName,
                       style: const TextStyle(
-                        color: VoidTheme.textSecondary,
+                        color: Color(0xFF94A3B8),
                         fontSize: 11.0,
                       ),
                     ),
@@ -317,11 +509,13 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                 ),
                 decoration: BoxDecoration(
                   color: isPro
-                      ? VoidTheme.solarGold.withValues(alpha: 0.15)
-                      : VoidTheme.plasmaCyan.withValues(alpha: 0.12),
+                      ? const Color(0xFF201503)
+                      : const Color(0xFF03202A),
                   borderRadius: BorderRadius.circular(20.0),
                   border: Border.all(
-                    color: isPro ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
+                    color: isPro
+                        ? const Color(0xFFF59E0B)
+                        : const Color(0xFF00F0FF),
                     width: 1.0,
                   ),
                 ),
@@ -330,17 +524,19 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   children: [
                     Icon(
                       isPro ? Icons.workspace_premium : Icons.shield_outlined,
-                      color: isPro ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
-                      size: 14.0,
+                      color: isPro
+                          ? const Color(0xFFFBBF24)
+                          : const Color(0xFF38BDF8),
+                      size: 13.0,
                     ),
                     const SizedBox(width: 4.0),
                     Text(
                       isPro ? 'PRO COMMANDER' : 'RECRUIT PILOT',
                       style: TextStyle(
                         color: isPro
-                            ? VoidTheme.solarGold
-                            : VoidTheme.plasmaCyan,
-                        fontSize: 10.0,
+                            ? const Color(0xFFFEF3C7)
+                            : const Color(0xFFBAE6FD),
+                        fontSize: 9.0,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.8,
                       ),
@@ -357,7 +553,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               Text(
                 'RANK: ${profile.rank.title.toUpperCase()}',
                 style: const TextStyle(
-                  color: VoidTheme.solarGold,
+                  color: Color(0xFFFBBF24),
                   fontSize: 12.0,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
@@ -366,28 +562,29 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               Text(
                 '${(profile.rankProgress * 100).toInt()}% TO ADVANCE',
                 style: const TextStyle(
-                  color: VoidTheme.textSecondary,
+                  color: Color(0xFF94A3B8),
                   fontSize: 11.0,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6.0),
+          // 4px Glowing Gold Track
           ClipRRect(
-            borderRadius: BorderRadius.circular(4.0),
+            borderRadius: BorderRadius.circular(2.0),
             child: LinearProgressIndicator(
               value: profile.rankProgress,
-              minHeight: 6.0,
-              backgroundColor: VoidTheme.obsidianBlack,
+              minHeight: 4.0,
+              backgroundColor: const Color(0xFF1E293B),
               valueColor: const AlwaysStoppedAnimation<Color>(
-                VoidTheme.solarGold,
+                Color(0xFFFBBF24),
               ),
             ),
           ),
           const SizedBox(height: 6.0),
           Text(
             '${profile.lifetimeScore} / ${profile.rank.maxScore} PTS',
-            style: const TextStyle(color: VoidTheme.textMuted, fontSize: 10.0),
+            style: const TextStyle(color: Color(0xFF64748B), fontSize: 10.0),
           ),
         ],
       ),
@@ -399,9 +596,9 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface,
-        borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: VoidTheme.plasmaCyan.withValues(alpha: 0.25)),
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: const Color(0xFF1E293B)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,7 +621,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   Text(
                     'DEPLOYMENT READINESS & HABIT',
                     style: TextStyle(
-                      color: VoidTheme.plasmaCyan,
+                      color: Color(0xFF38BDF8),
                       fontSize: 12.0,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.0,
@@ -472,7 +669,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   label: 'LONGEST STREAK',
                   value: '${profile.longestStreak} Days',
                   icon: Icons.trending_up,
-                  accentColor: VoidTheme.solarGold,
+                  accentColor: const Color(0xFFFBBF24),
                 ),
               ),
               const SizedBox(width: 8.0),
@@ -481,7 +678,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   label: 'FLIGHT TIME',
                   value: profile.formattedFlightTime,
                   icon: Icons.timer_outlined,
-                  accentColor: VoidTheme.plasmaCyan,
+                  accentColor: const Color(0xFF00F0FF),
                 ),
               ),
               const SizedBox(width: 8.0),
@@ -509,9 +706,9 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
       decoration: BoxDecoration(
-        color: VoidTheme.deepSpaceVoid,
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: accentColor.withValues(alpha: 0.2)),
+        color: const Color(0xFF070C18),
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: accentColor.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,8 +723,8 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: VoidTheme.textMuted,
-                    fontSize: 9.0,
+                    color: Color(0xFF64748B),
+                    fontSize: 8.5,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -555,9 +752,9 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface,
-        borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: VoidTheme.textMuted.withValues(alpha: 0.3)),
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: const Color(0xFF1E293B)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -565,7 +762,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
           const Text(
             'MISSION OUTCOMES & WIN RATE',
             style: TextStyle(
-              color: VoidTheme.solarGold,
+              color: Color(0xFFFBBF24),
               fontSize: 12.0,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.0,
@@ -587,10 +784,10 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       height: 68.0,
                       child: CircularProgressIndicator(
                         value: (profile.winRate / 100.0).clamp(0.0, 1.0),
-                        strokeWidth: 7.0,
-                        backgroundColor: VoidTheme.obsidianBlack,
+                        strokeWidth: 6.0,
+                        backgroundColor: const Color(0xFF1E293B),
                         valueColor: const AlwaysStoppedAnimation<Color>(
-                          VoidTheme.plasmaCyan,
+                          Color(0xFF00F0FF),
                         ),
                       ),
                     ),
@@ -608,7 +805,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                         const Text(
                           'WIN RATE',
                           style: TextStyle(
-                            color: VoidTheme.textMuted,
+                            color: Color(0xFF64748B),
                             fontSize: 7.5,
                             letterSpacing: 0.5,
                           ),
@@ -637,7 +834,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                           child: _buildOutcomePill(
                             label: 'VICTORIES',
                             value: '${profile.victories}',
-                            color: VoidTheme.plasmaCyan,
+                            color: const Color(0xFF00F0FF),
                           ),
                         ),
                       ],
@@ -649,7 +846,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                           child: _buildOutcomePill(
                             label: 'DEFEATS',
                             value: '${profile.defeats}',
-                            color: VoidTheme.crimsonFlare,
+                            color: const Color(0xFFEF4444),
                           ),
                         ),
                         const SizedBox(width: 8.0),
@@ -657,7 +854,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                           child: _buildOutcomePill(
                             label: 'FLAWLESS',
                             value: '${profile.flawlessVictories}',
-                            color: VoidTheme.solarGold,
+                            color: const Color(0xFFFBBF24),
                           ),
                         ),
                       ],
@@ -680,7 +877,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
       decoration: BoxDecoration(
-        color: VoidTheme.deepSpaceVoid,
+        color: const Color(0xFF070C18),
         borderRadius: BorderRadius.circular(8.0),
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
@@ -690,8 +887,8 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
           Text(
             label,
             style: const TextStyle(
-              color: VoidTheme.textMuted,
-              fontSize: 10.0,
+              color: Color(0xFF64748B),
+              fontSize: 9.5,
               letterSpacing: 0.5,
             ),
           ),
@@ -713,9 +910,9 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface,
-        borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: VoidTheme.textMuted.withValues(alpha: 0.3)),
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: const Color(0xFF1E293B)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,7 +920,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
           const Text(
             'TACTICAL SENSOR LOG & COMBAT METRICS',
             style: TextStyle(
-              color: VoidTheme.plasmaCyan,
+              color: Color(0xFF38BDF8),
               fontSize: 12.0,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.0,
@@ -739,7 +936,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'HIGHEST COMBAT SCORE',
                       value: '${_persistence.highScore}',
                       icon: Icons.military_tech,
-                      color: VoidTheme.solarGold,
+                      color: const Color(0xFFFBBF24),
                     ),
                   ),
                   const SizedBox(width: 8.0),
@@ -748,7 +945,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'AVERAGE SCORE',
                       value: '${profile.averageScore}',
                       icon: Icons.analytics_outlined,
-                      color: VoidTheme.plasmaCyan,
+                      color: const Color(0xFF00F0FF),
                     ),
                   ),
                 ],
@@ -761,7 +958,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'ENEMIES DESTROYED',
                       value: '${profile.enemiesDestroyed}',
                       icon: Icons.track_changes,
-                      color: VoidTheme.plasmaCyan,
+                      color: const Color(0xFF00F0FF),
                     ),
                   ),
                   const SizedBox(width: 8.0),
@@ -770,7 +967,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'LANCES DISCHARGED',
                       value: '${profile.lancesFired}',
                       icon: Icons.bolt,
-                      color: VoidTheme.solarGold,
+                      color: const Color(0xFFFBBF24),
                     ),
                   ),
                 ],
@@ -783,7 +980,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'FLAK DETONATIONS',
                       value: '${profile.flakBurstsTriggered}',
                       icon: Icons.shield,
-                      color: VoidTheme.plasmaCyan,
+                      color: const Color(0xFF00F0FF),
                     ),
                   ),
                   const SizedBox(width: 8.0),
@@ -792,7 +989,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'PLASMA CORES SOWN',
                       value: '${profile.totalSeedsSown}',
                       icon: Icons.grain,
-                      color: VoidTheme.solarGold,
+                      color: const Color(0xFFFBBF24),
                     ),
                   ),
                 ],
@@ -805,7 +1002,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'CORES PRESERVED',
                       value: '${profile.totalCoresSaved}',
                       icon: Icons.battery_charging_full,
-                      color: VoidTheme.emeraldShield,
+                      color: const Color(0xFF10B981),
                     ),
                   ),
                   const SizedBox(width: 8.0),
@@ -814,7 +1011,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       label: 'MAX CASCADE COMBO',
                       value: '${profile.maxCascadeLaps} LAPS',
                       icon: Icons.all_inclusive,
-                      color: VoidTheme.solarGold,
+                      color: const Color(0xFFFBBF24),
                     ),
                   ),
                 ],
@@ -835,9 +1032,9 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: VoidTheme.deepSpaceVoid,
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        color: const Color(0xFF070C18),
+        borderRadius: BorderRadius.circular(10.0),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -853,8 +1050,8 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: VoidTheme.textMuted,
-                    fontSize: 9.0,
+                    color: Color(0xFF64748B),
+                    fontSize: 8.5,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -865,7 +1062,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: color,
-                    fontSize: 14.0,
+                    fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -885,9 +1082,9 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface,
-        borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: VoidTheme.textMuted.withValues(alpha: 0.3)),
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: const Color(0xFF1E293B)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -901,7 +1098,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               const Text(
                 'CAMPAIGN THEATER MASTERY',
                 style: TextStyle(
-                  color: VoidTheme.solarGold,
+                  color: Color(0xFFFBBF24),
                   fontSize: 12.0,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
@@ -910,7 +1107,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               Text(
                 '$totalLib / 27 SECTORS • $totalStars / 81 ★',
                 style: const TextStyle(
-                  color: VoidTheme.solarGold,
+                  color: Color(0xFFFBBF24),
                   fontSize: 11.0,
                   fontWeight: FontWeight.bold,
                 ),
@@ -922,21 +1119,21 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             campaignId: 'kilwa_basin',
             title: 'KILWA BASIN',
             doctrine: 'STANDARD ORBITAL',
-            color: VoidTheme.plasmaCyan,
+            color: const Color(0xFF00F0FF),
           ),
           const SizedBox(height: 8.0),
           _buildTheaterTile(
             campaignId: 'phantom_drift',
             title: 'PHANTOM DRIFT',
             doctrine: 'LATERAL EVASIVE',
-            color: VoidTheme.nebulaAmethyst,
+            color: const Color(0xFFA855F7),
           ),
           const SizedBox(height: 8.0),
           _buildTheaterTile(
             campaignId: 'void_swarm',
             title: 'VOID SWARM',
             doctrine: 'HORDE & CORE SIPHON',
-            color: VoidTheme.solarGold,
+            color: const Color(0xFFFBBF24),
           ),
         ],
       ),
@@ -955,18 +1152,21 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
       decoration: BoxDecoration(
-        color: VoidTheme.deepSpaceVoid,
-        borderRadius: BorderRadius.circular(8.0),
+        color: const Color(0xFF070C18),
+        borderRadius: BorderRadius.circular(10.0),
         border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
           Container(
-            width: 8.0,
+            width: 6.0,
             height: 32.0,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(4.0),
+              borderRadius: BorderRadius.circular(3.0),
+              boxShadow: [
+                BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 4.0),
+              ],
             ),
           ),
           const SizedBox(width: 10.0),
@@ -987,8 +1187,8 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                 Text(
                   doctrine,
                   style: TextStyle(
-                    color: color.withValues(alpha: 0.8),
-                    fontSize: 9.5,
+                    color: color.withValues(alpha: 0.85),
+                    fontSize: 9.0,
                   ),
                 ),
               ],
@@ -1008,8 +1208,8 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               const SizedBox(height: 2.0),
               Text(
                 '$stars / 27 ★',
-                style: const TextStyle(
-                  color: VoidTheme.solarGold,
+                style: TextStyle(
+                  color: color,
                   fontSize: 10.5,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1026,9 +1226,9 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: VoidTheme.cardSurface,
-        borderRadius: BorderRadius.circular(14.0),
-        border: Border.all(color: VoidTheme.textMuted.withValues(alpha: 0.3)),
+        color: const Color(0xFF0F172A),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(color: const Color(0xFF1E293B)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1042,7 +1242,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               const Text(
                 'FLEET CHASSIS DEPLOYMENT',
                 style: TextStyle(
-                  color: VoidTheme.plasmaCyan,
+                  color: Color(0xFF38BDF8),
                   fontSize: 12.0,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.0,
@@ -1051,7 +1251,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               Text(
                 'FAVORITE: ${profile.favoriteChassisName.split(' ')[0]}',
                 style: const TextStyle(
-                  color: VoidTheme.solarGold,
+                  color: Color(0xFFFBBF24),
                   fontSize: 10.5,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1064,7 +1264,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             chassisId: 'mk1_bastion',
             sorties: profile.chassisSorties['mk1_bastion'] ?? 0,
             totalSorties: profile.missionsPlayed,
-            color: VoidTheme.plasmaCyan,
+            color: const Color(0xFF00F0FF),
           ),
           const SizedBox(height: 8.0),
           _buildChassisSortieRow(
@@ -1072,7 +1272,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             chassisId: 'mk2_monsoon',
             sorties: profile.chassisSorties['mk2_monsoon'] ?? 0,
             totalSorties: profile.missionsPlayed,
-            color: VoidTheme.solarGold,
+            color: const Color(0xFFFBBF24),
           ),
           const SizedBox(height: 8.0),
           _buildChassisSortieRow(
@@ -1080,7 +1280,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             chassisId: 'mk3_singularity',
             sorties: profile.chassisSorties['mk3_singularity'] ?? 0,
             totalSorties: profile.missionsPlayed,
-            color: VoidTheme.nebulaAmethyst,
+            color: const Color(0xFFA855F7),
           ),
           const SizedBox(height: 8.0),
           _buildChassisSortieRow(
@@ -1088,7 +1288,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             chassisId: 'mk4_golden_sovereign',
             sorties: profile.chassisSorties['mk4_golden_sovereign'] ?? 0,
             totalSorties: profile.missionsPlayed,
-            color: VoidTheme.solarGoldLight,
+            color: const Color(0xFFFBBF24),
           ),
         ],
       ),
@@ -1108,10 +1308,10 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
       decoration: BoxDecoration(
-        color: VoidTheme.deepSpaceVoid,
-        borderRadius: BorderRadius.circular(8.0),
+        color: const Color(0xFF070C18),
+        borderRadius: BorderRadius.circular(10.0),
         border: Border.all(
-          color: isEquipped ? color : color.withValues(alpha: 0.15),
+          color: isEquipped ? color : color.withValues(alpha: 0.18),
           width: isEquipped ? 1.5 : 1.0,
         ),
       ),
@@ -1179,7 +1379,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             child: LinearProgressIndicator(
               value: fraction.clamp(0.0, 1.0),
               minHeight: 4.0,
-              backgroundColor: VoidTheme.obsidianBlack,
+              backgroundColor: const Color(0xFF1E293B),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -1198,7 +1398,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               child: TactileButton(
                 label: 'EXPORT SAVE',
                 icon: Icons.download,
-                accentColor: VoidTheme.plasmaCyan,
+                accentColor: const Color(0xFF00F0FF),
                 height: 42.0,
                 onPressed: _exportSave,
               ),
@@ -1208,7 +1408,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
               child: TactileButton(
                 label: 'IMPORT SAVE',
                 icon: Icons.upload,
-                accentColor: VoidTheme.solarGold,
+                accentColor: const Color(0xFFFBBF24),
                 height: 42.0,
                 onPressed: _importSave,
               ),
@@ -1219,22 +1419,25 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
         OutlinedButton.icon(
           icon: const Icon(
             Icons.delete_outline,
-            color: VoidTheme.crimsonFlare,
+            color: Color(0xFFEF4444),
             size: 18.0,
           ),
           label: const Text(
             'ERASE GUEST DATA (GDPR)',
             style: TextStyle(
-              color: VoidTheme.crimsonFlare,
+              color: Color(0xFFEF4444),
               fontSize: 12.0,
               letterSpacing: 0.8,
             ),
           ),
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: VoidTheme.crimsonFlare),
+            side: const BorderSide(color: Color(0xFFEF4444)),
             padding: const EdgeInsets.symmetric(
               horizontal: 24.0,
               vertical: 12.0,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
             ),
           ),
           onPressed: _confirmEraseData,

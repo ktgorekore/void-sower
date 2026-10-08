@@ -1555,11 +1555,17 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     final activeOp = CampaignService.instance.getOperation(_activeCampaignId);
 
     return PopScope(
-      canPop: false,
+      canPop: Navigator.of(context).canPop(),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         if (Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(
+              builder: (context) => CombatScreen(engine: widget.engine),
+            ),
+          );
         }
       },
       child: Scaffold(
@@ -1777,6 +1783,46 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticService.instance.sowTick();
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute<void>(
+                        builder: (context) =>
+                            CombatScreen(engine: widget.engine),
+                      ),
+                    );
+                  }
+                },
+                child: Container(
+                  width: 44.0,
+                  height: 44.0,
+                  alignment: Alignment.center,
+                  margin: const EdgeInsets.only(right: 6.0),
+                  child: Container(
+                    width: 36.0,
+                    height: 36.0,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(18.0),
+                      border: Border.all(
+                        color: const Color(0xFF1E293B),
+                        width: 1.0,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Color(0xFF38BDF8),
+                      size: 16.0,
+                    ),
+                  ),
+                ),
+              ),
               Expanded(
                 child: Text(
                   titleText,
