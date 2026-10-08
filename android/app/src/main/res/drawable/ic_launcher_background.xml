@@ -20,15 +20,15 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     <path
-        android:fillColor="#070A12"
+        android:fillColor="#020818"
         android:pathData="M0,0h108v108h-108z"/>
     <!-- Deep space tactical grid lines -->
     <path
-        android:strokeColor="#141B2D"
+        android:strokeColor="#0A1630"
         android:strokeWidth="0.8"
         android:pathData="M0,18h108 M0,36h108 M0,54h108 M0,72h108 M0,90h108 M18,0v108 M36,0v108 M54,0v108 M72,0v108 M90,0v108"/>
     <!-- Cosmic navy void radial glow -->
     <path
-        android:fillColor="#0D1220"
+        android:fillColor="#04122C"
         android:pathData="M54,54m-42,0a42,42 0 1,0 84,0a42,42 0 1,0 -84,0"/>
 </vector>
