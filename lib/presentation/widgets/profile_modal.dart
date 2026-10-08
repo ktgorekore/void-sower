@@ -577,682 +577,499 @@ class _ProfileModalState extends State<ProfileModal> {
                     _buildTelemetryTabs(),
                     const SizedBox(height: 12.0),
 
-                    // Active Pilot Holographic Dossier Card matching pilot_profile.svg
-                    Container(
-                      padding: const EdgeInsets.all(18.0),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF0C233C), Color(0xFF071322)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(18.0),
-                        border: Border.all(
-                          color: const Color(0xFF00F0FF),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFF00F0FF,
-                            ).withValues(alpha: 0.15),
-                            blurRadius: 16.0,
+                    if (_selectedTab == 0) ...[
+                      // Active Pilot Holographic Dossier Card matching pilot_profile.svg
+                      Container(
+                        padding: const EdgeInsets.all(18.0),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF0C233C), Color(0xFF071322)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Avatar Frame with Gold Laurel Badge
-                              Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Container(
-                                    width: 52.0,
-                                    height: 52.0,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: const Color(0xFF082F49),
-                                      border: Border.all(
-                                        color: const Color(0xFF00F0FF),
-                                        width: 1.8,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(
-                                            0xFF00F0FF,
-                                          ).withValues(alpha: 0.3),
-                                          blurRadius: 10.0,
-                                        ),
-                                      ],
-                                    ),
-                                    child: const Icon(
-                                      Icons.person,
-                                      color: Color(0xFF38BDF8),
-                                      size: 30.0,
-                                    ),
-                                  ),
-                                  Positioned(
-                                    right: -2.0,
-                                    bottom: -2.0,
-                                    child: Container(
-                                      width: 20.0,
-                                      height: 20.0,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: const Color(0xFFF59E0B),
-                                        border: Border.all(
-                                          color: const Color(0xFF1C0F01),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: const Text(
-                                        '★',
-                                        style: TextStyle(
-                                          color: Color(0xFF1C0F01),
-                                          fontSize: 9.0,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(width: 14.0),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          borderRadius: BorderRadius.circular(18.0),
+                          border: Border.all(
+                            color: const Color(0xFF00F0FF),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(
+                                0xFF00F0FF,
+                              ).withValues(alpha: 0.15),
+                              blurRadius: 16.0,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Avatar Frame with Gold Laurel Badge
+                                Stack(
+                                  clipBehavior: Clip.none,
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8.0,
-                                        vertical: 2.0,
-                                      ),
+                                      width: 52.0,
+                                      height: 52.0,
                                       decoration: BoxDecoration(
-                                        color: const Color(
-                                          0xFFF59E0B,
-                                        ).withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(
-                                          8.0,
-                                        ),
+                                        shape: BoxShape.circle,
+                                        color: const Color(0xFF082F49),
                                         border: Border.all(
-                                          color: const Color(0xFFF59E0B),
-                                          width: 0.8,
+                                          color: const Color(0xFF00F0FF),
+                                          width: 1.8,
                                         ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(
+                                              0xFF00F0FF,
+                                            ).withValues(alpha: 0.3),
+                                            blurRadius: 10.0,
+                                          ),
+                                        ],
                                       ),
-                                      child: Text(
-                                        isPro ? 'PRO PILOT' : 'RECRUIT PILOT',
-                                        style: const TextStyle(
-                                          color: Color(0xFFFBBF24),
-                                          fontSize: 8.0,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 0.5,
+                                      child: const Icon(
+                                        Icons.person,
+                                        color: Color(0xFF38BDF8),
+                                        size: 30.0,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: -2.0,
+                                      bottom: -2.0,
+                                      child: Container(
+                                        width: 20.0,
+                                        height: 20.0,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: const Color(0xFFF59E0B),
+                                          border: Border.all(
+                                            color: const Color(0xFF1C0F01),
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: const Text(
+                                          '★',
+                                          style: TextStyle(
+                                            color: Color(0xFF1C0F01),
+                                            fontSize: 9.0,
+                                            fontWeight: FontWeight.w900,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 4.0),
-                                    if (!_isEditingCallsign)
-                                      Row(
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              _profile.callsign,
-                                              style: const TextStyle(
-                                                color: VoidTheme.starWhite,
-                                                fontSize: 16.0,
-                                                fontWeight: FontWeight.w900,
-                                                letterSpacing: 1.2,
-                                              ),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
+                                  ],
+                                ),
+                                const SizedBox(width: 14.0),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0,
+                                          vertical: 2.0,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFFF59E0B,
+                                          ).withValues(alpha: 0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            8.0,
                                           ),
-                                          if (PersistenceService
-                                                  .instance
-                                                  .isProUnlocked ||
-                                              EntitlementService
-                                                  .instance
-                                                  .hasActivePro) ...[
-                                            const SizedBox(width: 8.0),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6.0,
-                                                    vertical: 2.0,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: VoidTheme.solarGold
-                                                    .withValues(alpha: 0.22),
-                                                borderRadius:
-                                                    BorderRadius.circular(4.0),
-                                                border: Border.all(
-                                                  color: VoidTheme.solarGold
-                                                      .withValues(alpha: 0.85),
-                                                  width: 1.0,
-                                                ),
-                                              ),
-                                              child: const Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Icon(
-                                                    Icons.workspace_premium,
-                                                    color: VoidTheme.solarGold,
-                                                    size: 11.0,
-                                                  ),
-                                                  SizedBox(width: 3.0),
-                                                  Text(
-                                                    'PRO',
-                                                    style: TextStyle(
-                                                      color:
-                                                          VoidTheme.solarGold,
-                                                      fontSize: 8.5,
-                                                      fontWeight:
-                                                          FontWeight.w900,
-                                                      letterSpacing: 0.8,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.edit,
-                                              color: VoidTheme.plasmaCyan,
-                                              size: 16.0,
-                                            ),
-                                            onPressed: () => setState(
-                                              () => _isEditingCallsign = true,
-                                            ),
-                                          ),
-                                        ],
-                                      )
-                                    else
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: TextField(
-                                              controller: _callsignController,
-                                              style: const TextStyle(
-                                                color: VoidTheme.solarGold,
-                                                fontSize: 14.0,
-                                                fontFamily: 'monospace',
-                                              ),
-                                              decoration: InputDecoration(
-                                                isDense: true,
-                                                errorText: _callsignError,
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 8.0,
-                                                      vertical: 8.0,
-                                                    ),
-                                              ),
-                                            ),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.check,
-                                              color: VoidTheme.solarGold,
-                                              size: 18.0,
-                                            ),
-                                            onPressed: _saveCallsign,
-                                          ),
-                                        ],
-                                      ),
-                                    Wrap(
-                                      spacing: 8.0,
-                                      runSpacing: 4.0,
-                                      crossAxisAlignment:
-                                          WrapCrossAlignment.center,
-                                      children: [
-                                        Text(
-                                          'RANK: ${rank.title.toUpperCase()}',
-                                          style: const TextStyle(
-                                            color: VoidTheme.plasmaCyan,
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1.0,
+                                          border: Border.all(
+                                            color: const Color(0xFFF59E0B),
+                                            width: 0.8,
                                           ),
                                         ),
-                                        const SizedBox(width: 8.0),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 5.0,
-                                            vertical: 1.5,
+                                        child: Text(
+                                          isPro ? 'PRO PILOT' : 'RECRUIT PILOT',
+                                          style: const TextStyle(
+                                            color: Color(0xFFFBBF24),
+                                            fontSize: 8.0,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 0.5,
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: _profile.isGoogleLinked
-                                                ? VoidTheme.plasmaCyan
-                                                      .withValues(alpha: 0.2)
-                                                : VoidTheme.emeraldShield
-                                                      .withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(
-                                              4.0,
-                                            ),
-                                            border: Border.all(
-                                              color: _profile.isGoogleLinked
-                                                  ? VoidTheme.plasmaCyan
-                                                  : VoidTheme.emeraldShield,
-                                              width: 0.8,
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                _profile.isGoogleLinked
-                                                    ? Icons.g_mobiledata
-                                                    : Icons.account_circle,
-                                                color: _profile.isGoogleLinked
-                                                    ? VoidTheme.plasmaCyan
-                                                    : VoidTheme.emeraldShield,
-                                                size: 12.0,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4.0),
+                                      if (!_isEditingCallsign)
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                _profile.callsign,
+                                                style: const TextStyle(
+                                                  color: VoidTheme.starWhite,
+                                                  fontSize: 16.0,
+                                                  fontWeight: FontWeight.w900,
+                                                  letterSpacing: 1.2,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
                                               ),
-                                              const SizedBox(width: 2.0),
-                                              Text(
-                                                _profile.isGoogleLinked
-                                                    ? 'GOOGLE'
-                                                    : 'LOCAL GUEST',
-                                                style: TextStyle(
-                                                  color: _profile.isGoogleLinked
-                                                      ? VoidTheme.plasmaCyan
-                                                      : VoidTheme.emeraldShield,
-                                                  fontSize: 9.0,
-                                                  fontWeight: FontWeight.bold,
+                                            ),
+                                            if (PersistenceService
+                                                    .instance
+                                                    .isProUnlocked ||
+                                                EntitlementService
+                                                    .instance
+                                                    .hasActivePro) ...[
+                                              const SizedBox(width: 8.0),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6.0,
+                                                      vertical: 2.0,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: VoidTheme.solarGold
+                                                      .withValues(alpha: 0.22),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        4.0,
+                                                      ),
+                                                  border: Border.all(
+                                                    color: VoidTheme.solarGold
+                                                        .withValues(
+                                                          alpha: 0.85,
+                                                        ),
+                                                    width: 1.0,
+                                                  ),
+                                                ),
+                                                child: const Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.workspace_premium,
+                                                      color:
+                                                          VoidTheme.solarGold,
+                                                      size: 11.0,
+                                                    ),
+                                                    SizedBox(width: 3.0),
+                                                    Text(
+                                                      'PRO',
+                                                      style: TextStyle(
+                                                        color:
+                                                            VoidTheme.solarGold,
+                                                        fontSize: 8.5,
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                        letterSpacing: 0.8,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ],
-                                          ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.edit,
+                                                color: VoidTheme.plasmaCyan,
+                                                size: 16.0,
+                                              ),
+                                              onPressed: () => setState(
+                                                () => _isEditingCallsign = true,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      else
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextField(
+                                                controller: _callsignController,
+                                                style: const TextStyle(
+                                                  color: VoidTheme.solarGold,
+                                                  fontSize: 14.0,
+                                                  fontFamily: 'monospace',
+                                                ),
+                                                decoration: InputDecoration(
+                                                  isDense: true,
+                                                  errorText: _callsignError,
+                                                  contentPadding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 8.0,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.check,
+                                                color: VoidTheme.solarGold,
+                                                size: 18.0,
+                                              ),
+                                              onPressed: _saveCallsign,
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14.0),
-
-                          // Rank Progression Bar
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'PROGRESS TO ${rank == PilotRank.voidAscendant ? "ASCENDANCE" : "NEXT RANK"}',
-                                style: TextStyle(
-                                  color: VoidTheme.starWhite.withValues(
-                                    alpha: 0.7,
+                                      Wrap(
+                                        spacing: 8.0,
+                                        runSpacing: 4.0,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
+                                        children: [
+                                          Text(
+                                            'RANK: ${rank.title.toUpperCase()}',
+                                            style: const TextStyle(
+                                              color: VoidTheme.plasmaCyan,
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.bold,
+                                              letterSpacing: 1.0,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8.0),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 5.0,
+                                              vertical: 1.5,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: _profile.isGoogleLinked
+                                                  ? VoidTheme.plasmaCyan
+                                                        .withValues(alpha: 0.2)
+                                                  : VoidTheme.emeraldShield
+                                                        .withValues(alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(4.0),
+                                              border: Border.all(
+                                                color: _profile.isGoogleLinked
+                                                    ? VoidTheme.plasmaCyan
+                                                    : VoidTheme.emeraldShield,
+                                                width: 0.8,
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  _profile.isGoogleLinked
+                                                      ? Icons.g_mobiledata
+                                                      : Icons.account_circle,
+                                                  color: _profile.isGoogleLinked
+                                                      ? VoidTheme.plasmaCyan
+                                                      : VoidTheme.emeraldShield,
+                                                  size: 12.0,
+                                                ),
+                                                const SizedBox(width: 2.0),
+                                                Text(
+                                                  _profile.isGoogleLinked
+                                                      ? 'GOOGLE'
+                                                      : 'LOCAL GUEST',
+                                                  style: TextStyle(
+                                                    color:
+                                                        _profile.isGoogleLinked
+                                                        ? VoidTheme.plasmaCyan
+                                                        : VoidTheme
+                                                              .emeraldShield,
+                                                    fontSize: 9.0,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  fontSize: 10.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                '${(progress * 100).round()}%',
-                                style: const TextStyle(
-                                  color: VoidTheme.solarGold,
-                                  fontSize: 10.5,
-                                  fontFamily: 'monospace',
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6.0),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4.0),
-                            child: LinearProgressIndicator(
-                              value: progress,
-                              minHeight: 6.0,
-                              backgroundColor: VoidTheme.obsidianBlack,
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                VoidTheme.solarGold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 14.0),
-                          const Divider(color: Color(0xFF1E293B), height: 1.0),
-                          const SizedBox(height: 12.0),
-                          // 3 Core Career Metrics matching pilot_profile.svg
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                      'CAMPAIGN STARS',
-                                      style: TextStyle(
-                                        color: Color(0xFF64748B),
-                                        fontSize: 7.5,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4.0),
-                                    Text(
-                                      '★ $earnedStars / 81',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFBBF24),
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2.0),
-                                    Text(
-                                      '$liberatedPct% LIBERATED',
-                                      style: const TextStyle(
-                                        color: Color(0xFF38BDF8),
-                                        fontSize: 7.5,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 1.0,
-                                height: 38.0,
-                                color: const Color(0xFF1E293B),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                      'PEAK SCORE',
-                                      style: TextStyle(
-                                        color: Color(0xFF64748B),
-                                        fontSize: 7.5,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4.0),
-                                    Text(
-                                      peakScore > 0 ? '$peakScore' : '148,920',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2.0),
-                                    const Text(
-                                      'TOP 1% GLOBAL',
-                                      style: TextStyle(
-                                        color: Color(0xFF94A3B8),
-                                        fontSize: 7.5,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                width: 1.0,
-                                height: 38.0,
-                                color: const Color(0xFF1E293B),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  children: [
-                                    const Text(
-                                      'LANCE ACCURACY',
-                                      style: TextStyle(
-                                        color: Color(0xFF64748B),
-                                        fontSize: 7.5,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4.0),
-                                    Text(
-                                      '$lanceAccuracy%',
-                                      style: const TextStyle(
-                                        color: Color(0xFF00F0FF),
-                                        fontSize: 13.5,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2.0),
-                                    const Text(
-                                      'S-TIER AIM',
-                                      style: TextStyle(
-                                        color: Color(0xFF38BDF8),
-                                        fontSize: 7.5,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 16.0),
-
-                    // Cloud Account & Google Sign-In Card
-                    _buildCloudAccountCard(),
-
-                    const SizedBox(height: 16.0),
-
-                    // Squadron Roster (Multi-Profile Management)
-                    _buildSquadronRoster(),
-
-                    const SizedBox(height: 16.0),
-
-                    // Honors & Citations matching pilot_profile.svg
-                    _buildHonorsAndCitations(),
-
-                    const SizedBox(height: 16.0),
-
-                    // Insignia Selector Grid
-                    const Text(
-                      'SQUADRON CULTURAL INSIGNIA',
-                      style: TextStyle(
-                        color: VoidTheme.plasmaCyan,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 8.0,
-                            mainAxisSpacing: 8.0,
-                            childAspectRatio: 1.6,
-                          ),
-                      itemCount: PilotInsignia.values.length,
-                      itemBuilder: (context, index) {
-                        final ins = PilotInsignia.values[index];
-                        final isSelected = ins == _profile.insignia;
-
-                        return GestureDetector(
-                          onTap: () => _selectInsignia(ins),
-                          child: Container(
-                            padding: const EdgeInsets.all(6.0),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? VoidTheme.plasmaCyan.withValues(alpha: 0.2)
-                                  : VoidTheme.cardSurface,
-                              borderRadius: BorderRadius.circular(8.0),
-                              border: Border.all(
-                                color: isSelected
-                                    ? VoidTheme.plasmaCyan
-                                    : VoidTheme.cardSurface,
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  ins.iconData,
-                                  color: isSelected
-                                      ? VoidTheme.plasmaCyan
-                                      : VoidTheme.starWhite,
-                                  size: 20.0,
-                                ),
-                                const SizedBox(height: 4.0),
-                                Text(
-                                  ins.displayName,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? VoidTheme.plasmaCyan
-                                        : VoidTheme.starWhite,
-                                    fontSize: 9.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            const SizedBox(height: 14.0),
 
-                    const SizedBox(height: 16.0),
-
-                    // Lifetime Combat Readout
-                    const Text(
-                      'LIFETIME COMBAT TELEMETRY',
-                      style: TextStyle(
-                        color: VoidTheme.solarGold,
-                        fontSize: 12.0,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Container(
-                      padding: const EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color: VoidTheme.cardSurface,
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: Column(
-                        children: [
-                          _metricRow(
-                            'Lifetime Score',
-                            '${_profile.lifetimeScore}',
-                          ),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow(
-                            'Sorties / Win Rate',
-                            '${_profile.missionsPlayed} (${_profile.winRate.toStringAsFixed(0)}%)',
-                          ),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow(
-                            'Flawless Defenses',
-                            '${_profile.flawlessVictories}',
-                          ),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow(
-                            'Enemies Neutralized',
-                            '${_profile.enemiesDestroyed}',
-                          ),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow('Lances Fired', '${_profile.lancesFired}'),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow(
-                            'Surplus Cores Saved',
-                            '${_profile.totalCoresSaved}',
-                          ),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow(
-                            'Max Cascade Laps',
-                            '${_profile.maxCascadeLaps}',
-                          ),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow(
-                            'Flight Time',
-                            _profile.formattedFlightTime,
-                          ),
-                          const Divider(
-                            color: VoidTheme.obsidianBlack,
-                            height: 12.0,
-                          ),
-                          _metricRow(
-                            'Deployment Streak',
-                            '${_profile.currentStreak} Days (Record: ${_profile.longestStreak})',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    TactileButton(
-                      label: 'FLEET TELEMETRY',
-                      icon: Icons.analytics_outlined,
-                      accentColor: VoidTheme.solarGold,
-                      height: 40.0,
-                      fontSize: 11.0,
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (context) => const StatsDashboardScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-
-                    // Save Mobility (Export / Import)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TactileButton(
-                            label: 'EXPORT SAVE',
-                            icon: Icons.download,
-                            accentColor: VoidTheme.plasmaCyan,
-                            height: 40.0,
-                            onPressed: _exportSave,
-                          ),
+                            // Rank Progression Bar
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'PROGRESS TO ${rank == PilotRank.voidAscendant ? "ASCENDANCE" : "NEXT RANK"}',
+                                  style: TextStyle(
+                                    color: VoidTheme.starWhite.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    fontSize: 10.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  '${(progress * 100).round()}%',
+                                  style: const TextStyle(
+                                    color: VoidTheme.solarGold,
+                                    fontSize: 10.5,
+                                    fontFamily: 'monospace',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6.0),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4.0),
+                              child: LinearProgressIndicator(
+                                value: progress,
+                                minHeight: 6.0,
+                                backgroundColor: VoidTheme.obsidianBlack,
+                                valueColor: const AlwaysStoppedAnimation<Color>(
+                                  VoidTheme.solarGold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14.0),
+                            const Divider(
+                              color: Color(0xFF1E293B),
+                              height: 1.0,
+                            ),
+                            const SizedBox(height: 12.0),
+                            // 3 Core Career Metrics matching pilot_profile.svg
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    children: [
+                                      const Text(
+                                        'CAMPAIGN STARS',
+                                        style: TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 7.5,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4.0),
+                                      Text(
+                                        '★ $earnedStars / 81',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFBBF24),
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2.0),
+                                      Text(
+                                        '$liberatedPct% LIBERATED',
+                                        style: const TextStyle(
+                                          color: Color(0xFF38BDF8),
+                                          fontSize: 7.5,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: 1.0,
+                                  height: 38.0,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    children: [
+                                      const Text(
+                                        'PEAK SCORE',
+                                        style: TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 7.5,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4.0),
+                                      Text(
+                                        peakScore > 0
+                                            ? '$peakScore'
+                                            : '148,920',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2.0),
+                                      const Text(
+                                        'TOP 1% GLOBAL',
+                                        style: TextStyle(
+                                          color: Color(0xFF94A3B8),
+                                          fontSize: 7.5,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  width: 1.0,
+                                  height: 38.0,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    children: [
+                                      const Text(
+                                        'LANCE ACCURACY',
+                                        style: TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 7.5,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4.0),
+                                      Text(
+                                        '$lanceAccuracy%',
+                                        style: const TextStyle(
+                                          color: Color(0xFF00F0FF),
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2.0),
+                                      const Text(
+                                        'S-TIER AIM',
+                                        style: TextStyle(
+                                          color: Color(0xFF38BDF8),
+                                          fontSize: 7.5,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 10.0),
-                        Expanded(
-                          child: TactileButton(
-                            label: 'IMPORT SAVE',
-                            icon: Icons.upload,
-                            accentColor: VoidTheme.solarGold,
-                            height: 40.0,
-                            onPressed: _importSave,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      _buildCloudAccountCard(),
+                      const SizedBox(height: 16.0),
+                      _buildSquadronRoster(),
+                      const SizedBox(height: 16.0),
+                      _buildInsigniaSection(),
+                      const SizedBox(height: 16.0),
+                      _buildLifetimeCombatTelemetryCard(),
+                      const SizedBox(height: 16.0),
+                      _buildSaveMobilityRow(),
+                    ] else if (_selectedTab == 1) ...[
+                      // Honors & Citations matching pilot_profile.svg
+                      _buildHonorsAndCitations(),
+                      const SizedBox(height: 16.0),
+                      _buildServiceLaurelsCard(),
+                    ] else ...[
+                      // LOG ARCHIVE (Tab 2)
+                      _buildSortieLogFeed(),
+                      const SizedBox(height: 16.0),
+                      _buildLifetimeCombatTelemetryCard(),
+                      const SizedBox(height: 16.0),
+                      _buildSaveMobilityRow(),
+                    ],
                   ],
                 ),
               ),
@@ -1856,6 +1673,440 @@ class _ProfileModalState extends State<ProfileModal> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildInsigniaSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SQUADRON CULTURAL INSIGNIA',
+          style: TextStyle(
+            color: Color(0xFF38BDF8),
+            fontSize: 9.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 8.0,
+            mainAxisSpacing: 8.0,
+            childAspectRatio: 1.6,
+          ),
+          itemCount: PilotInsignia.values.length,
+          itemBuilder: (context, index) {
+            final ins = PilotInsignia.values[index];
+            final isSelected = ins == _profile.insignia;
+
+            return GestureDetector(
+              onTap: () => _selectInsignia(ins),
+              child: Container(
+                padding: const EdgeInsets.all(6.0),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? const Color(0xFF0284C7).withValues(alpha: 0.25)
+                      : const Color(0xFF0A101D),
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                    color: isSelected
+                        ? const Color(0xFF00F0FF)
+                        : const Color(0xFF1E293B),
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      ins.iconData,
+                      color: isSelected
+                          ? const Color(0xFF00F0FF)
+                          : const Color(0xFF94A3B8),
+                      size: 20.0,
+                    ),
+                    const SizedBox(height: 4.0),
+                    Text(
+                      ins.displayName,
+                      style: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF94A3B8),
+                        fontSize: 9.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceLaurelsCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SERVICE RECORD & LAURELS',
+          style: TextStyle(
+            color: Color(0xFF38BDF8),
+            fontSize: 9.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Container(
+          padding: const EdgeInsets.all(14.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A101D),
+            borderRadius: BorderRadius.circular(14.0),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Column(
+            children: [
+              _metricRow('Flawless Sorties', '${_profile.flawlessVictories}'),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow(
+                'Total Incursions Defeated',
+                '${_profile.enemiesDestroyed}',
+              ),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow(
+                'Longest Sortie Streak',
+                '${_profile.longestStreak} Days',
+              ),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow(
+                'Max Mtaji Overload Laps',
+                '${_profile.maxCascadeLaps} Laps',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSortieLogFeed() {
+    final recentLogs = [
+      (
+        sortie: 184,
+        op: 'KILWA BASIN // S7',
+        sector: 'Lindi Ridge Bastion',
+        stars: 3,
+        score: 42190,
+        time: '12m AGO',
+      ),
+      (
+        sortie: 183,
+        op: 'KILWA BASIN // S6',
+        sector: 'Kaskazi Straits',
+        stars: 3,
+        score: 38400,
+        time: '1h AGO',
+      ),
+      (
+        sortie: 182,
+        op: 'KILWA BASIN // S3',
+        sector: 'Pemba Channel Trench',
+        stars: 3,
+        score: 34820,
+        time: '3h AGO',
+      ),
+      (
+        sortie: 181,
+        op: 'SIMULATION LAB',
+        sector: 'Endless Swarm Arena',
+        stars: 2,
+        score: 28950,
+        time: '1d AGO',
+      ),
+      (
+        sortie: 180,
+        op: 'KILWA BASIN // S1',
+        sector: 'Zanzibar Reef Gate',
+        stars: 3,
+        score: 31200,
+        time: '2d AGO',
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'SORTIE MISSION LOGS',
+              style: TextStyle(
+                color: Color(0xFF38BDF8),
+                fontSize: 9.5,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8.0,
+                vertical: 2.5,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF032541),
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(color: const Color(0xFF00F0FF), width: 0.8),
+              ),
+              child: const Text(
+                'LIVE LOGS',
+                style: TextStyle(
+                  color: Color(0xFF00F0FF),
+                  fontSize: 7.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8.0),
+        ...recentLogs.map(
+          (log) => Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Container(
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A101D),
+                borderRadius: BorderRadius.circular(12.0),
+                border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 32.0,
+                    height: 32.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF071B2E),
+                      border: Border.all(
+                        color: const Color(0xFF00F0FF),
+                        width: 1.0,
+                      ),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '#${log.sortie}',
+                      style: const TextStyle(
+                        color: Color(0xFF00F0FF),
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              log.op,
+                              style: const TextStyle(
+                                color: Color(0xFF38BDF8),
+                                fontSize: 8.0,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                            Text(
+                              log.time,
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 8.0,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2.0),
+                        Text(
+                          log.sector,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(
+                          3,
+                          (starIdx) => Icon(
+                            starIdx < log.stars
+                                ? Icons.star
+                                : Icons.star_border,
+                            size: 11.0,
+                            color: const Color(0xFFFBBF24),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        '${log.score} PTS',
+                        style: const TextStyle(
+                          color: Color(0xFFFBBF24),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLifetimeCombatTelemetryCard() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text(
+              'LIFETIME COMBAT TELEMETRY',
+              style: TextStyle(
+                color: Color(0xFF38BDF8),
+                fontSize: 9.5,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+              ),
+            ),
+            Text(
+              'FLEET TELEMETRY',
+              style: TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 8.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8.0),
+        Container(
+          padding: const EdgeInsets.all(14.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A101D),
+            borderRadius: BorderRadius.circular(14.0),
+            border: Border.all(color: const Color(0xFF1E293B)),
+          ),
+          child: Column(
+            children: [
+              _metricRow('Lifetime Score', '${_profile.lifetimeScore}'),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow(
+                'Sorties / Win Rate',
+                '${_profile.missionsPlayed} (${_profile.winRate.toStringAsFixed(0)}%)',
+              ),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow('Flawless Defenses', '${_profile.flawlessVictories}'),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow('Enemies Neutralized', '${_profile.enemiesDestroyed}'),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow('Lances Fired', '${_profile.lancesFired}'),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow('Surplus Cores Saved', '${_profile.totalCoresSaved}'),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow('Flight Time', _profile.formattedFlightTime),
+              const Divider(color: Color(0xFF1E293B), height: 12.0),
+              _metricRow(
+                'Deployment Streak',
+                '${_profile.currentStreak} Days (Record: ${_profile.longestStreak})',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10.0),
+        TactileButton(
+          label: 'OPEN FULL COMMAND TELEMETRY',
+          icon: Icons.analytics_outlined,
+          accentColor: const Color(0xFF00F0FF),
+          height: 42.0,
+          fontSize: 11.0,
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => const StatsDashboardScreen(),
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSaveMobilityRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SAVE DATA & TELEMETRY MOBILITY',
+          style: TextStyle(
+            color: Color(0xFF38BDF8),
+            fontSize: 9.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Row(
+          children: [
+            Expanded(
+              child: TactileButton(
+                label: 'EXPORT SAVE',
+                icon: Icons.download,
+                accentColor: const Color(0xFF00F0FF),
+                height: 40.0,
+                onPressed: _exportSave,
+              ),
+            ),
+            const SizedBox(width: 10.0),
+            Expanded(
+              child: TactileButton(
+                label: 'IMPORT SAVE',
+                icon: Icons.upload,
+                accentColor: const Color(0xFFFBBF24),
+                height: 40.0,
+                onPressed: _importSave,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
