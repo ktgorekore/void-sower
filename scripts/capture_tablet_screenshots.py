@@ -13,81 +13,94 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Automates high-resolution tablet (2560x1600) screenshot capture for Google Play Console."""
+"""Automates high-resolution tablet screenshot capture for Google Play Store listing.
+
+Configures the Android display to 1600x2560 @ 320dpi (10-inch portrait tablet layout),
+captures all 6 tablet screenshots showcasing the UX 3.0 interface and 3D depth,
+and cleanly restores the display resolution.
+"""
 
 import os
 import shutil
 import subprocess
 import sys
 import time
+import numpy as np
+from PIL import Image
 
+DEVICE = "emulator-5554"
 SCREENSHOTS_DIR = "/home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet"
 
 
-def get_device():
-  res = subprocess.run(["adb", "devices"], capture_output=True, text=True)
-  lines = res.stdout.strip().split("\n")[1:]
-  for line in lines:
-    parts = line.split()
-    if len(parts) >= 2 and parts[1] == "device":
-      dev = parts[0]
-      size_res = subprocess.run(["adb", "-s", dev, "shell", "wm", "size"], capture_output=True, text=True)
-      if "2560x1600" in size_res.stdout or "1600x2560" in size_res.stdout:
-        return dev
-  return "emulator-5556"
-
-
-def adb_cmd(args, device):
-  cmd = ["adb", "-s", device] + args
+def adb_cmd(args):
+  cmd = ["adb", "-s", DEVICE] + args
   return subprocess.run(cmd, capture_output=True, text=True)
 
 
-def tap(x, y, device):
-  adb_cmd(["shell", "input", "tap", str(x), str(y)], device)
+def tap(x, y):
+  adb_cmd(["shell", "input", "tap", str(x), str(y)])
 
 
-def keyevent(code, device):
-  adb_cmd(["shell", "input", "keyevent", str(code)], device)
+def swipe(x1, y1, x2, y2, duration_ms=250):
+  adb_cmd(["shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
 
 
-from PIL import Image
-import numpy as np
+def keyevent(code):
+  adb_cmd(["shell", "input", "keyevent", str(code)])
 
 
-def capture(dest_name, device):
+def ensure_app_focused():
+  res = subprocess.run(
+      ["adb", "-s", DEVICE, "shell", "dumpsys", "window"],
+      capture_output=True,
+      text=True,
+  )
+  if "com.voidsower.app" not in res.stdout:
+    print("[Focus] Restoring com.voidsower.app to foreground...")
+    adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+    time.sleep(1.5)
+
+
+def capture(dest_name, mirror_name=None):
+  ensure_app_focused()
   dest_path = os.path.join(SCREENSHOTS_DIR, dest_name)
-  print(f"[Tablet Capture] Grabbing {dest_name}...")
-  with open(dest_path, "wb") as f:
-    subprocess.run(["adb", "-s", device, "exec-out", "screencap", "-p"], stdout=f)
-  print(f"[Saved] -> {dest_path}")
+  temp_path = os.path.join("/tmp", f"cap_tablet_{dest_name}")
+  print(f"[Capture Tablet] Grabbing {dest_name}...")
 
-  im = Image.open(dest_path).convert("RGB")
-  arr = np.array(im)
-  white_px = np.sum((arr[:, :, 0] > 240) & (arr[:, :, 1] > 240) & (arr[:, :, 2] > 240))
-  total_px = arr.shape[0] * arr.shape[1]
-  white_pct = (white_px / total_px) * 100
-  print(f"[Validation] {dest_name}: {im.size} (white={white_pct:.2f}%)")
+  with open(temp_path, "wb") as f:
+    subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f, check=True)
+
+  if not os.path.exists(temp_path) or os.path.getsize(temp_path) < 10000:
+    raise RuntimeError(f"Failed to capture valid screenshot for {dest_name}")
+
+  img = Image.open(temp_path)
+  arr = np.array(img)
+  white_pct = (arr > 240).all(axis=-1).mean() * 100
+  mean_rgb = arr.mean(axis=(0, 1))[:3].astype(int)
+
+  print(f"[Verify Tablet] {dest_name}: mean_rgb={mean_rgb}, white={white_pct:.2f}%")
   if white_pct > 5.0:
-    raise RuntimeError(f"Screenshot {dest_name} failed validation! White pixels: {white_pct:.2f}%")
+    raise RuntimeError(
+        f"ABORT: Tablet screenshot {dest_name} contains white screen or ad ({white_pct:.1f}% white pixels)!"
+    )
+
+  shutil.copyfile(temp_path, dest_path)
+  print(f"[Saved] -> {dest_path} ({os.path.getsize(dest_path)} bytes)")
+
+  if mirror_name:
+    mirror_path = os.path.join(SCREENSHOTS_DIR, mirror_name)
+    shutil.copyfile(dest_path, mirror_path)
+    print(f"[Mirrored] -> {mirror_path}")
+
   return dest_path
 
 
-def main():
-  os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
-  device = get_device()
-  print(f"[Init] Targeting device: {device}")
-
-  keyevent(4, device)
+def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6):
+  adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
+  adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
   time.sleep(0.5)
-
-  adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"], device)
-
-  # 1. Reset state: force-stop app, clear data, and seed persistent Pro unlock with rich profile
-  print("[Init] Resetting app state & seeding Pro entitlement...")
-  adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"], device)
-  time.sleep(0.5)
-  adb_cmd(["shell", "pm", "clear", "com.voidsower.app"], device)
-  time.sleep(1.0)
+  adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
+  time.sleep(0.8)
 
   profile_json = (
       '{"id":"pilot_default","callsign":"Vanguard-01","insignia":"shonaStar",'
@@ -105,11 +118,11 @@ def main():
   pref_xml = (
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
       '<map>\n'
-      '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
+      f'    <boolean name="flutter.void_sower_pro_unlocked" value="{"true" if pro_unlocked else "false"}" />\n'
       '    <boolean name="flutter.void_sower_ads_disabled" value="true" />\n'
-      '    <boolean name="flutter.void_sower_completed_tutorial" value="false" />\n'
-      '    <int name="flutter.void_sower_high_score" value="34820" />\n'
-      '    <int name="flutter.void_sower_liberated_sectors" value="6" />\n'
+      f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
+      f'    <int name="flutter.void_sower_high_score" value="{high_score}" />\n'
+      f'    <int name="flutter.void_sower_liberated_sectors" value="{liberated_sectors}" />\n'
       '    <int name="flutter.void_sower_sector_stars_1" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_2" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_3" value="3" />\n'
@@ -119,88 +132,108 @@ def main():
       '    <string name="flutter.void_sower_active_profile_id">pilot_default</string>\n'
       '</map>\n'
   )
-  with open("/tmp/prefs.xml", "w") as f:
+  with open("/tmp/prefs_tablet.xml", "w") as f:
     f.write(pref_xml)
-  subprocess.run(["adb", "-s", device, "push", "/tmp/prefs.xml", "/data/local/tmp/prefs.xml"], check=True)
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "mkdir", "-p", "shared_prefs"], device)
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "cp", "/data/local/tmp/prefs.xml", "shared_prefs/FlutterSharedPreferences.xml"], device)
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"], device)
+  subprocess.run(["adb", "-s", DEVICE, "push", "/tmp/prefs_tablet.xml", "/data/local/tmp/prefs_tablet.xml"], check=True)
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "mkdir", "-p", "shared_prefs"])
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "cp", "/data/local/tmp/prefs_tablet.xml", "shared_prefs/FlutterSharedPreferences.xml"])
+  adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"])
   time.sleep(0.5)
 
-  # Launch App directly into Combat Arena
-  print("[Launch] Clearing logcat and starting Void Sower main activity on tablet...")
-  adb_cmd(["logcat", "-c"], device)
-  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"], device)
-  
-  print("[Wait] Waiting for app first frame & simulation tick...")
-  app_ready = False
-  for _ in range(50):
-    time.sleep(0.5)
-    res = adb_cmd(["logcat", "-d", "-s", "flutter:V"], device)
-    if "Tick 1" in res.stdout or "Tick 2" in res.stdout:
-      print("[Wait] App initialized successfully!")
-      app_ready = True
-      break
-  if not app_ready:
-    print("[Wait] Fallback wait...")
-    time.sleep(5.0)
-  else:
+
+def main():
+  os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
+
+  try:
+    print("[Display] Setting tablet resolution (1600x2560 @ 320dpi)...")
+    adb_cmd(["shell", "wm", "size", "1600x2560"])
+    adb_cmd(["shell", "wm", "density", "320"])
     time.sleep(2.0)
 
-  # 1. Screenshot 05: Flight Academy Onboarding on Tablet (appears on launch over arena)
-  print("[Tablet Academy] Capturing 05_tablet_flight_academy.png...")
-  capture("05_tablet_flight_academy.png", device)
+    # =========================================================================
+    # Phase 1: Tablet Flight Academy Onboarding
+    # =========================================================================
+    print("\n[Tablet Phase 1] Capturing Flight Academy Onboarding...")
+    seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6)
+    adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+    time.sleep(3.0)
+    capture("05_tablet_flight_academy.png")
 
-  # Dismiss tutorial overlay: tap SKIP at x=955, y=1080
-  print("[Tablet Combat] Dismissing Flight Academy tutorial overlay (tap SKIP at x=955, y=1080)...")
-  tap(955, 1080, device)
-  time.sleep(1.5)
+    # =========================================================================
+    # Phase 2: Tablet Active Tactical Combat (Baseline Z: 0km)
+    # =========================================================================
+    print("\n[Tablet Phase 2] Capturing Tactical Combat Grid (Z: 0km)...")
+    seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
+    adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+    time.sleep(2.5)
+    capture("01_tablet_tactical_combat.png")
 
-  # 2. Screenshot 01: Tactical Combat Grid on Tablet (Centered 580 dp viewport)
-  print("[Tablet Combat] Capturing 01_tablet_tactical_combat.png...")
-  capture("01_tablet_tactical_combat.png", device)
+    # =========================================================================
+    # Phase 3: Tablet Axial Particle Lance (Mid-Combat Depth Z: +20km)
+    # =========================================================================
+    print("\n[Tablet Phase 3] Advancing Defender & Discharging Axial Particle Lance...")
+    # Swipe ship forward in 3D perspective space (from center 800, 2000 up to 800, 1400)
+    swipe(800, 2000, 800, 1400, 250)
+    time.sleep(0.3)
 
-  # 3. Screenshot 02: Sowing Trajectory & Axial Lance
-  print("[Tablet Combat] Discharging Axial Particle Lance (tap x=1280, y=1475)...")
-  tap(1280, 1475, device)
-  time.sleep(0.18)
-  capture("02_tablet_sowing_trajectory.png", device)
-  time.sleep(1.0)
+    # Fire Axial Particle Lance via FIRE trigger repeatedly
+    fire_proc = subprocess.Popen([
+        "adb", "-s", DEVICE, "shell",
+        "for i in $(seq 1 12); do input tap 710 2260; sleep 0.08; done"
+    ])
+    time.sleep(0.25)
+    capture("02_tablet_axial_particle_lance.png", mirror_name="02_tablet_sowing_trajectory.png")
+    fire_proc.wait()
+    time.sleep(0.5)
 
-  # 4. Screenshot 06: Bao Codex / Directives on Tablet (Tap PAUSE at x=1793, y=129, then DIRECTIVES at x=1151, y=987)
-  print("[Tablet Codex] Opening Tactical Pause menu...")
-  tap(1793, 129, device)
-  time.sleep(1.2)
-  print("[Tablet Codex] Opening Tactical Directives dialog (tap DIRECTIVES at x=1151, y=987)...")
-  tap(1151, 987, device)
-  time.sleep(1.8)
-  capture("06_tablet_bao_codex.png", device)
-  # Close Directives dialog via Back keyevent (returns directly to CombatScreen)
-  print("[Tablet Codex] Dismissing Tactical Directives...")
-  keyevent(4, device)
-  time.sleep(1.0)
+    # =========================================================================
+    # Phase 4: Tablet Tactical Directives (Bao Codex)
+    # =========================================================================
+    print("\n[Tablet Phase 4] Capturing Tactical Directives (Bao Codex)...")
+    # Open pause menu via back keyevent
+    keyevent(4)
+    time.sleep(1.0)
+    # Tap Directives button in pause menu (x=950, y=1420)
+    tap(950, 1420)
+    time.sleep(1.2)
+    capture("06_tablet_bao_codex.png")
 
-  # 5. Navigate to Star Map: Tap PAUSE at x=1793, y=129, then MAP at x=1045, y=987
-  print("[Tablet Map] Opening Tactical Pause to navigate to Star Map...")
-  tap(1793, 129, device)
-  time.sleep(1.2)
-  print("[Tablet Map] Tapping MAP button at x=1045, y=987...")
-  tap(1045, 987, device)
-  time.sleep(2.5)
+    # Dismiss Directives modal cleanly via back keyevent
+    keyevent(4)
+    time.sleep(0.8)
 
-  # Screenshot 03: Tablet Campaign Map
-  print("[Tablet Map] Capturing 03_tablet_campaign_map.png...")
-  capture("03_tablet_campaign_map.png", device)
+    # =========================================================================
+    # Phase 5: Tablet Multi-Theater Campaign Star Map
+    # =========================================================================
+    print("\n[Tablet Phase 5] Capturing Campaign Map...")
+    # Re-open pause menu via back keyevent
+    keyevent(4)
+    time.sleep(0.8)
+    # Tap SECTORS MAP button in pause menu (x=650, y=1420)
+    tap(650, 1420)
+    time.sleep(2.0)
+    capture("03_tablet_campaign_map.png")
 
-  # 6. Screenshot 04: Tablet Fleet Hangar (tap FLEET at x=1033, y=1473 in bottom nav bar)
-  print("[Tablet Hangar] Opening Fleet Hangar (tap FLEET at x=1033, y=1473)...")
-  tap(1033, 1473, device)
-  time.sleep(1.8)
-  capture("04_tablet_fleet_hangar.png", device)
-  keyevent(4, device)
-  time.sleep(1.0)
+    # =========================================================================
+    # Phase 6: Tablet Orbital Fleet Hangar
+    # =========================================================================
+    print("\n[Tablet Phase 6] Capturing Orbital Fleet Hangar...")
+    # Tap FLEET tab in tablet bottom nav (x=544, y=2460)
+    tap(544, 2460)
+    time.sleep(1.2)
+    capture("04_tablet_fleet_hangar.png")
+    # Dismiss Hangar cleanly via back keyevent
+    keyevent(4)
+    time.sleep(0.8)
 
-  print("\n[Complete] All 6 Play Store tablet screenshots captured successfully!")
+    print("\n[Complete] All 6 tablet screenshots captured and verified!")
+
+  finally:
+    print("\n[Display] Resetting display size and density to device native...")
+    adb_cmd(["shell", "wm", "size", "reset"])
+    adb_cmd(["shell", "wm", "density", "reset"])
+    time.sleep(1.5)
+    seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
 
 
 if __name__ == "__main__":

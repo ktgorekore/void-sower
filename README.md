@@ -22,24 +22,27 @@
 
 ## 🎬 Official Gameplay & Tutorial Media
 
-| UX 3.0 Gameplay Showcase (24s) | 60-Second Narrated Tutorial Video | 30-Second AI Tactical Solver Showcase |
+| UX 3.0 Gameplay Showcase (30s) | 60-Second Narrated Tutorial Video | 30-Second AI Tactical Solver Showcase |
 | :---: | :---: | :---: |
 | [![UX 3.0 Gameplay Showcase](docs/media/store_screenshots/01_combat_tactical_depth.png)](docs/media/void_sower_gameplay_showcase.mp4) | [![60s Narrated Tutorial Video](store_listing/screenshots/phone/01_tactical_combat_grid.png)](docs/media/void_sower_how_to_play_60s.mp4) | [![30s AI Tactical Solver](docs/media/void_sower_solver_showcase.gif)](docs/media/void_sower_solver_showcase_30s.mp4) |
-| *[Watch 24s Showcase (MP4)](docs/media/void_sower_gameplay_showcase.mp4)*<br>3D flight depth, corridor lances, sowing cascades, and tactical pause | *[Watch 60s Narrated Tutorial (MP4)](docs/media/void_sower_how_to_play_60s.mp4)*<br>Neural voiceover (`ChristopherNeural`), HUD subtitles, ambient synth score | *[Watch 30s Solver Showcase (MP4)](docs/media/void_sower_solver_showcase_30s.mp4)*<br>Heuristic MCTS solver clearing 3 difficulty tiers with quadratic lances |
+| *[Watch 30s Showcase (MP4)](docs/media/void_sower_gameplay_showcase.mp4)*<br>3D flight depth, corridor lances, sowing cascades, and tactical pause | *[Watch 60s Narrated Tutorial (MP4)](docs/media/void_sower_how_to_play_60s.mp4)*<br>Neural voiceover (`ChristopherNeural`), HUD subtitles, ambient synth score | *[Watch 30s Solver Showcase (MP4)](docs/media/void_sower_solver_showcase_30s.mp4)*<br>Heuristic MCTS solver clearing 3 difficulty tiers with Axial Particle Lances |
 
 ---
 
 ## 🎮 Redesigned Combat Mechanics & Visual Clarity
 
-- **Two-Strip Tactical HUD Header:** The top viewport organizes critical telemetry into two high-visibility strips:
-  - **Strip 1 (Reactor Economy & Threat Telemetry):** Real-time 28-core reactor fuel gauge (`[⚡ REACTOR: 28]`) with low-fuel crimson warning alerts, sector threat tier badge, and current combat score.
-  - **Strip 2 (Tactical Guidance Beacon & Quick Actions):** Live guidance beacon (`● ▲ 8 CONDUITS ARMED • SOW TO DISCHARGE` or `🤖 AI TACTICAL SOLVER ACTIVE`) alongside quick-access buttons for AI Tactical Solver, Flight Academy, and the Bao Orbital Codex.
-- **The 28-Core Finite Economy & Namua Rule:** In adherence to traditional Bao la Kiswahili count-and-capture rules, sowing introduces energy from reserves (*Namua*). Sowing from any bay (even with $0$ charge) draws $1$ core from the 28 reserve cores. When reserves hit $0$, empty bays cannot be sown—players must redistribute existing ring energy.
+- **Slimline 5-Capsule HUD Header:** The top viewport organizes critical telemetry into 5 ultra-clean floating capsules:
+  - **Capsule 1 (Sector & Score):** Sector designation (e.g. `S1 • ZANZIBAR`) and formatted score (`034,820`).
+  - **Capsule 2 (Commander Status):** Golden `PRO` badge with active pulse or lock icon.
+  - **Capsule 3 (Core Reserve):** Live capacitor fuel gauge (`36 CORES`) with low-fuel crimson alerts.
+  - **Capsule 4 (Deflector Shields):** Current shield integrity count (`2/2`).
+  - **Capsule 5 (Tactical Pause):** Instant tactical pause trigger (`||`).
+- **The Finite Reactor Economy & Namua Rule:** In adherence to traditional Bao la Kiswahili count-and-capture rules, sowing introduces energy from reserves (*Namua*). Sowing from any bay draws $1$ core from stored reserves. When reserves hit $0$, empty bays cannot be sown—players must redistribute existing ring energy.
 - **Two Complementary Combat Control Paradigms:**
-  - *Method 1: Rapid-Fire Combat Flow (Quick Action):* Slide flagship & tap glowing `DISCHARGE C<n> ►` for rapid single shots ($100\text{ DMG}$) to eliminate low-HP drones.
-  - *Method 2: Tactical Sowing Cascade (High-Damage Mancala):* Swipe capacitor bays left/right to execute circular sowing cascades, concentrating mass for quadratic particle lances ($D = 100 \cdot M^2$, dealing $3,600 \dots 14,400+\text{ DMG}$) to vaporize heavy cruisers and boss dreadnoughts.
-- **Player Flagship Identification & Conduit Aiming:** You command the **Olympus Dreadnought Flagship** (`▲ DREADNOUGHT CONDUIT ▲`) stationed at the bottom defense line. As you glide horizontally to evade bombs, your ship automatically docks with and arms that corridor's frontline battery, projecting a vertical cyan targeting laser with lock-on reticles over descending enemies.
-- **Unified Tactical Action Deck:** Tap `DISCHARGE C[n] ►` to instantly unleash a quadratic Particle Lance, or `SOW CCW` to cycle energy into the inner reservoir. No complex multi-tap acrobatics needed while evading ordnance.
+  - *Method 1: Rapid-Fire Combat Flow (Quick Action):* Slide flagship & tap glowing `FIRE` trigger on the active conduit for rapid single shots ($100\text{ DMG}$) to eliminate low-HP drones.
+  - *Method 2: Tactical Sowing Cascade (High-Damage Mancala):* Swipe capacitor bays left/right to execute circular sowing cascades, concentrating mass for Axial Particle Lances ($D = 100 \cdot M^2$, dealing $3,600 \dots 14,400+\text{ DMG}$) to vaporize heavy cruisers and boss dreadnoughts.
+- **Player Flagship Identification & Conduit Aiming:** You command the **Olympus Dreadnought Flagship** stationed at the bottom defense line. As you glide horizontally or tap corridors C1–C8, your ship automatically docks with and arms that corridor's frontline battery, projecting a vertical cyan targeting laser with lock-on reticles over descending enemies.
+- **Mancala Battery Dock:** Tap `FIRE` directly on the primed conduit to instantly unleash an Axial Particle Lance, or swipe left/right to sow energy along the 16-bay circular manifold. Subtle 14px Tactical Advisory bar at the base guides tactical play without clutter.
 - **Defensive Conduit Shielding & Bomb Deflection:** Frontline batteries with stored charges magnetically deflect falling enemy plasma bombs (`DEFLECT +50`). Uncharged conduits suffer EMP breaches that drain reactor cores.
 - **Dropping Invader Ordnance:** Void Swarm assault craft descend 8 tactical corridors and drop plasma bombs directly from their cannons. Maneuver to evade or vaporize them mid-air with particle lances.
 - **16-Bay Bao Mancala Sowing:**
@@ -165,7 +168,7 @@ Comprehensive technical specifications, mathematical derivations, and architectu
 
 | Guide | Link | Focus Areas |
 | :--- | :--- | :--- |
-| **01: Game Rules & Mechanics** | [`docs/developer/01_game_rules_and_mechanics.md`](docs/developer/01_game_rules_and_mechanics.md) | Swahili Bao transposition, 16-bay ring buffer geometry, quadratic lances ($D = \alpha \cdot M^2$), secondary flak, Nyumba/Kichwa/Kimbi bay archetypes. |
+| **01: Game Rules & Mechanics** | [`docs/developer/01_game_rules_and_mechanics.md`](docs/developer/01_game_rules_and_mechanics.md) | Swahili Bao transposition, 16-bay ring buffer geometry, axial particle lances with quadratic mass scaling ($D = \alpha \cdot M^2$), secondary flak, Nyumba/Kichwa/Kimbi bay archetypes. |
 | **02: Native C++17 ECS Engine** | [`docs/developer/02_cpp_ecs_engine_architecture.md`](docs/developer/02_cpp_ecs_engine_architecture.md) | EnTT ECS v3.13.2 architecture, 64-byte alignment, zero allocation hot paths, bitwise masking (`& 0x0F`), spatial grid partitioning. |
 | **03: Dart FFI Bridge & Isolates** | [`docs/developer/03_dart_ffi_bridge_and_isolate_architecture.md`](docs/developer/03_dart_ffi_bridge_and_isolate_architecture.md) | Flat C ABI (`extern "C"`), zero-copy pointer caching, Android 15 16 KB page size alignment, background isolate offloading. |
 | **04: Presentation & Shaders** | [`docs/developer/04_presentation_shaders_and_audio_visual_pipeline.md`](docs/developer/04_presentation_shaders_and_audio_visual_pipeline.md) | Impeller GLSL 460 shaders, `CombatPainter` 60/120 FPS canvas, Afrofuturist `VoidTheme`, procedural acoustics, multi-pulse haptics. |

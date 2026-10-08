@@ -42,7 +42,7 @@ Defend orbital frontiers against descending armadas of hostile assault craft. Yo
 ⚔️ KINETIC COUNT-AND-CAPTURE COMBAT
 • Ancient Mathematical Weaponry: Inject plasma cores (Namua) and swipe to sow charges along the 16-bay ring in clockwise or counter-clockwise cadence.
 • Finite Reactor Economy: Balance your dreadnought's reserve cores—every tactical injection fuels multi-lap cascades and frontline overcharges.
-• Quadratic Particle Lances: When your sowing sequence finishes in an active frontline bay, stored mass discharges as a devastating laser beam with quadratic scaling (D = α · M²)!
+• Axial Particle Lances: When your sowing sequence finishes in an active frontline bay, stored mass discharges as a devastating axial laser beam with mass-squared scaling (D = α · M²)!
 • Deflector Shields: Block incoming enemy ordnance with charged frontline batteries, turning hostile fire into tactical energy reserves.
 
 🌌 3 CAMPAIGN THEATERS • 27 SECTORS
@@ -211,7 +211,7 @@ Défendez les frontières orbitales contre des vagues d'assaut extraterrestres. 
 ⚔️ COMBAT CINÉTIQUE DU BAO
 • Armement Mathématique Ancestral : Injectez des cœurs de plasma et balayez pour semer les charges dans le sens horaire ou antihoraire.
 • Économie de Réacteur Finie : Gérez vos réserves de cœurs—chaque injection tactique déclenche des réactions en cascade et suralimente vos batteries.
-• Lances de Particules Quadratiques : Lorsque votre semis s'achève sur un condensateur chargé, sa masse libère un puissant rayon laser dont la puissance augmente de façon quadratique : D = α · M² !
+• Lances de Particules Axiales : Lorsque votre semis s'achève sur un condensateur chargé, sa masse libère un puissant rayon laser axial dont la puissance augmente avec la masse : D = α · M² !
 • Boucliers Déflecteurs : Neutralisez les tirs ennemis et convertissez les bombes de plasma en réserves d'énergie pour votre vaisseau !
 
 🌌 3 THÉÂTRES DE CAMPAGNE • 27 SECTEURS
@@ -268,7 +268,7 @@ Defiende las fronteras orbitales contra oleadas invasoras de naves de asalto. El
 ⚔️ COMBATE CINÉTICO TRADICIONAL
 • Armamento Matemático Ancestral: Inyecta núcleos de plasma y desliza para sembrar energía en sentido horario o antihorario.
 • Economía Finita de Reactor: Administra las reservas de núcleos—cada inyección táctica alimenta reacciones en cadena y sobrecargas frontales.
-• Lanzas de Partículas Cuadráticas: Cuando la siembra culmina en un condensador frontal activo, la energía acumulada se dispara en un rayo láser de daño cuadrático (D = α · M²).
+• Lanzas de Partículas Axiales: Cuando la siembra culmina en un condensador frontal activo, la energía acumulada se dispara en un rayo láser axial con daño escalado (D = α · M²).
 • Escudos Deflectores: ¡Bloquea los proyectiles enemigos y transforma las bombas de plasma en reservas de energía para tu nave!
 
 🌌 3 TEATROS DE CAMPAÑA • 27 SECTORES
@@ -307,9 +307,9 @@ Defiende las fronteras orbitales contra oleadas invasoras de naves de asalto. El
 
 | Asset | Local File Path | Specifications | Purpose |
 | :--- | :--- | :--- | :--- |
-| **UX 3.0 Showcase Gameplay Video** | [`docs/media/void_sower_gameplay_showcase.mp4`](../docs/media/void_sower_gameplay_showcase.mp4) | 720x1600 Portrait, 24s @ 60 FPS, H.264 AVC1, 4.82 Mbps. Demonstrates 3D maneuvers, sowing cascade, particle lance crit (+1600), tactical pause, and star map. | Primary Google Play Store gameplay video preview / YouTube Shorts |
+| **UX 3.0 Showcase Gameplay Video** | [`docs/media/void_sower_gameplay_showcase.mp4`](../docs/media/void_sower_gameplay_showcase.mp4) | 1080x2400 Portrait, 30s @ 30 FPS, H.264 AVC1 + AAC Stereo, atmospheric C-minor ambient synth music & synchronized in-game SFX. Demonstrates 3D depth maneuvers, sowing cascade, axial particle lance barrage (+1000 crit), tactical pause, and star map. | Primary Google Play Store gameplay video preview / YouTube Shorts |
 | **60s Narrated Tutorial Video** | [`store_listing/assets/how_to_play_60s.mp4`](assets/how_to_play_60s.mp4) | 1080x2400 Portrait, 60s @ 60 FPS, Neural voiceover (`en-US-ChristopherNeural`), HUD subtitles, ambient synth score | Comprehensive onboarding trailer explaining Bao count-and-capture rules |
-| **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30s @ 30 FPS, Live C++ AI Tactical Solver across Phantom Drift & Void Swarm | Technical showcase for AI solver and high-tier gameplay |
+| **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30s @ 30 FPS, H.264 + AAC Stereo background music & SFX, Live C++ AI Tactical Solver across Phantom Drift & Void Swarm | Technical showcase for AI solver and high-tier gameplay |
 | **Animated Promo Gameplay GIF** | [`store_listing/assets/promo_gameplay.gif`](assets/promo_gameplay.gif) | 360x800, 150 frames, optimized 128-color Bayer dither | Lightweight animated preview for developer portals and GitHub READMEs |
 
 ---
