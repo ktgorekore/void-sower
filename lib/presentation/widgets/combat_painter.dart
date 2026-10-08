@@ -812,7 +812,9 @@ class CombatPainter extends CustomPainter {
   /// operations and computes alpha blending directly via 32-bit ARGB bitwise
   /// shifts without invoking [Color.withValues].
   void _drawEnemyBullet(Canvas canvas, EnemyBullet bullet) {
-    final bulletOffset = Offset(bullet.x, bullet.y);
+    canvas.save();
+    canvas.translate(bullet.x, bullet.y);
+
     final glowColor = Color(
       (89 << 24) | (bullet.color.toARGB32() & 0x00FFFFFF),
     );
@@ -822,22 +824,20 @@ class CombatPainter extends CustomPainter {
       ..color = glowColor
       ..strokeWidth = 3.0
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(
-      bulletOffset,
-      Offset(bullet.x, bullet.y - 16.0),
-      _bulletTailPaint,
-    );
+    canvas.drawLine(Offset.zero, const Offset(0.0, -16.0), _bulletTailPaint);
 
     // 2. Outer plasma glow (Hardware-accelerated zero-blur halo)
     _bulletGlowPaint.color = glowColor;
-    canvas.drawCircle(bulletOffset, bullet.radius * 1.8, _bulletGlowPaint);
+    canvas.drawCircle(Offset.zero, bullet.radius * 1.8, _bulletGlowPaint);
 
     // 3. Core plasma orb
     _bulletOrbPaint.color = bullet.color;
-    canvas.drawCircle(bulletOffset, bullet.radius, _bulletOrbPaint);
+    canvas.drawCircle(Offset.zero, bullet.radius, _bulletOrbPaint);
 
     // 4. White-hot center
-    canvas.drawCircle(bulletOffset, bullet.radius * 0.45, _bulletCenterPaint);
+    canvas.drawCircle(Offset.zero, bullet.radius * 0.45, _bulletCenterPaint);
+
+    canvas.restore();
   }
 
   /// Renders an enemy assault craft ([enemy]) at the specified screen coordinate ([x], [y]).

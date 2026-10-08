@@ -370,7 +370,10 @@ class Starfield3DSimulation {
             break;
         }
 
-        canvas.drawCircle(Offset(sx, sy), radius, starPaint);
+        canvas.save();
+        canvas.translate(sx, sy);
+        canvas.drawCircle(Offset.zero, radius, starPaint);
+        canvas.restore();
       }
 
       _prevScreenX[i] = sx;
@@ -408,20 +411,18 @@ class Starfield3DSimulation {
     // Cyan orbital ionization cloud
     final alpha1 = (0.04 + 0.03 * normForward).clamp(0.0, 0.12);
     _nebulaGlowPaint.color = _getLUTColor(1, alpha1);
-    canvas.drawCircle(
-      Offset(nebula1X, nebula1Y),
-      size.width * 0.42,
-      _nebulaGlowPaint,
-    );
+    canvas.save();
+    canvas.translate(nebula1X, nebula1Y);
+    canvas.drawCircle(Offset.zero, size.width * 0.42, _nebulaGlowPaint);
+    canvas.restore();
 
     // Amethyst deep-space rift anomaly
     final alpha2 = (0.035 + 0.035 * normForward).clamp(0.0, 0.12);
     _nebulaGlowPaint.color = _getLUTColor(3, alpha2);
-    canvas.drawCircle(
-      Offset(nebula2X, nebula2Y),
-      size.width * 0.38,
-      _nebulaGlowPaint,
-    );
+    canvas.save();
+    canvas.translate(nebula2X, nebula2Y);
+    canvas.drawCircle(Offset.zero, size.width * 0.38, _nebulaGlowPaint);
+    canvas.restore();
   }
 }
 

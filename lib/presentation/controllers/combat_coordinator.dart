@@ -514,7 +514,7 @@ class CombatCoordinator extends ChangeNotifier {
     if (_remainingReinforcements > 0) {
       _remainingReinforcements--;
       final respawnCorridor = _random.nextInt(8);
-      final vType = (_remainingReinforcements % 4 == 0)
+      final vType = ((_remainingReinforcements & 3) == 0)
           ? 1
           : ((_remainingReinforcements == 0) ? 2 : 0);
       final shields = (vType == 2) ? 150.0 : (vType == 1 ? 60.0 : 0.0);
