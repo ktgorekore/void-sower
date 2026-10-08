@@ -39,6 +39,10 @@ const bool kStartCombat = bool.fromEnvironment(
 /// Optional environment flag to start tactical AI solver immediately.
 const bool kAutoSolve = bool.fromEnvironment('AUTO_SOLVE', defaultValue: false);
 
+/// Global route observer tracking navigation transitions for lifecycle power management.
+final RouteObserver<ModalRoute<void>> routeObserver =
+    RouteObserver<ModalRoute<void>>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
@@ -98,6 +102,7 @@ class VoidSowerApp extends StatelessWidget {
       title: 'Void Sower: Bao Orbital Batteries',
       debugShowCheckedModeBanner: false,
       theme: VoidTheme.darkTheme,
+      navigatorObservers: [routeObserver],
       home: startCombat
           ? CombatScreen(
               engine: engine,

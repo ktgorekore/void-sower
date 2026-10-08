@@ -104,6 +104,7 @@ class _CombatScreenState extends State<CombatScreen>
   int _currentSectorId = 1;
   CombatOverlayState _overlayState = CombatOverlayState.none;
   Timer? _autoAdvanceTimer;
+  Timer? _gracePeriodTimer;
   bool _hasPendingAutoAdvance = false;
   late final CombatDialogCoordinator _dialogCoordinator;
 
@@ -112,6 +113,12 @@ class _CombatScreenState extends State<CombatScreen>
 
   @visibleForTesting
   bool get hasPendingAutoAdvance => _hasPendingAutoAdvance;
+
+  @visibleForTesting
+  bool get isTickerActive => _ticker.isActive;
+
+  @visibleForTesting
+  CombatOverlayState get overlayState => _overlayState;
 
   @visibleForTesting
   Timer? get autoAdvanceTimer => _autoAdvanceTimer;
@@ -339,13 +346,27 @@ class _CombatScreenState extends State<CombatScreen>
     setState(() {});
   }
 
+  Future<void> _awaitGracePeriod(Duration duration) {
+    _gracePeriodTimer?.cancel();
+    final completer = Completer<void>();
+    _gracePeriodTimer = Timer(duration, () {
+      if (!completer.isCompleted) {
+        completer.complete();
+      }
+    });
+    return completer.future;
+  }
+
   Future<void> _showGameOverModal() async {
     if (_overlayState.isTerminalFlow || _overlayState.isModalOpen) return;
     _overlayState = CombatOverlayState.defeatGrace;
+    if (_ticker.isActive) {
+      _ticker.stop();
+    }
     _autoAdvanceTimer?.cancel();
 
     // 400ms grace period so in-flight shooting taps subside and breach explosion renders
-    await Future.delayed(const Duration(milliseconds: 400));
+    await _awaitGracePeriod(const Duration(milliseconds: 400));
     if (!mounted || _overlayState != CombatOverlayState.defeatGrace) {
       return;
     }
@@ -372,6 +393,9 @@ class _CombatScreenState extends State<CombatScreen>
       return;
     }
     _overlayState = CombatOverlayState.defeatModal;
+    if (_ticker.isActive) {
+      _ticker.stop();
+    }
 
     final bool hasActivePro =
         EntitlementService.instance.hasActivePro ||
@@ -507,7 +531,7 @@ class _CombatScreenState extends State<CombatScreen>
 
       // 600ms grace period so in-flight shooting taps clear, animations finish,
       // and victory fanfare plays before modal interrupts.
-      await Future.delayed(const Duration(milliseconds: 600));
+      await _awaitGracePeriod(const Duration(milliseconds: 600));
       if (!mounted || _overlayState != CombatOverlayState.victoryGrace) {
         return;
       }
@@ -541,6 +565,9 @@ class _CombatScreenState extends State<CombatScreen>
       return;
     }
     _overlayState = CombatOverlayState.victoryModal;
+    if (_ticker.isActive) {
+      _ticker.stop();
+    }
 
     final currentSector = _activeSector;
     final score = _coordinator.dreadnought.totalScore;
@@ -672,6 +699,9 @@ class _CombatScreenState extends State<CombatScreen>
           _autoAdvanceTimer = null;
           Navigator.of(dialogContext).pop();
           _overlayState = CombatOverlayState.victoryReview;
+          if (_ticker.isActive) {
+            _ticker.stop();
+          }
           if (mounted) setState(() {});
         },
       ),
@@ -789,6 +819,8 @@ class _CombatScreenState extends State<CombatScreen>
       return;
     }
     _overlayState = CombatOverlayState.settings;
+    final wasTicking = _ticker.isTicking;
+    if (wasTicking) _ticker.stop();
 
     _dialogCoordinator.showSettings(
       context: context,
@@ -904,7 +936,10 @@ class _CombatScreenState extends State<CombatScreen>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _gracePeriodTimer?.cancel();
+    _gracePeriodTimer = null;
     _autoAdvanceTimer?.cancel();
+    _autoAdvanceTimer = null;
     _ticker.dispose();
     _renderNotifier.dispose();
     _directiveNotifier.dispose();

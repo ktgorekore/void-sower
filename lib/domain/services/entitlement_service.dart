@@ -165,6 +165,7 @@ class EntitlementService extends ChangeNotifier {
       isEmergencyFlare: false,
     );
     if (success) {
+      grantStackableBoost();
       if (feature != null) {
         grantTemporaryPass(feature);
       }

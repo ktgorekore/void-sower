@@ -16,7 +16,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../domain/services/ad_service.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
@@ -78,7 +77,7 @@ class _ProBoostModalState extends State<ProBoostModal> {
     HapticService.instance.injectionClick();
     setState(() => _isLoading = true);
 
-    final success = await AdService.instance.showRewardedAd();
+    final success = await EntitlementService.instance.unlockWithRewardedAd();
 
     if (mounted) {
       setState(() => _isLoading = false);

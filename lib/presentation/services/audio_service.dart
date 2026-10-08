@@ -91,58 +91,6 @@ class AudioService {
     }
   }
 
-  /// Generates a compliant 16-bit PCM mono 8000 Hz silent WAV byte buffer in-memory.
-  ///
-  /// Used by [_bgmPlayer] as an active audio carrier with [gameAudioContext]
-  /// ([AndroidAudioFocus.gain]), which instructs Android's native AudioManager to
-  /// grant exclusive audio focus and pause background media (e.g. YouTube, Spotify, Podcasts).
-  static Uint8List _buildSilentWavBytes({
-    int durationMs = 200,
-    int sampleRate = 8000,
-  }) {
-    final numSamples = (sampleRate * durationMs) ~/ 1000;
-    const numChannels = 1;
-    const bitsPerSample = 16;
-    final byteRate = sampleRate * numChannels * (bitsPerSample ~/ 8);
-    const blockAlign = numChannels * (bitsPerSample ~/ 8);
-    final dataSize = numSamples * blockAlign;
-    final totalSize = 36 + dataSize;
-
-    final bytes = ByteData(44 + dataSize);
-    // RIFF chunk descriptor
-    bytes.setUint8(0, 0x52); // 'R'
-    bytes.setUint8(1, 0x49); // 'I'
-    bytes.setUint8(2, 0x46); // 'F'
-    bytes.setUint8(3, 0x46); // 'F'
-    bytes.setUint32(4, totalSize, Endian.little);
-    bytes.setUint8(8, 0x57); // 'W'
-    bytes.setUint8(9, 0x41); // 'A'
-    bytes.setUint8(10, 0x56); // 'V'
-    bytes.setUint8(11, 0x45); // 'E'
-    // fmt subchunk
-    bytes.setUint8(12, 0x66); // 'f'
-    bytes.setUint8(13, 0x6D); // 'm'
-    bytes.setUint8(14, 0x74); // 't'
-    bytes.setUint8(15, 0x20); // ' '
-    bytes.setUint32(16, 16, Endian.little); // Subchunk1Size (16 for PCM)
-    bytes.setUint16(20, 1, Endian.little); // AudioFormat (1 for PCM)
-    bytes.setUint16(22, numChannels, Endian.little);
-    bytes.setUint32(24, sampleRate, Endian.little);
-    bytes.setUint32(28, byteRate, Endian.little);
-    bytes.setUint16(32, blockAlign, Endian.little);
-    bytes.setUint16(34, bitsPerSample, Endian.little);
-    // data subchunk
-    bytes.setUint8(36, 0x64); // 'd'
-    bytes.setUint8(37, 0x61); // 'a'
-    bytes.setUint8(38, 0x74); // 't'
-    bytes.setUint8(39, 0x61); // 'a'
-    bytes.setUint32(40, dataSize, Endian.little);
-    // Audio samples remain zeroed by ByteData allocation
-    return bytes.buffer.asUint8List();
-  }
-
-  static final Uint8List _silentWavBytes = _buildSilentWavBytes();
-
   /// Game audio context configured to request exclusive audio focus across
   /// Android (gain focus, usage game, music content) and iOS (soloAmbient session).
   ///
@@ -439,16 +387,7 @@ class AudioService {
       await _bgmPlayer!.setVolume(bgmVolume);
       await _bgmPlayer!.resume();
     } catch (e) {
-      debugPrint('[AudioService] startBgm fallback: $e');
-      if (isAudioActive && !_isTestMode) {
-        try {
-          await _bgmPlayer!.setAudioContext(gameAudioContext);
-          await _bgmPlayer!.setReleaseMode(ReleaseMode.loop);
-          await _bgmPlayer!.setSource(BytesSource(_silentWavBytes));
-          await _bgmPlayer!.setVolume(0.01);
-          await _bgmPlayer!.resume();
-        } catch (_) {}
-      }
+      debugPrint('[AudioService] startBgm failed to play $assetPath: $e');
     }
   }
 

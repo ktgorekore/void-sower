@@ -19,9 +19,29 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../config/ad_config.dart';
-import 'entitlement_service.dart';
 import 'persistence_service.dart';
 import 'privacy_service.dart';
+
+/// Discrete lifecycle states for rewarded advertisement management.
+enum AdLifecycleState {
+  /// AdMob SDK has not yet been initialized.
+  uninitialized,
+
+  /// SDK is initialized; no ad is currently cached or loading.
+  idle,
+
+  /// Rewarded ad request is in flight across the network.
+  loading,
+
+  /// Rewarded ad is pre-cached and ready for immediate display.
+  ready,
+
+  /// Ad is actively displaying full-screen video over the app viewport.
+  showing,
+
+  /// Ad load or playback encountered an unrecoverable error.
+  error,
+}
 
 /// Service managing optional rewarded advertisements with smart frequency capping.
 class AdService {
@@ -30,15 +50,18 @@ class AdService {
 
   DateTime? _lastEmergencyFlareTime;
   RewardedAd? _rewardedAd;
-  bool _isAdLoading = false;
-  bool _initialized = false;
+  AdLifecycleState _lifecycleState = AdLifecycleState.uninitialized;
   bool _simulateMobileForTesting = false;
   Completer<RewardedAd?>? _loadingCompleter;
+
+  /// Current ad lifecycle state.
+  AdLifecycleState get lifecycleState => _lifecycleState;
 
   /// Resets the rewarded ad cooldown timer for unit tests.
   @visibleForTesting
   void resetCooldownForTesting() {
     _lastEmergencyFlareTime = null;
+    _lifecycleState = AdLifecycleState.idle;
   }
 
   /// Sets whether the service simulates a mobile platform environment for unit testing.
@@ -51,17 +74,26 @@ class AdService {
   @visibleForTesting
   void setRewardedAdForTesting(RewardedAd? ad) {
     _rewardedAd = ad;
+    _lifecycleState = ad != null
+        ? AdLifecycleState.ready
+        : AdLifecycleState.idle;
+  }
+
+  /// Sets lifecycle state explicitly for unit tests.
+  @visibleForTesting
+  void setLifecycleStateForTesting(AdLifecycleState state) {
+    _lifecycleState = state;
   }
 
   /// Initializes AdMob SDK and pre-loads the initial rewarded ad with timeout protection.
   Future<void> initialize({
     Duration timeoutDuration = const Duration(seconds: 3),
   }) async {
-    if (_initialized) return;
-    _initialized = true;
+    if (_lifecycleState != AdLifecycleState.uninitialized) return;
 
     if (PersistenceService.instance.areAdsDisabled) {
       debugPrint('[AdService] Ads suppressed via configuration.');
+      _lifecycleState = AdLifecycleState.idle;
       return;
     }
 
@@ -74,10 +106,14 @@ class AdService {
             return InitializationStatus({});
           },
         );
-        loadRewardedAd();
+        _lifecycleState = AdLifecycleState.idle;
+        unawaited(loadRewardedAd());
       } catch (e) {
         debugPrint('[AdService] MobileAds init error: $e');
+        _lifecycleState = AdLifecycleState.error;
       }
+    } else {
+      _lifecycleState = AdLifecycleState.idle;
     }
   }
 
@@ -98,21 +134,28 @@ class AdService {
   }
 
   /// Asynchronously loads and caches a rewarded advertisement.
+  /// Guarantees single-flight loading across concurrent callers.
   Future<RewardedAd?> loadRewardedAd() {
     if (PersistenceService.instance.areAdsDisabled) {
       return Future.value(null);
     }
+    if (_lifecycleState == AdLifecycleState.showing) {
+      debugPrint('[AdService] Cannot load ad while another ad is showing.');
+      return Future.value(null);
+    }
     if (_rewardedAd != null) {
+      _lifecycleState = AdLifecycleState.ready;
       return Future.value(_rewardedAd);
     }
-    if (_isAdLoading && _loadingCompleter != null) {
+    if (_lifecycleState == AdLifecycleState.loading &&
+        _loadingCompleter != null) {
       return _loadingCompleter!.future;
     }
     if (!Platform.isAndroid && !Platform.isIOS) {
       return Future.value(null);
     }
 
-    _isAdLoading = true;
+    _lifecycleState = AdLifecycleState.loading;
     _loadingCompleter = Completer<RewardedAd?>();
 
     RewardedAd.load(
@@ -122,7 +165,7 @@ class AdService {
         onAdLoaded: (ad) {
           debugPrint('[AdService] RewardedAd loaded successfully.');
           _rewardedAd = ad;
-          _isAdLoading = false;
+          _lifecycleState = AdLifecycleState.ready;
           if (_loadingCompleter != null && !_loadingCompleter!.isCompleted) {
             _loadingCompleter!.complete(ad);
           }
@@ -130,7 +173,7 @@ class AdService {
         onAdFailedToLoad: (error) {
           debugPrint('[AdService] RewardedAd failed to load: $error');
           _rewardedAd = null;
-          _isAdLoading = false;
+          _lifecycleState = AdLifecycleState.error;
           if (_loadingCompleter != null && !_loadingCompleter!.isCompleted) {
             _loadingCompleter!.complete(null);
           }
@@ -146,16 +189,20 @@ class AdService {
   /// If [isEmergencyFlare] is true, enforces the 3-minute emergency cooldown.
   /// User-initiated feature unlock passes never suffer from emergency flare cooldowns.
   /// Returns `true` if the reward was earned, `false` otherwise.
+  /// Note: This method decouples reward presentation from Pro Boost grants;
+  /// calling features are responsible for awarding specific perks.
   Future<bool> showRewardedAd({bool isEmergencyFlare = false}) async {
+    // Single-flight guard: prevent concurrent ad presentations
+    if (_lifecycleState == AdLifecycleState.showing) {
+      debugPrint('[AdService] RewardedAd presentation already in-flight.');
+      return false;
+    }
+
     // Pro commander privilege or explicit suppression: instant pass without ads
     if (PersistenceService.instance.isProUnlocked ||
         PersistenceService.instance.areAdsDisabled) {
       if (isEmergencyFlare) {
         _lastEmergencyFlareTime = DateTime.now();
-      }
-      if (PersistenceService.instance.areAdsDisabled &&
-          !PersistenceService.instance.isProUnlocked) {
-        EntitlementService.instance.grantStackableBoost();
       }
       return true;
     }
@@ -170,7 +217,6 @@ class AdService {
       if (isEmergencyFlare) {
         _lastEmergencyFlareTime = DateTime.now();
       }
-      EntitlementService.instance.grantStackableBoost();
       return true;
     }
 
@@ -195,10 +241,12 @@ class AdService {
       debugPrint(
         '[AdService] No ad available; cannot grant reward without viewing.',
       );
+      _lifecycleState = AdLifecycleState.error;
       unawaited(loadRewardedAd());
       return false;
     }
 
+    _lifecycleState = AdLifecycleState.showing;
     final completer = Completer<bool>();
     var rewardEarned = false;
 
@@ -212,6 +260,7 @@ class AdService {
         );
         ad.dispose();
         _rewardedAd = null;
+        _lifecycleState = AdLifecycleState.idle;
         unawaited(loadRewardedAd());
         if (!completer.isCompleted) {
           completer.complete(rewardEarned);
@@ -221,6 +270,7 @@ class AdService {
         debugPrint('[AdService] RewardedAd playback error: $error');
         ad.dispose();
         _rewardedAd = null;
+        _lifecycleState = AdLifecycleState.error;
         unawaited(loadRewardedAd());
         if (!completer.isCompleted) {
           completer.complete(false);
@@ -243,10 +293,6 @@ class AdService {
       _lastEmergencyFlareTime = DateTime.now();
     }
 
-    final result = await completer.future;
-    if (result) {
-      EntitlementService.instance.grantStackableBoost();
-    }
-    return result;
+    return completer.future;
   }
 }

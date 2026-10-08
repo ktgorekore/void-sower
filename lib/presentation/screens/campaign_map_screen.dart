@@ -34,6 +34,7 @@ import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/tactical_directives_modal.dart';
 import '../widgets/tactile_button.dart';
+import '../../main.dart';
 import 'combat_screen.dart';
 import 'simulation_lab_screen.dart';
 
@@ -62,12 +63,17 @@ class CampaignMapScreen extends StatefulWidget {
 }
 
 class _CampaignMapScreenState extends State<CampaignMapScreen>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   late String _activeCampaignId;
   late List<CampaignSector> _sectors;
   String _selectedChassisId = 'mk1_bastion';
   Timer? _boostCountdownTimer;
   StarmapViewMode _activeViewMode = StarmapViewMode.campaign;
+
+  /// Visible for testing to verify timer suspension on route push.
+  @visibleForTesting
+  bool get isBoostTimerActive =>
+      _boostCountdownTimer != null && _boostCountdownTimer!.isActive;
 
   @override
   void initState() {
@@ -88,11 +94,39 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final modalRoute = ModalRoute.of(context);
+    if (modalRoute != null) {
+      routeObserver.subscribe(this, modalRoute);
+    }
+  }
+
+  @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _boostCountdownTimer?.cancel();
+    _boostCountdownTimer = null;
     EntitlementService.instance.removeListener(_onEntitlementChanged);
     super.dispose();
+  }
+
+  @override
+  void didPushNext() {
+    // Screen is covered by a newly pushed route (such as CombatScreen);
+    // pause countdown timer to conserve battery and eliminate invisible rebuilds.
+    _boostCountdownTimer?.cancel();
+    _boostCountdownTimer = null;
+  }
+
+  @override
+  void didPopNext() {
+    // Screen is revealed again after top route is popped
+    if (mounted) {
+      _startBoostTimerIfNeeded();
+      setState(() {});
+    }
   }
 
   @override
