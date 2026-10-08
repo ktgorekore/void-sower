@@ -32,7 +32,7 @@
     <g transform="translate(254, 10)">
       <rect x="0" y="0" width="106" height="26" rx="13" fill="#032541" stroke="#00f0ff" stroke-width="1" />
       <circle cx="14" cy="13" r="5" fill="#00f0ff" />
-      <text x="26" y="17" fill="#e0f2fe" font-size="8.5" font-weight="800">ENGINE v0.2.36</text>
+      <text x="26" y="17" fill="#e0f2fe" font-size="8.5" font-weight="800">ENGINE v0.3.0</text>
     </g>
 
     <!-- Progress Track -->

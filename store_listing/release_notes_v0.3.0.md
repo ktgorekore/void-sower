@@ -75,10 +75,12 @@
 ---
 
 ### Internal Engineering Notes (Build 40)
+- **UX 3.0 Interface Overhaul:** Redesigned top HUD header (`SlimlineHudHeader`) to span 100% horizontal width across all device viewports (phone and tablet) with vertically and horizontally aligned stat capsules. Redesigned `MancalaBatteryDockWidget`, `CampaignMapScreen` with multi-theater tabs (`sectors.svg`), `FleetHangarDialog` (`fleet_hangar.svg`), `ProfileModal` (`pilot_profile.svg`), `SettingsModal` (`settings.svg`), `PauseMenuDialog` and `ProUpgradeModal` (`pause_and_modals.svg`).
 - **3D Spatial Simulation:** Implemented concentric horizon depth rings (`APOGEE HORIZON Z: +40km`, `MID-COMBAT HORIZON Z: +20km`, `FORWARD ENGAGE HORIZON Z: +10km`) and ground projection anchor ring in `CombatPainter`.
-- **Bow-Aligned Firing Pod:** Refactored conduit projectile origin and lock-on HUD in `CommandArcWidget` and `CombatPainter` to originate at the dreadnought's front prow.
+- **Bow-Aligned Axial Particle Lance:** Refactored conduit projectile origin and lock-on HUD in `CommandArcWidget` and `CombatPainter` to originate at the dreadnought's front prow with dynamic proximity scaling up to +60%.
 - **Invader Meshes:** Inverted enemy craft flight angles to face down towards the player dreadnought with descending engine plumes and health tracking.
 - **Universal Advisory Bar:** Converted Pro-exclusive floating advice bar to a subtle, fixed 20dp status strip (`TACTICAL AI SCANNING CORRIDORS... STANDBY`) ensuring zero layout jumping.
 - **Frictionless Pause & Resumption:** Reworked `PauseMenuDialog` and `CombatScreen` lifecycle to unfreeze ticker loops cleanly upon settings return and resume taps.
 - **Respectful Defeat Flow:** Removed mid-game 8-core popup dialogs; implemented honest `ORBITAL BREACH` screen with instant Retry or Star Map return.
-- **Brand Identity & Media:** Revamped 512x512 app icon, Android launcher mipmaps, 1024x500 feature graphic, 6 native 1344x2992 store screenshots, and 24s 60 FPS gameplay showcase video.
+- **Audio & Media Remaster:** Synthesized atmospheric C-minor sci-fi ambient synth background soundtrack; synchronized in-game combat sound effects; remastered 30s 1080x2400 showcase MP4 videos and preview GIFs.
+- **Storefront & Asset Verification:** Recaptured all 9 phone screenshots (1344x2992) and 6 tablet screenshots (1600x2560) free of ad overlays or login prompts with 100% passing tests (329/329 green).
