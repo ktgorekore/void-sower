@@ -44,6 +44,14 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
   void initState() {
     super.initState();
     _activeId = widget.selectedChassisId;
+    if (_activeId == 'mk2_monsoon') {
+      _activeClassTab = 1;
+    } else if (_activeId == 'mk3_singularity' ||
+        _activeId == 'mk4_golden_sovereign') {
+      _activeClassTab = 2;
+    } else {
+      _activeClassTab = 0;
+    }
     _chassisList = FleetService.instance.getChassisList();
   }
 
@@ -141,10 +149,18 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
 
                   // Secondary Ship Cards List
                   ..._chassisList.map((chassis) {
-                    final isEquipped = chassis.chassisId == _activeId;
+                    final isEquipped =
+                        chassis.chassisId == widget.selectedChassisId;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10.0),
-                      child: _buildChassisCard(chassis, isEquipped),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          HapticService.instance.sowTick();
+                          setState(() => _activeId = chassis.chassisId);
+                        },
+                        child: _buildChassisCard(chassis, isEquipped),
+                      ),
                     );
                   }),
                 ],
@@ -322,7 +338,16 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   HapticService.instance.sowTick();
-                  setState(() => _activeClassTab = i);
+                  setState(() {
+                    _activeClassTab = i;
+                    if (i == 0) {
+                      _activeId = 'mk1_bastion';
+                    } else if (i == 1) {
+                      _activeId = 'mk2_monsoon';
+                    } else if (i == 2) {
+                      _activeId = 'mk3_singularity';
+                    }
+                  });
                 },
                 child: Container(
                   height: 32.0,
@@ -368,6 +393,41 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
   }
 
   Widget _buildHologramHeroCard(FleetChassis chassis) {
+    Color classAccent;
+    IconData classIcon;
+    String classRole;
+    String classCode;
+
+    switch (chassis.chassisId) {
+      case 'mk1_bastion':
+        classAccent = const Color(0xFF00F0FF);
+        classIcon = Icons.rocket_launch;
+        classRole = 'Light Lateral Interceptor • Class A Flagship';
+        classCode = 'INTERCEPTOR';
+        break;
+      case 'mk2_monsoon':
+        classAccent = const Color(0xFFF59E0B);
+        classIcon = Icons.shield_outlined;
+        classRole = 'Heavy Orbital Siege-Dreadnought • Fortified Armor';
+        classCode = 'SIEGE DREAD';
+        break;
+      case 'mk3_singularity':
+        classAccent = const Color(0xFFA855F7);
+        classIcon = Icons.auto_awesome;
+        classRole = 'Classified Graviton Flagship • Pro Black-Ops Chassis';
+        classCode = 'PHANTOM OPS';
+        break;
+      case 'mk4_golden_sovereign':
+      default:
+        classAccent = const Color(0xFFFBBF24);
+        classIcon = Icons.military_tech;
+        classRole = 'Gilded Solar Lattice Flagship • Radiant Antimatter Trails';
+        classCode = 'DIVINE SOVEREIGN';
+        break;
+    }
+
+    final isEquipped = chassis.chassisId == widget.selectedChassisId;
+
     return Container(
       padding: const EdgeInsets.all(18.0),
       decoration: BoxDecoration(
@@ -377,10 +437,10 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(18.0),
-        border: Border.all(color: const Color(0xFF00F0FF), width: 1.5),
+        border: Border.all(color: classAccent, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00F0FF).withValues(alpha: 0.2),
+            color: classAccent.withValues(alpha: 0.2),
             blurRadius: 20.0,
           ),
         ],
@@ -403,22 +463,20 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      Icons.rocket_launch,
-                      color: const Color(0xFF00F0FF),
+                      classIcon,
+                      color: classAccent,
                       size: 48.0,
-                      shadows: const [
-                        Shadow(color: Color(0xFF00F0FF), blurRadius: 16.0),
-                      ],
+                      shadows: [Shadow(color: classAccent, blurRadius: 16.0)],
                     ),
                     const SizedBox(height: 4.0),
                     Container(
                       width: 40.0,
                       height: 4.0,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF00F0FF),
+                        color: classAccent,
                         borderRadius: BorderRadius.circular(2.0),
-                        boxShadow: const [
-                          BoxShadow(color: Color(0xFF00F0FF), blurRadius: 8.0),
+                        boxShadow: [
+                          BoxShadow(color: classAccent, blurRadius: 8.0),
                         ],
                       ),
                     ),
@@ -439,13 +497,21 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
                   vertical: 3.5,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0284C7),
+                  color: isEquipped
+                      ? const Color(0xFF0284C7)
+                      : const Color(0xFF0F172A),
                   borderRadius: BorderRadius.circular(9.0),
+                  border: Border.all(
+                    color: isEquipped
+                        ? const Color(0xFF00F0FF)
+                        : const Color(0xFF1E293B),
+                    width: 1.0,
+                  ),
                 ),
-                child: const Text(
-                  'ACTIVE VESSEL',
+                child: Text(
+                  isEquipped ? 'ACTIVE VESSEL' : 'INSPECTION VIEW',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isEquipped ? Colors.white : const Color(0xFF94A3B8),
                     fontSize: 8.5,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
@@ -460,15 +526,12 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
                 decoration: BoxDecoration(
                   color: const Color(0xFF032541),
                   borderRadius: BorderRadius.circular(9.0),
-                  border: Border.all(
-                    color: const Color(0xFF00F0FF),
-                    width: 1.0,
-                  ),
+                  border: Border.all(color: classAccent, width: 1.0),
                 ),
-                child: const Text(
-                  'DRYDOCK HOLOGRAM',
+                child: Text(
+                  classCode,
                   style: TextStyle(
-                    color: Color(0xFF00F0FF),
+                    color: classAccent,
                     fontSize: 8.0,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
@@ -478,9 +541,9 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
             ],
           ),
           const SizedBox(height: 8.0),
-          const Text(
-            'VANGUARD NX-1',
-            style: TextStyle(
+          Text(
+            chassis.name.toUpperCase(),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 17.0,
               fontWeight: FontWeight.w900,
@@ -488,9 +551,9 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
             ),
           ),
           const SizedBox(height: 2.0),
-          const Text(
-            'Light Lateral Interceptor • Class A Flagship',
-            style: TextStyle(
+          Text(
+            classRole,
+            style: const TextStyle(
               color: Color(0xFF94A3B8),
               fontSize: 10.0,
               height: 1.35,
@@ -506,7 +569,7 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
                   label: 'CAPACITOR',
                   value: '${chassis.coreCapacity} BAYS',
                   fraction: (chassis.coreCapacity / 48.0).clamp(0.0, 1.0),
-                  meterColor: const Color(0xFF0284C7),
+                  meterColor: classAccent,
                 ),
               ),
               const SizedBox(width: 8.0),
