@@ -24,6 +24,7 @@ import 'consent_preferences_dialog.dart';
 import 'legal_dialogs.dart';
 import 'pro_upgrade_modal.dart';
 import 'tactical_directives_modal.dart';
+import 'tactile_button.dart';
 
 /// Centralized settings and preferences modal redesigned to strictly match
 /// the UX 3.0 vector specification (docs/design/ux-3.0/settings.svg).
@@ -1456,52 +1457,155 @@ class _SettingsModalState extends State<SettingsModal>
   }
 
   void _confirmWipeData() {
+    HapticService.instance.sowTick();
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        title: const Text(
-          'WIPE ALL SAVED DATA?',
-          style: TextStyle(
-            color: Color(0xFFF43F5E),
-            fontSize: 14.0,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.0,
-          ),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 24.0,
         ),
-        content: const Text(
-          'This will permanently reset all campaign stars, liberated sectors, chassis unlocks, high scores, and local telemetry.',
-          style: TextStyle(color: Color(0xFFCBD5E1), fontSize: 11.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: Color(0xFF94A3B8)),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE11D48),
-            ),
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              await PersistenceService.instance.wipeAllData();
-              widget.onDataWiped?.call();
-              if (mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-            child: const Text(
-              'CONFIRM WIPE',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420.0),
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(18.0),
+            border: Border.all(color: const Color(0xFFF43F5E), width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x66000000),
+                blurRadius: 20.0,
+                offset: Offset(0, 6),
               ),
-            ),
+              BoxShadow(
+                color: Color(0x33F43F5E),
+                blurRadius: 16.0,
+                spreadRadius: -2,
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    width: 36.0,
+                    height: 36.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0x22F43F5E),
+                      border: Border.all(
+                        color: const Color(0xFFF43F5E),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Color(0xFFF43F5E),
+                      size: 20.0,
+                    ),
+                  ),
+                  const SizedBox(width: 12.0),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'CRITICAL PURGE DIRECTIVE',
+                          style: TextStyle(
+                            color: Color(0xFFF43F5E),
+                            fontSize: 9.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        SizedBox(height: 2.0),
+                        Text(
+                          'WIPE ALL SAVED DATA?',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12.0),
+              // 4px neon track
+              Container(
+                height: 3.0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF43F5E),
+                  borderRadius: BorderRadius.circular(1.5),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x80F43F5E), blurRadius: 6.0),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14.0),
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF070C18),
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                    color: const Color(0xFF1E293B),
+                    width: 1.0,
+                  ),
+                ),
+                child: const Text(
+                  'This will permanently reset all campaign stars, liberated sectors, chassis unlocks, high scores, and local telemetry. This action cannot be undone.',
+                  style: TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: TactileButton(
+                      label: 'CANCEL',
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      accentColor: const Color(0xFF64748B),
+                      height: 42.0,
+                      isPrimary: false,
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  Expanded(
+                    child: TactileButton(
+                      label: 'CONFIRM WIPE',
+                      icon: Icons.delete_forever,
+                      onPressed: () async {
+                        HapticService.instance.injectionClick();
+                        Navigator.of(ctx).pop();
+                        await PersistenceService.instance.wipeAllData();
+                        widget.onDataWiped?.call();
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                      accentColor: const Color(0xFFF43F5E),
+                      height: 42.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

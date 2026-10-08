@@ -87,89 +87,156 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                 outcome.errorMessage?.contains('not found') == true)) {
           final simulate = await showDialog<bool>(
             context: context,
-            builder: (ctx) => AlertDialog(
-              backgroundColor: VoidTheme.obsidianBlack,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: VoidTheme.solarGold, width: 1.5),
+            builder: (ctx) => Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 24.0,
               ),
-              title: const Row(
-                children: [
-                  Icon(
-                    Icons.developer_mode,
-                    color: VoidTheme.solarGold,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'DEBUG EMULATOR SANDBOX',
-                    style: TextStyle(
-                      color: VoidTheme.solarGold,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'monospace',
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 420.0),
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(18.0),
+                  border: Border.all(color: VoidTheme.solarGold, width: 1.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x66000000),
+                      blurRadius: 20.0,
+                      offset: Offset(0, 6),
                     ),
-                  ),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Google Play Billing is unavailable on this emulator or test device (no Google account signed in).\n\nWould you like to simulate a successful Pro Commander purchase for testing?',
-                    style: TextStyle(
-                      color: VoidTheme.textPrimary,
-                      fontSize: 12,
-                      height: 1.4,
+                    BoxShadow(
+                      color: Color(0x33F59E0B),
+                      blurRadius: 16.0,
+                      spreadRadius: -2,
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: VoidTheme.solarGold.withValues(alpha: 0.15),
+                            border: Border.all(
+                              color: VoidTheme.solarGold,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.developer_mode,
+                            color: VoidTheme.solarGold,
+                            size: 20.0,
+                          ),
+                        ),
+                        const SizedBox(width: 12.0),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'SIMULATION ENVIRONMENT',
+                                style: TextStyle(
+                                  color: VoidTheme.solarGold,
+                                  fontSize: 9.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              SizedBox(height: 2.0),
+                              Text(
+                                'DEBUG EMULATOR SANDBOX',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    decoration: BoxDecoration(
-                      color: VoidTheme.cardSurface,
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: VoidTheme.solarGold.withValues(alpha: 0.5),
-                        width: 0.8,
+                    const SizedBox(height: 12.0),
+                    Container(
+                      height: 3.0,
+                      decoration: BoxDecoration(
+                        color: VoidTheme.solarGold,
+                        borderRadius: BorderRadius.circular(1.5),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x80F59E0B), blurRadius: 6.0),
+                        ],
                       ),
                     ),
-                    child: const Text(
-                      'SKU: void_sower_pro_lifetime (\$1.29 USD)',
+                    const SizedBox(height: 14.0),
+                    const Text(
+                      'Google Play Billing is unavailable on this emulator or test device (no Google account signed in).\n\nWould you like to simulate a successful Pro Commander purchase for testing?',
                       style: TextStyle(
-                        color: VoidTheme.plasmaCyan,
-                        fontSize: 10.5,
-                        fontFamily: 'monospace',
-                        fontWeight: FontWeight.bold,
+                        color: Color(0xFFCBD5E1),
+                        fontSize: 12.0,
+                        height: 1.4,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12.0),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10.0,
+                        vertical: 8.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF070C18),
+                        borderRadius: BorderRadius.circular(8.0),
+                        border: Border.all(
+                          color: VoidTheme.solarGold.withValues(alpha: 0.5),
+                          width: 1.0,
+                        ),
+                      ),
+                      child: const Text(
+                        'SKU: void_sower_pro_lifetime (\$1.29 USD)',
+                        style: TextStyle(
+                          color: VoidTheme.plasmaCyan,
+                          fontSize: 10.5,
+                          fontFamily: 'monospace',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18.0),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TactileButton(
+                            label: 'CANCEL',
+                            onPressed: () => Navigator.of(ctx).pop(false),
+                            accentColor: const Color(0xFF64748B),
+                            height: 42.0,
+                            isPrimary: false,
+                          ),
+                        ),
+                        const SizedBox(width: 10.0),
+                        Expanded(
+                          flex: 2,
+                          child: TactileButton(
+                            label: 'SIMULATE PURCHASE',
+                            icon: Icons.check_circle_outline,
+                            accentColor: VoidTheme.solarGold,
+                            height: 42.0,
+                            onPressed: () => Navigator.of(ctx).pop(true),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text(
-                    'CANCEL',
-                    style: TextStyle(color: VoidTheme.textSecondary),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: VoidTheme.solarGold,
-                    foregroundColor: VoidTheme.obsidianBlack,
-                  ),
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text(
-                    'SIMULATE PURCHASE',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
             ),
           );
 
@@ -198,52 +265,118 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
         } else {
           await showDialog<void>(
             context: context,
-            builder: (ctx) => AlertDialog(
-              backgroundColor: VoidTheme.obsidianBlack,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
-                  color: VoidTheme.crimsonFlare,
-                  width: 1.5,
-                ),
+            builder: (ctx) => Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 24.0,
               ),
-              title: const Row(
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: VoidTheme.crimsonFlare,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'STORE BILLING UNAVAILABLE',
-                    style: TextStyle(
-                      color: VoidTheme.crimsonFlare,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'monospace',
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 420.0),
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(18.0),
+                  border: Border.all(color: VoidTheme.crimsonFlare, width: 1.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x66000000),
+                      blurRadius: 20.0,
+                      offset: Offset(0, 6),
                     ),
-                  ),
-                ],
-              ),
-              content: Text(
-                outcome.errorMessage ??
-                    'Google Play Store billing is currently unavailable on this device. Please verify that Google Play Store is installed and signed into an active Google account.',
-                style: const TextStyle(
-                  color: VoidTheme.textPrimary,
-                  fontSize: 12,
-                  height: 1.4,
+                    BoxShadow(
+                      color: Color(0x33EF4444),
+                      blurRadius: 16.0,
+                      spreadRadius: -2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: VoidTheme.crimsonFlare.withValues(
+                              alpha: 0.15,
+                            ),
+                            border: Border.all(
+                              color: VoidTheme.crimsonFlare,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.error_outline,
+                            color: VoidTheme.crimsonFlare,
+                            size: 20.0,
+                          ),
+                        ),
+                        const SizedBox(width: 12.0),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TRANSACTION FAILURE',
+                                style: TextStyle(
+                                  color: VoidTheme.crimsonFlare,
+                                  fontSize: 9.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              SizedBox(height: 2.0),
+                              Text(
+                                'STORE BILLING UNAVAILABLE',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12.0),
+                    Container(
+                      height: 3.0,
+                      decoration: BoxDecoration(
+                        color: VoidTheme.crimsonFlare,
+                        borderRadius: BorderRadius.circular(1.5),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x80EF4444), blurRadius: 6.0),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14.0),
+                    Text(
+                      outcome.errorMessage ??
+                          'Google Play Store billing is currently unavailable on this device. Please verify that Google Play Store is installed and signed into an active Google account.',
+                      style: const TextStyle(
+                        color: Color(0xFFCBD5E1),
+                        fontSize: 12.0,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 18.0),
+                    TactileButton(
+                      label: 'DISMISS',
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      accentColor: VoidTheme.plasmaCyan,
+                      height: 42.0,
+                      isPrimary: false,
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text(
-                    'DISMISS',
-                    style: TextStyle(color: VoidTheme.plasmaCyan),
-                  ),
-                ),
-              ],
             ),
           );
         }
@@ -311,51 +444,117 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
         if (!IapService.instance.isAvailable) {
           await showDialog<void>(
             context: context,
-            builder: (ctx) => AlertDialog(
-              backgroundColor: VoidTheme.obsidianBlack,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(
-                  color: VoidTheme.crimsonFlare,
-                  width: 1.5,
-                ),
+            builder: (ctx) => Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 24.0,
               ),
-              title: const Row(
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: VoidTheme.crimsonFlare,
-                    size: 20,
-                  ),
-                  SizedBox(width: 8),
-                  Text(
-                    'STORE BILLING UNAVAILABLE',
-                    style: TextStyle(
-                      color: VoidTheme.crimsonFlare,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      fontFamily: 'monospace',
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 420.0),
+                padding: const EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(18.0),
+                  border: Border.all(color: VoidTheme.crimsonFlare, width: 1.5),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x66000000),
+                      blurRadius: 20.0,
+                      offset: Offset(0, 6),
                     ),
-                  ),
-                ],
-              ),
-              content: const Text(
-                'Google Play Store billing is currently unavailable on this device or emulator. Please verify Google Play Store is installed and signed into an active Google account.',
-                style: TextStyle(
-                  color: VoidTheme.textPrimary,
-                  fontSize: 12,
-                  height: 1.4,
+                    BoxShadow(
+                      color: Color(0x33EF4444),
+                      blurRadius: 16.0,
+                      spreadRadius: -2,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 36.0,
+                          height: 36.0,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: VoidTheme.crimsonFlare.withValues(
+                              alpha: 0.15,
+                            ),
+                            border: Border.all(
+                              color: VoidTheme.crimsonFlare,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.error_outline,
+                            color: VoidTheme.crimsonFlare,
+                            size: 20.0,
+                          ),
+                        ),
+                        const SizedBox(width: 12.0),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'TRANSACTION FAILURE',
+                                style: TextStyle(
+                                  color: VoidTheme.crimsonFlare,
+                                  fontSize: 9.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                              SizedBox(height: 2.0),
+                              Text(
+                                'STORE BILLING UNAVAILABLE',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12.0),
+                    Container(
+                      height: 3.0,
+                      decoration: BoxDecoration(
+                        color: VoidTheme.crimsonFlare,
+                        borderRadius: BorderRadius.circular(1.5),
+                        boxShadow: const [
+                          BoxShadow(color: Color(0x80EF4444), blurRadius: 6.0),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14.0),
+                    const Text(
+                      'Google Play Store billing is currently unavailable on this device or emulator. Please verify Google Play Store is installed and signed into an active Google account.',
+                      style: TextStyle(
+                        color: Color(0xFFCBD5E1),
+                        fontSize: 12.0,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 18.0),
+                    TactileButton(
+                      label: 'DISMISS',
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      accentColor: VoidTheme.plasmaCyan,
+                      height: 42.0,
+                      isPrimary: false,
+                    ),
+                  ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  child: const Text(
-                    'DISMISS',
-                    style: TextStyle(color: VoidTheme.plasmaCyan),
-                  ),
-                ),
-              ],
             ),
           );
         } else {

@@ -335,26 +335,57 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.all(22.0),
-          decoration: VoidTheme.glassmorphic(
-            borderColor: VoidTheme.solarGold,
-            borderWidth: 1.5,
-            borderRadius: 20.0,
+          padding: const EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 24.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24.0),
+            ),
+            border: Border.all(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.8),
+              width: 1.5,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x99000000),
+                blurRadius: 24.0,
+                offset: Offset(0, -4),
+              ),
+              BoxShadow(
+                color: Color(0x2BF59E0B),
+                blurRadius: 16.0,
+                spreadRadius: -2,
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Drag handle pill
+              Center(
+                child: Container(
+                  width: 36.0,
+                  height: 4.0,
+                  margin: const EdgeInsets.only(bottom: 14.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF334155),
+                    borderRadius: BorderRadius.circular(2.0),
+                  ),
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    sector.name.toUpperCase(),
-                    style: const TextStyle(
-                      color: VoidTheme.solarGold,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.0,
+                  Expanded(
+                    child: Text(
+                      sector.name.toUpperCase(),
+                      style: const TextStyle(
+                        color: VoidTheme.solarGold,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.0,
+                      ),
                     ),
                   ),
                   Row(
@@ -374,20 +405,43 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 style: const TextStyle(
                   color: VoidTheme.plasmaCyan,
                   fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
                 ),
               ),
-              const Divider(color: VoidTheme.cardSurface, height: 20.0),
-              const Text(
-                'Defend the orbital perimeter and neutralize all descending hostiles.',
-                style: TextStyle(
-                  color: VoidTheme.textSecondary,
-                  fontSize: 12.0,
-                  height: 1.35,
+              const SizedBox(height: 10.0),
+              // 3px neon track
+              Container(
+                height: 3.0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B),
+                  borderRadius: BorderRadius.circular(1.5),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x80F59E0B), blurRadius: 6.0),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20.0),
+              const SizedBox(height: 12.0),
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF070C18),
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                    color: const Color(0xFF1E293B),
+                    width: 1.0,
+                  ),
+                ),
+                child: const Text(
+                  'Defend the orbital perimeter and neutralize all descending hostiles.',
+                  style: TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 12.0,
+                    height: 1.35,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18.0),
               Row(
                 children: [
                   Expanded(
@@ -403,7 +457,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                       height: 48.0,
                     ),
                   ),
-                  const SizedBox(width: 8.0),
+                  const SizedBox(width: 10.0),
                   Expanded(
                     flex: 2,
                     child: TactileButton(
@@ -440,17 +494,43 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          padding: const EdgeInsets.all(22.0),
-          decoration: VoidTheme.glassmorphic(
-            borderColor: VoidTheme.crimsonFlare,
-            borderWidth: 1.5,
-            borderRadius: 20.0,
+          padding: const EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 24.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24.0),
+            ),
+            border: Border.all(color: VoidTheme.crimsonFlare, width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x99000000),
+                blurRadius: 24.0,
+                offset: Offset(0, -4),
+              ),
+              BoxShadow(
+                color: Color(0x2BEF4444),
+                blurRadius: 16.0,
+                spreadRadius: -2,
+              ),
+            ],
           ),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Drag handle pill
+                Center(
+                  child: Container(
+                    width: 36.0,
+                    height: 4.0,
+                    margin: const EdgeInsets.only(bottom: 14.0),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF334155),
+                      borderRadius: BorderRadius.circular(2.0),
+                    ),
+                  ),
+                ),
                 Row(
                   children: [
                     Container(
@@ -517,12 +597,24 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                     ),
                   ],
                 ),
+                const SizedBox(height: 12.0),
+                // 3px neon track
+                Container(
+                  height: 3.0,
+                  decoration: BoxDecoration(
+                    color: VoidTheme.crimsonFlare,
+                    borderRadius: BorderRadius.circular(1.5),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x80EF4444), blurRadius: 6.0),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 14.0),
                 // Clearance Node Box
                 Container(
                   padding: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
-                    color: VoidTheme.cardSurface.withValues(alpha: 0.8),
+                    color: const Color(0xFF070C18),
                     borderRadius: BorderRadius.circular(10.0),
                     border: Border.all(
                       color: sector.isProRequired
@@ -1637,61 +1729,87 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     );
   }
 
-  /// Builds the 5-tab bottom navigation bar matching the redesign mockup:
+  /// Builds the UX 3.0 floating cybernetic bottom command dock:
   /// [ SECTORS ] [ FLEET ] [ PILOT ] [ DIRECTIVES ] [ SETTINGS ]
   Widget _buildBottomNavBar() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
-      decoration: const BoxDecoration(
-        color: Color(0xFF070C18),
-        border: Border(top: BorderSide(color: Color(0xFF1E293B), width: 1.0)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavTab(
-            icon: Icons.map_outlined,
-            label: 'SECTORS',
-            isActive: true,
-            tooltip: 'Campaign Sectors',
-            onTap: () {
-              if (_activeViewMode != StarmapViewMode.campaign) {
-                HapticService.instance.sowTick();
-                setState(() {
-                  _activeViewMode = StarmapViewMode.campaign;
-                });
-              }
-            },
-          ),
-          _buildNavTab(
-            icon: Icons.rocket_launch,
-            label: 'FLEET',
-            isActive: false,
-            tooltip: 'Fleet Hangar',
-            onTap: _openHangar,
-          ),
-          _buildNavTab(
-            icon: Icons.account_circle_outlined,
-            label: 'PILOT',
-            isActive: false,
-            tooltip: 'Pilot Profile',
-            onTap: _openProfile,
-          ),
-          _buildNavTab(
-            icon: Icons.school,
-            label: 'DIRECTIVES',
-            isActive: false,
-            tooltip: 'Flight Academy',
-            onTap: _openCodex,
-          ),
-          _buildNavTab(
-            icon: Icons.settings_outlined,
-            label: 'SETTINGS',
-            isActive: false,
-            tooltip: 'Fleet Settings',
-            onTap: _openSettings,
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(10.0, 4.0, 10.0, 8.0),
+      color: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F172A).withValues(alpha: 0.95),
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x99000000),
+              blurRadius: 16.0,
+              offset: Offset(0, 4),
+            ),
+            BoxShadow(
+              color: Color(0x1F00F0FF),
+              blurRadius: 12.0,
+              spreadRadius: -2,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: _buildNavTab(
+                icon: Icons.map_outlined,
+                label: 'SECTORS',
+                isActive: true,
+                tooltip: 'Campaign Sectors',
+                onTap: () {
+                  if (_activeViewMode != StarmapViewMode.campaign) {
+                    HapticService.instance.sowTick();
+                    setState(() {
+                      _activeViewMode = StarmapViewMode.campaign;
+                    });
+                  }
+                },
+              ),
+            ),
+            Expanded(
+              child: _buildNavTab(
+                icon: Icons.rocket_launch,
+                label: 'FLEET',
+                isActive: false,
+                tooltip: 'Fleet Hangar',
+                onTap: _openHangar,
+              ),
+            ),
+            Expanded(
+              child: _buildNavTab(
+                icon: Icons.account_circle_outlined,
+                label: 'PILOT',
+                isActive: false,
+                tooltip: 'Pilot Profile',
+                onTap: _openProfile,
+              ),
+            ),
+            Expanded(
+              child: _buildNavTab(
+                icon: Icons.school,
+                label: 'DIRECTIVES',
+                isActive: false,
+                tooltip: 'Flight Academy',
+                onTap: _openCodex,
+              ),
+            ),
+            Expanded(
+              child: _buildNavTab(
+                icon: Icons.settings_outlined,
+                label: 'SETTINGS',
+                isActive: false,
+                tooltip: 'Fleet Settings',
+                onTap: _openSettings,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1703,49 +1821,73 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     required String tooltip,
     required VoidCallback onTap,
   }) {
-    final color = isActive ? const Color(0xFF00E5FF) : const Color(0xFF64748B);
+    const activeColor = Color(0xFF00F0FF);
+    const inactiveColor = Color(0xFF64748B);
 
     return Tooltip(
       message: tooltip,
-      child: InkWell(
-        onTap: () {
-          HapticService.instance.sowTick();
-          onTap();
-        },
-        borderRadius: BorderRadius.circular(8.0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 20.0),
-              const SizedBox(height: 3.0),
-              Text(
-                label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            HapticService.instance.sowTick();
+            onTap();
+          },
+          borderRadius: BorderRadius.circular(12.0),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48.0),
+            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 5.0),
+            decoration: isActive
+                ? BoxDecoration(
+                    color: const Color(0x1F00F0FF),
+                    borderRadius: BorderRadius.circular(12.0),
+                    border: Border.all(
+                      color: const Color(0x5500F0FF),
+                      width: 1.0,
+                    ),
+                  )
+                : null,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: isActive ? activeColor : inactiveColor,
+                  size: isActive ? 20.0 : 19.0,
                 ),
-              ),
-              const SizedBox(height: 3.0),
-              Container(
-                height: 2.5,
-                width: 28.0,
-                decoration: BoxDecoration(
-                  color: isActive
-                      ? const Color(0xFF00E5FF)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(1.2),
-                  boxShadow: isActive
-                      ? const [
-                          BoxShadow(color: Color(0x9900E5FF), blurRadius: 4.0),
-                        ]
-                      : null,
+                const SizedBox(height: 3.0),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: isActive ? Colors.white : inactiveColor,
+                    fontSize: 8.5,
+                    fontWeight: isActive ? FontWeight.w900 : FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 3.0),
+                Container(
+                  height: 3.0,
+                  width: isActive ? 22.0 : 6.0,
+                  decoration: BoxDecoration(
+                    color: isActive ? activeColor : const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(1.5),
+                    boxShadow: isActive
+                        ? const [
+                            BoxShadow(
+                              color: Color(0x9900F0FF),
+                              blurRadius: 6.0,
+                              spreadRadius: 0.5,
+                            ),
+                          ]
+                        : null,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

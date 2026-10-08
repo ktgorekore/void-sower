@@ -61,97 +61,197 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => StatefulBuilder(
-          builder: (ctx, setModalState) => AlertDialog(
-            backgroundColor: const Color(0xFF0F172A),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18.0),
-              side: BorderSide(
-                color: const Color(0xFF00F0FF).withValues(alpha: 0.6),
-                width: 1.2,
-              ),
+          builder: (ctx, setModalState) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 24.0,
             ),
-            title: const Text(
-              'RESTORE TELEMETRY SAVE',
-              style: TextStyle(
-                color: Color(0xFFFBBF24),
-                fontSize: 14.0,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.0,
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Paste your base64 encoded save string with embedded checksum verification.',
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.0),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 420.0),
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(18.0),
+                border: Border.all(
+                  color: const Color(0xFF00F0FF).withValues(alpha: 0.8),
+                  width: 1.5,
                 ),
-                const SizedBox(height: 12.0),
-                TextField(
-                  controller: controller,
-                  maxLines: 4,
-                  style: const TextStyle(color: Colors.white, fontSize: 12.0),
-                  decoration: InputDecoration(
-                    hintText: 'Paste export payload...',
-                    hintStyle: const TextStyle(color: Color(0xFF475569)),
-                    errorText: errorText,
-                    filled: true,
-                    fillColor: const Color(0xFF070C18),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: const BorderSide(color: Color(0xFF1E293B)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: const BorderSide(color: Color(0xFF00F0FF)),
-                    ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x66000000),
+                    blurRadius: 20.0,
+                    offset: Offset(0, 6),
                   ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                child: const Text(
-                  'CANCEL',
-                  style: TextStyle(color: Color(0xFF64748B)),
-                ),
-                onPressed: () => Navigator.of(dialogContext).pop(),
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF59E0B),
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                  BoxShadow(
+                    color: Color(0x3300F0FF),
+                    blurRadius: 16.0,
+                    spreadRadius: -2,
                   ),
-                ),
-                child: const Text('RESTORE'),
-                onPressed: () async {
-                  final success = await _persistence.importSaveJson(
-                    controller.text,
-                  );
-                  if (success) {
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                    _refresh();
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Save telemetry successfully restored.',
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 36.0,
+                        height: 36.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0x2200F0FF),
+                          border: Border.all(
+                            color: const Color(0xFF00F0FF),
+                            width: 1.5,
                           ),
                         ),
-                      );
-                    }
-                  } else {
-                    setModalState(() {
-                      errorText = 'Invalid or corrupted save payload';
-                    });
-                  }
-                },
+                        child: const Icon(
+                          Icons.settings_backup_restore,
+                          color: Color(0xFF00F0FF),
+                          size: 20.0,
+                        ),
+                      ),
+                      const SizedBox(width: 12.0),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'TELEMETRY INGESTION',
+                              style: TextStyle(
+                                color: Color(0xFF38BDF8),
+                                fontSize: 9.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            SizedBox(height: 2.0),
+                            Text(
+                              'RESTORE TELEMETRY SAVE',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12.0),
+                  // 4px neon track
+                  Container(
+                    height: 3.0,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00F0FF),
+                      borderRadius: BorderRadius.circular(1.5),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x8000F0FF), blurRadius: 6.0),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14.0),
+                  const Text(
+                    'Paste your base64 encoded save string with embedded checksum verification:',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.0),
+                  ),
+                  const SizedBox(height: 10.0),
+                  TextField(
+                    controller: controller,
+                    maxLines: 4,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11.5,
+                      fontFamily: 'monospace',
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Paste export payload...',
+                      hintStyle: const TextStyle(color: Color(0xFF475569)),
+                      errorText: errorText,
+                      filled: true,
+                      fillColor: const Color(0xFF070C18),
+                      contentPadding: const EdgeInsets.all(12.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: const BorderSide(color: Color(0xFF00F0FF)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 42.0),
+                            backgroundColor: const Color(
+                              0xFF1E293B,
+                            ).withValues(alpha: 0.5),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                              side: const BorderSide(
+                                color: Color(0xFF334155),
+                                width: 1.0,
+                              ),
+                            ),
+                          ),
+                          child: const Text(
+                            'CANCEL',
+                            style: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10.0),
+                      Expanded(
+                        child: TactileButton(
+                          label: 'RESTORE',
+                          icon: Icons.cloud_download,
+                          onPressed: () async {
+                            final success = await _persistence.importSaveJson(
+                              controller.text,
+                            );
+                            if (success) {
+                              if (dialogContext.mounted) {
+                                Navigator.of(dialogContext).pop();
+                              }
+                              _refresh();
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Save telemetry successfully restored.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } else {
+                              setModalState(() {
+                                errorText = 'Invalid or corrupted save payload';
+                              });
+                            }
+                          },
+                          accentColor: const Color(0xFFF59E0B),
+                          height: 42.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       );
@@ -164,45 +264,143 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
     HapticService.instance.sowTick();
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18.0),
-          side: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
+      builder: (dialogContext) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 16.0,
+          vertical: 24.0,
         ),
-        title: const Text(
-          'ERASE GUEST TELEMETRY?',
-          style: TextStyle(
-            color: Color(0xFFEF4444),
-            fontSize: 14.0,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.0,
-          ),
-        ),
-        content: const Text(
-          'This will permanently reset all campaign stars, personal scores, streaks, and unlocked chassis. This action cannot be undone under GDPR privacy mandates.',
-          style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13.0),
-        ),
-        actions: [
-          TextButton(
-            child: const Text(
-              'CANCEL',
-              style: TextStyle(color: Color(0xFF64748B)),
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420.0),
+          padding: const EdgeInsets.all(20.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(18.0),
+            border: Border.all(color: const Color(0xFFEF4444), width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x66000000),
+                blurRadius: 20.0,
+                offset: Offset(0, 6),
               ),
-            ),
-            child: const Text('CONFIRM PURGE'),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
+              BoxShadow(
+                color: Color(0x33EF4444),
+                blurRadius: 16.0,
+                spreadRadius: -2,
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36.0,
+                    height: 36.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0x22EF4444),
+                      border: Border.all(
+                        color: const Color(0xFFEF4444),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.warning_rounded,
+                      color: Color(0xFFEF4444),
+                      size: 20.0,
+                    ),
+                  ),
+                  const SizedBox(width: 12.0),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'GDPR DATA PURGE',
+                          style: TextStyle(
+                            color: Color(0xFFEF4444),
+                            fontSize: 9.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        SizedBox(height: 2.0),
+                        Text(
+                          'ERASE GUEST TELEMETRY?',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12.0),
+              // 4px neon track
+              Container(
+                height: 3.0,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(1.5),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x80EF4444), blurRadius: 6.0),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14.0),
+              Container(
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF070C18),
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                    color: const Color(0xFF1E293B),
+                    width: 1.0,
+                  ),
+                ),
+                child: const Text(
+                  'This will permanently reset all campaign stars, personal scores, streaks, and unlocked chassis. This action cannot be undone under GDPR privacy mandates.',
+                  style: TextStyle(
+                    color: Color(0xFFCBD5E1),
+                    fontSize: 11.5,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 18.0),
+              Row(
+                children: [
+                  Expanded(
+                    child: TactileButton(
+                      label: 'CANCEL',
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      accentColor: const Color(0xFF64748B),
+                      height: 42.0,
+                      isPrimary: false,
+                    ),
+                  ),
+                  const SizedBox(width: 10.0),
+                  Expanded(
+                    child: TactileButton(
+                      label: 'CONFIRM PURGE',
+                      icon: Icons.delete_forever,
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      accentColor: const Color(0xFFEF4444),
+                      height: 42.0,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
 

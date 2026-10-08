@@ -220,65 +220,164 @@ class _ProfileModalState extends State<ProfileModal> {
     showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: VoidTheme.obsidianBlack,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            side: const BorderSide(color: VoidTheme.plasmaCyan, width: 1.5),
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 24.0,
           ),
-          title: const Text(
-            'EXPORT SAVE TELEMETRY',
-            style: TextStyle(
-              color: VoidTheme.solarGold,
-              fontSize: 14.0,
-              fontWeight: FontWeight.bold,
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 440.0),
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(18.0),
+              border: Border.all(
+                color: const Color(0xFF00F0FF).withValues(alpha: 0.8),
+                width: 1.5,
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 20.0,
+                  offset: Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Color(0x3300F0FF),
+                  blurRadius: 16.0,
+                  spreadRadius: -2,
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 36.0,
+                      height: 36.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0x2200F0FF),
+                        border: Border.all(
+                          color: const Color(0xFF00F0FF),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.cloud_upload_outlined,
+                        color: Color(0xFF00F0FF),
+                        size: 20.0,
+                      ),
+                    ),
+                    const SizedBox(width: 12.0),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TELEMETRY ARCHIVE',
+                            style: TextStyle(
+                              color: Color(0xFF38BDF8),
+                              fontSize: 9.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          SizedBox(height: 2.0),
+                          Text(
+                            'EXPORT SAVE TELEMETRY',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                // 4px neon track
+                Container(
+                  height: 3.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF00F0FF),
+                    borderRadius: BorderRadius.circular(1.5),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x8000F0FF), blurRadius: 6.0),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14.0),
+                const Text(
+                  'Copy this encoded telemetry payload to backup or transfer your progress to another device:',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.0),
+                ),
+                const SizedBox(height: 12.0),
+                Container(
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF070C18),
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(
+                      color: const Color(0xFF1E293B),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: SelectableText(
+                    base64Save,
+                    style: const TextStyle(
+                      color: Color(0xFF00F0FF),
+                      fontSize: 10.5,
+                      fontFamily: 'monospace',
+                    ),
+                    maxLines: 4,
+                  ),
+                ),
+                const SizedBox(height: 18.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TactileButton(
+                        label: 'CLOSE',
+                        onPressed: () => Navigator.of(context).pop(),
+                        accentColor: const Color(0xFF64748B),
+                        height: 42.0,
+                        isPrimary: false,
+                      ),
+                    ),
+                    const SizedBox(width: 10.0),
+                    Expanded(
+                      flex: 2,
+                      child: TactileButton(
+                        label: 'COPY TO CLIPBOARD',
+                        icon: Icons.copy,
+                        accentColor: const Color(0xFF00F0FF),
+                        height: 42.0,
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: base64Save));
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Save telemetry copied to clipboard.',
+                              ),
+                              backgroundColor: VoidTheme.cardSurface,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Copy this encoded telemetry payload to backup or transfer your progress to another device:',
-                style: TextStyle(color: VoidTheme.starWhite, fontSize: 11.5),
-              ),
-              const SizedBox(height: 12.0),
-              Container(
-                padding: const EdgeInsets.all(10.0),
-                decoration: BoxDecoration(
-                  color: VoidTheme.cardSurface,
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: SelectableText(
-                  base64Save,
-                  style: const TextStyle(
-                    color: VoidTheme.plasmaCyan,
-                    fontSize: 10.0,
-                    fontFamily: 'monospace',
-                  ),
-                  maxLines: 4,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TactileButton(
-              label: 'COPY TO CLIPBOARD',
-              icon: Icons.copy,
-              accentColor: VoidTheme.plasmaCyan,
-              height: 38.0,
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: base64Save));
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Save telemetry copied to clipboard.'),
-                    backgroundColor: VoidTheme.cardSurface,
-                  ),
-                );
-              },
-            ),
-          ],
         );
       },
     );
@@ -291,95 +390,188 @@ class _ProfileModalState extends State<ProfileModal> {
     showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: VoidTheme.obsidianBlack,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-            side: const BorderSide(color: VoidTheme.solarGold, width: 1.5),
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 24.0,
           ),
-          title: const Text(
-            'IMPORT SAVE TELEMETRY',
-            style: TextStyle(
-              color: VoidTheme.solarGold,
-              fontSize: 14.0,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Paste your base64 save telemetry string below. This will overwrite local sector progress and settings.',
-                style: TextStyle(color: VoidTheme.starWhite, fontSize: 11.5),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 440.0),
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0F172A),
+              borderRadius: BorderRadius.circular(18.0),
+              border: Border.all(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.8),
+                width: 1.5,
               ),
-              const SizedBox(height: 12.0),
-              TextField(
-                controller: importController,
-                maxLines: 4,
-                style: const TextStyle(
-                  color: VoidTheme.plasmaCyan,
-                  fontSize: 11.0,
-                  fontFamily: 'monospace',
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x66000000),
+                  blurRadius: 20.0,
+                  offset: Offset(0, 6),
                 ),
-                decoration: InputDecoration(
-                  hintText: 'Paste void_sower_save_v1 payload...',
-                  hintStyle: TextStyle(
-                    color: VoidTheme.starWhite.withValues(alpha: 0.4),
-                  ),
-                  filled: true,
-                  fillColor: VoidTheme.cardSurface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(color: VoidTheme.cardSurface),
-                  ),
+                BoxShadow(
+                  color: Color(0x33F59E0B),
+                  blurRadius: 16.0,
+                  spreadRadius: -2,
                 ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'CANCEL',
-                style: TextStyle(color: VoidTheme.starWhite),
-              ),
+              ],
             ),
-            TactileButton(
-              label: 'RESTORE DATA',
-              icon: Icons.upload,
-              accentColor: VoidTheme.solarGold,
-              height: 38.0,
-              onPressed: () async {
-                final success = await PersistenceService.instance
-                    .importSaveJson(importController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                  if (success) {
-                    setState(() {
-                      _profile = PersistenceService.instance.userProfile;
-                      _callsignController.text = _profile.callsign;
-                    });
-                    widget.onProfileUpdated?.call();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Save telemetry successfully restored!'),
-                        backgroundColor: VoidTheme.solarGold,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Failed to restore: Invalid or corrupted payload.',
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 36.0,
+                      height: 36.0,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0x22F59E0B),
+                        border: Border.all(
+                          color: const Color(0xFFF59E0B),
+                          width: 1.5,
                         ),
-                        backgroundColor: VoidTheme.crimsonFlare,
                       ),
-                    );
-                  }
-                }
-              },
+                      child: const Icon(
+                        Icons.settings_backup_restore,
+                        color: Color(0xFFF59E0B),
+                        size: 20.0,
+                      ),
+                    ),
+                    const SizedBox(width: 12.0),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PROFILE RESTORATION',
+                            style: TextStyle(
+                              color: Color(0xFFF59E0B),
+                              fontSize: 9.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          SizedBox(height: 2.0),
+                          Text(
+                            'IMPORT SAVE TELEMETRY',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.0,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12.0),
+                // 4px neon track
+                Container(
+                  height: 3.0,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF59E0B),
+                    borderRadius: BorderRadius.circular(1.5),
+                    boxShadow: const [
+                      BoxShadow(color: Color(0x80F59E0B), blurRadius: 6.0),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14.0),
+                const Text(
+                  'Paste your base64 save telemetry string below. This will overwrite local sector progress and settings.',
+                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.0),
+                ),
+                const SizedBox(height: 12.0),
+                TextField(
+                  controller: importController,
+                  maxLines: 4,
+                  style: const TextStyle(
+                    color: Color(0xFF00F0FF),
+                    fontSize: 11.0,
+                    fontFamily: 'monospace',
+                  ),
+                  decoration: InputDecoration(
+                    hintText: 'Paste void_sower_save_v1 payload...',
+                    hintStyle: const TextStyle(color: Color(0xFF475569)),
+                    filled: true,
+                    fillColor: const Color(0xFF070C18),
+                    contentPadding: const EdgeInsets.all(12.0),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                      borderSide: const BorderSide(color: Color(0xFFF59E0B)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TactileButton(
+                        label: 'CANCEL',
+                        onPressed: () => Navigator.of(context).pop(),
+                        accentColor: const Color(0xFF64748B),
+                        height: 42.0,
+                        isPrimary: false,
+                      ),
+                    ),
+                    const SizedBox(width: 10.0),
+                    Expanded(
+                      flex: 2,
+                      child: TactileButton(
+                        label: 'RESTORE DATA',
+                        icon: Icons.upload,
+                        accentColor: const Color(0xFFF59E0B),
+                        height: 42.0,
+                        onPressed: () async {
+                          final success = await PersistenceService.instance
+                              .importSaveJson(importController.text);
+                          if (context.mounted) {
+                            Navigator.of(context).pop();
+                            if (success) {
+                              setState(() {
+                                _profile =
+                                    PersistenceService.instance.userProfile;
+                                _callsignController.text = _profile.callsign;
+                              });
+                              widget.onProfileUpdated?.call();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Save telemetry successfully restored!',
+                                  ),
+                                  backgroundColor: VoidTheme.solarGold,
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Failed to restore: Invalid or corrupted payload.',
+                                  ),
+                                  backgroundColor: VoidTheme.crimsonFlare,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
+          ),
         );
       },
     );

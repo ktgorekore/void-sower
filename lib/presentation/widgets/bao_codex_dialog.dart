@@ -34,12 +34,27 @@ class BaoCodexDialog extends StatelessWidget {
         vertical: 24.0,
       ),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 480.0, maxHeight: 600.0),
+        constraints: const BoxConstraints(maxWidth: 480.0, maxHeight: 620.0),
         padding: const EdgeInsets.all(20.0),
-        decoration: VoidTheme.glassmorphic(
-          borderColor: VoidTheme.solarGold,
-          borderWidth: 1.5,
-          borderRadius: 16.0,
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F172A),
+          borderRadius: BorderRadius.circular(20.0),
+          border: Border.all(
+            color: const Color(0xFFF59E0B).withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x66000000),
+              blurRadius: 24.0,
+              offset: Offset(0, 8),
+            ),
+            BoxShadow(
+              color: Color(0x2BF59E0B),
+              blurRadius: 16.0,
+              spreadRadius: -2,
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -47,30 +62,73 @@ class BaoCodexDialog extends StatelessWidget {
             // Header
             Row(
               children: [
-                const Icon(
-                  Icons.menu_book,
-                  color: VoidTheme.solarGold,
-                  size: 24.0,
-                ),
-                const SizedBox(width: 10.0),
-                const Expanded(
-                  child: Text(
-                    'BAO ORBITAL CODEX',
-                    style: TextStyle(
-                      color: VoidTheme.solarGold,
-                      fontSize: 16.0,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
+                Container(
+                  width: 38.0,
+                  height: 38.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: const Color(0x22F59E0B),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B),
+                      width: 1.5,
                     ),
+                  ),
+                  child: const Icon(
+                    Icons.menu_book,
+                    color: Color(0xFFF59E0B),
+                    size: 20.0,
+                  ),
+                ),
+                const SizedBox(width: 12.0),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ACADEMY DIRECTIVE // CODEX',
+                        style: TextStyle(
+                          color: Color(0xFFF59E0B),
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      SizedBox(height: 2.0),
+                      Text(
+                        'BAO ORBITAL CODEX',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close, color: VoidTheme.textSecondary),
+                  icon: const Icon(
+                    Icons.close,
+                    color: Color(0xFF94A3B8),
+                    size: 20.0,
+                  ),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
-            const Divider(color: VoidTheme.cardSurface, height: 16.0),
+            const SizedBox(height: 12.0),
+            // 4px neon track
+            Container(
+              height: 3.0,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B),
+                borderRadius: BorderRadius.circular(1.5),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x80F59E0B), blurRadius: 6.0),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14.0),
 
             // Scrollable Content
             Expanded(
