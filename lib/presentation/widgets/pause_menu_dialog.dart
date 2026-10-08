@@ -379,7 +379,12 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                               const SizedBox(width: 6.0),
                               Text(
                                 widget.canRewind
-                                    ? 'REWIND (${widget.rewindsRemaining} LEFT)'
+                                    ? ((widget.rewindsRemaining >= 999 ||
+                                              EntitlementService
+                                                  .instance
+                                                  .hasActivePro)
+                                          ? 'REWIND (UNLIMITED • PRO)'
+                                          : 'REWIND (${widget.rewindsRemaining} LEFT)')
                                     : 'REWIND (0 REMAINING)',
                                 style: TextStyle(
                                   color: widget.canRewind

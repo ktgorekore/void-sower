@@ -203,13 +203,20 @@ class CombatCoordinator extends ChangeNotifier {
   final List<CombatTurnSnapshot> _chronoSnapshots = <CombatTurnSnapshot>[];
   int _chronoRewindsRemaining = 0;
 
+  /// Whether Chrono-Anchor rewind privilege is active via Pro Commander or Pro Boost.
+  bool get isProRewindActive => EntitlementService.instance.isFeatureAccessible(
+    ProFeature.chronoAnchorRewind,
+  );
+
   /// Number of Chrono-Anchor rewinds remaining for current sortie.
-  int get chronoRewindsRemaining => _chronoRewindsRemaining;
+  /// Returns 999 (representing unlimited) if Pro Commander or active Pro Boost.
+  int get chronoRewindsRemaining =>
+      isProRewindActive ? 999 : _chronoRewindsRemaining;
 
   /// Whether Chrono-Anchor rewind is currently available to trigger.
   bool get canChronoRewind =>
       _chronoSnapshots.isNotEmpty &&
-      _chronoRewindsRemaining > 0 &&
+      (isProRewindActive || _chronoRewindsRemaining > 0) &&
       !dreadnought.isCascading &&
       _state.status != CombatMatchStatus.sowingSequence &&
       !_state.isTerminal;
@@ -233,7 +240,8 @@ class CombatCoordinator extends ChangeNotifier {
   TacticalAdvice? get tacticalAdvice => solverController.currentAdvice;
 
   void _captureTurnSnapshot() {
-    if (_chronoSnapshots.length >= 10) {
+    final maxSnapshots = isProRewindActive ? 30 : 10;
+    if (_chronoSnapshots.length >= maxSnapshots) {
       _chronoSnapshots.removeAt(0);
     }
     _chronoSnapshots.add(
@@ -251,7 +259,9 @@ class CombatCoordinator extends ChangeNotifier {
   /// Rewinds combat state by one turn using Chrono-Anchor technology.
   bool triggerChronoRewind() {
     if (!canChronoRewind) return false;
-    _chronoRewindsRemaining--;
+    if (!isProRewindActive) {
+      _chronoRewindsRemaining--;
+    }
     final snapshot = _chronoSnapshots.removeLast();
 
     // 1. Cancel in-flight animations
@@ -382,12 +392,7 @@ class CombatCoordinator extends ChangeNotifier {
 
     // Reset Chrono-Anchor snapshots and allocate rewinds
     _chronoSnapshots.clear();
-    _chronoRewindsRemaining =
-        EntitlementService.instance.isFeatureAccessible(
-          ProFeature.chronoAnchorRewind,
-        )
-        ? 3
-        : 0;
+    _chronoRewindsRemaining = isProRewindActive ? 999 : 0;
 
     const initialBay = 11;
     prediction = engine.predictSow(initialBay, 1);

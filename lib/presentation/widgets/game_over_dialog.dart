@@ -270,7 +270,9 @@ class _GameOverDialogState extends State<GameOverDialog> {
             if (widget.onRewind != null) ...[
               TactileButton(
                 label: widget.canRewind
-                    ? 'REWIND (${widget.rewindsRemaining} LEFT)'
+                    ? ((widget.isPro || widget.rewindsRemaining >= 999)
+                          ? 'CHRONO-ANCHOR REWIND (UNLIMITED)'
+                          : 'REWIND (${widget.rewindsRemaining} LEFT)')
                     : 'REWIND (DEPLETED)',
                 icon: Icons.history,
                 onPressed: (_isArmed && widget.canRewind)
