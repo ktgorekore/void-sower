@@ -363,9 +363,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // 1. By default, Campaign Sectors is active
-        expect(find.text('CAMPAIGN'), findsOneWidget);
-        expect(find.text('SPECIAL OPS'), findsOneWidget);
         expect(find.text('KILWA BASIN'), findsOneWidget);
+        expect(find.text('SPECIAL OPS'), findsOneWidget);
         expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
 
         // Daily Sortie & Void Incursion hero cards are NOT visible in Campaign Sectors mode
@@ -377,7 +376,6 @@ void main() {
         await tester.pumpAndSettle();
 
         // Special Operations view is rendered
-        expect(find.text('TACTICAL COMMAND'), findsOneWidget);
         expect(find.text('SPECIAL OPERATIONS'), findsOneWidget);
         expect(find.text('DAILY SORTIE'), findsOneWidget);
         expect(find.text('LAUNCH SORTIE'), findsOneWidget);
@@ -391,11 +389,8 @@ void main() {
         expect(find.text('PRO OVERCHARGE'), findsOneWidget);
         expect(find.text('WATCH AD (+5m PRO)'), findsOneWidget);
 
-        // Campaign theater tabs are hidden while in Special Ops
-        expect(find.text('KILWA BASIN'), findsNothing);
-
-        // 3. Switch back to CAMPAIGN SECTORS via top tab
-        await tester.tap(find.text('CAMPAIGN'));
+        // 3. Switch back to CAMPAIGN SECTORS via KILWA BASIN tab
+        await tester.tap(find.text('KILWA BASIN'));
         await tester.pumpAndSettle();
 
         expect(find.text('KILWA BASIN'), findsOneWidget);

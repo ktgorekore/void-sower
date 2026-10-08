@@ -396,60 +396,138 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
-              Row(
+              // Header matching UX 3.0
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'VOID SOWER // PRO FLEET CLEARANCE',
+                        style: TextStyle(
+                          color: Color(0xFF38BDF8),
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(
+                          Icons.close,
+                          color: VoidTheme.textSecondary,
+                          size: 20.0,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'PRO COMMANDER FLEET',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(height: 2.0),
+                            Text(
+                              'Lifetime License • \$1.29 One-Time',
+                              style: TextStyle(
+                                color: Color(0xFF94A3B8),
+                                fontSize: 10.0,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        height: 26.0,
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF201503),
+                          borderRadius: BorderRadius.circular(13.0),
+                          border: Border.all(
+                            color: const Color(0xFFF59E0B),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8.0,
+                              height: 8.0,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFFFBBF24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(0x99FBBF24),
+                                    blurRadius: 4.0,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 6.0),
+                            const Text(
+                              '\$1.29 LIFETIME',
+                              style: TextStyle(
+                                color: Color(0xFFFEF3C7),
+                                fontSize: 8.5,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8.0),
+                  // 4px Progress Track
                   Container(
-                    padding: const EdgeInsets.all(8.0),
+                    height: 4.0,
                     decoration: BoxDecoration(
-                      color: VoidTheme.solarGold.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: VoidTheme.solarGold,
-                        width: 1.5,
+                      color: const Color(0xFF1E293B),
+                      borderRadius: BorderRadius.circular(2.0),
+                    ),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: EntitlementService.instance.isProUnlocked
+                          ? 1.0
+                          : 0.75,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFBBF24),
+                          borderRadius: BorderRadius.circular(2.0),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x99FBBF24),
+                              blurRadius: 6.0,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    child: const Icon(
-                      Icons.workspace_premium,
-                      color: VoidTheme.solarGold,
-                      size: 24.0,
-                    ),
-                  ),
-                  const SizedBox(width: 12.0),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'PRO COMMANDER FLEET',
-                          style: TextStyle(
-                            color: VoidTheme.solarGold,
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        Text(
-                          'Lifetime License • \$1.29 One-Time',
-                          style: TextStyle(
-                            color: VoidTheme.plasmaCyan,
-                            fontSize: 11.0,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close,
-                      color: VoidTheme.textSecondary,
-                    ),
-                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
-              const Divider(color: VoidTheme.cardSurface, height: 20.0),
+              const SizedBox(height: 12.0),
 
               // Feature List
               Expanded(
@@ -674,9 +752,6 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
   Widget _buildFeatureCard(ProFeature feature, {bool isHighlighted = false}) {
     final meta = ProFeatureMeta.registry[feature]!;
     final isSelected = isHighlighted || (_selectedFeature == feature);
-    final borderColor = isSelected
-        ? VoidTheme.solarGold
-        : VoidTheme.cardSurface.withValues(alpha: 0.7);
 
     return GestureDetector(
       onTap: () {
@@ -684,44 +759,108 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
         setState(() => _selectedFeature = feature);
       },
       child: Container(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 11.0),
         decoration: BoxDecoration(
-          color: isSelected
-              ? VoidTheme.solarGold.withValues(alpha: 0.12)
-              : VoidTheme.cardSurface.withValues(alpha: 0.4),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: borderColor, width: isSelected ? 1.5 : 1.0),
+          gradient: isSelected
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0C233C), Color(0xFF071322)],
+                )
+              : null,
+          color: isSelected ? null : const Color(0xFF0A101D),
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF00F0FF)
+                : const Color(0xFF1E293B),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF00F0FF).withValues(alpha: 0.2),
+                    blurRadius: 10.0,
+                    spreadRadius: 1.0,
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              meta.icon,
-              color: isHighlighted ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
-              size: 20.0,
+            Container(
+              width: 32.0,
+              height: 32.0,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isSelected
+                    ? const Color(0xFF071B2E)
+                    : const Color(0xFF0F172A),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF00F0FF)
+                      : const Color(0xFF334155),
+                  width: 1.0,
+                ),
+              ),
+              child: Icon(
+                meta.icon,
+                color: isSelected
+                    ? const Color(0xFF00F0FF)
+                    : const Color(0xFF38BDF8),
+                size: 16.0,
+              ),
             ),
-            const SizedBox(width: 10.0),
+            const SizedBox(width: 12.0),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    meta.title,
-                    style: TextStyle(
-                      color: isHighlighted
-                          ? VoidTheme.solarGold
-                          : VoidTheme.textPrimary,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          meta.title,
+                          style: TextStyle(
+                            color: isSelected
+                                ? Colors.white
+                                : VoidTheme.starWhite,
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
+                          ),
+                        ),
+                      ),
+                      if (isHighlighted)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6.0,
+                            vertical: 1.5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0284C7),
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: const Text(
+                            'HIGHLIGHT',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 7.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 3.0),
                   Text(
                     meta.shortDescription,
                     style: const TextStyle(
-                      color: VoidTheme.textSecondary,
-                      fontSize: 10.5,
+                      color: Color(0xFF94A3B8),
+                      fontSize: 10.0,
                       height: 1.35,
                     ),
                   ),

@@ -20,6 +20,7 @@ import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/presentation/screens/combat_screen.dart';
 import 'package:void_sower/presentation/widgets/command_arc_widget.dart';
+import 'package:void_sower/presentation/widgets/mancala_battery_dock_widget.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -58,10 +59,8 @@ void main() {
         expect(find.text('SOW LEFT'), findsNothing);
         expect(find.text('SOW RIGHT'), findsNothing);
 
-        // 3. Verify external tags C1..C8 are NOT present on the screen
-        for (var i = 1; i <= 8; i++) {
-          expect(find.text('C$i'), findsNothing);
-        }
+        // 3. Verify Mancala Battery Dock is rendered without external shelf
+        expect(find.byType(MancalaBatteryDockWidget), findsOneWidget);
 
         // 4. Verify Return Orbit bulky text headers are NOT present
         expect(find.textContaining('RETURN ORBIT (BAYS 0–7)'), findsNothing);
@@ -148,7 +147,8 @@ void main() {
           (widget) =>
               widget is GestureDetector &&
               widget.behavior == HitTestBehavior.opaque &&
-              widget.child is Stack,
+              widget.child is Stack &&
+              widget.onDoubleTap != null,
         );
         expect(viewportFinder, findsOneWidget);
 
@@ -184,7 +184,8 @@ void main() {
           (widget) =>
               widget is GestureDetector &&
               widget.behavior == HitTestBehavior.opaque &&
-              widget.child is Stack,
+              widget.child is Stack &&
+              widget.onDoubleTap != null,
         );
         expect(viewportFinder, findsOneWidget);
 
@@ -219,7 +220,8 @@ void main() {
           (widget) =>
               widget is GestureDetector &&
               widget.behavior == HitTestBehavior.opaque &&
-              widget.child is Stack,
+              widget.child is Stack &&
+              widget.onDoubleTap != null,
         );
         expect(viewportFinder, findsOneWidget);
 
@@ -254,7 +256,8 @@ void main() {
         (widget) =>
             widget is GestureDetector &&
             widget.behavior == HitTestBehavior.opaque &&
-            widget.child is Stack,
+            widget.child is Stack &&
+            widget.onDoubleTap != null,
       );
       expect(viewportFinder, findsOneWidget);
 

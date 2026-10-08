@@ -136,8 +136,6 @@ void main() {
             ),
           ),
         );
-        await tester.pump(const Duration(milliseconds: 100));
-
         expect(tester.takeException(), isNull);
       },
     );

@@ -59,9 +59,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify command deck and branding
-      expect(find.text('VOID SOWER'), findsOneWidget);
+      expect(find.text('VOID SOWER // ORBITAL COMMAND'), findsOneWidget);
       expect(find.text('KILWA NEBULA BASIN'), findsOneWidget);
-      expect(find.text('ORBITAL COMMAND DECK'), findsOneWidget);
 
       // Verify streamlined top nav bar tabs
       expect(find.text('SECTORS'), findsOneWidget);

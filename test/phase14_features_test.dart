@@ -399,17 +399,18 @@ void main() {
   });
 
   group('Phase 14: Widget Presentation Tests', () {
-    testWidgets('SettingsModal renders all 4 category tabs', (tester) async {
+    testWidgets('SettingsModal renders all 3 UX 3.0 category tabs', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(home: Scaffold(body: SettingsModal())),
       );
       await tester.pumpAndSettle();
 
       expect(find.text('FLEET SYSTEM CONFIG'), findsOneWidget);
-      expect(find.text('AUDIO'), findsOneWidget);
-      expect(find.text('GRAPHICS'), findsOneWidget);
-      expect(find.text('DIAGNOSTICS'), findsOneWidget);
-      expect(find.text('LEGAL'), findsOneWidget);
+      expect(find.text('AUDIO & HAPTIC'), findsOneWidget);
+      expect(find.text('DISPLAY & FX'), findsOneWidget);
+      expect(find.text('ACCOUNT & PRO'), findsOneWidget);
     });
 
     testWidgets(
@@ -469,11 +470,13 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Switch to DIAGNOSTICS tab
-        await tester.tap(find.text('DIAGNOSTICS'));
+        // Switch to ACCOUNT & PRO tab
+        await tester.tap(find.text('ACCOUNT & PRO'));
         await tester.pumpAndSettle();
 
         expect(find.text('ACADEMY'), findsOneWidget);
+        await tester.drag(find.text('ACADEMY'), const Offset(0, -300));
+        await tester.pumpAndSettle();
         expect(find.text('RESET TUTORIAL'), findsOneWidget);
 
         await tester.tap(find.text('ACADEMY'));
@@ -493,6 +496,11 @@ void main() {
 
       expect(find.text('PILOT FLIGHT DOSSIER'), findsOneWidget);
       expect(find.text('PILOT CLOUD ACCOUNT'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('SQUADRON ROSTER (PROFILES)'),
+        150.0,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('SQUADRON ROSTER (PROFILES)'), findsOneWidget);
 
       await tester.scrollUntilVisible(

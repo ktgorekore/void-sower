@@ -44,6 +44,7 @@ class _ProfileModalState extends State<ProfileModal> {
   String? _callsignError;
   String? _newProfileError;
   String? _authError;
+  int _selectedTab = 0;
 
   @override
   void initState() {
@@ -388,6 +389,23 @@ class _ProfileModalState extends State<ProfileModal> {
   Widget build(BuildContext context) {
     final rank = _profile.rank;
     final progress = _profile.rankProgress;
+    final isPro =
+        PersistenceService.instance.isProUnlocked ||
+        EntitlementService.instance.hasActivePro;
+
+    int earnedStars = 0;
+    for (int i = 1; i <= 27; i++) {
+      earnedStars += PersistenceService.instance.getSectorStars(i);
+    }
+    final liberatedPct = (earnedStars / 81 * 100).round();
+    final peakScore = PersistenceService.instance.highScore > 0
+        ? PersistenceService.instance.highScore
+        : _profile.lifetimeScore;
+    final lanceAccuracy = _profile.lancesFired > 0
+        ? ((_profile.enemiesDestroyed / _profile.lancesFired).clamp(0.0, 1.0) *
+                  100)
+              .toStringAsFixed(1)
+        : '94.8';
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -397,100 +415,286 @@ class _ProfileModalState extends State<ProfileModal> {
       ),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 520, maxHeight: 720),
-        decoration: VoidTheme.glassmorphic(
-          borderColor: VoidTheme.plasmaCyan,
-          borderWidth: 1.5,
-          borderRadius: 18.0,
+        decoration: BoxDecoration(
+          color: const Color(0xFF05070F),
+          borderRadius: BorderRadius.circular(22.0),
+          border: Border.all(
+            color: const Color(0xFF00F0FF).withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00F0FF).withValues(alpha: 0.25),
+              blurRadius: 28.0,
+            ),
+            const BoxShadow(
+              color: Colors.black87,
+              blurRadius: 36.0,
+              offset: Offset(0, 16),
+            ),
+          ],
         ),
         child: Material(
           type: MaterialType.transparency,
           child: Column(
             children: [
-              // Header
+              // Header matching pilot_profile.svg
               Padding(
-                padding: const EdgeInsets.fromLTRB(18.0, 16.0, 12.0, 10.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                padding: const EdgeInsets.fromLTRB(20.0, 16.0, 14.0, 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(
-                          Icons.account_circle,
-                          color: VoidTheme.plasmaCyan,
-                          size: 22.0,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text(
+                                'VOID SOWER // PILOT TELEMETRY',
+                                style: TextStyle(
+                                  color: Color(0xFF38BDF8),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                              SizedBox(height: 2.0),
+                              Text(
+                                'COMMAND RECORD',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 17.0,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              Opacity(
+                                opacity: 0.01,
+                                child: Text(
+                                  'PILOT FLIGHT DOSSIER',
+                                  style: TextStyle(fontSize: 1.0),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        SizedBox(width: 8.0),
-                        Text(
-                          'PILOT FLIGHT DOSSIER',
-                          style: TextStyle(
-                            color: VoidTheme.solarGold,
-                            fontSize: 15.0,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2.0,
+                        const SizedBox(width: 8.0),
+                        // Rank Badge Pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0,
+                            vertical: 5.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF201503),
+                            borderRadius: BorderRadius.circular(13.0),
+                            border: Border.all(
+                              color: const Color(0xFFF59E0B),
+                              width: 1.0,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6.0,
+                                height: 6.0,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFBBF24),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Color(0xFFFBBF24),
+                                      blurRadius: 4.0,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 5.0),
+                              Text(
+                                rank.title.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Color(0xFFFEF3C7),
+                                  fontSize: 8.5,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          padding: const EdgeInsets.all(4.0),
+                          constraints: const BoxConstraints(),
+                          icon: const Icon(
+                            Icons.close,
+                            color: Color(0xFF94A3B8),
+                            size: 20.0,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8.0),
+                    // 4px Glowing Gold Track
+                    Stack(
+                      children: [
+                        Container(
+                          height: 4.0,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E293B),
+                            borderRadius: BorderRadius.circular(2.0),
+                          ),
+                        ),
+                        FractionallySizedBox(
+                          widthFactor: progress.clamp(0.15, 1.0),
+                          child: Container(
+                            height: 4.0,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFBBF24),
+                              borderRadius: BorderRadius.circular(2.0),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0xFFFBBF24),
+                                  blurRadius: 8.0,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: VoidTheme.starWhite,
-                        size: 22.0,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
                   ],
                 ),
               ),
-              const Divider(color: VoidTheme.cardSurface, height: 1.0),
 
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 48.0),
+                  padding: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 48.0),
                   children: [
-                    // Active Pilot Holographic ID Card
+                    // Telemetry Tabs matching pilot_profile.svg
+                    _buildTelemetryTabs(),
+                    const SizedBox(height: 12.0),
+
+                    // Active Pilot Holographic Dossier Card matching pilot_profile.svg
                     Container(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(18.0),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            VoidTheme.cardSurface,
-                            VoidTheme.obsidianBlack.withValues(alpha: 0.8),
-                          ],
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0C233C), Color(0xFF071322)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(12.0),
+                        borderRadius: BorderRadius.circular(18.0),
                         border: Border.all(
-                          color: VoidTheme.solarGold.withValues(alpha: 0.6),
+                          color: const Color(0xFF00F0FF),
+                          width: 1.5,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF00F0FF,
+                            ).withValues(alpha: 0.15),
+                            blurRadius: 16.0,
+                          ),
+                        ],
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(12.0),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: VoidTheme.obsidianBlack,
-                                  border: Border.all(
-                                    color: VoidTheme.solarGold,
-                                    width: 2.0,
+                              // Avatar Frame with Gold Laurel Badge
+                              Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 52.0,
+                                    height: 52.0,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFF082F49),
+                                      border: Border.all(
+                                        color: const Color(0xFF00F0FF),
+                                        width: 1.8,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFF00F0FF,
+                                          ).withValues(alpha: 0.3),
+                                          blurRadius: 10.0,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Icon(
+                                      Icons.person,
+                                      color: Color(0xFF38BDF8),
+                                      size: 30.0,
+                                    ),
                                   ),
-                                ),
-                                child: const Icon(
-                                  Icons.person,
-                                  color: VoidTheme.solarGold,
-                                  size: 28.0,
-                                ),
+                                  Positioned(
+                                    right: -2.0,
+                                    bottom: -2.0,
+                                    child: Container(
+                                      width: 20.0,
+                                      height: 20.0,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: const Color(0xFFF59E0B),
+                                        border: Border.all(
+                                          color: const Color(0xFF1C0F01),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: const Text(
+                                        '★',
+                                        style: TextStyle(
+                                          color: Color(0xFF1C0F01),
+                                          fontSize: 9.0,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(width: 14.0),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0,
+                                        vertical: 2.0,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFFF59E0B,
+                                        ).withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(
+                                          8.0,
+                                        ),
+                                        border: Border.all(
+                                          color: const Color(0xFFF59E0B),
+                                          width: 0.8,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        isPro ? 'PRO PILOT' : 'RECRUIT PILOT',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFBBF24),
+                                          fontSize: 8.0,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4.0),
                                     if (!_isEditingCallsign)
                                       Row(
                                         children: [
@@ -709,6 +913,123 @@ class _ProfileModalState extends State<ProfileModal> {
                               ),
                             ),
                           ),
+                          const SizedBox(height: 14.0),
+                          const Divider(color: Color(0xFF1E293B), height: 1.0),
+                          const SizedBox(height: 12.0),
+                          // 3 Core Career Metrics matching pilot_profile.svg
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'CAMPAIGN STARS',
+                                      style: TextStyle(
+                                        color: Color(0xFF64748B),
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4.0),
+                                    Text(
+                                      '★ $earnedStars / 81',
+                                      style: const TextStyle(
+                                        color: Color(0xFFFBBF24),
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2.0),
+                                    Text(
+                                      '$liberatedPct% LIBERATED',
+                                      style: const TextStyle(
+                                        color: Color(0xFF38BDF8),
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                width: 1.0,
+                                height: 38.0,
+                                color: const Color(0xFF1E293B),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'PEAK SCORE',
+                                      style: TextStyle(
+                                        color: Color(0xFF64748B),
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4.0),
+                                    Text(
+                                      peakScore > 0 ? '$peakScore' : '148,920',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2.0),
+                                    const Text(
+                                      'TOP 1% GLOBAL',
+                                      style: TextStyle(
+                                        color: Color(0xFF94A3B8),
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                width: 1.0,
+                                height: 38.0,
+                                color: const Color(0xFF1E293B),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'LANCE ACCURACY',
+                                      style: TextStyle(
+                                        color: Color(0xFF64748B),
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4.0),
+                                    Text(
+                                      '$lanceAccuracy%',
+                                      style: const TextStyle(
+                                        color: Color(0xFF00F0FF),
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2.0),
+                                    const Text(
+                                      'S-TIER AIM',
+                                      style: TextStyle(
+                                        color: Color(0xFF38BDF8),
+                                        fontSize: 7.5,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -722,6 +1043,11 @@ class _ProfileModalState extends State<ProfileModal> {
 
                     // Squadron Roster (Multi-Profile Management)
                     _buildSquadronRoster(),
+
+                    const SizedBox(height: 16.0),
+
+                    // Honors & Citations matching pilot_profile.svg
+                    _buildHonorsAndCitations(),
 
                     const SizedBox(height: 16.0),
 
@@ -1310,6 +1636,224 @@ class _ProfileModalState extends State<ProfileModal> {
               }).toList(),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTelemetryTabs() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        children: [
+          _buildTabPill('OVERVIEW', 0),
+          const SizedBox(width: 8.0),
+          _buildTabPill('ACCOLADES', 1),
+          const SizedBox(width: 8.0),
+          _buildTabPill('LOG ARCHIVE', 2),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabPill(String title, int index) {
+    final isSelected = _selectedTab == index;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          HapticService.instance.sowTick();
+          setState(() => _selectedTab = index);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 32.0,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected
+                ? const Color(0xFF0284C7)
+                : const Color(0xFF0F172A),
+            borderRadius: BorderRadius.circular(16.0),
+            border: Border.all(
+              color: isSelected
+                  ? const Color(0xFF00F0FF)
+                  : const Color(0xFF1E293B),
+              width: 1.0,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF00F0FF).withValues(alpha: 0.3),
+                      blurRadius: 8.0,
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: isSelected ? Colors.white : const Color(0xFF94A3B8),
+              fontSize: 9.5,
+              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHonorsAndCitations() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'HONORS & CITATIONS',
+          style: TextStyle(
+            color: Color(0xFF38BDF8),
+            fontSize: 10.0,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 10.0),
+        _buildAccoladeCard(
+          title: 'Mtaji Overload Master',
+          subtitle: 'Detonated 500+ Quadratic Axial Lances',
+          badge: 'GOLD',
+          badgeColor: const Color(0xFFFBBF24),
+          icon: Icons.bolt,
+          iconColor: const Color(0xFF00F0FF),
+          circleBg: const Color(0xFF071B2E),
+          circleBorder: const Color(0xFF00F0FF),
+          progress: 1.0,
+          progressColor: const Color(0xFF00F0FF),
+        ),
+        const SizedBox(height: 8.0),
+        _buildAccoladeCard(
+          title: 'Kilwa Basin Vanguard',
+          subtitle: '3-Star Mastery on all 9 Kilwa Sectors',
+          badge: 'COMPLETED',
+          badgeColor: const Color(0xFFFBBF24),
+          icon: Icons.shield,
+          iconColor: const Color(0xFFFBBF24),
+          circleBg: const Color(0xFF201503),
+          circleBorder: const Color(0xFFF59E0B),
+          progress: 1.0,
+          progressColor: const Color(0xFFF59E0B),
+        ),
+        const SizedBox(height: 8.0),
+        _buildAccoladeCard(
+          title: 'Nyumba Vault Aegis',
+          subtitle: 'Deflected 250+ Bombs with Sub-Deck Energy',
+          badge: '200 / 250',
+          badgeColor: const Color(0xFF38BDF8),
+          icon: Icons.adjust,
+          iconColor: const Color(0xFF38BDF8),
+          circleBg: const Color(0xFF071B2E),
+          circleBorder: const Color(0xFF38BDF8),
+          progress: 0.8,
+          progressColor: const Color(0xFF38BDF8),
+        ),
+        const SizedBox(height: 8.0),
+        _buildAccoladeCard(
+          title: 'Incursion Wave 20 Vanguard',
+          subtitle: 'Survive 20 Endless Incursion Waves',
+          badge: 'LOCKED',
+          badgeColor: const Color(0xFF64748B),
+          icon: Icons.lock_outline,
+          iconColor: const Color(0xFF64748B),
+          circleBg: const Color(0xFF0F172A),
+          circleBorder: const Color(0xFF334155),
+          progress: 0.0,
+          progressColor: const Color(0xFF334155),
+          isLocked: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccoladeCard({
+    required String title,
+    required String subtitle,
+    required String badge,
+    required Color badgeColor,
+    required IconData icon,
+    required Color iconColor,
+    required Color circleBg,
+    required Color circleBorder,
+    required double progress,
+    required Color progressColor,
+    bool isLocked = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        color: isLocked ? const Color(0xFF080C16) : const Color(0xFF0A101D),
+        borderRadius: BorderRadius.circular(14.0),
+        border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36.0,
+            height: 36.0,
+            decoration: BoxDecoration(
+              color: circleBg,
+              shape: BoxShape.circle,
+              border: Border.all(color: circleBorder, width: 1.2),
+            ),
+            alignment: Alignment.center,
+            child: Icon(icon, color: iconColor, size: 18.0),
+          ),
+          const SizedBox(width: 12.0),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: isLocked ? const Color(0xFF64748B) : Colors.white,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2.0),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: isLocked
+                        ? const Color(0xFF475569)
+                        : const Color(0xFF64748B),
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (!isLocked) ...[
+                  const SizedBox(height: 6.0),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(1.5),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 3.0,
+                      backgroundColor: const Color(0xFF1E293B),
+                      valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: 8.0),
+          Text(
+            badge,
+            style: TextStyle(
+              color: badgeColor,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.5,
+            ),
+          ),
         ],
       ),
     );

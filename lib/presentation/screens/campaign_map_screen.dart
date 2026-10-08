@@ -30,7 +30,6 @@ import '../theme/void_theme.dart';
 import '../widgets/fleet_hangar_dialog.dart';
 import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/profile_modal.dart';
-import '../widgets/pro_boost_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/tactical_directives_modal.dart';
@@ -665,9 +664,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     final List<CampaignOperation> operations = CampaignService.instance
         .getOperations();
     final isPro = EntitlementService.instance.hasActivePro;
+    final isSpecialOps = _activeViewMode == StarmapViewMode.specialOps;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
       child: Container(
         height: 32.0,
         padding: const EdgeInsets.all(2.0),
@@ -677,329 +677,152 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
           border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
         ),
         child: Row(
-          children: operations.map((op) {
-            final isSelected = op.id == _activeCampaignId;
-            final isLocked = op.isProRequired && !isPro;
+          children: [
+            ...operations.map((op) {
+              final isSelected = !isSpecialOps && op.id == _activeCampaignId;
+              final isLocked = op.isProRequired && !isPro;
 
-            return Expanded(
+              return Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    HapticService.instance.sowTick();
+                    setState(() {
+                      _activeViewMode = StarmapViewMode.campaign;
+                    });
+                    _switchCampaign(op.id);
+                  },
+                  child: Container(
+                    height: 28.0,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF0284C7)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(14.0),
+                      border: Border.all(
+                        color: isSelected
+                            ? const Color(0xFF38BDF8)
+                            : Colors.transparent,
+                        width: 1.0,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF0284C7,
+                                ).withValues(alpha: 0.4),
+                                blurRadius: 6.0,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            op.id == 'kilwa_basin' ? 'KILWA BASIN' : op.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : (isLocked
+                                        ? VoidTheme.textMuted
+                                        : const Color(0xFF94A3B8)),
+                              fontSize: 9.0,
+                              fontWeight: isSelected
+                                  ? FontWeight.w900
+                                  : FontWeight.w700,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        if (isLocked) ...[
+                          const SizedBox(width: 3.0),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4.0,
+                              vertical: 1.0,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFFF59E0B,
+                              ).withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(3.0),
+                              border: Border.all(
+                                color: const Color(0xFFF59E0B),
+                                width: 0.6,
+                              ),
+                            ),
+                            child: const Text(
+                              'PRO',
+                              style: TextStyle(
+                                color: Color(0xFFFBBF24),
+                                fontSize: 6.5,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+            // 4. Special Ops tab
+            Expanded(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => _switchCampaign(op.id),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
+                onTap: () {
+                  HapticService.instance.sowTick();
+                  setState(() {
+                    _activeViewMode = StarmapViewMode.specialOps;
+                  });
+                },
+                child: Container(
                   height: 28.0,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? const Color(0xFF0284C7)
+                    color: isSpecialOps
+                        ? const Color(0xFF7C3AED)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(14.0),
                     border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFF38BDF8)
+                      color: isSpecialOps
+                          ? const Color(0xFFA78BFA)
                           : Colors.transparent,
                       width: 1.0,
                     ),
-                    boxShadow: isSelected
+                    boxShadow: isSpecialOps
                         ? [
                             BoxShadow(
                               color: const Color(
-                                0xFF0284C7,
+                                0xFF7C3AED,
                               ).withValues(alpha: 0.4),
                               blurRadius: 6.0,
                             ),
                           ]
                         : null,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          op.id == 'kilwa_basin' ? 'KILWA BASIN' : op.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : (isLocked
-                                      ? VoidTheme.textMuted
-                                      : const Color(0xFF64748B)),
-                            fontSize: 9.5,
-                            fontWeight: isSelected
-                                ? FontWeight.w900
-                                : FontWeight.w700,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ),
-                      if (isLocked) ...[
-                        const SizedBox(width: 4.0),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 3.5,
-                            vertical: 1.0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: VoidTheme.solarGold.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(3.0),
-                            border: Border.all(
-                              color: VoidTheme.solarGold,
-                              width: 0.6,
-                            ),
-                          ),
-                          child: const Text(
-                            'PRO',
-                            style: TextStyle(
-                              color: VoidTheme.solarGold,
-                              fontSize: 7.0,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+                  child: Text(
+                    'SPECIAL OPS',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: isSpecialOps
+                          ? Colors.white
+                          : const Color(0xFF94A3B8),
+                      fontSize: 9.0,
+                      fontWeight: isSpecialOps
+                          ? FontWeight.w900
+                          : FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
                   ),
                 ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModeSelector() {
-    final isSpecial = _activeViewMode == StarmapViewMode.specialOps;
-    final hasBoost = EntitlementService.instance.isBoostActive;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 4.0, 16.0, 3.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 32.0,
-              padding: const EdgeInsets.all(2.0),
-              decoration: BoxDecoration(
-                color: const Color(0xFF070C18),
-                borderRadius: BorderRadius.circular(16.0),
-                border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        if (_activeViewMode != StarmapViewMode.campaign) {
-                          HapticService.instance.sowTick();
-                          setState(() {
-                            _activeViewMode = StarmapViewMode.campaign;
-                          });
-                        }
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        height: 28.0,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: !isSpecial
-                              ? const Color(0xFF0284C7)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14.0),
-                          border: Border.all(
-                            color: !isSpecial
-                                ? const Color(0xFF38BDF8)
-                                : Colors.transparent,
-                            width: 1.0,
-                          ),
-                          boxShadow: !isSpecial
-                              ? [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFF0284C7,
-                                    ).withValues(alpha: 0.4),
-                                    blurRadius: 6.0,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.travel_explore,
-                              size: 12.0,
-                              color: !isSpecial
-                                  ? Colors.white
-                                  : const Color(0xFF64748B),
-                            ),
-                            const SizedBox(width: 4.0),
-                            Text(
-                              'CAMPAIGN',
-                              style: TextStyle(
-                                color: !isSpecial
-                                    ? Colors.white
-                                    : const Color(0xFF64748B),
-                                fontSize: 9.5,
-                                fontWeight: !isSpecial
-                                    ? FontWeight.w900
-                                    : FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () {
-                        if (_activeViewMode != StarmapViewMode.specialOps) {
-                          HapticService.instance.sowTick();
-                          setState(() {
-                            _activeViewMode = StarmapViewMode.specialOps;
-                          });
-                        }
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        height: 28.0,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: isSpecial
-                              ? const Color(0xFF7C3AED)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(14.0),
-                          border: Border.all(
-                            color: isSpecial
-                                ? const Color(0xFFA78BFA)
-                                : Colors.transparent,
-                            width: 1.0,
-                          ),
-                          boxShadow: isSpecial
-                              ? [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFF7C3AED,
-                                    ).withValues(alpha: 0.4),
-                                    blurRadius: 6.0,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.bolt,
-                              size: 12.0,
-                              color: isSpecial
-                                  ? Colors.white
-                                  : (hasBoost
-                                        ? VoidTheme.solarGold
-                                        : const Color(0xFF64748B)),
-                            ),
-                            const SizedBox(width: 4.0),
-                            Text(
-                              'SPECIAL OPS',
-                              style: TextStyle(
-                                color: isSpecial
-                                    ? Colors.white
-                                    : (hasBoost
-                                          ? VoidTheme.solarGold
-                                          : const Color(0xFF64748B)),
-                                fontSize: 9.5,
-                                fontWeight: isSpecial
-                                    ? FontWeight.w900
-                                    : FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 8.0),
-          _buildQuickProBoostPill(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickProBoostPill() {
-    final isPro = EntitlementService.instance.isProUnlocked;
-    final isBoost = EntitlementService.instance.isBoostActive;
-
-    return GestureDetector(
-      onTap: () {
-        HapticService.instance.sowTick();
-        showDialog<void>(
-          context: context,
-          barrierColor: Colors.black.withValues(alpha: 0.75),
-          builder: (context) => ProBoostModal(
-            onBoostUpdated: () {
-              if (mounted) setState(() {});
-            },
-          ),
-        );
-      },
-      child: Container(
-        height: 32.0,
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-        decoration: BoxDecoration(
-          color: isPro
-              ? VoidTheme.solarGold.withValues(alpha: 0.15)
-              : isBoost
-              ? VoidTheme.plasmaCyan.withValues(alpha: 0.15)
-              : const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(
-            color: isPro
-                ? VoidTheme.solarGold
-                : isBoost
-                ? VoidTheme.plasmaCyan
-                : const Color(0xFF334155),
-            width: 0.8,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isPro ? Icons.workspace_premium : Icons.bolt,
-              color: isPro
-                  ? VoidTheme.solarGold
-                  : isBoost
-                  ? VoidTheme.plasmaCyan
-                  : VoidTheme.solarGold,
-              size: 12.0,
-            ),
-            const SizedBox(width: 4.0),
-            Text(
-              isPro
-                  ? 'PRO'
-                  : isBoost
-                  ? 'BOOST ${EntitlementService.instance.formattedRemainingBoostTime}'
-                  : '+5m PRO',
-              style: TextStyle(
-                color: isPro
-                    ? VoidTheme.solarGold
-                    : isBoost
-                    ? VoidTheme.plasmaCyan
-                    : VoidTheme.solarGold,
-                fontSize: 8.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.3,
               ),
             ),
           ],
@@ -1008,89 +831,77 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     );
   }
 
-  Widget _buildSpecialOpsHeader() {
+  Widget _buildDoctrineBanner() {
+    final CampaignOperation op = CampaignService.instance.getOperation(
+      _activeCampaignId,
+    );
+    IconData doctrineIcon;
+    Color doctrineColor;
+    String doctrineTag;
+
+    switch (op.defaultDoctrine) {
+      case SectorCombatDoctrine.phantomDrift:
+        doctrineIcon = Icons.swap_horiz;
+        doctrineColor = VoidTheme.plasmaCyan;
+        doctrineTag = 'PHANTOM DRIFT • LATERAL EVASION';
+        break;
+      case SectorCombatDoctrine.voidSwarm:
+        doctrineIcon = Icons.hub;
+        doctrineColor = VoidTheme.crimsonFlare;
+        doctrineTag = 'VOID SWARM • HORDE CRUCIBLE & CORE SIPHON';
+        break;
+      case SectorCombatDoctrine.standardOrbital:
+        doctrineIcon = Icons.shield;
+        doctrineColor = VoidTheme.emeraldShield;
+        doctrineTag = 'STANDARD ORBITAL • PLANETARY SIEGE';
+        break;
+    }
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 6.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'VOID SOWER',
-                      style: TextStyle(
-                        color: Color(0xFF38BDF8),
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(width: 4.0),
-                    Text(
-                      '//',
-                      style: TextStyle(
-                        color: VoidTheme.textMuted.withValues(alpha: 0.6),
-                        fontSize: 8.5,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 4.0),
-                    const Text(
-                      'TACTICAL COMMAND',
-                      style: TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 9.0,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2.0),
-                const Text(
-                  'SPECIAL OPERATIONS',
-                  style: TextStyle(
-                    color: VoidTheme.starWhite,
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.4,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 3.0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 6.0),
+        decoration: BoxDecoration(
+          color: VoidTheme.obsidianBlack.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(
+            color: doctrineColor.withValues(alpha: 0.35),
+            width: 0.8,
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1B4B),
-              borderRadius: BorderRadius.circular(10.0),
-              border: Border.all(color: const Color(0xFF7C3AED), width: 0.8),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.bolt, color: Color(0xFFA78BFA), size: 12.0),
-                SizedBox(width: 4.0),
-                Text(
-                  'ROGUE & SORTIE',
-                  style: TextStyle(
-                    color: Color(0xFFA78BFA),
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
+        ),
+        child: Row(
+          children: [
+            Icon(doctrineIcon, color: doctrineColor, size: 14.0),
+            const SizedBox(width: 6.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    doctrineTag,
+                    style: TextStyle(
+                      color: doctrineColor,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.6,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 1.0),
+                  Text(
+                    op.tacticalBriefing,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: VoidTheme.textMuted,
+                      fontSize: 8.0,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1767,16 +1578,17 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Top Mode Selector: [ CAMPAIGN ] [ SPECIAL OPS ] + Pro Boost Pill
-                      _buildModeSelector(),
+                      // 1. Unified Sector Header (Eyebrow, Title, Liberated Tag, 4px Neon Track)
+                      _buildCampaignHeader(activeOp),
+
+                      // 2. 32px Theater Switcher Tabs (Kilwa Basin, Phantom Drift, Void Swarm, Special Ops)
+                      _buildTheaterSwitcher(),
+
+                      if (_activeViewMode == StarmapViewMode.campaign &&
+                          _activeCampaignId != 'kilwa_basin')
+                        _buildDoctrineBanner(),
 
                       if (_activeViewMode == StarmapViewMode.campaign) ...[
-                        // 1. Theater Switcher Tabs (Kilwa Basin, Phantom Drift, Void Swarm)
-                        _buildTheaterSwitcher(),
-
-                        // 2. Tactical Doctrine & Liberation Progress Bar
-                        _buildCampaignHeader(activeOp),
-
                         // 3. Orbital Mission Track List with Left Spline and Nodes
                         Expanded(
                           child: ListView.builder(
@@ -1803,11 +1615,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                         ),
                       ] else ...[
                         // Special Ops Command Deck
-                        _buildSpecialOpsHeader(),
                         _buildSpecialOpsView(),
                       ],
 
-                      // 5. Fixed Bottom Navigation Bar
+                      // 4. Fixed Bottom Navigation Bar
                       _buildBottomNavBar(),
                     ],
                   ),
@@ -1935,137 +1746,110 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     );
   }
 
-  /// Builds the compact status bar: orbital command deck, doctrine tag, liberation stats, and slim progress bar.
+  /// Builds the integrated command header matching sectors.svg:
+  /// Eyebrow, 20px bold title, glowing LIBERATED tag, and 4px neon progress track.
   Widget _buildCampaignHeader(CampaignOperation activeOp) {
     final liberatedCount = _sectors.where((s) => s.isLiberated).length;
     final totalSectors = _sectors.length;
     final percent = totalSectors > 0 ? liberatedCount / totalSectors : 0.0;
-
-    IconData doctrineIcon;
-    Color doctrineColor;
-    String doctrineTag;
-
-    switch (activeOp.defaultDoctrine) {
-      case SectorCombatDoctrine.phantomDrift:
-        doctrineIcon = Icons.swap_horiz;
-        doctrineColor = VoidTheme.plasmaCyan;
-        doctrineTag = 'PHANTOM DRIFT • LATERAL EVASION';
-        break;
-      case SectorCombatDoctrine.voidSwarm:
-        doctrineIcon = Icons.hub;
-        doctrineColor = VoidTheme.crimsonFlare;
-        doctrineTag = 'VOID SWARM • HORDE CRUCIBLE & CORE SIPHON';
-        break;
-      case SectorCombatDoctrine.standardOrbital:
-        doctrineIcon = Icons.shield;
-        doctrineColor = VoidTheme.emeraldShield;
-        doctrineTag = 'STANDARD ORBITAL • PLANETARY SIEGE';
-        break;
-    }
+    final titleText = _activeViewMode == StarmapViewMode.specialOps
+        ? 'SPECIAL OPERATIONS'
+        : (activeOp.id == 'kilwa_basin'
+              ? 'KILWA NEBULA BASIN'
+              : activeOp.title.toUpperCase());
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 2.0, 16.0, 4.0),
+      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 6.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'VOID SOWER',
-                    style: TextStyle(
-                      color: Color(0xFF38BDF8),
-                      fontSize: 9.0,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                    ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  Text(
-                    '//',
-                    style: TextStyle(
-                      color: VoidTheme.textMuted.withValues(alpha: 0.5),
-                      fontSize: 8.0,
-                    ),
-                  ),
-                  const SizedBox(width: 4.0),
-                  const Text(
-                    'ORBITAL COMMAND DECK',
-                    style: TextStyle(
-                      color: Color(0xFF94A3B8),
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                'LIBERATED: $liberatedCount / $totalSectors (${(percent * 100).toInt()}%)',
-                style: const TextStyle(
-                  color: Color(0xFF38BDF8),
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                activeOp.title.toUpperCase(),
-                style: const TextStyle(
-                  color: VoidTheme.starWhite,
-                  fontSize: 11.0,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(doctrineIcon, color: doctrineColor, size: 10.0),
-                  const SizedBox(width: 3.0),
-                  Text(
-                    doctrineTag,
-                    style: TextStyle(
-                      color: doctrineColor,
-                      fontSize: 8.0,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+          const Text(
+            'VOID SOWER // ORBITAL COMMAND',
+            style: TextStyle(
+              color: Color(0xFF38BDF8),
+              fontSize: 8.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+            ),
           ),
           const SizedBox(height: 3.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  titleText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                height: 26.0,
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF032541),
+                  borderRadius: BorderRadius.circular(13.0),
+                  border: Border.all(
+                    color: const Color(0xFF00F0FF),
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8.0,
+                      height: 8.0,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF00F0FF),
+                        boxShadow: [
+                          BoxShadow(color: Color(0x9900F0FF), blurRadius: 4.0),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6.0),
+                    Text(
+                      _activeViewMode == StarmapViewMode.specialOps
+                          ? 'ACTIVE OPS'
+                          : 'LIBERATED $liberatedCount/$totalSectors',
+                      style: const TextStyle(
+                        color: Color(0xFFE0F2FE),
+                        fontSize: 9.0,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6.0),
+          // 4px Progress Track
           Container(
-            height: 2.5,
+            height: 4.0,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(1.2),
-              boxShadow: [
-                BoxShadow(
-                  color: VoidTheme.plasmaCyan.withValues(alpha: 0.35),
-                  blurRadius: 3.0,
-                ),
-              ],
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(2.0),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(1.2),
-              child: LinearProgressIndicator(
-                value: percent,
-                backgroundColor: const Color(0xFF1E293B),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  VoidTheme.plasmaCyan,
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: percent.clamp(0.02, 1.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF00F0FF),
+                  borderRadius: BorderRadius.circular(2.0),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x9900F0FF), blurRadius: 4.0),
+                  ],
                 ),
-                minHeight: 2.5,
               ),
             ),
           ),
@@ -2198,136 +1982,79 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
   }
 
   Widget _buildLiberatedSectorCard(CampaignSector sector) {
+    final stars = sector.starsEarned > 0 ? sector.starsEarned : 3;
+    final score = sector.bestScore > 0
+        ? sector.bestScore
+        : (sector.starsEarned > 0 ? sector.starsEarned * 1400 : 4200);
+
     return Material(
       color: Colors.transparent,
       child: Ink(
+        height: 56.0,
         decoration: BoxDecoration(
-          color: const Color(0xFF07111E),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(
-            color: VoidTheme.emeraldShield.withValues(alpha: 0.35),
-            width: 1.0,
-          ),
+          color: const Color(0xFF0A101D),
+          borderRadius: BorderRadius.circular(14.0),
+          border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10.0),
+          borderRadius: BorderRadius.circular(14.0),
           onTap: () => _showSectorBriefing(sector),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 8.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              sector.name,
-                              style: const TextStyle(
-                                color: VoidTheme.starWhite,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13.0,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5.0,
-                              vertical: 1.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.emeraldShield.withValues(
-                                alpha: 0.15,
-                              ),
-                              borderRadius: BorderRadius.circular(3.0),
-                              border: Border.all(
-                                color: VoidTheme.emeraldShield.withValues(
-                                  alpha: 0.6,
-                                ),
-                                width: 0.6,
-                              ),
-                            ),
-                            child: const Text(
-                              'LIBERATED',
-                              style: TextStyle(
-                                color: VoidTheme.emeraldShield,
-                                fontSize: 7.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        sector.name,
+                        style: const TextStyle(
+                          color: VoidTheme.starWhite,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.0,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2.0),
-                      Row(
-                        children: [
-                          Text(
-                            '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1}',
-                            style: const TextStyle(
-                              color: VoidTheme.plasmaCyan,
-                              fontSize: 9.0,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 6.0),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(
-                              sector.starsEarned > 0 ? sector.starsEarned : 3,
-                              (i) => const Icon(
-                                Icons.star,
-                                size: 10.0,
-                                color: VoidTheme.solarGold,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '${sector.region} • Tier ${sector.difficultyTier + 1}',
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                Text(
-                  '★ ${sector.bestScore > 0 ? sector.bestScore : (sector.starsEarned > 0 ? sector.starsEarned * 1400 : 4200)}',
-                  style: const TextStyle(
-                    color: VoidTheme.solarGold,
-                    fontSize: 11.0,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F172A),
-                    foregroundColor: VoidTheme.emeraldShield,
-                    side: BorderSide(
-                      color: VoidTheme.emeraldShield.withValues(alpha: 0.7),
-                      width: 1.0,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      List.generate(3, (i) => i < stars ? '★' : '☆').join(),
+                      style: const TextStyle(
+                        color: Color(0xFFFBBF24),
+                        fontSize: 10.0,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8.0,
-                      vertical: 4.0,
+                    const SizedBox(height: 2.0),
+                    Text(
+                      '$score PTS',
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    minimumSize: const Size(0, 28.0),
-                  ),
-                  icon: const Icon(Icons.refresh, size: 11.0),
-                  onPressed: () => _launchSector(sector),
-                  label: const Text(
-                    'REPLAY',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 9.5,
-                      letterSpacing: 0.4,
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
@@ -2341,66 +2068,55 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     return Material(
       color: Colors.transparent,
       child: Ink(
+        height: 76.0,
         decoration: BoxDecoration(
-          color: const Color(0xFF061826),
-          borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(color: const Color(0xFF00E5FF), width: 1.5),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF0C233C), Color(0xFF071322)],
+          ),
+          borderRadius: BorderRadius.circular(16.0),
+          border: Border.all(color: const Color(0xFF00F0FF), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF00E5FF).withValues(alpha: 0.25),
-              blurRadius: 10.0,
+              color: const Color(0xFF00F0FF).withValues(alpha: 0.25),
+              blurRadius: 12.0,
               spreadRadius: 1.0,
             ),
           ],
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(12.0),
+          borderRadius: BorderRadius.circular(16.0),
           onTap: () => _showSectorBriefing(sector),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14.0,
-              vertical: 8.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6.0,
-                              vertical: 1.5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0284C7),
-                              borderRadius: BorderRadius.circular(3.0),
-                            ),
-                            child: const Text(
-                              'OBJECTIVE',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 8.0,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7.0,
+                          vertical: 2.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0284C7),
+                          borderRadius: BorderRadius.circular(7.5),
+                        ),
+                        child: const Text(
+                          'ACTIVE SIEGE',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 7.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
                           ),
-                          const SizedBox(width: 6.0),
-                          Text(
-                            'TIER ${sector.difficultyTier + 1}',
-                            style: const TextStyle(
-                              color: Color(0xFF38BDF8),
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                      const SizedBox(height: 3.0),
+                      const SizedBox(height: 4.0),
                       Text(
                         sector.name,
                         style: const TextStyle(
@@ -2409,83 +2125,60 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                           fontSize: 14.0,
                           letterSpacing: 0.3,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2.0),
+                      Text(
+                        '${sector.region} • Tier ${sector.difficultyTier + 1} Corridors',
+                        style: const TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8.0),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Tooltip(
-                      message: 'Auto-Solve with AI',
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                            color: Color(0xFF00E5FF),
-                            width: 1.0,
-                          ),
-                          backgroundColor: const Color(0xFF082F49),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6.0,
-                            vertical: 4.0,
-                          ),
-                          minimumSize: const Size(32.0, 28.0),
+                GestureDetector(
+                  onTap: () => _launchSector(sector),
+                  child: Container(
+                    width: 104.0,
+                    height: 40.0,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00F0FF),
+                      borderRadius: BorderRadius.circular(20.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF00F0FF).withValues(alpha: 0.4),
+                          blurRadius: 8.0,
                         ),
-                        onPressed: () => _launchSectorWithAi(sector),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.smart_toy,
-                              size: 12.0,
-                              color: Color(0xFF00E5FF),
-                            ),
-                            SizedBox(width: 2.0),
-                            Text(
-                              'AI',
-                              style: TextStyle(
-                                color: Color(0xFF00E5FF),
-                                fontWeight: FontWeight.w900,
-                                fontSize: 9.0,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 6.0),
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF00E5FF),
-                        foregroundColor: const Color(0xFF041226),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 6.0,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.play_arrow,
+                          size: 16.0,
+                          color: Color(0xFF04182B),
                         ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
+                        SizedBox(width: 2.0),
+                        Text(
+                          'ENGAGE',
+                          style: TextStyle(
+                            color: Color(0xFF04182B),
+                            fontSize: 11.0,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                        elevation: 3.0,
-                      ),
-                      icon: const Icon(
-                        Icons.rocket_launch,
-                        size: 13.0,
-                        color: Color(0xFF041226),
-                      ),
-                      onPressed: () => _launchSector(sector),
-                      label: const Text(
-                        'ENGAGE',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 11.0,
-                          color: Color(0xFF041226),
-                          letterSpacing: 0.4,
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -2499,97 +2192,71 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     return Material(
       color: Colors.transparent,
       child: Ink(
+        height: 56.0,
         decoration: BoxDecoration(
-          color: VoidTheme.cardSurface,
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: VoidTheme.solarGold, width: 1.2),
+          color: const Color(0xFF0A101D),
+          borderRadius: BorderRadius.circular(14.0),
+          border: Border.all(color: const Color(0xFF0284C7), width: 1.0),
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10.0),
+          borderRadius: BorderRadius.circular(14.0),
           onTap: () => _showSectorBriefing(sector),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 8.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              sector.name,
-                              style: const TextStyle(
-                                color: VoidTheme.starWhite,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 13.0,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6.0),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5.0,
-                              vertical: 1.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: VoidTheme.solarGold.withValues(
-                                alpha: 0.15,
-                              ),
-                              borderRadius: BorderRadius.circular(3.0),
-                              border: Border.all(
-                                color: VoidTheme.solarGold,
-                                width: 0.6,
-                              ),
-                            ),
-                            child: const Text(
-                              'OBJECTIVE',
-                              style: TextStyle(
-                                color: VoidTheme.solarGold,
-                                fontSize: 7.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.4,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        sector.name,
+                        style: const TextStyle(
+                          color: VoidTheme.starWhite,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.0,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2.0),
                       Text(
-                        '${sector.region.toUpperCase()} • TIER ${sector.difficultyTier + 1}',
+                        '${sector.region} • Tier ${sector.difficultyTier + 1}',
                         style: const TextStyle(
-                          color: VoidTheme.solarGoldLight,
+                          color: Color(0xFF38BDF8),
                           fontSize: 9.0,
                           fontWeight: FontWeight.w600,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: 8.0),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: VoidTheme.solarGold,
-                    foregroundColor: VoidTheme.obsidianBlack,
+                GestureDetector(
+                  onTap: () => _launchSector(sector),
+                  child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10.0,
-                      vertical: 5.0,
+                      horizontal: 12.0,
+                      vertical: 6.0,
                     ),
-                    minimumSize: const Size(0, 28.0),
-                  ),
-                  icon: const Icon(Icons.rocket_launch, size: 12.0),
-                  onPressed: () => _launchSector(sector),
-                  label: const Text(
-                    'ENGAGE',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10.5,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(12.0),
+                      border: Border.all(
+                        color: const Color(0xFF0284C7),
+                        width: 1.0,
+                      ),
+                    ),
+                    child: const Text(
+                      'ENGAGE',
+                      style: TextStyle(
+                        color: Color(0xFF38BDF8),
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
                     ),
                   ),
                 ),
@@ -2605,105 +2272,58 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     return Material(
       color: Colors.transparent,
       child: Ink(
+        height: 56.0,
         decoration: BoxDecoration(
-          color: const Color(0xFF080D18),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: const Color(0xFF1E293B), width: 0.8),
+          color: const Color(0xFF080C16).withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(14.0),
+          border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(10.0),
+          borderRadius: BorderRadius.circular(14.0),
           onTap: () => _showLockedSectorDialog(sector),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 7.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14.0),
             child: Row(
               children: [
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         sector.name,
                         style: const TextStyle(
-                          color: VoidTheme.textMuted,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13.0,
+                          color: Color(0xFF64748B),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12.0,
                         ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2.0),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4.0,
-                              vertical: 1.0,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(3.0),
-                            ),
-                            child: Text(
-                              'TIER ${sector.difficultyTier + 1}',
-                              style: const TextStyle(
-                                color: Color(0xFF94A3B8),
-                                fontSize: 8.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          if (sector.unlockRequirement.isNotEmpty) ...[
-                            const SizedBox(width: 6.0),
-                            Flexible(
-                              child: Text(
-                                'UNLOCK: ${sector.unlockRequirement}',
-                                style: const TextStyle(
-                                  color: Color(0xFF64748B),
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ],
+                      Text(
+                        sector.unlockRequirement.isNotEmpty
+                            ? 'UNLOCK: ${sector.unlockRequirement}'
+                            : '${sector.region} • Tier ${sector.difficultyTier + 1}',
+                        style: const TextStyle(
+                          color: Color(0xFF475569),
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8.0),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 7.0,
-                    vertical: 3.5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0F172A),
-                    borderRadius: BorderRadius.circular(5.0),
-                    border: Border.all(
-                      color: const Color(0xFF334155),
-                      width: 0.6,
-                    ),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.lock, size: 10.0, color: Color(0xFF64748B)),
-                      SizedBox(width: 3.0),
-                      Text(
-                        'LOCKED',
-                        style: TextStyle(
-                          fontSize: 8.5,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF64748B),
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                    ],
+                const Text(
+                  'LOCKED',
+                  style: TextStyle(
+                    fontSize: 10.0,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],

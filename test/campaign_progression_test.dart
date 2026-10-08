@@ -246,11 +246,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check header liberation counter
-      expect(find.text('ORBITAL COMMAND DECK'), findsOneWidget);
-      expect(find.text('LIBERATED: 0 / 9 (0%)'), findsOneWidget);
+      expect(find.textContaining('ORBITAL COMMAND'), findsOneWidget);
+      expect(find.textContaining('LIBERATED 0/9'), findsOneWidget);
 
-      // Check that Sector 1 has OBJECTIVE badge
-      expect(find.text('OBJECTIVE'), findsOneWidget);
+      // Check that Sector 1 has ACTIVE SIEGE badge
+      expect(find.text('ACTIVE SIEGE'), findsOneWidget);
       expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
 
       // Check that locked Sector 2 explicitly mentions how to unlock it
