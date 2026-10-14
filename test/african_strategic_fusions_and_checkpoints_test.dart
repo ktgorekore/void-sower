@@ -21,6 +21,7 @@ import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/presentation/controllers/combat_coordinator.dart';
 import 'package:void_sower/presentation/screens/combat_screen.dart';
+import 'package:void_sower/presentation/widgets/combat_camera_3d.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -283,8 +284,47 @@ void main() {
       },
     );
 
+    test(
+      'CombatCamera3D projects 3D trench depth, vertical altitude, and unprojects floor coordinates',
+      () {
+        const size = Size(400.0, 800.0);
+        const chaseCam = CombatCamera3D();
+        final nearProj = chaseCam.project(
+          size,
+          normX: 0.25,
+          normZ: 0.0,
+          elevationY: 0.0,
+        );
+        final farProj = chaseCam.project(
+          size,
+          normX: 0.25,
+          normZ: 1.0,
+          elevationY: 0.20,
+        );
+
+        // Far horizon must converge toward center X and higher on screen (smaller Y)
+        expect(farProj.screenOffset.dy, lessThan(nearProj.screenOffset.dy));
+        expect(farProj.perspectiveScale, lessThan(nearProj.perspectiveScale));
+        // 3D vertical altitude must lift screenOffset above groundOffset
+        expect(farProj.screenOffset.dy, lessThan(farProj.groundOffset.dy));
+
+        // Unprojecting a floor point returns valid normalized coordinates
+        final unproj = chaseCam.unprojectToTrenchFloor(
+          size,
+          nearProj.groundOffset,
+        );
+        expect(unproj.dx, closeTo(0.25, 0.05));
+        expect(unproj.dy, closeTo(0.0, 0.05));
+
+        // Cycling camera modes steps through CHASE 3D -> BRIDGE 3D -> ORBIT 3D -> TOP-DOWN
+        final bridgeCam = chaseCam.nextMode();
+        expect(bridgeCam.mode, CombatCameraMode.bridge3D);
+        expect(bridgeCam.yawDeg, closeTo(-22.0, 0.01));
+      },
+    );
+
     testWidgets(
-      'CombatScreen renders 3-Phase Checkpoint HUD, Comms Strip, and Mill Barrage chip',
+      'CombatScreen renders 3-Phase Checkpoint HUD, Comms Strip, and interactive 3D Camera Gimbal',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(1080, 2400));
         addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -305,6 +345,16 @@ void main() {
         expect(find.textContaining('P1: RECON'), findsOneWidget);
         // Verify Afrofuturist Narrative Comms speaker is visible.
         expect(find.textContaining('ADMIRAL ZAWADI'), findsOneWidget);
+        // Verify 3D Camera Gimbal Dock starts in CHASE 3D mode and cycles on tap.
+        expect(find.textContaining('CHASE 3D'), findsOneWidget);
+        await tester.tap(find.byKey(const Key('camera_mode_button')));
+        await tester.pump();
+        expect(find.textContaining('BRIDGE 3D'), findsOneWidget);
+
+        // Verify yaw orbit button adjusts 3D camera into ORBIT 3D mode.
+        await tester.tap(find.byKey(const Key('camera_yaw_stbd_button')));
+        await tester.pump();
+        expect(find.textContaining('ORBIT 3D'), findsOneWidget);
       },
     );
   });

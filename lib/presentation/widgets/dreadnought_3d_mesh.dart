@@ -69,12 +69,12 @@ class Dreadnought3DMesh {
   static const double _lightDirY = -0.53033;
   static const double _lightDirZ = 0.77055;
 
-  // Pre-calculated base colors palette
+  // Pre-calculated base colors palette (Rich 3D Metallic Navy & Cobalt)
   static const List<Color> _baseColors = [
-    Color(0xFF0F172A), // 0: Port/Stbd Forward Flank
-    Color(0xFF1E293B), // 1: Midship Broadside
-    Color(0xFF0A101F), // 2: Ventral Keel & Wing Roots
-    Color(0xFF162033), // 3: Dorsal Deck & Citadel
+    Color(0xFF1B3B6F), // 0: Port/Stbd Forward Flank
+    Color(0xFF28559A), // 1: Midship Broadside
+    Color(0xFF102547), // 2: Ventral Keel & Wing Roots
+    Color(0xFF336BC2), // 3: Dorsal Deck & Citadel
   ];
 
   // Lookup table: [baseColorIndex][lightStep 0..100]
@@ -101,10 +101,10 @@ class Dreadnought3DMesh {
   // Helper mapping base color to LUT index
   static int _baseColorIndex(Color c) {
     final val = c.toARGB32() & 0x00FFFFFF;
-    if (val == 0x0F172A) return 0;
-    if (val == 0x1E293B) return 1;
-    if (val == 0x0A101F) return 2;
-    return 3; // 0x162033
+    if (val == 0x1B3B6F) return 0;
+    if (val == 0x28559A) return 1;
+    if (val == 0x102547) return 2;
+    return 3; // 0x336BC2
   }
 
   /// Shaded color lookup table view for unit testing.
@@ -330,8 +330,28 @@ class Dreadnought3DMesh {
     }
 
     // -------------------------------------------------------------------------
-    // 3. Facet Shading & Rendering
+    // 3. Facet Shading & Rendering (Ventral Keel first, then Dorsal Hull)
     // -------------------------------------------------------------------------
+
+    // Ventral Keel Left & Right (3D hull depth under camera tilt)
+    _paintFacet(
+      canvas,
+      7,
+      vProwTip,
+      vVentralKeel,
+      vPortShoulder,
+      baseColor: const Color(0xFF102547),
+      isLowBattery: isLowBattery,
+    );
+    _paintFacet(
+      canvas,
+      8,
+      vProwTip,
+      vStbdShoulder,
+      vVentralKeel,
+      baseColor: const Color(0xFF102547),
+      isLowBattery: isLowBattery,
+    );
 
     // Facet 1: Dorsal Prow Left
     _paintFacet(
@@ -340,7 +360,7 @@ class Dreadnought3DMesh {
       vProwTip,
       vProwSpine,
       vPortShoulder,
-      baseColor: const Color(0xFF0F172A),
+      baseColor: const Color(0xFF1B3B6F),
       isLowBattery: isLowBattery,
     );
 
@@ -351,7 +371,7 @@ class Dreadnought3DMesh {
       vProwTip,
       vStbdShoulder,
       vProwSpine,
-      baseColor: const Color(0xFF0F172A),
+      baseColor: const Color(0xFF1B3B6F),
       isLowBattery: isLowBattery,
     );
 
@@ -362,7 +382,7 @@ class Dreadnought3DMesh {
       vProwSpine,
       vBridgeApex,
       vPortShoulder,
-      baseColor: const Color(0xFF1E293B),
+      baseColor: const Color(0xFF28559A),
       isLowBattery: isLowBattery,
     );
 
@@ -373,7 +393,7 @@ class Dreadnought3DMesh {
       vProwSpine,
       vStbdShoulder,
       vBridgeApex,
-      baseColor: const Color(0xFF1E293B),
+      baseColor: const Color(0xFF28559A),
       isLowBattery: isLowBattery,
     );
 
@@ -385,7 +405,7 @@ class Dreadnought3DMesh {
       vPortWingMid,
       vPortWingtip,
       vPortEngineMount,
-      baseColor: const Color(0xFF0A101F),
+      baseColor: const Color(0xFF102547),
       isLowBattery: isLowBattery,
     );
 
@@ -397,7 +417,7 @@ class Dreadnought3DMesh {
       vStbdEngineMount,
       vStbdWingtip,
       vStbdWingMid,
-      baseColor: const Color(0xFF0A101F),
+      baseColor: const Color(0xFF102547),
       isLowBattery: isLowBattery,
     );
 
@@ -409,7 +429,7 @@ class Dreadnought3DMesh {
       vPortEngineMount,
       vSternKeel,
       vStbdEngineMount,
-      baseColor: const Color(0xFF162033),
+      baseColor: const Color(0xFF336BC2),
       isLowBattery: isLowBattery,
     );
 

@@ -35,6 +35,7 @@ import '../controllers/combat_overlay_state.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 import 'campaign_map_screen.dart';
+import '../widgets/combat_camera_3d.dart';
 import '../widgets/combat_painter.dart';
 import '../widgets/game_over_dialog.dart';
 import '../widgets/mancala_battery_dock_widget.dart';
@@ -138,6 +139,24 @@ class _CombatScreenState extends State<CombatScreen>
   int _lastTickMicros = 0;
   double _viewportDragDx = 0.0;
   double _viewportDragDy = 0.0;
+  CombatCamera3D _camera3D = const CombatCamera3D();
+  bool _isCameraOrbitDrag = false;
+
+  @visibleForTesting
+  CombatCamera3D get camera3D => _camera3D;
+
+  void _cycleCameraMode() {
+    HapticService.instance.injectionClick();
+    setState(() {
+      _camera3D = _camera3D.nextMode();
+    });
+  }
+
+  void _adjustCameraAngles({double dPitch = 0.0, double dYaw = 0.0}) {
+    setState(() {
+      _camera3D = _camera3D.withAdjustedAngles(dPitch: dPitch, dYaw: dYaw);
+    });
+  }
 
   @override
   void initState() {
@@ -1308,22 +1327,37 @@ class _CombatScreenState extends State<CombatScreen>
                                               return GestureDetector(
                                                 behavior:
                                                     HitTestBehavior.opaque,
-                                                onPanStart: (_) {
+                                                onPanStart: (details) {
                                                   _viewportDragDx = 0.0;
                                                   _viewportDragDy = 0.0;
+                                                  _isCameraOrbitDrag =
+                                                      details.localPosition.dy <
+                                                      constraints.maxHeight *
+                                                          0.22;
                                                 },
                                                 onPanUpdate: (details) {
                                                   _viewportDragDx +=
                                                       details.delta.dx;
                                                   _viewportDragDy +=
                                                       details.delta.dy;
-                                                  final normX =
-                                                      (details
-                                                                  .localPosition
-                                                                  .dx /
-                                                              constraints
-                                                                  .maxWidth)
-                                                          .clamp(0.0, 1.0);
+                                                  if (_isCameraOrbitDrag) {
+                                                    _adjustCameraAngles(
+                                                      dPitch:
+                                                          details.delta.dy *
+                                                          0.22,
+                                                      dYaw:
+                                                          details.delta.dx *
+                                                          0.18,
+                                                    );
+                                                    return;
+                                                  }
+                                                  final floorPos = _camera3D
+                                                      .unprojectToTrenchFloor(
+                                                        _combatViewportSize!,
+                                                        details.localPosition,
+                                                      );
+                                                  final normX = floorPos.dx
+                                                      .clamp(0.0, 1.0);
                                                   final boundaryY =
                                                       constraints.maxHeight -
                                                       18.0;
@@ -1366,6 +1400,10 @@ class _CombatScreenState extends State<CombatScreen>
                                                   );
                                                 },
                                                 onPanEnd: (details) {
+                                                  if (_isCameraOrbitDrag) {
+                                                    _isCameraOrbitDrag = false;
+                                                    return;
+                                                  }
                                                   if (!matchState
                                                           .canReceiveInput &&
                                                       (_coordinator
@@ -1519,7 +1557,7 @@ class _CombatScreenState extends State<CombatScreen>
                                                         },
                                                       ),
                                                     ),
-                                                    // Retained Static Skia Surface (Corridors & Defense Rails)
+                                                    // Retained Static Skia Surface (3D Trench Walls, Skybox & Corridors)
                                                     RepaintBoundary(
                                                       child: CustomPaint(
                                                         painter: CombatBackgroundPainter(
@@ -1527,6 +1565,7 @@ class _CombatScreenState extends State<CombatScreen>
                                                               PersistenceService
                                                                   .instance
                                                                   .lowBatteryMode,
+                                                          camera: _camera3D,
                                                         ),
                                                       ),
                                                     ),
@@ -1579,6 +1618,8 @@ class _CombatScreenState extends State<CombatScreen>
                                                                     PersistenceService
                                                                         .instance
                                                                         .lowBatteryMode,
+                                                                camera:
+                                                                    _camera3D,
                                                               ),
                                                             ),
                                                           );
@@ -2521,6 +2562,177 @@ class _CombatScreenState extends State<CombatScreen>
                                                     ],
                                                   ),
                                                 ),
+                                              ),
+                                            ),
+                                          ),
+                                        // Interactive 3D Camera Gimbal Dock (Chase 3D / Bridge 3D / Orbit 3D / Top-Down + Yaw/Pitch Tilt)
+                                        if (!isSecured)
+                                          Positioned(
+                                            bottom: 8.0,
+                                            left: 12.0,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6.0,
+                                                    vertical: 3.5,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: VoidTheme.obsidianBlack
+                                                    .withValues(alpha: 0.92),
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                border: Border.all(
+                                                  color: VoidTheme.plasmaCyan
+                                                      .withValues(alpha: 0.65),
+                                                  width: 1.0,
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  GestureDetector(
+                                                    key: const Key(
+                                                      'camera_mode_button',
+                                                    ),
+                                                    behavior:
+                                                        HitTestBehavior.opaque,
+                                                    onTap: _cycleCameraMode,
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 4.0,
+                                                            vertical: 2.0,
+                                                          ),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          const Icon(
+                                                            Icons
+                                                                .threed_rotation,
+                                                            size: 12.0,
+                                                            color: VoidTheme
+                                                                .plasmaCyan,
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 4.0,
+                                                          ),
+                                                          Text(
+                                                            '${_camera3D.mode.label} ${_camera3D.pitchDeg.round()}°/${_camera3D.yawDeg.round()}°',
+                                                            style: const TextStyle(
+                                                              color: VoidTheme
+                                                                  .plasmaCyan,
+                                                              fontSize: 7.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w900,
+                                                              letterSpacing:
+                                                                  0.4,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 4.0),
+                                                  GestureDetector(
+                                                    key: const Key(
+                                                      'camera_yaw_port_button',
+                                                    ),
+                                                    behavior:
+                                                        HitTestBehavior.opaque,
+                                                    onTap: () =>
+                                                        _adjustCameraAngles(
+                                                          dYaw: -9.0,
+                                                        ),
+                                                    child: const Padding(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 3.0,
+                                                            vertical: 2.0,
+                                                          ),
+                                                      child: Icon(
+                                                        Icons.chevron_left,
+                                                        size: 13.0,
+                                                        color:
+                                                            VoidTheme.solarGold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  GestureDetector(
+                                                    key: const Key(
+                                                      'camera_yaw_stbd_button',
+                                                    ),
+                                                    behavior:
+                                                        HitTestBehavior.opaque,
+                                                    onTap: () =>
+                                                        _adjustCameraAngles(
+                                                          dYaw: 9.0,
+                                                        ),
+                                                    child: const Padding(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 3.0,
+                                                            vertical: 2.0,
+                                                          ),
+                                                      child: Icon(
+                                                        Icons.chevron_right,
+                                                        size: 13.0,
+                                                        color:
+                                                            VoidTheme.solarGold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  GestureDetector(
+                                                    key: const Key(
+                                                      'camera_pitch_down_button',
+                                                    ),
+                                                    behavior:
+                                                        HitTestBehavior.opaque,
+                                                    onTap: () =>
+                                                        _adjustCameraAngles(
+                                                          dPitch: -6.0,
+                                                        ),
+                                                    child: const Padding(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 3.0,
+                                                            vertical: 2.0,
+                                                          ),
+                                                      child: Icon(
+                                                        Icons
+                                                            .keyboard_arrow_down,
+                                                        size: 13.0,
+                                                        color:
+                                                            VoidTheme.solarGold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  GestureDetector(
+                                                    key: const Key(
+                                                      'camera_pitch_up_button',
+                                                    ),
+                                                    behavior:
+                                                        HitTestBehavior.opaque,
+                                                    onTap: () =>
+                                                        _adjustCameraAngles(
+                                                          dPitch: 6.0,
+                                                        ),
+                                                    child: const Padding(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 3.0,
+                                                            vertical: 2.0,
+                                                          ),
+                                                      child: Icon(
+                                                        Icons.keyboard_arrow_up,
+                                                        size: 13.0,
+                                                        color:
+                                                            VoidTheme.solarGold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ),

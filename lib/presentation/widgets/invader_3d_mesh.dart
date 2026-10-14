@@ -526,11 +526,35 @@ class Invader3DMesh {
   }
 
   // ---------------------------------------------------------------------------
-  // Drone Facet Drawing
+  // Drone Facet Drawing (Full 3D Volumetric Hull with Ventral Keel)
   // ---------------------------------------------------------------------------
   void _paintDroneMesh(Canvas canvas, double alpha, bool isLowBattery) {
-    const baseColor = Color(0xFF1E112A);
+    const baseColor = Color(0xFF3B1D5E);
+    const wingColor = Color(0xFF24113D);
+    const ventralColor = Color(0xFF160A26);
     const outlineColor = VoidTheme.nebulaAmethystLight;
+
+    // Ventral Keel Underbody (gives 3D thickness when pitched/yawed)
+    _paintFacet(
+      canvas,
+      droneNose,
+      droneVentral,
+      dronePortWingtip,
+      baseColor: ventralColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
+    _paintFacet(
+      canvas,
+      droneNose,
+      droneStbdWingtip,
+      droneVentral,
+      baseColor: ventralColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
 
     // Dorsal Port Wing
     _paintFacet(
@@ -541,15 +565,17 @@ class Invader3DMesh {
       baseColor: baseColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       dronePortShoulder,
       dronePortWingtip,
       dronePortEngine,
-      baseColor: const Color(0xFF120B1C),
+      baseColor: wingColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Dorsal Starboard Wing
@@ -561,15 +587,17 @@ class Invader3DMesh {
       baseColor: baseColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       droneStbdShoulder,
       droneStbdEngine,
       droneStbdWingtip,
-      baseColor: const Color(0xFF120B1C),
+      baseColor: wingColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Center Spine & Aft
@@ -578,33 +606,88 @@ class Invader3DMesh {
       droneCockpit,
       dronePortEngine,
       droneAftKeel,
-      baseColor: const Color(0xFF261638),
+      baseColor: const Color(0xFF4C2878),
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       droneCockpit,
       droneAftKeel,
       droneStbdEngine,
-      baseColor: const Color(0xFF261638),
+      baseColor: const Color(0xFF4C2878),
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
+    );
+
+    // 3D Dorsal Cockpit Canopy Beacon
+    _facetPaint.color = Colors.white.withValues(alpha: alpha * 0.92);
+    canvas.drawCircle(
+      Offset(_projX[droneCockpit], _projY[droneCockpit]),
+      2.4,
+      _facetPaint,
     );
   }
 
   void _paintDroneEngines(Canvas canvas, double scale, double animationTime) {
-    final flameH = (8.0 + math.sin(animationTime * 24.0) * 3.0) * scale;
+    final flameH = (9.0 + math.sin(animationTime * 24.0) * 3.5) * scale;
     _drawFlame(canvas, dronePortEngine, flameH, scale);
     _drawFlame(canvas, droneStbdEngine, flameH, scale);
   }
 
   // ---------------------------------------------------------------------------
-  // Cruiser Facet Drawing
+  // Cruiser Facet Drawing (Full 3D Volumetric Hull with Ventral Keel)
   // ---------------------------------------------------------------------------
   void _paintCruiserMesh(Canvas canvas, double alpha, bool isLowBattery) {
-    const baseColor = Color(0xFF1A1333);
+    const baseColor = Color(0xFF1E3A5F);
+    const podColor = Color(0xFF152945);
+    const finColor = Color(0xFF0E1D33);
+    const aftColor = Color(0xFF284B7A);
     const outlineColor = VoidTheme.plasmaCyan;
+
+    // Ventral 3D Keel & Prow Underbody
+    _paintFacet(
+      canvas,
+      cruiserProw,
+      cruiserVentralProw,
+      cruiserPortPod,
+      baseColor: finColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
+    _paintFacet(
+      canvas,
+      cruiserProw,
+      cruiserStbdPod,
+      cruiserVentralProw,
+      baseColor: finColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
+    _paintFacet(
+      canvas,
+      cruiserVentralProw,
+      cruiserVentralKeel,
+      cruiserPortFlank,
+      baseColor: finColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
+    _paintFacet(
+      canvas,
+      cruiserVentralProw,
+      cruiserStbdFlank,
+      cruiserVentralKeel,
+      baseColor: finColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
 
     // Prow facets
     _paintFacet(
@@ -615,6 +698,7 @@ class Invader3DMesh {
       baseColor: baseColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
@@ -624,6 +708,7 @@ class Invader3DMesh {
       baseColor: baseColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Lateral pods
@@ -632,18 +717,20 @@ class Invader3DMesh {
       cruiserPortArmor,
       cruiserPortPod,
       cruiserDorsalArmor,
-      baseColor: const Color(0xFF130E26),
+      baseColor: podColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       cruiserStbdArmor,
       cruiserDorsalArmor,
       cruiserStbdPod,
-      baseColor: const Color(0xFF130E26),
+      baseColor: podColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Wings / Fins
@@ -652,18 +739,20 @@ class Invader3DMesh {
       cruiserPortPod,
       cruiserPortFin,
       cruiserPortFlank,
-      baseColor: const Color(0xFF0F0B1E),
+      baseColor: finColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       cruiserStbdPod,
       cruiserStbdFlank,
       cruiserStbdFin,
-      baseColor: const Color(0xFF0F0B1E),
+      baseColor: finColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Aft superstructure
@@ -672,33 +761,91 @@ class Invader3DMesh {
       cruiserDorsalArmor,
       cruiserPortEngine,
       cruiserSternCenter,
-      baseColor: const Color(0xFF231B45),
+      baseColor: aftColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       cruiserDorsalArmor,
       cruiserSternCenter,
       cruiserStbdEngine,
-      baseColor: const Color(0xFF231B45),
+      baseColor: aftColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
+    );
+
+    // 3D Dorsal Bridge Spire Highlight
+    _facetPaint.color = VoidTheme.plasmaCyanLight.withValues(
+      alpha: alpha * 0.95,
+    );
+    canvas.drawCircle(
+      Offset(_projX[cruiserBridge], _projY[cruiserBridge]),
+      3.0,
+      _facetPaint,
     );
   }
 
   void _paintCruiserEngines(Canvas canvas, double scale, double animationTime) {
-    final flameH = (12.0 + math.sin(animationTime * 22.0) * 4.0) * scale;
+    final flameH = (13.0 + math.sin(animationTime * 22.0) * 4.5) * scale;
     _drawFlame(canvas, cruiserPortEngine, flameH, scale);
     _drawFlame(canvas, cruiserStbdEngine, flameH, scale);
   }
 
   // ---------------------------------------------------------------------------
-  // Flagship Facet Drawing
+  // Flagship Facet Drawing (Full 3D Volumetric Citadel & Ventral Keel)
   // ---------------------------------------------------------------------------
   void _paintFlagshipMesh(Canvas canvas, double alpha, bool isLowBattery) {
-    const baseColor = Color(0xFF2A0D15);
+    const baseColor = Color(0xFF5A1428);
+    const bastionColor = Color(0xFF420E1D);
+    const broadsideColor = Color(0xFF330A16);
+    const wingColor = Color(0xFF260710);
+    const citadelColor = Color(0xFF751B35);
     const outlineColor = VoidTheme.crimsonFlare;
+
+    // Ventral 3D Keel & Core Underbody
+    _paintFacet(
+      canvas,
+      flagSpinalCannon,
+      flagVentralCore,
+      flagPortBastion,
+      baseColor: wingColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
+    _paintFacet(
+      canvas,
+      flagSpinalCannon,
+      flagStbdBastion,
+      flagVentralCore,
+      baseColor: wingColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
+    _paintFacet(
+      canvas,
+      flagVentralCore,
+      flagVentralKeel,
+      flagPortBroadside,
+      baseColor: wingColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
+    _paintFacet(
+      canvas,
+      flagVentralCore,
+      flagStbdBroadside,
+      flagVentralKeel,
+      baseColor: wingColor,
+      outlineColor: outlineColor,
+      alpha: alpha,
+      cullBackface: false,
+    );
 
     // Heavy prow spinal cannon
     _paintFacet(
@@ -709,6 +856,7 @@ class Invader3DMesh {
       baseColor: baseColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
@@ -718,6 +866,7 @@ class Invader3DMesh {
       baseColor: baseColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Bastions
@@ -726,18 +875,20 @@ class Invader3DMesh {
       flagProwLeft,
       flagPortBastion,
       flagCommandTower,
-      baseColor: const Color(0xFF200A10),
+      baseColor: bastionColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       flagProwRight,
       flagCommandTower,
       flagStbdBastion,
-      baseColor: const Color(0xFF200A10),
+      baseColor: bastionColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Broadside armor plates
@@ -746,18 +897,20 @@ class Invader3DMesh {
       flagPortBastion,
       flagPortBroadside,
       flagUpperCitadel,
-      baseColor: const Color(0xFF18070C),
+      baseColor: broadsideColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       flagStbdBastion,
       flagUpperCitadel,
       flagStbdBroadside,
-      baseColor: const Color(0xFF18070C),
+      baseColor: broadsideColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Heavy swept wings
@@ -766,18 +919,20 @@ class Invader3DMesh {
       flagPortBroadside,
       flagPortWingtip,
       flagPortHangar,
-      baseColor: const Color(0xFF14050A),
+      baseColor: wingColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       flagStbdBroadside,
       flagStbdHangar,
       flagStbdWingtip,
-      baseColor: const Color(0xFF14050A),
+      baseColor: wingColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
 
     // Stern Citadel & Warp drives
@@ -786,18 +941,37 @@ class Invader3DMesh {
       flagUpperCitadel,
       flagPortWarpDrive,
       flagSternCenter,
-      baseColor: const Color(0xFF38121D),
+      baseColor: citadelColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
     );
     _paintFacet(
       canvas,
       flagUpperCitadel,
       flagSternCenter,
       flagStbdWarpDrive,
-      baseColor: const Color(0xFF38121D),
+      baseColor: citadelColor,
       outlineColor: outlineColor,
       alpha: alpha,
+      cullBackface: false,
+    );
+
+    // 3D Command Citadel Spire & Spinal ridge line
+    _wireframePaint
+      ..color = VoidTheme.solarGold.withValues(alpha: alpha * 0.95)
+      ..strokeWidth = 1.8;
+    canvas.drawLine(
+      Offset(_projX[flagSpinalCannon], _projY[flagSpinalCannon]),
+      Offset(_projX[flagCommandTower], _projY[flagCommandTower]),
+      _wireframePaint,
+    );
+    _wireframePaint.strokeWidth = 1.2;
+    _facetPaint.color = VoidTheme.solarGold.withValues(alpha: alpha * 0.95);
+    canvas.drawCircle(
+      Offset(_projX[flagCommandTower], _projY[flagCommandTower]),
+      3.8,
+      _facetPaint,
     );
   }
 
@@ -824,7 +998,7 @@ class Invader3DMesh {
   ) {
     final ex = _projX[engineVertex];
     final ey = _projY[engineVertex];
-    final w = 4.0 * scale;
+    final w = 4.2 * scale;
 
     _scratchFacetPath.reset();
     _scratchFacetPath.moveTo(ex - w, ey);
@@ -846,6 +1020,7 @@ class Invader3DMesh {
     required Color baseColor,
     required Color outlineColor,
     required double alpha,
+    bool cullBackface = true,
   }) {
     // 1. Calculate Face Normal via 3D Cross Product in Camera Space
     final ax = _camX[v1] - _camX[v0];
@@ -868,20 +1043,19 @@ class Invader3DMesh {
     final normY = ny * invLen;
     final normZ = nz * invLen;
 
-    // 2. Backface Culling (Dorsal faces face towards camera: normZ > 0)
-    if (normZ <= -0.1) return;
+    // 2. Backface Culling (optional when rendering full 3D hull under extreme tilt)
+    if (cullBackface && normZ <= -0.1) return;
 
-    // 3. Directional Starlight Dot Product
-    final lightDot =
-        (normX * _lightDirX + normY * _lightDirY + normZ * _lightDirZ).clamp(
-          0.0,
-          1.0,
-        );
-    final intensity = 0.50 + 0.50 * lightDot;
+    // 3. Directional Starlight Dot Product + Specular Highlight
+    final rawDot =
+        normX * _lightDirX + normY * _lightDirY + normZ.abs() * _lightDirZ;
+    final lightDot = rawDot.clamp(0.0, 1.0);
+    final intensity = 0.58 + 0.52 * lightDot;
+    final spec = (lightDot * lightDot * 0.25);
 
-    final r = (baseColor.r * intensity).clamp(0.0, 1.0);
-    final g = (baseColor.g * intensity).clamp(0.0, 1.0);
-    final b = (baseColor.b * intensity).clamp(0.0, 1.0);
+    final r = (baseColor.r * intensity + outlineColor.r * spec).clamp(0.0, 1.0);
+    final g = (baseColor.g * intensity + outlineColor.g * spec).clamp(0.0, 1.0);
+    final b = (baseColor.b * intensity + outlineColor.b * spec).clamp(0.0, 1.0);
 
     _facetPaint.color = Color.from(
       alpha: alpha * baseColor.a,
@@ -900,7 +1074,7 @@ class Invader3DMesh {
     canvas.drawPath(_scratchFacetPath, _facetPaint);
 
     // 5. Wireframe Edge Accent
-    _wireframePaint.color = outlineColor.withValues(alpha: alpha * 0.75);
+    _wireframePaint.color = outlineColor.withValues(alpha: alpha * 0.85);
     canvas.drawPath(_scratchFacetPath, _wireframePaint);
   }
 }
