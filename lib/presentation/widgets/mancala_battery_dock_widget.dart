@@ -257,7 +257,11 @@ class MancalaBatteryDockWidget extends StatelessWidget {
               onTap: () {
                 HapticService.instance.sowTick();
                 if (isAligned) {
-                  onQuickFire();
+                  if (onDirectDischargeBay != null) {
+                    onDirectDischargeBay!(bay.bayIndex);
+                  } else {
+                    onQuickFire();
+                  }
                 } else {
                   onBaySelected(bay.bayIndex);
                   final normX = (corridor + 0.5) / 8.0;
@@ -267,7 +271,13 @@ class MancalaBatteryDockWidget extends StatelessWidget {
               onDoubleTap: onDirectDischargeBay != null
                   ? () => onDirectDischargeBay!(bay.bayIndex)
                   : null,
-              onFire: onQuickFire,
+              onFire: () {
+                if (onDirectDischargeBay != null) {
+                  onDirectDischargeBay!(bay.bayIndex);
+                } else {
+                  onQuickFire();
+                }
+              },
               onSowAction: onSowAction,
               onInjectCore: onInjectCore,
             ),

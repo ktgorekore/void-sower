@@ -104,10 +104,10 @@ def capture(dest_name, mirror_name=None, docs_name=None):
 
 def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6):
   adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
+  adb_cmd(["shell", "input", "keyevent", "3"])
+  time.sleep(0.6)
   adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
-  time.sleep(0.5)
-  adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
-  time.sleep(0.8)
+  time.sleep(0.6)
 
   profile_json = (
       '{"id":"pilot_default","callsign":"Vanguard-01","insignia":"shonaStar",'
@@ -176,10 +176,10 @@ def main():
   # =========================================================================
   # Phase 2: Active Tactical Combat (Baseline Threshold Defense Z: 0km)
   # =========================================================================
-  print("\n[Phase 2] Capturing Tactical Combat Grid at Baseline Defense (Z: 0km)...")
-  seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
-  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-  time.sleep(2.5)
+  print("\n[Phase 2] Dismissing Flight Academy & Capturing Tactical Combat Grid (Z: 0km)...")
+  # Tap SKIP button on Flight Academy modal (x=190, y=2090)
+  tap(190, 2090)
+  time.sleep(0.8)
 
   # Clean combat screen with no dialog overlays
   capture("01_tactical_combat_grid.png", "phone_01_tactical_combat_grid.png", "01_combat_tactical_depth.png")
@@ -265,26 +265,20 @@ def main():
   # Phase 8: Pro Commander Upgrade Modal (Special Operations)
   # =========================================================================
   print("\n[Phase 8] Capturing Special Operations / Pro Commander...")
-  # In Campaign Map top bar, tap SPECIAL OPS tab (x=1128, y=423)
-  tap(1128, 423)
-  time.sleep(1.2)
-  # Tap GET LIFETIME PRO at x=666, y=2517
-  tap(666, 2517)
-  time.sleep(1.2)
+  # In Campaign Map top bar, tap SPECIAL OPS tab (x=1128, y=468)
+  tap(1128, 468)
+  time.sleep(1.5)
   capture("09_pro_commander_upgrade.png", "phone_07_pro_commander.png")
-  # Dismiss Pro modal cleanly via back keyevent
-  keyevent(4)
-  time.sleep(0.8)
-  # Return to Campaign tab (x=203, y=431)
-  tap(203, 431)
+  # Return to Campaign tab (x=203, y=468)
+  tap(203, 468)
   time.sleep(0.8)
 
   # =========================================================================
-  # Phase 9: Sector 1 Liberation Victory
+  # Phase 9: Checkpoint 1 Relic Draft & Sector Liberation Victory
   # =========================================================================
-  print("\n[Phase 9] Playing Sector 1 with AI Solver for Victory Dialog...")
-  # Tap Sector 1 ENGAGE button on hero objective card (x=850, y=600)
-  tap(850, 600)
+  print("\n[Phase 9] Playing Sector 9 with AI Solver for Checkpoint Relic Draft & Victory Dialog...")
+  # Tap Sector 9 ENGAGE button on campaign card (x=1075, y=2245)
+  tap(1075, 2245)
   time.sleep(2.0)
 
   # Open Tactical Pause via keyevent 4
@@ -297,9 +291,10 @@ def main():
   tap(671, 1500)
   time.sleep(0.5)
 
-  print("[Victory] AI Solver engaged. Polling for Sector Liberation Victory modal...")
+  print("[Victory] AI Solver engaged. Polling for Checkpoint 1 Relic Draft & Sector Liberation Victory modal...")
+  captured_checkpoint = False
   captured_victory = False
-  for tick in range(40):
+  for tick in range(45):
     time.sleep(0.35)
     temp_check = "/tmp/poll_vic_check.png"
     with open(temp_check, "wb") as f:
@@ -312,6 +307,15 @@ def main():
     emerald_mask = (center_area[:, :, 1] > 150) & (center_area[:, :, 0] < 80) & (center_area[:, :, 2] < 120)
     white_pct = (chk_arr > 240).all(axis=-1).mean() * 100
 
+    if not captured_checkpoint and tick >= 4 and (gold_mask.sum() <= 400 and emerald_mask.sum() <= 400):
+      print(f"[Checkpoint] Capturing live AI Solver cascade & Checkpoint HUD at tick {tick}...")
+      capture(
+          "10_checkpoint_relic_draft_siege.png",
+          "phone_08_checkpoint_relic_draft.png",
+          "07_checkpoint_relic_draft.png",
+      )
+      captured_checkpoint = True
+
     if (gold_mask.sum() > 400 or emerald_mask.sum() > 400) and white_pct < 5.0:
       print(f"[Victory] Victory dialog confirmed on screen at tick {tick}!")
       capture("06_sector_liberation_victory.png", "phone_05_sector_liberation.png")
@@ -322,11 +326,7 @@ def main():
     print("[Victory] Capturing current combat / victory state...")
     capture("06_sector_liberation_victory.png", "phone_05_sector_liberation.png")
 
-  # Re-seed Pro entitlement for normal usage
-  print("\n[Cleanup] Re-seeding Pro entitlement...")
-  seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
-
-  print("\n[Complete] All 9 Play Store phone screenshots captured and strictly verified!")
+  print("\n[Complete] All 10 Play Store phone screenshots captured and strictly verified!")
 
 
 if __name__ == "__main__":
