@@ -243,4 +243,23 @@ TEST(FfiBoundaryTest, ConcurrentMultiThreadedReaders) {
   void_sower_free();
 }
 
+TEST(FfiBoundaryTest, AfricanStrategicFfiEndpoints) {
+  void_sower_init(16, 0.2f);
+  void_sower_set_dreadnought_target(0.3125f, 0.35f);
+  EXPECT_EQ(void_sower_spawn_enemy(2, 0.50f, 0.01f, 50.0f, 150.0f, 1), 1);
+
+  // Direct bay discharge on frontline bay 10 (Corridor 2)
+  EXPECT_EQ(void_sower_discharge_bay(10, 1.5f), 1);
+  // Invalid inner bay rejected
+  EXPECT_EQ(void_sower_discharge_bay(2, 1.0f), 0);
+
+  // Respawn target for Fanorona and Yoté endpoints
+  EXPECT_EQ(void_sower_spawn_enemy(2, 0.45f, 0.01f, 50.0f, 400.0f, 1), 1);
+  EXPECT_EQ(void_sower_trigger_fanorona_strike(1), 1);
+  EXPECT_EQ(void_sower_trigger_fanorona_strike(0), 1);
+  EXPECT_EQ(void_sower_cull_enemy(0), 1);
+
+  void_sower_free();
+}
+
 }  // namespace void_sower::tests

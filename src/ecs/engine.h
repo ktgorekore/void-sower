@@ -46,6 +46,18 @@ class Engine {
   /// direction.
   bool InjectCore(uint8_t bay_index, int8_t direction);
 
+  /// Directly discharges stored plasma mass from a frontline bay down its
+  /// assigned corridor (or consumes 1 reserve core if empty).
+  bool DischargeBay(uint8_t bay_index, float damage_multiplier = 1.0f);
+
+  /// Executes a Fanorona vector strike (Approach piercing lance or Withdrawal
+  /// antimatter pulse).
+  bool TriggerFanoronaStrike(bool is_approach);
+
+  /// Executes a Yoté surgical orbital cull strike against a specific enemy
+  /// entity (or highest-threat enemy when entity_id == 0).
+  bool CullEnemy(uint32_t entity_id);
+
   /// Sets horizontal slider position for dreadnought.
   void SetTargetPositionX(float target_x);
 

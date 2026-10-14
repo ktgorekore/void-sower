@@ -37,14 +37,34 @@ class DischargeSystem {
   ~DischargeSystem() = default;
 
   /**
-   * @brief Discharges concentrated plasma mass from a frontline battery as an
-   * upward Particle Lance.
+   * @brief Outcome telemetry from a frontline lance discharge used to drive
+   * Bao Mtaji energy harvesting.
    */
-  void ExecuteCrossDischarge(entt::registry& registry,
-                             entt::entity dreadnought_entity,
-                             std::array<entt::entity, kTotalBays>& bay_entities,
-                             const SpatialGrid& spatial_grid,
-                             uint8_t firing_bay, uint32_t mass);
+  struct DischargeResult {
+    bool hit_enemy{false};
+    bool killed_enemy{false};
+    uint8_t harvested_seeds{0};
+  };
+
+  /**
+   * @brief Discharges concentrated plasma mass from a frontline battery as an
+   * upward Particle Lance aligned with the Dreadnought prow.
+   */
+  DischargeResult ExecuteCrossDischarge(
+      entt::registry& registry, entt::entity dreadnought_entity,
+      std::array<entt::entity, kTotalBays>& bay_entities,
+      const SpatialGrid& spatial_grid, uint8_t firing_bay, uint32_t mass);
+
+  /**
+   * @brief Directly discharges stored plasma mass from a frontline bay down its
+   * assigned corridor (or consumes 1 reserve core if empty), supporting
+   * Morabaraba 3-Bay Mill Triad resonance multipliers.
+   */
+  DischargeResult ExecuteDirectBayDischarge(
+      entt::registry& registry, entt::entity dreadnought_entity,
+      std::array<entt::entity, kTotalBays>& bay_entities,
+      const SpatialGrid& spatial_grid, uint8_t firing_bay,
+      float damage_multiplier = 1.0f);
 
   /**
    * @brief Detonates a secondary radial flak burst affecting all combatants

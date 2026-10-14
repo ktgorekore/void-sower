@@ -94,6 +94,150 @@ bool CombatSystem::InjectCore(uint8_t target_bay, int8_t direction) {
                                         bay_entities_, target_bay, direction);
 }
 
+bool CombatSystem::DischargeBay(uint8_t bay_index, float damage_multiplier) {
+  if (!IsFrontlineBay(bay_index) || dreadnought_entity_ == entt::null ||
+      !registry_.valid(dreadnought_entity_)) {
+    return false;
+  }
+  RebuildSpatialGrid();
+  const auto &bay = registry_.get<BatteryComponent>(bay_entities_[bay_index]);
+  const auto &dread =
+      registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+  if (bay.charge_units == 0 && dread.reserve_cores == 0) {
+    return false;
+  }
+  discharge_system_.ExecuteDirectBayDischarge(registry_, dreadnought_entity_,
+                                              bay_entities_, spatial_grid_,
+                                              bay_index, damage_multiplier);
+  RebuildSpatialGrid();
+  match_lifecycle_system_.CheckVictoryLossConditions(
+      registry_, dreadnought_entity_, bay_entities_);
+  return true;
+}
+
+bool CombatSystem::TriggerFanoronaStrike(bool is_approach) {
+  if (dreadnought_entity_ == entt::null ||
+      !registry_.valid(dreadnought_entity_)) {
+    return false;
+  }
+  RebuildSpatialGrid();
+  auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+  const int8_t aligned_corridor = static_cast<int8_t>(
+      std::clamp(static_cast<int>(dread.orbital_position_x *
+                                  static_cast<float>(kCorridorCount)),
+                 0, kCorridorCount - 1));
+
+  if (is_approach) {
+    const auto occupants = spatial_grid_.GetCorridorOccupants(aligned_corridor);
+    bool hit_any = false;
+    const float strike_damage = 250.0f * dread.proximity_multiplier;
+    for (uint32_t eid : occupants) {
+      auto enemy_ent = static_cast<entt::entity>(eid);
+      if (!registry_.valid(enemy_ent) ||
+          !registry_.all_of<EnemyVesselComponent>(enemy_ent)) {
+        continue;
+      }
+      auto &vessel = registry_.get<EnemyVesselComponent>(enemy_ent);
+      if (vessel.is_destroyed != 0) continue;
+      hit_any = true;
+      float rem = strike_damage;
+      if (vessel.current_shields > 0.0f) {
+        const float strip = std::min(vessel.current_shields, rem * 1.25f);
+        vessel.current_shields -= strip;
+        rem = std::max(0.0f, rem - strip);
+      }
+      if (rem > 0.0f) {
+        if (rem >= vessel.current_hull) {
+          vessel.current_hull = 0.0f;
+          vessel.is_destroyed = 1;
+          dread.total_score += 120 * (vessel.vessel_type + 1);
+        } else {
+          vessel.current_hull -= rem;
+        }
+      }
+      break;
+    }
+    if (!hit_any) return false;
+    discharge_system_.ExecuteFlakDetonation(
+        registry_, dreadnought_entity_, dread.orbital_position_x,
+        std::min(0.95f, dread.orbital_position_y + 0.18f), 4);
+  } else {
+    discharge_system_.ExecuteFlakDetonation(
+        registry_, dreadnought_entity_, dread.orbital_position_x,
+        std::min(0.95f, dread.orbital_position_y + 0.10f), 6);
+  }
+
+  RebuildSpatialGrid();
+  match_lifecycle_system_.CheckVictoryLossConditions(
+      registry_, dreadnought_entity_, bay_entities_);
+  return true;
+}
+
+bool CombatSystem::CullEnemy(uint32_t entity_id) {
+  if (dreadnought_entity_ == entt::null ||
+      !registry_.valid(dreadnought_entity_)) {
+    return false;
+  }
+
+  entt::entity target_entity = entt::null;
+  float best_priority = -1.0f;
+  auto view = registry_.view<EnemyVesselComponent>();
+
+  for (auto entity : view) {
+    const auto &vessel = view.get<EnemyVesselComponent>(entity);
+    if (vessel.is_destroyed != 0) continue;
+    if (entity_id != 0 && vessel.entity_id == entity_id) {
+      target_entity = entity;
+      break;
+    }
+    if (entity_id == 0) {
+      const float priority =
+          static_cast<float>(vessel.vessel_type) * 10.0f +
+          (1.0f - std::clamp(vessel.world_pos_y, 0.0f, 1.0f));
+      if (priority > best_priority) {
+        best_priority = priority;
+        target_entity = entity;
+      }
+    }
+  }
+
+  if (target_entity == entt::null || !registry_.valid(target_entity)) {
+    return false;
+  }
+
+  auto &vessel = registry_.get<EnemyVesselComponent>(target_entity);
+  auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
+  constexpr float kSurgicalCullDamage = 800.0f;
+  float rem = kSurgicalCullDamage;
+
+  if (vessel.current_shields > 0.0f) {
+    if (rem <= vessel.current_shields) {
+      vessel.current_shields -= rem;
+      rem = 0.0f;
+    } else {
+      rem -= vessel.current_shields;
+      vessel.current_shields = 0.0f;
+    }
+  }
+  if (rem > 0.0f) {
+    if (rem >= vessel.current_hull) {
+      vessel.current_hull = 0.0f;
+      vessel.is_destroyed = 1;
+      dread.total_score += 150 * (vessel.vessel_type + 1);
+    } else {
+      vessel.current_hull -= rem;
+    }
+  }
+
+  discharge_system_.ExecuteFlakDetonation(registry_, dreadnought_entity_,
+                                          vessel.world_pos_x,
+                                          vessel.world_pos_y, 9);
+  RebuildSpatialGrid();
+  match_lifecycle_system_.CheckVictoryLossConditions(
+      registry_, dreadnought_entity_, bay_entities_);
+  return true;
+}
+
 void CombatSystem::SetTargetPositionX(float target_x) {
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {

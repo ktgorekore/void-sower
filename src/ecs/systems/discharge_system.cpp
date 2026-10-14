@@ -25,26 +25,27 @@
 
 namespace void_sower::ecs {
 
-void DischargeSystem::ExecuteCrossDischarge(
+DischargeSystem::DischargeResult DischargeSystem::ExecuteCrossDischarge(
     entt::registry& registry, entt::entity dreadnought_entity,
     std::array<entt::entity, kTotalBays>& bay_entities,
     const SpatialGrid& spatial_grid, uint8_t firing_bay, uint32_t mass) {
+  DischargeResult result{};
   VLOG(6) << "DischargeSystem::ExecuteCrossDischarge: firing_bay="
           << static_cast<int>(firing_bay) << ", mass=" << mass;
   if (firing_bay >= kTotalBays || mass == 0) {
-    return;
+    return result;
   }
 
   if (bay_entities[firing_bay] == entt::null ||
       !registry.valid(bay_entities[firing_bay])) {
-    return;
+    return result;
   }
 
   auto& bay = registry.get<BatteryComponent>(bay_entities[firing_bay]);
   bay.charge_units = 0;
 
   if (dreadnought_entity == entt::null || !registry.valid(dreadnought_entity)) {
-    return;
+    return result;
   }
 
   const auto& dread =
@@ -113,6 +114,8 @@ void DischargeSystem::ExecuteCrossDischarge(
     auto& vessel = registry.get<EnemyVesselComponent>(enemy_entity);
     if (vessel.is_destroyed != 0) continue;
 
+    result.hit_enemy = true;
+
     // Apply damage to shields first
     if (vessel.current_shields > 0.0f) {
       if (remaining_damage <= vessel.current_shields) {
@@ -129,6 +132,7 @@ void DischargeSystem::ExecuteCrossDischarge(
       if (remaining_damage >= vessel.current_hull) {
         vessel.current_hull = 0.0f;
         vessel.is_destroyed = 1;
+        result.killed_enemy = true;
         auto& d = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
         d.total_score += 100 * (vessel.vessel_type + 1);
       } else {
@@ -141,6 +145,131 @@ void DischargeSystem::ExecuteCrossDischarge(
       break;
     }
   }
+
+  if (result.hit_enemy) {
+    result.harvested_seeds = (result.killed_enemy || mass >= 2) ? 2 : 1;
+  }
+  return result;
+}
+
+DischargeSystem::DischargeResult DischargeSystem::ExecuteDirectBayDischarge(
+    entt::registry& registry, entt::entity dreadnought_entity,
+    std::array<entt::entity, kTotalBays>& bay_entities,
+    const SpatialGrid& spatial_grid, uint8_t firing_bay,
+    float damage_multiplier) {
+  DischargeResult result{};
+  if (!IsFrontlineBay(firing_bay) || bay_entities[firing_bay] == entt::null ||
+      !registry.valid(bay_entities[firing_bay]) ||
+      dreadnought_entity == entt::null || !registry.valid(dreadnought_entity)) {
+    return result;
+  }
+
+  auto& bay = registry.get<BatteryComponent>(bay_entities[firing_bay]);
+  auto& dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
+
+  uint32_t mass = bay.charge_units;
+  if (mass == 0) {
+    if (dread.reserve_cores == 0) {
+      return result;
+    }
+    dread.reserve_cores--;
+    dread.cores_used++;
+    mass = 1;
+  } else {
+    bay.charge_units = 0;
+  }
+
+  const int8_t target_corridor = CorridorForFrontlineBay(firing_bay);
+  if (target_corridor < 0 || target_corridor >= kCorridorCount) {
+    return result;
+  }
+
+  const float lance_origin_x = (static_cast<float>(target_corridor) + 0.5f) /
+                               static_cast<float>(kCorridorCount);
+  const float lance_origin_y = dread.orbital_position_y;
+  const float safe_mult = (damage_multiplier > 0.0f) ? damage_multiplier : 1.0f;
+  const float damage =
+      ComputeLanceDamage(mass, kAlphaLanceDamage * lance_alpha_multiplier_) *
+      dread.proximity_multiplier * safe_mult;
+
+  const auto occupants = spatial_grid.GetCorridorOccupants(target_corridor);
+
+  if (lance_pool_[0] == entt::null || !registry.valid(lance_pool_[0])) {
+    InitializePool(registry);
+  }
+
+  entt::entity target_slot = entt::null;
+  float min_remaining = 1e9f;
+  size_t overwrite_idx = 0;
+
+  for (size_t i = 0; i < kMaxConcurrentLances; ++i) {
+    const auto& l = registry.get<ParticleLanceComponent>(lance_pool_[i]);
+    if (l.active == 0) {
+      target_slot = lance_pool_[i];
+      break;
+    }
+    if (l.remaining_duration < min_remaining) {
+      min_remaining = l.remaining_duration;
+      overwrite_idx = i;
+    }
+  }
+  if (target_slot == entt::null) {
+    target_slot = lance_pool_[overwrite_idx];
+  }
+
+  auto& lance = registry.get<ParticleLanceComponent>(target_slot);
+  lance.firing_bay_index = firing_bay;
+  lance.origin_x = lance_origin_x;
+  lance.origin_y = lance_origin_y;
+  lance.beam_width = (0.04f + 0.015f * static_cast<float>(mass)) *
+                     (safe_mult > 1.1f ? 1.25f : 1.0f);
+  lance.sustained_duration = 0.35f;
+  lance.remaining_duration = 0.35f;
+  lance.total_damage = damage;
+  lance.active = 1;
+
+  float remaining_damage = damage;
+  for (uint32_t entity_id : occupants) {
+    auto enemy_entity = static_cast<entt::entity>(entity_id);
+    if (!registry.valid(enemy_entity) ||
+        !registry.all_of<EnemyVesselComponent>(enemy_entity)) {
+      continue;
+    }
+    auto& vessel = registry.get<EnemyVesselComponent>(enemy_entity);
+    if (vessel.is_destroyed != 0) continue;
+
+    result.hit_enemy = true;
+    if (vessel.current_shields > 0.0f) {
+      if (remaining_damage <= vessel.current_shields) {
+        vessel.current_shields -= remaining_damage;
+        remaining_damage = 0.0f;
+      } else {
+        remaining_damage -= vessel.current_shields;
+        vessel.current_shields = 0.0f;
+      }
+    }
+
+    if (remaining_damage > 0.0f) {
+      if (remaining_damage >= vessel.current_hull) {
+        vessel.current_hull = 0.0f;
+        vessel.is_destroyed = 1;
+        result.killed_enemy = true;
+        dread.total_score += 100 * (vessel.vessel_type + 1);
+      } else {
+        vessel.current_hull -= remaining_damage;
+        remaining_damage = 0.0f;
+      }
+    }
+
+    if (remaining_damage <= 0.0f) {
+      break;
+    }
+  }
+
+  if (result.hit_enemy) {
+    result.harvested_seeds = (result.killed_enemy || mass >= 2) ? 2 : 1;
+  }
+  return result;
 }
 
 void DischargeSystem::ExecuteFlakDetonation(entt::registry& registry,

@@ -106,6 +106,51 @@ int32_t void_sower_inject_core(uint8_t bay_index, int8_t direction) noexcept {
   }
 }
 
+int32_t void_sower_discharge_bay(uint8_t bay_index,
+                                 float damage_multiplier) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    return GetOrCreateEngineLocked().DischargeBay(bay_index, damage_multiplier)
+               ? 1
+               : 0;
+  } catch (const std::exception &e) {
+    LOG(ERROR) << "Exception in void_sower_discharge_bay: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_discharge_bay";
+    return 0;
+  }
+}
+
+int32_t void_sower_trigger_fanorona_strike(uint8_t is_approach) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    return GetOrCreateEngineLocked().TriggerFanoronaStrike(is_approach != 0)
+               ? 1
+               : 0;
+  } catch (const std::exception &e) {
+    LOG(ERROR) << "Exception in void_sower_trigger_fanorona_strike: "
+               << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_trigger_fanorona_strike";
+    return 0;
+  }
+}
+
+int32_t void_sower_cull_enemy(uint32_t entity_id) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    return GetOrCreateEngineLocked().CullEnemy(entity_id) ? 1 : 0;
+  } catch (const std::exception &e) {
+    LOG(ERROR) << "Exception in void_sower_cull_enemy: " << e.what();
+    return 0;
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_cull_enemy";
+    return 0;
+  }
+}
+
 void void_sower_slide_dreadnought(float target_x) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);

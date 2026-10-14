@@ -778,4 +778,125 @@ TEST(CombatSimulationTest, Phase27PredictCascadeAlphaMultiplierParity) {
   EXPECT_FLOAT_EQ(pred.predicted_damage, expected_damage);
 }
 
+TEST(CombatSimulationTest,
+     DirectBayDischargeUnleashesStoredMassAndTriadMultiplier) {
+  Engine engine;
+  engine.Initialize(10, 0.2f);
+
+  // Spawn an enemy in Corridor 3 (Frontline Bay 11) with 600 hull
+  ASSERT_TRUE(engine.SpawnEnemy(3, 0.75f, 0.0f, 0.0f, 600.0f, 1));
+
+  // Pre-charge Bay 11 with M = 2 units (base damage = 400, triad 1.5x = 600)
+  std::array<uint32_t, kTotalBays> charges{};
+  charges[11] = 2;
+  engine.RestoreSnapshot(charges, 10, 0);
+
+  // Execute direct bay discharge with 1.5x Morabaraba Mill Triad multiplier
+  EXPECT_TRUE(engine.DischargeBay(11, 1.5f));
+
+  // Verify Bay 11 was emptied without consuming a reserve core
+  std::array<BatteryComponent, kTotalBays> bays{};
+  engine.GetBays(absl::MakeSpan(bays));
+  EXPECT_EQ(bays[11].charge_units, 0u);
+  EXPECT_EQ(engine.GetDreadnoughtState().reserve_cores, 10u);
+
+  // Verify enemy took 400 * 1.5 = 600 damage and was destroyed
+  std::array<EnemyVesselComponent, 8> enemies{};
+  uint32_t count = engine.GetEnemies(absl::MakeSpan(enemies));
+  ASSERT_EQ(count, 1u);
+  EXPECT_EQ(enemies[0].is_destroyed, 1);
+}
+
+TEST(CombatSimulationTest,
+     BaoMtajiChainCaptureHarvestsEnemyEnergyAndContinuesCascade) {
+  entt::registry registry;
+  CombatSystem combat(registry);
+  combat.InitializeDreadnought(12, 0.2f);
+
+  // Align dreadnought in Corridor 2 (Frontline Bay 10, X = 0.3125f)
+  combat.SetTargetPositionX(0.3125f);
+  for (int i = 0; i < 40; ++i) {
+    combat.Update(kFixedTimeStep);
+  }
+
+  // Spawn enemy in Corridor 2 with 600 hull
+  ASSERT_TRUE(combat.SpawnEnemy(2, 0.75f, 0.0f, 0.0f, 600.0f, 1));
+
+  // Pre-charge Bay 10 with 1 unit so landing on it produces final_mass = 2
+  std::array<uint32_t, kTotalBays> charges{};
+  charges[10] = 1;
+  combat.RestoreSnapshot(charges, 12, 0);
+
+  // Inject into Bay 9 (+1 CW) -> lands on Bay 10 with final_mass = 2
+  ASSERT_TRUE(combat.InjectCore(9, 1));
+  combat.Update(kFixedTimeStep);  // Step 9 -> 10 (remaining_units = 0)
+  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge +
+                                  // Mtaji harvest (+2 seeds)
+
+  // Because Mtaji harvested +2 seeds from the enemy hit, simulation continues
+  // in SowingTraversal!
+  EXPECT_EQ(combat.GetSimulationState(), SimulationState::SowingTraversal);
+
+  // Advance 2 more steps to sow the 2 harvested Mtaji seeds into Bays 11 & 12
+  combat.Update(kFixedTimeStep);  // Step -> Bay 11
+  combat.Update(kFixedTimeStep);  // Step -> Bay 12
+
+  auto bay_view = registry.view<BatteryComponent>();
+  uint32_t bay11_charge = 0;
+  uint32_t bay12_charge = 0;
+  for (auto ent : bay_view) {
+    const auto &b = bay_view.get<BatteryComponent>(ent);
+    if (b.bay_index == 11) bay11_charge = b.charge_units;
+    if (b.bay_index == 12) bay12_charge = b.charge_units;
+  }
+  EXPECT_EQ(bay11_charge, 1u);
+  EXPECT_EQ(bay12_charge, 1u);
+}
+
+TEST(CombatSimulationTest, FanoronaApproachAndWithdrawalVectorStrikes) {
+  Engine engine;
+  engine.Initialize(12, 0.2f);
+
+  // Position dreadnought in Corridor 4 (X = 0.5625f)
+  engine.SetTargetPosition(0.5625f, 0.45f);
+  ASSERT_TRUE(engine.SpawnEnemy(4, 0.60f, 0.0f, 100.0f, 200.0f, 1));
+
+  // Trigger Fanorona Approach Strike
+  EXPECT_TRUE(engine.TriggerFanoronaStrike(true));
+
+  std::array<EnemyVesselComponent, 8> enemies{};
+  ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(enemies)), 1u);
+  EXPECT_EQ(enemies[0].current_shields, 0.0f);
+  EXPECT_LT(enemies[0].current_hull, 200.0f);
+
+  // Trigger Fanorona Withdrawal Pulse
+  EXPECT_TRUE(engine.TriggerFanoronaStrike(false));
+  std::array<FlakBurstComponent, 8> flaks{};
+  EXPECT_GT(engine.GetFlakBursts(absl::MakeSpan(flaks)), 0u);
+}
+
+TEST(CombatSimulationTest,
+     YoteSurgicalCullTargetsSpecificOrHighestThreatEnemy) {
+  Engine engine;
+  engine.Initialize(12, 0.2f);
+
+  // Spawn an Escort in Corridor 1 and a Cruiser in Corridor 6
+  ASSERT_TRUE(engine.SpawnEnemy(1, 0.80f, 0.0f, 0.0f, 100.0f, 0));
+  ASSERT_TRUE(engine.SpawnEnemy(6, 0.70f, 0.0f, 150.0f, 300.0f, 1));
+
+  // Execute Yoté Surgical Cull with entity_id = 0 (auto-prioritizes Cruiser)
+  EXPECT_TRUE(engine.CullEnemy(0));
+
+  std::array<EnemyVesselComponent, 8> enemies{};
+  uint32_t count = engine.GetEnemies(absl::MakeSpan(enemies));
+  ASSERT_EQ(count, 2u);
+  for (uint32_t i = 0; i < count; ++i) {
+    if (enemies[i].assigned_corridor == 6) {
+      EXPECT_EQ(enemies[i].is_destroyed, 1);
+    } else if (enemies[i].assigned_corridor == 1) {
+      EXPECT_EQ(enemies[i].is_destroyed, 0);
+    }
+  }
+}
+
 }  // namespace void_sower::ecs

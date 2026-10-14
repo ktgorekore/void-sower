@@ -205,11 +205,23 @@ void BaoCascadeSystem::StepFSM(
             (spatial_grid.GetCorridorCount(dread_corridor) > 0);
 
         if (final_mass > 0 && (has_enemies || final_mass == 1)) {
-          dread.current_sim_state =
-              static_cast<uint8_t>(SimulationState::CrossDischarge);
-          discharge_system.ExecuteCrossDischarge(registry, dreadnought_entity,
-                                                 bay_entities, spatial_grid,
-                                                 term_bay, final_mass);
+          const auto discharge_res = discharge_system.ExecuteCrossDischarge(
+              registry, dreadnought_entity, bay_entities, spatial_grid,
+              term_bay, final_mass);
+          if (final_mass >= 2 && discharge_res.hit_enemy &&
+              sowing.cascade_depth < 4) {
+            auto &mut_sowing =
+                registry.get<SowingStateComponent>(dreadnought_entity);
+            mut_sowing.remaining_units = discharge_res.harvested_seeds;
+            mut_sowing.cascade_depth++;
+            mut_sowing.step_direction =
+                ResolveSowDirection(term_bay, mut_sowing.step_direction);
+            dread.current_sim_state =
+                static_cast<uint8_t>(SimulationState::SowingTraversal);
+          } else {
+            dread.current_sim_state =
+                static_cast<uint8_t>(SimulationState::CrossDischarge);
+          }
         } else if (final_mass > 1 && !IsNyumbaBay(term_bay)) {
           dread.current_sim_state =
               static_cast<uint8_t>(SimulationState::RelayOverload);

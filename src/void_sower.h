@@ -194,6 +194,33 @@ FFI_PLUGIN_EXPORT int32_t
 void_sower_inject_core(uint8_t bay_index, int8_t direction) VOID_SOWER_NOEXCEPT;
 
 /**
+ * @brief Directly discharges stored plasma mass from a frontline bay down its
+ * assigned corridor (or consumes 1 reserve core if empty).
+ * @param bay_index Frontline bay index (8 to 15).
+ * @param damage_multiplier Optional triad resonance multiplier (default 1.0f).
+ * @return 1 if discharge executed, 0 on invalid bay or insufficient energy.
+ */
+FFI_PLUGIN_EXPORT int32_t void_sower_discharge_bay(
+    uint8_t bay_index, float damage_multiplier) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Executes a Fanorona vector strike (Approach piercing lance or
+ * Withdrawal antimatter pulse).
+ * @param is_approach 1 for Approach piercing strike, 0 for Withdrawal pulse.
+ * @return 1 if strike executed, 0 otherwise.
+ */
+FFI_PLUGIN_EXPORT int32_t
+void_sower_trigger_fanorona_strike(uint8_t is_approach) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Executes a Yoté surgical orbital cull strike against an enemy entity.
+ * @param entity_id Target enemy entity_id (or 0 for highest-threat enemy).
+ * @return 1 if cull strike executed, 0 if no valid target.
+ */
+FFI_PLUGIN_EXPORT int32_t void_sower_cull_enemy(uint32_t entity_id)
+    VOID_SOWER_NOEXCEPT;
+
+/**
  * @brief Sets the target lateral slide position of the dreadnought flagship.
  * @param target_x Normalized X coordinate along the orbital horizon [0.0, 1.0].
  */

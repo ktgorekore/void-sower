@@ -55,6 +55,22 @@ bool Engine::InjectCore(uint8_t bay_index, int8_t direction) {
   return combat_system_->InjectCore(bay_index, direction);
 }
 
+bool Engine::DischargeBay(uint8_t bay_index, float damage_multiplier) {
+  VLOG(6) << "Engine::DischargeBay: bay=" << static_cast<int>(bay_index)
+          << ", mult=" << damage_multiplier;
+  return combat_system_->DischargeBay(bay_index, damage_multiplier);
+}
+
+bool Engine::TriggerFanoronaStrike(bool is_approach) {
+  VLOG(6) << "Engine::TriggerFanoronaStrike: is_approach=" << is_approach;
+  return combat_system_->TriggerFanoronaStrike(is_approach);
+}
+
+bool Engine::CullEnemy(uint32_t entity_id) {
+  VLOG(6) << "Engine::CullEnemy: entity_id=" << entity_id;
+  return combat_system_->CullEnemy(entity_id);
+}
+
 void Engine::SetTargetPositionX(float target_x) {
   VLOG(10) << "Engine::SetTargetPositionX: target_x=" << target_x;
   combat_system_->SetTargetPositionX(target_x);
