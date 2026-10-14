@@ -753,7 +753,6 @@ class CombatCoordinator extends ChangeNotifier {
           phase: SectorCheckpointPhase.tacticalSiege,
         );
         _transmissionTimer = 8.0;
-        grantEmergencyCores(3);
         damageNumbers.add(
           FloatingDamageNumber(
             text: 'CHECKPOINT 1 • RELIC DRAFT READY',
