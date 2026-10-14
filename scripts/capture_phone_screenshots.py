@@ -15,15 +15,18 @@
 
 """Automates high-resolution screenshot capture for Google Play Console store listing.
 
-Captures all phone screenshots featuring the UX 3.0 interface with a realistic mix
-of spatial depths (threshold Z: 0km, mid-combat Z: +20km, forward engage Z: +10km).
+Captures all 10 phone screenshots featuring:
+  - 3D Perspective Orbital Trench Canyon & Ringed Afrofuturist Planet
+  - Interactive 3D Camera Gimbal modes (CHASE 3D 26°/0°, BRIDGE 3D 38°/-22°, ORBIT 3D 32°/18°)
+  - Pure 3D Polyhedral Dreadnought & Enemy Ships with 3D ground shadows & laser tethers
+  - African strategic fusions (Bao la Kiswahili, Morabaraba 1.5x Mill, Fanorona vectors, Yoté Cull)
+  - 3-Phase Ascending Sector Checkpoints (P1: RECON, P2: SIEGE + Relic Draft, P3: APEX BOSS)
 Every screenshot is strictly verified against white screens, system dialogs, and ads.
 """
 
 import os
 import shutil
 import subprocess
-import sys
 import time
 import numpy as np
 from PIL import Image
@@ -99,6 +102,10 @@ def capture(dest_name, mirror_name=None, docs_name=None):
     shutil.copyfile(dest_path, docs_path)
     print(f"[Docs Mirrored] -> {docs_path}")
 
+  # Also mirror into docs/media/store_screenshots/<dest_name>
+  docs_same_path = os.path.join(DOCS_STORE_DIR, dest_name)
+  shutil.copyfile(dest_path, docs_same_path)
+
   return dest_path
 
 
@@ -153,49 +160,43 @@ def main():
   os.makedirs(ASSETS_DIR, exist_ok=True)
   os.makedirs(DOCS_STORE_DIR, exist_ok=True)
 
-  # Remove any old quadratic lance screenshots
-  for old_path in [
-      os.path.join(SCREENSHOTS_DIR, "02_quadratic_lance_discharge.png"),
-      os.path.join(ASSETS_DIR, "phone_02_quadratic_lances.png"),
-  ]:
-    if os.path.exists(old_path):
-      os.remove(old_path)
-      print(f"[Cleanup] Removed obsolete file: {old_path}")
-
   # =========================================================================
-  # Phase 1: Flight Academy Onboarding
+  # Phase 1: Flight Academy Onboarding over 3D Orbital Trench
   # =========================================================================
-  print("\n[Phase 1] Capturing Flight Academy Onboarding...")
+  print("\n[Phase 1] Capturing Flight Academy Onboarding over 3D Orbital Trench...")
   seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6)
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-  time.sleep(3.0)
+  time.sleep(3.2)
 
-  # Screenshot 03: Flight Academy Onboarding (briefing overlay over combat arena)
+  # Screenshot 03: Flight Academy Onboarding
   capture("03_flight_academy_onboarding.png", "phone_02_flight_academy.png")
 
   # =========================================================================
-  # Phase 2: Active Tactical Combat (Baseline Threshold Defense Z: 0km)
+  # Phase 2: Active 3D Tactical Combat in CHASE 3D (26°/0°) with Admiral Zawadi Comms
   # =========================================================================
-  print("\n[Phase 2] Dismissing Flight Academy & Capturing Tactical Combat Grid (Z: 0km)...")
-  # Tap SKIP button on Flight Academy modal (x=190, y=2090)
-  tap(190, 2090)
-  time.sleep(0.8)
+  print("\n[Phase 2] Launching fresh sortie in CHASE 3D (26°/0°) with Admiral Zawadi Comms...")
+  seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
+  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+  time.sleep(2.4)
 
-  # Clean combat screen with no dialog overlays
+  # Clean CHASE 3D combat screen with Admiral Zawadi comms banner, P1: RECON, and 3D fleet
   capture("01_tactical_combat_grid.png", "phone_01_tactical_combat_grid.png", "01_combat_tactical_depth.png")
 
   # =========================================================================
-  # Phase 3: Axial Particle Lance Discharge (Mid-Combat Depth Z: +20km)
+  # Phase 3: BRIDGE 3D (38°/-22°) Isometric Command Angle + Nose Cannon Lance
   # =========================================================================
-  print("\n[Phase 3] Advancing Defender to Mid-Combat Depth (Z: +20km) & Discharging Lance...")
-  # Advance ship forward into combat arena
-  swipe(672, 2300, 672, 1700, 250)
-  time.sleep(0.3)
+  print("\n[Phase 3] Switching to BRIDGE 3D (38°/-22°), aligning Defender to C4 & Firing Nose Cannon Lance...")
+  # Tap 3D Camera Gimbal mode button (x=200, y=2365) -> switches to BRIDGE 3D 38°/-22°
+  tap(200, 2365)
+  time.sleep(0.35)
+  # Steer Defender laterally to C4 along the bottom defense perimeter
+  swipe(350, 2220, 600, 2220, 220)
+  time.sleep(0.25)
 
-  # Fire Axial Particle Lance via FIRE trigger repeatedly
+  # Fire Axial Particle Lance via C4 pad repeatedly while capturing mid-beam
   fire_proc = subprocess.Popen([
       "adb", "-s", DEVICE, "shell",
-      "for i in $(seq 1 12); do input tap 594 2639; sleep 0.08; done"
+      "for i in $(seq 1 10); do input tap 600 2580; sleep 0.08; done"
   ])
   time.sleep(0.25)
   capture("02_axial_particle_lance.png", "phone_02_axial_particle_lance.png", "02_axial_particle_lance.png")
@@ -203,13 +204,11 @@ def main():
   time.sleep(0.5)
 
   # =========================================================================
-  # Phase 4: Tactical Pause Menu & Tactical Directives
+  # Phase 4: Tactical Pause Menu & Bao Orbital Codex
   # =========================================================================
-  print("\n[Phase 4] Capturing Tactical Pause Controls...")
-  # Open Tactical Pause menu via pause capsule in header (1175, 224)
-  tap(1175, 224)
+  print("\n[Phase 4] Capturing Tactical Pause Controls & Bao Orbital Codex...")
+  tap(1250, 224)
   time.sleep(1.2)
-  # Capture 06_tactical_pause_controls.png for docs
   capture_temp = os.path.join(DOCS_STORE_DIR, "06_tactical_pause_controls.png")
   with open(capture_temp, "wb") as f:
     subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f, check=True)
@@ -221,7 +220,6 @@ def main():
   time.sleep(1.2)
   capture("07_bao_orbital_codex.png", "phone_03_bao_codex.png", "05_tactical_directives_codex.png")
 
-  # Dismiss Directives modal cleanly via back keyevent
   keyevent(4)
   time.sleep(0.8)
 
@@ -229,10 +227,8 @@ def main():
   # Phase 5: Multi-Theater Campaign Star Map
   # =========================================================================
   print("\n[Phase 5] Returning to Star Map...")
-  # Re-open pause menu
-  tap(1175, 224)
+  tap(1250, 224)
   time.sleep(0.8)
-  # Tap SECTORS MAP button in pause menu (x=460, y=1735)
   tap(460, 1735)
   time.sleep(2.0)
   capture("05_kilwa_basin_campaign_map.png", docs_name="03_orbital_command_campaign.png")
@@ -241,11 +237,9 @@ def main():
   # Phase 6: Orbital Fleet Hangar Modal
   # =========================================================================
   print("\n[Phase 6] Capturing Orbital Fleet Hangar...")
-  # In Campaign Map bottom nav bar, tap FLEET tab (x=392, y=2815)
   tap(392, 2815)
   time.sleep(1.2)
   capture("04_orbital_fleet_hangar.png", "phone_06_hangar.png", "04_fleet_hangar_inspection.png")
-  # Dismiss Hangar dialog cleanly via back keyevent
   keyevent(4)
   time.sleep(0.8)
 
@@ -253,33 +247,35 @@ def main():
   # Phase 7: Pilot Telemetry Dashboard
   # =========================================================================
   print("\n[Phase 7] Capturing Pilot Telemetry Dashboard...")
-  # In Campaign Map bottom nav bar, tap PILOT tab (x=628, y=2819)
   tap(628, 2819)
   time.sleep(1.2)
   capture("08_pilot_telemetry_dashboard.png", "phone_04_pilot_dossier.png")
-  # Dismiss Pilot modal cleanly via back keyevent
   keyevent(4)
   time.sleep(0.8)
 
   # =========================================================================
-  # Phase 8: Pro Commander Upgrade Modal (Special Operations)
+  # Phase 8: Special Operations & Pro Commander Hub
   # =========================================================================
   print("\n[Phase 8] Capturing Special Operations / Pro Commander...")
-  # In Campaign Map top bar, tap SPECIAL OPS tab (x=1128, y=468)
   tap(1128, 468)
   time.sleep(1.5)
   capture("09_pro_commander_upgrade.png", "phone_07_pro_commander.png")
-  # Return to Campaign tab (x=203, y=468)
   tap(203, 468)
   time.sleep(0.8)
 
   # =========================================================================
-  # Phase 9: Checkpoint 1 Relic Draft & Sector Liberation Victory
+  # Phase 9: ORBIT 3D (32°/18°) + Checkpoint Relic Draft & Sector Liberation Victory
   # =========================================================================
-  print("\n[Phase 9] Playing Sector 9 with AI Solver for Checkpoint Relic Draft & Victory Dialog...")
-  # Tap Sector 9 ENGAGE button on campaign card (x=1075, y=2245)
-  tap(1075, 2245)
-  time.sleep(2.0)
+  print("\n[Phase 9] Launching Sector 9 in ORBIT 3D (32°/18°) with AI Solver for Checkpoint Relic Draft & Victory...")
+  seed_prefs(completed_tutorial=True, pro_unlocked=True, liberated_sectors=9)
+  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+  time.sleep(2.2)
+
+  # Tap 3D Camera Gimbal twice (x=200, y=2365) -> CHASE 3D -> BRIDGE 3D -> ORBIT 3D 32°/18°
+  tap(200, 2365)
+  time.sleep(0.25)
+  tap(200, 2365)
+  time.sleep(0.35)
 
   # Open Tactical Pause via keyevent 4
   keyevent(4)
@@ -291,24 +287,30 @@ def main():
   tap(671, 1500)
   time.sleep(0.5)
 
-  print("[Victory] AI Solver engaged. Polling for Checkpoint 1 Relic Draft & Sector Liberation Victory modal...")
+  print("[Victory] AI Solver engaged in ORBIT 3D. Polling for P2: SIEGE Relic Draft & Victory modal...")
   captured_checkpoint = False
   captured_victory = False
-  for tick in range(45):
+  for tick in range(65):
     time.sleep(0.35)
     temp_check = "/tmp/poll_vic_check.png"
     with open(temp_check, "wb") as f:
       subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f, check=True)
     chk_img = Image.open(temp_check)
     chk_arr = np.array(chk_img)
-    # Victory modal has "SECTOR 1 LIBERATED" banner and emerald/gold elements
-    center_area = chk_arr[1100:1700, 200:1100]
-    gold_mask = (center_area[:, :, 0] > 180) & (center_area[:, :, 1] > 140) & (center_area[:, :, 2] < 70)
-    emerald_mask = (center_area[:, :, 1] > 150) & (center_area[:, :, 0] < 80) & (center_area[:, :, 2] < 120)
-    white_pct = (chk_arr > 240).all(axis=-1).mean() * 100
 
-    if not captured_checkpoint and tick >= 4 and (gold_mask.sum() <= 400 and emerald_mask.sum() <= 400):
-      print(f"[Checkpoint] Capturing live AI Solver cascade & Checkpoint HUD at tick {tick}...")
+    # Check for the solid cyan/emerald CONTINUE CAMPAIGN / STAR MAP button on the Victory Modal (y=1650..2150)
+    # and dimmed bottom dock (y=2550..2750) when modal barrier is active
+    btn_area = chk_arr[1650:2150, 250:1090]
+    cta_mask = (btn_area[:, :, 1] > 170) & (btn_area[:, :, 0] < 70) & (btn_area[:, :, 2] > 100)
+    dock_brightness = chk_arr[2550:2750, 200:1140].mean()
+    is_victory_modal = cta_mask.sum() > 6000 and dock_brightness < 28.0
+
+    # Check if P2: SIEGE + RELIC draft strip is visible at y=460..550 (amber/gold border & pills)
+    relic_strip = chk_arr[460:550, 40:1300]
+    relic_gold = (relic_strip[:, :, 0] > 180) & (relic_strip[:, :, 1] > 120) & (relic_strip[:, :, 2] < 80)
+
+    if not captured_checkpoint and not is_victory_modal and (relic_gold.sum() > 450 or tick == 8):
+      print(f"[Checkpoint] Capturing ORBIT 3D + P2: SIEGE Relic Draft & AI Solver cascade at tick {tick} (relic_gold={relic_gold.sum()})...")
       capture(
           "10_checkpoint_relic_draft_siege.png",
           "phone_08_checkpoint_relic_draft.png",
@@ -316,8 +318,8 @@ def main():
       )
       captured_checkpoint = True
 
-    if (gold_mask.sum() > 400 or emerald_mask.sum() > 400) and white_pct < 5.0:
-      print(f"[Victory] Victory dialog confirmed on screen at tick {tick}!")
+    if is_victory_modal:
+      print(f"[Victory] Victory dialog confirmed on screen at tick {tick} (cta_pixels={cta_mask.sum()}, dock_mean={dock_brightness:.1f})!")
       capture("06_sector_liberation_victory.png", "phone_05_sector_liberation.png")
       captured_victory = True
       break

@@ -244,15 +244,15 @@ class TacticalSolverController {
           }
         }
         final desiredFlightY = (enemyY - 0.12).clamp(
-          dreadnought.boundaryLineY + 0.15,
-          0.60,
+          dreadnought.boundaryLineY + 0.06,
+          dreadnought.boundaryLineY + 0.10,
         );
         targetY = desiredFlightY;
       } else {
-        // Active Deep Space Patrol / Reconnaissance cruise
-        targetY = (dreadnought.boundaryLineY + 0.22).clamp(
+        // Active Defense Perimeter patrol
+        targetY = (dreadnought.boundaryLineY + 0.05).clamp(
           dreadnought.boundaryLineY,
-          0.50,
+          0.30,
         );
       }
 

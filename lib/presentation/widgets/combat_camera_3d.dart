@@ -120,9 +120,8 @@ class CombatCamera3D {
   Offset vanishingPoint(Size size) {
     final p = pitchRad;
     final y = yawRad;
-    final chaseParallax = (followX - 0.5) * 0.22;
-    final vpX = size.width * (0.5 + math.sin(y) * 0.30 - chaseParallax);
-    final vpY = size.height * (0.12 + (1.0 - math.sin(p)) * 0.18);
+    final vpX = size.width * (0.5 + math.sin(y) * 0.10);
+    final vpY = size.height * (0.11 + (1.0 - math.sin(p)) * 0.14);
     return Offset(vpX, vpY);
   }
 
@@ -133,9 +132,9 @@ class CombatCamera3D {
   double farHorizonY(Size size) {
     final vp = vanishingPoint(size);
     final p = pitchRad;
-    return (vp.dy + size.height * (0.04 + 0.06 * math.sin(p))).clamp(
-      size.height * 0.14,
-      size.height * 0.36,
+    return (vp.dy + size.height * (0.04 + 0.05 * math.sin(p))).clamp(
+      size.height * 0.13,
+      size.height * 0.30,
     );
   }
 
@@ -150,39 +149,37 @@ class CombatCamera3D {
     required double normZ,
     double elevationY = 0.0,
   }) {
-    final clampedZ = normZ.clamp(-0.08, 1.25);
+    final clampedZ = normZ.clamp(-0.05, 1.15);
     final centeredX = normX - 0.5;
     final yRad = yawRad;
     final pRad = pitchRad;
-    final cosY = math.cos(yRad);
     final sinY = math.sin(yRad);
 
-    final dz = clampedZ - 0.18;
-    final rotX = centeredX * cosY + dz * sinY * 0.38;
-    final rotZ = math.max(-0.05, -centeredX * sinY * 0.28 + clampedZ * cosY);
-
     final persp = _perspStrength;
-    final scaleAtZ = 1.0 / math.max(0.15, 1.0 + rotZ * persp);
+    final scaleAtZ =
+        1.0 / math.max(0.18, 1.0 + math.max(0.0, clampedZ) * persp);
     final scaleAtFar = 1.0 / (1.0 + 1.0 * persp);
 
-    final vp = vanishingPoint(size);
     final nearY = nearThresholdY(size);
     final farY = farHorizonY(size);
 
     final denom = math.max(0.05, 1.0 - scaleAtFar);
-    final tZ = ((1.0 - scaleAtZ) / denom).clamp(-0.10, 1.15);
+    final tZ = ((1.0 - scaleAtZ) / denom).clamp(-0.06, 1.10);
 
-    // Yaw tilt shifts port/starboard floor slightly in screen Y for isometric depth
-    final yawFloorSkew = centeredX * sinY * size.height * 0.075 * scaleAtZ;
+    // Subtle yaw depth tilt only affects far Z so nearZ = 0.0 aligns 1:1 with bottom C1..C8 dock
+    final yawFloorSkew =
+        centeredX * sinY * size.height * 0.035 * tZ.clamp(0.0, 1.0);
     final groundY = nearY - tZ * (nearY - farY) + yawFloorSkew;
 
-    // Near threshold width spans 92% of viewport width so 3D trench walls remain visible
-    final baseSpanW = size.width * 0.92;
-    final groundX = vp.dx + (rotX * baseSpanW) * scaleAtZ;
+    // Near threshold width spans 96% of viewport width (matching the 8 C1..C8 dock columns)
+    final baseSpanW = size.width * 0.96;
+    final centerLineX =
+        size.width * 0.5 + sinY * size.width * 0.10 * tZ.clamp(0.0, 1.0);
+    final groundX = centerLineX + (centeredX * baseSpanW) * scaleAtZ;
 
     // 3D vertical elevation lifts point upward perpendicular to the trench floor
     final verticalFactor = math.cos(pRad * 0.52);
-    final liftPx = elevationY * size.height * 0.24 * scaleAtZ * verticalFactor;
+    final liftPx = elevationY * size.height * 0.22 * scaleAtZ * verticalFactor;
 
     final screenX = groundX;
     final screenY = groundY - liftPx;
@@ -211,15 +208,10 @@ class CombatCamera3D {
       1.0,
     );
 
-    final vp = vanishingPoint(size);
-    final baseSpanW = math.max(1.0, size.width * 0.92 * scaleAtZ);
-    final rotX = (localPosition.dx - vp.dx) / baseSpanW;
-
-    final yRad = yawRad;
-    final cosY = math.max(0.5, math.cos(yRad));
-    final sinY = math.sin(yRad);
-    final dz = normZ - 0.18;
-    final centeredX = (rotX - dz * sinY * 0.38) / cosY;
+    final sinY = math.sin(yawRad);
+    final centerLineX = size.width * 0.5 + sinY * size.width * 0.10 * tZ;
+    final baseSpanW = math.max(1.0, size.width * 0.96 * scaleAtZ);
+    final centeredX = (localPosition.dx - centerLineX) / baseSpanW;
     final normX = (centeredX + 0.5).clamp(0.0, 1.0);
 
     return Offset(normX, normZ);

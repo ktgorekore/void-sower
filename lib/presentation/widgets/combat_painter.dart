@@ -156,16 +156,68 @@ class CombatBackgroundPainter extends CustomPainter {
 
   static final TextPainter _thresholdPainter = TextPainter(
     text: TextSpan(
-      text: '▼ THRESHOLD ▼',
+      text: '▲ DEFENDER PERIMETER • DRAG SHIP OR TAP C1–C8 ▲',
       style: TextStyle(
-        color: VoidTheme.crimsonFlare.withValues(alpha: 0.85),
+        color: VoidTheme.plasmaCyan.withValues(alpha: 0.90),
         fontSize: 7.5,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 1.1,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  static final TextPainter _warpGateHeaderPainter = TextPainter(
+    text: TextSpan(
+      text: '▼ INCOMING HOSTILE FLEET • WARP HORIZON ▼',
+      style: TextStyle(
+        color: VoidTheme.crimsonFlare.withValues(alpha: 0.92),
+        fontSize: 7.8,
         fontWeight: FontWeight.w900,
         letterSpacing: 1.2,
       ),
     ),
     textDirection: TextDirection.ltr,
   )..layout();
+
+  static final List<TextPainter> _corridorPadPainters = List.generate(8, (i) {
+    return TextPainter(
+      text: TextSpan(
+        text: 'C${i + 1}',
+        style: TextStyle(
+          color: VoidTheme.solarGold.withValues(alpha: 0.78),
+          fontSize: 8.0,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 0.6,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+  });
+
+  static final Paint _evenLaneFloorPaint = Paint()
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.032)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _oddLaneFloorPaint = Paint()
+    ..color = VoidTheme.nebulaAmethyst.withValues(alpha: 0.022)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _warpGateBarPaint = Paint()
+    ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.75)
+    ..strokeWidth = 2.4
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _warpGateGlowPaint = Paint()
+    ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.22)
+    ..strokeWidth = 6.0
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _ingressChevronPaint = Paint()
+    ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.40)
+    ..strokeWidth = 1.4
+    ..style = PaintingStyle.stroke;
 
   void _draw3DSkyboxAndPlanet(Canvas canvas, Size size) {
     final vp = camera.vanishingPoint(size);
@@ -311,7 +363,61 @@ class CombatBackgroundPainter extends CustomPainter {
     _draw3DTrenchWallSide(canvas, size, normX: 0.0);
     _draw3DTrenchWallSide(canvas, size, normX: 1.0);
 
-    // 3. 8 Converging 3D Perspective Trench Floor Corridors (C1..C8)
+    // 3. Alternating 3D Corridor Runways, Downward Hostile Ingress Chevrons & C1..C8 Pad Labels
+    for (var c = 0; c < 8; c++) {
+      final leftX = c / 8.0;
+      final rightX = (c + 1) / 8.0;
+      final centerX = (c + 0.5) / 8.0;
+      final nL = camera.project(size, normX: leftX, normZ: 0.0);
+      final nR = camera.project(size, normX: rightX, normZ: 0.0);
+      final fL = camera.project(size, normX: leftX, normZ: 1.0);
+      final fR = camera.project(size, normX: rightX, normZ: 1.0);
+
+      _scratchArcPath.reset();
+      _scratchArcPath.moveTo(nL.groundOffset.dx, nL.groundOffset.dy);
+      _scratchArcPath.lineTo(fL.groundOffset.dx, fL.groundOffset.dy);
+      _scratchArcPath.lineTo(fR.groundOffset.dx, fR.groundOffset.dy);
+      _scratchArcPath.lineTo(nR.groundOffset.dx, nR.groundOffset.dy);
+      _scratchArcPath.close();
+      canvas.drawPath(
+        _scratchArcPath,
+        c.isEven ? _evenLaneFloorPaint : _oddLaneFloorPaint,
+      );
+
+      // Downward-pointing hostile ingress chevron near top of each corridor
+      if (!isLowBattery) {
+        final chevTop = camera.project(size, normX: centerX, normZ: 0.93);
+        final chevTip = camera.project(size, normX: centerX, normZ: 0.87);
+        final halfW = 6.0 * chevTop.perspectiveScale;
+        _scratchArcPath.reset();
+        _scratchArcPath.moveTo(
+          chevTop.groundOffset.dx - halfW,
+          chevTop.groundOffset.dy,
+        );
+        _scratchArcPath.lineTo(
+          chevTip.groundOffset.dx,
+          chevTip.groundOffset.dy,
+        );
+        _scratchArcPath.lineTo(
+          chevTop.groundOffset.dx + halfW,
+          chevTop.groundOffset.dy,
+        );
+        canvas.drawPath(_scratchArcPath, _ingressChevronPaint);
+      }
+
+      // Bottom Conduit Pad Label (C1..C8) aligned 1:1 with dock buttons below
+      final padPt = camera.project(size, normX: centerX, normZ: 0.025);
+      final padPainter = _corridorPadPainters[c];
+      padPainter.paint(
+        canvas,
+        Offset(
+          padPt.groundOffset.dx - padPainter.width * 0.5,
+          padPt.groundOffset.dy - padPainter.height - 2.0,
+        ),
+      );
+    }
+
+    // 4. 8 Converging 3D Perspective Trench Floor Corridor Dividers (C1..C8)
     for (var i = 0; i <= 8; i++) {
       final normX = i / 8.0;
       final nearPt = camera.project(size, normX: normX, normZ: 0.0);
@@ -323,15 +429,43 @@ class CombatBackgroundPainter extends CustomPainter {
       );
     }
 
-    // 4. Transverse 3D Perspective Depth Ribs along Trench Floor
-    for (final z in const [0.14, 0.42, 0.72, 1.0]) {
+    // 5. Transverse 3D Perspective Depth Ribs along Trench Floor
+    for (final z in const [0.14, 0.42, 0.72]) {
       _draw3DDepthRib(canvas, size, z, null);
     }
     _draw3DDepthRib(canvas, size, 0.88, _apogeePainter);
     _draw3DDepthRib(canvas, size, 0.56, _midCombatPainter);
     _draw3DDepthRib(canvas, size, 0.28, _forwardEngagePainter);
 
-    // 5. 3D Threshold Defense Boundary Line at normZ = 0.0
+    // 6. Top 3D Hostile Warp Horizon Gate at normZ = 1.0
+    final farLeft = camera.project(size, normX: 0.0, normZ: 1.0);
+    final farRight = camera.project(size, normX: 1.0, normZ: 1.0);
+    if (!isLowBattery) {
+      canvas.drawLine(
+        farLeft.groundOffset,
+        farRight.groundOffset,
+        _warpGateGlowPaint,
+      );
+    }
+    canvas.drawLine(
+      farLeft.groundOffset,
+      farRight.groundOffset,
+      _warpGateBarPaint,
+    );
+    final gateMidX = math.max(
+      4.0,
+      (farLeft.groundOffset.dx + farRight.groundOffset.dx) * 0.5 -
+          _warpGateHeaderPainter.width * 0.5,
+    );
+    _warpGateHeaderPainter.paint(
+      canvas,
+      Offset(
+        gateMidX,
+        farLeft.groundOffset.dy - _warpGateHeaderPainter.height - 4.0,
+      ),
+    );
+
+    // 7. Bottom 3D Defender Perimeter Threshold Line at normZ = 0.0
     final threshLeft = camera.project(size, normX: 0.0, normZ: 0.0);
     final threshRight = camera.project(size, normX: 1.0, normZ: 0.0);
     canvas.drawLine(
@@ -340,15 +474,17 @@ class CombatBackgroundPainter extends CustomPainter {
       _boundaryPaint,
     );
 
+    final threshMidX = math.max(
+      4.0,
+      (threshLeft.groundOffset.dx + threshRight.groundOffset.dx) * 0.5 -
+          _thresholdPainter.width * 0.5,
+    );
     _thresholdPainter.paint(
       canvas,
-      Offset(
-        threshLeft.groundOffset.dx + 10.0,
-        threshLeft.groundOffset.dy - 12.0,
-      ),
+      Offset(threshMidX, threshLeft.groundOffset.dy + 3.0),
     );
 
-    // 6. Planetary Defense Base Rail
+    // 8. Planetary Defense Base Rail
     canvas.drawLine(
       Offset(0, size.height - 1.5),
       Offset(size.width, size.height - 1.5),
@@ -461,13 +597,6 @@ class CombatPainter extends CustomPainter {
   static final Paint _enemyShadowRingPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.1;
-
-  static final Paint _baoRingOrbitPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35)
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.2;
-
-  static final Paint _baoRingNodePaint = Paint()..style = PaintingStyle.fill;
 
   static final Paint _warpSingularityPaint = Paint()
     ..style = PaintingStyle.stroke
@@ -754,6 +883,43 @@ class CombatPainter extends CustomPainter {
     textDirection: TextDirection.ltr,
   )..layout();
 
+  static final Paint _powerFeedGlowPaint = Paint()
+    ..color = VoidTheme.solarGold.withValues(alpha: 0.38)
+    ..strokeWidth = 5.0
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _powerFeedCorePaint = Paint()
+    ..color = VoidTheme.solarGold
+    ..strokeWidth = 2.0
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _flightTrackPaint = Paint()
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.32)
+    ..strokeWidth = 1.6
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _steerChevronPaint = Paint()
+    ..color = VoidTheme.solarGold.withValues(alpha: 0.88)
+    ..strokeWidth = 2.0
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+
+  /// Converts simulation `worldPosY` (`1.0` = far horizon spawn, `0.15` = near threshold)
+  /// or pixel Y into normalized 3D trench depth `normZ` (`1.0` = top Warp Gate, `0.0` = bottom Defense Line).
+  static double _worldYToTrenchNormZ(
+    double worldPosY,
+    double topMargin,
+    double boundaryY,
+  ) {
+    if (worldPosY <= 1.5) {
+      return ((worldPosY - 0.15) / 0.85).clamp(0.0, 1.05);
+    }
+    return ((boundaryY - worldPosY) / math.max(boundaryY - topMargin, 1.0))
+        .clamp(0.0, 1.05);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final topMargin = size.height * 0.06;
@@ -764,16 +930,30 @@ class CombatPainter extends CustomPainter {
             dreadnought.orbitalPositionX <= 1.0)
         ? dreadnought.orbitalPositionX
         : 0.4375;
-    final cam = camera.copyWith(followX: dreadNormX);
+    final cam = camera;
 
     final forwardDepth =
         (dreadnought.orbitalPositionY - dreadnought.boundaryLineY).clamp(
           0.0,
           0.45,
         );
-    final normForward = forwardDepth / 0.45;
-    final dreadNormZ = normForward * 0.58;
-    final dreadElevation = 0.14 + normForward * 0.12;
+    final normForward = (forwardDepth / 0.45).clamp(0.0, 1.0);
+    // Keep the 3D Defender anchored in the bottom Defense Perimeter zone (normZ = 0.02..0.14)
+    // so enemies ALWAYS descend from the top Warp Gate (normZ = 1.0) toward the Defender.
+    final dreadNormZ = 0.02 + normForward * 0.12;
+    final dreadElevation = 0.12 + normForward * 0.08;
+
+    final shipProj = cam.project(
+      size,
+      normX: dreadNormX,
+      normZ: dreadNormZ,
+      elevationY: dreadElevation,
+    );
+    final shipScale = 0.88 + 0.22 * shipProj.perspectiveScale;
+    final shipProwOffset = Offset(
+      shipProj.screenOffset.dx,
+      shipProj.screenOffset.dy - 36.0 * shipScale,
+    );
 
     // 0. Draw Morabaraba 3-Bay Mill Triad 3D Perspective Resonance Corridors
     if (millTriadBays.isNotEmpty) {
@@ -810,7 +990,7 @@ class CombatPainter extends CustomPainter {
       }
     }
 
-    // 1. Draw Active Particle Lances in 3D Perspective Space
+    // 1. Draw Active Particle Lances in 3D Perspective Space (Muzzle-to-Target!)
     final isMultiBeamBarrage = lances.length > 1;
     for (var i = 0; i < lances.length; i++) {
       final lance = lances[i];
@@ -822,30 +1002,83 @@ class CombatPainter extends CustomPainter {
           ? lance.originX
           : (corridor + 0.5) / 8.0;
 
-      final nearBeam = cam.project(
+      // Find frontmost living enemy in this corridor so the lance visibly impacts the target!
+      double? targetEnemyNormZ;
+      double targetEnemyElev = dreadElevation;
+      for (var eIdx = 0; eIdx < enemies.length; eIdx++) {
+        final e = enemies[eIdx];
+        if (!e.isDestroyed && e.assignedCorridor == corridor) {
+          final ez = _worldYToTrenchNormZ(e.worldPosY, topMargin, boundaryY);
+          if (targetEnemyNormZ == null || ez < targetEnemyNormZ) {
+            targetEnemyNormZ = ez;
+            targetEnemyElev = e.vesselType == 2
+                ? 0.28
+                : (e.vesselType == 1 ? 0.22 : 0.17);
+          }
+        }
+      }
+
+      final nearLaneProj = cam.project(
         size,
         normX: laneNormX,
         normZ: dreadNormZ,
         elevationY: dreadElevation,
       );
+      // Connect single-corridor lance directly to the Defender's Forward Nose Cannon!
+      final muzzleOrigin = (!isMultiBeamBarrage)
+          ? shipProwOffset
+          : nearLaneProj.screenOffset;
+
+      // Draw Power Feed from bottom C1..C8 Dock Pad (normZ = 0.0) into the firing turret
+      final dockPadProj = cam.project(
+        size,
+        normX: (corridor + 0.5) / 8.0,
+        normZ: 0.0,
+      );
+      canvas.drawLine(
+        dockPadProj.groundOffset,
+        muzzleOrigin,
+        _powerFeedGlowPaint,
+      );
+      canvas.drawLine(
+        dockPadProj.groundOffset,
+        muzzleOrigin,
+        _powerFeedCorePaint,
+      );
+      if (isMultiBeamBarrage) {
+        // Connect Defender Prow to flanking Morabaraba Triad beams
+        canvas.drawLine(shipProwOffset, muzzleOrigin, _powerFeedGlowPaint);
+        canvas.drawLine(shipProwOffset, muzzleOrigin, _powerFeedCorePaint);
+      }
+
       final farBeam = cam.project(
         size,
         normX: laneNormX,
-        normZ: 1.02,
-        elevationY: dreadElevation,
+        normZ: 1.0,
+        elevationY: targetEnemyElev,
+      );
+      final impactZ =
+          (targetEnemyNormZ != null && targetEnemyNormZ > dreadNormZ)
+          ? targetEnemyNormZ
+          : 1.0;
+      final impactBeam = cam.project(
+        size,
+        normX: laneNormX,
+        normZ: impactZ,
+        elevationY: targetEnemyElev,
       );
 
       final rawWidth = lance.beamWidth <= 1.0
           ? (lance.beamWidth * size.width)
           : lance.beamWidth;
-      final beamW = math.max(rawWidth, 14.0);
-      final prowW = beamW * 1.35 * nearBeam.perspectiveScale;
+      final beamW = math.max(rawWidth, 16.0);
+      final prowW = beamW * 1.40 * nearLaneProj.perspectiveScale;
       final deepSpaceW = beamW * 1.15 * farBeam.perspectiveScale;
 
       _scratchVolumetricLancePath.reset();
       _scratchVolumetricLancePath.moveTo(
-        nearBeam.screenOffset.dx - prowW * 0.5,
-        nearBeam.screenOffset.dy,
+        muzzleOrigin.dx - prowW * 0.5,
+        muzzleOrigin.dy,
       );
       _scratchVolumetricLancePath.lineTo(
         farBeam.screenOffset.dx - deepSpaceW * 0.5,
@@ -856,67 +1089,88 @@ class CombatPainter extends CustomPainter {
         farBeam.screenOffset.dy,
       );
       _scratchVolumetricLancePath.lineTo(
-        nearBeam.screenOffset.dx + prowW * 0.5,
-        nearBeam.screenOffset.dy,
+        muzzleOrigin.dx + prowW * 0.5,
+        muzzleOrigin.dy,
       );
       _scratchVolumetricLancePath.close();
 
       canvas.drawPath(_scratchVolumetricLancePath, _lanceGlowPaint);
 
+      // Primary high-intensity axial laser core from Defender Nose Cannon to Enemy Target
       _lanceCorePaint
         ..color = isMultiBeamBarrage ? VoidTheme.solarGoldLight : Colors.white
-        ..strokeWidth = math.max(beamW * 0.36 * nearBeam.perspectiveScale, 3.8);
-      canvas.drawLine(
-        nearBeam.screenOffset,
-        farBeam.screenOffset,
-        _lanceCorePaint,
-      );
-
-      // 3D Shockwave Rings along the beam axis in perspective
-      for (final ringZ in const [0.28, 0.58, 0.86]) {
-        if (ringZ <= dreadNormZ) continue;
-        final ringPt = cam.project(
-          size,
-          normX: laneNormX,
-          normZ: ringZ,
-          elevationY: dreadElevation,
+        ..strokeWidth = math.max(
+          beamW * 0.40 * nearLaneProj.perspectiveScale,
+          4.2,
         );
-        final rw = beamW * 2.2 * ringPt.perspectiveScale;
-        final rh = rw * 0.42;
-        canvas.drawOval(
-          Rect.fromCenter(center: ringPt.screenOffset, width: rw, height: rh),
-          _impactPaint,
+      canvas.drawLine(muzzleOrigin, impactBeam.screenOffset, _lanceCorePaint);
+
+      // Secondary over-penetration beam continuing from target to Warp Horizon
+      if (impactZ < 0.99) {
+        _lanceCorePaint
+          ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.55)
+          ..strokeWidth = 2.2;
+        canvas.drawLine(
+          impactBeam.screenOffset,
+          farBeam.screenOffset,
+          _lanceCorePaint,
         );
       }
 
-      // Muzzle Flare at 3D Turret Origin
+      // Animated Upward-Traveling Plasma Tracer Chevrons from Muzzle to Target
+      for (var b = 0; b < 3; b++) {
+        final t = ((animationTime * 6.5) + (b / 3.0)) % 1.0;
+        final bx =
+            muzzleOrigin.dx +
+            (impactBeam.screenOffset.dx - muzzleOrigin.dx) * t;
+        final by =
+            muzzleOrigin.dy +
+            (impactBeam.screenOffset.dy - muzzleOrigin.dy) * t;
+        final cw = (10.0 * (1.0 - t * 0.45)).clamp(4.0, 12.0);
+        _scratchReticlePath.reset();
+        _scratchReticlePath.moveTo(bx - cw, by + cw * 0.7);
+        _scratchReticlePath.lineTo(bx, by - cw * 0.9);
+        _scratchReticlePath.lineTo(bx + cw, by + cw * 0.7);
+        canvas.drawPath(_scratchReticlePath, _muzzleSpikePaint);
+      }
+
+      // Muzzle Flare at 3D Defender Nose Cannon Origin
       canvas.drawCircle(
-        nearBeam.screenOffset,
-        beamW * 1.5 * nearBeam.perspectiveScale,
+        muzzleOrigin,
+        beamW * 1.55 * nearLaneProj.perspectiveScale,
         _muzzleGlowPaint,
       );
       canvas.drawCircle(
-        nearBeam.screenOffset,
-        beamW * 0.75 * nearBeam.perspectiveScale,
+        muzzleOrigin,
+        beamW * 0.80 * nearLaneProj.perspectiveScale,
         _muzzlePaint,
       );
       canvas.drawLine(
         Offset(
-          nearBeam.screenOffset.dx - beamW * 2.1 * nearBeam.perspectiveScale,
-          nearBeam.screenOffset.dy,
+          muzzleOrigin.dx - beamW * 2.2 * nearLaneProj.perspectiveScale,
+          muzzleOrigin.dy,
         ),
         Offset(
-          nearBeam.screenOffset.dx + beamW * 2.1 * nearBeam.perspectiveScale,
-          nearBeam.screenOffset.dy,
+          muzzleOrigin.dx + beamW * 2.2 * nearLaneProj.perspectiveScale,
+          muzzleOrigin.dy,
         ),
         _muzzleSpikePaint,
       );
 
-      // Far Horizon Impact Flare
-      canvas.drawCircle(
-        farBeam.screenOffset,
-        beamW * 1.6 * farBeam.perspectiveScale,
-        _impactPaint,
+      // Target Impact Shockwave & Crosshair Flare directly on the Enemy Hit
+      final impR = beamW * 1.65 * impactBeam.perspectiveScale;
+      canvas.drawCircle(impactBeam.screenOffset, impR * 1.25, _muzzleGlowPaint);
+      canvas.drawCircle(impactBeam.screenOffset, impR, _impactPaint);
+      canvas.drawLine(
+        Offset(
+          impactBeam.screenOffset.dx - impR * 1.4,
+          impactBeam.screenOffset.dy,
+        ),
+        Offset(
+          impactBeam.screenOffset.dx + impR * 1.4,
+          impactBeam.screenOffset.dy,
+        ),
+        _muzzleSpikePaint,
       );
     }
 
@@ -934,11 +1188,7 @@ class CombatPainter extends CustomPainter {
       final normX = flak.worldPosX <= 1.0
           ? flak.worldPosX
           : (flak.worldPosX / size.width).clamp(0.0, 1.0);
-      final normZ = flak.worldPosY <= 1.0
-          ? (1.0 - (flak.worldPosY.clamp(0.0, 0.85) / 0.85)).clamp(0.0, 1.0)
-          : ((boundaryY - flak.worldPosY) /
-                    math.max(boundaryY - topMargin, 1.0))
-                .clamp(0.0, 1.0);
+      final normZ = _worldYToTrenchNormZ(flak.worldPosY, topMargin, boundaryY);
 
       final flakProj = cam.project(
         size,
@@ -962,18 +1212,14 @@ class CombatPainter extends CustomPainter {
       );
     }
 
-    // 3. Draw 3D Polyhedral Enemy Assault Craft (Back-to-Front Painter's Order)
+    // 3. Draw 3D Polyhedral Enemy Assault Craft (Far-to-Near Painter's Order)
     for (var i = 0; i < enemies.length; i++) {
       final enemy = enemies[i];
       if (enemy.isDestroyed) continue;
       final normX = (enemy.worldPosX > 0.0 && enemy.worldPosX <= 1.0)
           ? enemy.worldPosX
           : (enemy.assignedCorridor + 0.5) / 8.0;
-      final normZ = (enemy.worldPosY <= 1.0)
-          ? (1.0 - (enemy.worldPosY.clamp(0.0, 0.85) / 0.85)).clamp(0.0, 1.05)
-          : ((boundaryY - enemy.worldPosY) /
-                    math.max(boundaryY - topMargin, 1.0))
-                .clamp(0.0, 1.05);
+      final normZ = _worldYToTrenchNormZ(enemy.worldPosY, topMargin, boundaryY);
 
       _drawEnemyVessel3D(
         canvas,
@@ -985,9 +1231,16 @@ class CombatPainter extends CustomPainter {
       );
     }
 
-    // 4. Draw Descending Enemy Plasma Bullets
+    // 4. Draw Descending Enemy Plasma Bullets in 3D Perspective Corridors
     for (var i = 0; i < enemyBullets.length; i++) {
-      _drawEnemyBullet(canvas, enemyBullets[i]);
+      _drawEnemyBullet(
+        canvas,
+        size,
+        cam,
+        enemyBullets[i],
+        topMargin,
+        boundaryY,
+      );
     }
 
     // 5. Draw Visual Particles
@@ -997,7 +1250,7 @@ class CombatPainter extends CustomPainter {
       canvas.drawCircle(Offset(p.x, p.y), p.radius, _particlePaint);
     }
 
-    // 6. Draw 3D Dreadnought Flagship & 3D Holographic Bao Ring
+    // 6. Draw 3D Dreadnought Flagship at the Bottom Defense Perimeter
     _drawDreadnoughtPlatform(canvas, size, cam, boundaryY);
 
     // 7. Draw Floating Arcade Damage Numbers (Pre-Laid Out Text Painters)
@@ -1014,34 +1267,62 @@ class CombatPainter extends CustomPainter {
     }
   }
 
-  /// Renders a descending enemy plasma projectile with zero-allocation geometry.
-  void _drawEnemyBullet(Canvas canvas, EnemyBullet bullet) {
+  /// Renders a descending enemy plasma projectile projected along its 3D corridor.
+  void _drawEnemyBullet(
+    Canvas canvas,
+    Size size,
+    CombatCamera3D cam,
+    EnemyBullet bullet,
+    double topMargin,
+    double boundaryY,
+  ) {
+    final normX = (bullet.assignedCorridor >= 0 && bullet.assignedCorridor < 8)
+        ? (bullet.assignedCorridor + 0.5) / 8.0
+        : (bullet.x / math.max(size.width, 1.0)).clamp(0.0, 1.0);
+    final normZ =
+        ((boundaryY - bullet.y) / math.max(boundaryY - topMargin, 1.0)).clamp(
+          0.0,
+          1.0,
+        );
+    final proj = cam.project(
+      size,
+      normX: normX,
+      normZ: normZ,
+      elevationY: 0.16,
+    );
+
     canvas.save();
-    canvas.translate(bullet.x, bullet.y);
+    canvas.translate(proj.screenOffset.dx, proj.screenOffset.dy);
 
     final glowColor = Color(
       (89 << 24) | (bullet.color.toARGB32() & 0x00FFFFFF),
     );
+    final r = bullet.radius * (0.65 + 0.45 * proj.perspectiveScale);
 
     _bulletTailPaint
       ..color = glowColor
-      ..strokeWidth = 3.0
+      ..strokeWidth = 3.0 * proj.perspectiveScale
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(Offset.zero, const Offset(0.0, -16.0), _bulletTailPaint);
+    canvas.drawLine(
+      Offset.zero,
+      Offset(0.0, -16.0 * proj.perspectiveScale),
+      _bulletTailPaint,
+    );
 
     _bulletGlowPaint.color = glowColor;
-    canvas.drawCircle(Offset.zero, bullet.radius * 1.8, _bulletGlowPaint);
+    canvas.drawCircle(Offset.zero, r * 1.8, _bulletGlowPaint);
 
     _bulletOrbPaint.color = bullet.color;
-    canvas.drawCircle(Offset.zero, bullet.radius, _bulletOrbPaint);
+    canvas.drawCircle(Offset.zero, r, _bulletOrbPaint);
 
-    canvas.drawCircle(Offset.zero, bullet.radius * 0.45, _bulletCenterPaint);
+    canvas.drawCircle(Offset.zero, r * 0.45, _bulletCenterPaint);
 
     canvas.restore();
   }
 
   /// Renders an enemy assault craft in true 3D perspective using [Invader3DMesh],
-  /// complete with a 3D trench floor shadow ellipse and vertical altitude tether.
+  /// complete with a 3D trench floor shadow ellipse, vertical altitude tether, and
+  /// downward attack vector chevron.
   void _drawEnemyVessel3D(
     Canvas canvas,
     Size size,
@@ -1093,9 +1374,31 @@ class CombatPainter extends CustomPainter {
               ? VoidTheme.plasmaCyan
               : VoidTheme.nebulaAmethystLight);
     _enemyShadowRingPaint.color = accentColor.withValues(
-      alpha: 0.42 * warpProgress,
+      alpha: 0.48 * warpProgress,
     );
     canvas.drawOval(shadowRect, _enemyShadowRingPaint);
+
+    // Downward attack direction chevron on the trench floor ahead of the enemy
+    final leadProj = cam.project(
+      size,
+      normX: normX,
+      normZ: (normZ - 0.045).clamp(0.0, 1.0),
+    );
+    final chevW = 7.0 * pScale;
+    _scratchReticlePath.reset();
+    _scratchReticlePath.moveTo(
+      leadProj.groundOffset.dx - chevW,
+      leadProj.groundOffset.dy - 4.0 * pScale,
+    );
+    _scratchReticlePath.lineTo(
+      leadProj.groundOffset.dx,
+      leadProj.groundOffset.dy + 3.0 * pScale,
+    );
+    _scratchReticlePath.lineTo(
+      leadProj.groundOffset.dx + chevW,
+      leadProj.groundOffset.dy - 4.0 * pScale,
+    );
+    canvas.drawPath(_scratchReticlePath, _enemyShadowRingPaint);
 
     // Vertical 3D altitude tether connecting floor shadow to 3D ship hull
     _anchorTetherPaint.color = accentColor.withValues(
@@ -1144,7 +1447,7 @@ class CombatPainter extends CustomPainter {
     );
 
     // 4. Render 3-Corridor Segmented Boss Shield Arc for Flagships (vesselType == 2)
-    final corridorSpanW = (size.width * 0.92 / 8.0) * pScale;
+    final corridorSpanW = (size.width * 0.96 / 8.0) * pScale;
     final hh = 24.0 * meshScale;
     if (enemy.vesselType == 2 && enemy.currentShields > 0) {
       final shieldRatio = (enemy.currentShields / math.max(enemy.maxShields, 1))
@@ -1232,8 +1535,8 @@ class CombatPainter extends CustomPainter {
     }
   }
 
-  /// Renders the 3D flagship dreadnought, 3D holographic 16-bay Bao capacitor ring,
-  /// 3D perspective corridor runway, and targeting reticles.
+  /// Renders the 3D flagship dreadnought at the Bottom Defense Perimeter,
+  /// active 3D corridor runway, power feed tether from the C1..C8 dock, and target lock reticles.
   void _drawDreadnoughtPlatform(
     Canvas canvas,
     Size size,
@@ -1252,9 +1555,9 @@ class CombatPainter extends CustomPainter {
           0.0,
           0.45,
         );
-    final normForward = forwardDepth / 0.45;
-    final dreadNormZ = normForward * 0.58;
-    final dreadElevation = 0.14 + normForward * 0.12;
+    final normForward = (forwardDepth / 0.45).clamp(0.0, 1.0);
+    final dreadNormZ = 0.02 + normForward * 0.12;
+    final dreadElevation = 0.12 + normForward * 0.08;
 
     final shipProj = cam.project(
       size,
@@ -1266,8 +1569,8 @@ class CombatPainter extends CustomPainter {
     final shipY = shipProj.screenOffset.dy;
     final groundX = shipProj.groundOffset.dx;
     final groundY = shipProj.groundOffset.dy;
-    final scale = (0.85 + 0.25 * shipProj.perspectiveScale);
-    final prowY = shipY - 38.0 * scale;
+    final scale = 0.88 + 0.22 * shipProj.perspectiveScale;
+    final prowY = shipY - 36.0 * scale;
 
     // 1. Active Corridor 3D Perspective Runway & Raised 3D Guide Rails
     final activeCorridor = (dreadNormX * 8.0).floor().clamp(0, 7);
@@ -1298,10 +1601,10 @@ class CombatPainter extends CustomPainter {
     );
     _scratchVolumetricLancePath.close();
 
-    _highlightPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.11);
+    _highlightPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.13);
     canvas.drawPath(_scratchVolumetricLancePath, _highlightPaint);
 
-    _corridorBorderPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.45);
+    _corridorBorderPaint.color = VoidTheme.plasmaCyan.withValues(alpha: 0.60);
     canvas.drawLine(
       nearLeft.groundOffset,
       farLeft.groundOffset,
@@ -1313,35 +1616,76 @@ class CombatPainter extends CustomPainter {
       _corridorBorderPaint,
     );
 
-    // 2. 3D Perspective Targeting Laser Beam from Dreadnought Prow to Far Horizon
+    // 2. 3D Lateral Defender Flight Track across the Bottom Defense Perimeter
+    final trackLeft = cam.project(size, normX: 0.0, normZ: dreadNormZ);
+    final trackRight = cam.project(size, normX: 1.0, normZ: dreadNormZ);
+    canvas.drawLine(
+      trackLeft.groundOffset,
+      trackRight.groundOffset,
+      _flightTrackPaint,
+    );
+
+    // 3. Glowing Plasma Power Tether from Active C1..C8 Dock Pad to Defender Reactor
+    final activeDockPad = cam.project(
+      size,
+      normX: (activeCorridor + 0.5) / 8.0,
+      normZ: 0.0,
+    );
+    canvas.drawLine(
+      activeDockPad.groundOffset,
+      Offset(centerX, shipY + 16.0 * scale),
+      _powerFeedGlowPaint,
+    );
+    canvas.drawLine(
+      activeDockPad.groundOffset,
+      Offset(centerX, shipY + 16.0 * scale),
+      _powerFeedCorePaint,
+    );
+
+    // 4. 3D Perspective Targeting Laser Sight from Dreadnought Nose Cannon to Nearest Enemy / Horizon
+    double aimTargetZ = 1.0;
+    double aimTargetElev = dreadElevation;
+    for (var i = 0; i < enemies.length; i++) {
+      final enemy = enemies[i];
+      if (!enemy.isDestroyed && enemy.assignedCorridor == activeCorridor) {
+        final ez = _worldYToTrenchNormZ(enemy.worldPosY, topMargin, boundaryY);
+        if (ez < aimTargetZ) {
+          aimTargetZ = ez;
+          aimTargetElev = enemy.vesselType == 2
+              ? 0.28
+              : (enemy.vesselType == 1 ? 0.22 : 0.17);
+        }
+      }
+    }
+
     final farAim = cam.project(
       size,
-      normX: dreadNormX,
-      normZ: 1.0,
-      elevationY: dreadElevation,
+      normX: (activeCorridor + 0.5) / 8.0,
+      normZ: aimTargetZ,
+      elevationY: aimTargetElev,
     );
-    final aimPulse = 0.40 + 0.25 * math.sin(animationTime * 10.0);
+    final aimPulse = 0.45 + 0.25 * math.sin(animationTime * 10.0);
     _aimGlowPaint.color = VoidTheme.plasmaCyan.withValues(
-      alpha: aimPulse * 0.45,
+      alpha: aimPulse * 0.50,
     );
     canvas.drawLine(Offset(centerX, prowY), farAim.screenOffset, _aimGlowPaint);
 
-    _aimPaint.color = Colors.white.withValues(alpha: aimPulse * 0.90);
+    _aimPaint.color = Colors.white.withValues(alpha: aimPulse * 0.92);
     _aimPaint.strokeWidth = 1.8;
     canvas.drawLine(Offset(centerX, prowY), farAim.screenOffset, _aimPaint);
 
-    // 3. Holographic 3D Lock-On Reticles on Enemies in Active Corridor
+    // 5. Holographic 3D Lock-On Reticles on Enemies in Active Corridor
     for (var i = 0; i < enemies.length; i++) {
       final enemy = enemies[i];
       if (!enemy.isDestroyed && enemy.assignedCorridor == activeCorridor) {
         final eNormX = (enemy.worldPosX > 0.0 && enemy.worldPosX <= 1.0)
             ? enemy.worldPosX
             : (enemy.assignedCorridor + 0.5) / 8.0;
-        final eNormZ = (enemy.worldPosY <= 1.0)
-            ? (1.0 - (enemy.worldPosY.clamp(0.0, 0.85) / 0.85)).clamp(0.0, 1.05)
-            : ((boundaryY - enemy.worldPosY) /
-                      math.max(boundaryY - topMargin, 1.0))
-                  .clamp(0.0, 1.05);
+        final eNormZ = _worldYToTrenchNormZ(
+          enemy.worldPosY,
+          topMargin,
+          boundaryY,
+        );
         final eElev = enemy.vesselType == 2
             ? 0.28
             : (enemy.vesselType == 1 ? 0.22 : 0.17);
@@ -1433,7 +1777,7 @@ class CombatPainter extends CustomPainter {
       }
     }
 
-    // 4. 3D Ground Projection Anchor Ring & Vertical Altitude Tether on Trench Floor
+    // 6. 3D Ground Projection Anchor Ring & Vertical Altitude Tether on Trench Floor
     final anchorW = 54.0 * shipProj.perspectiveScale;
     final anchorH =
         18.0 *
@@ -1447,7 +1791,7 @@ class CombatPainter extends CustomPainter {
     );
     canvas.drawOval(anchorRect, _anchorRingPaint);
 
-    final tetherAlpha = (0.28 + 0.35 * normForward).clamp(0.0, 0.65);
+    final tetherAlpha = (0.32 + 0.35 * normForward).clamp(0.0, 0.70);
     _anchorTetherPaint.color = VoidTheme.plasmaCyan.withValues(
       alpha: tetherAlpha,
     );
@@ -1457,38 +1801,21 @@ class CombatPainter extends CustomPainter {
       _anchorTetherPaint,
     );
 
-    // 5. 3D Tilted 16-Bay Holographic Bao Capacitor Ring Orbiting the Dreadnought
-    final ringRx = 66.0 * scale;
-    final ringRy =
-        66.0 * scale * math.sin(cam.pitchRad * 0.85).clamp(0.28, 0.78);
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: Offset(centerX, shipY),
-        width: ringRx * 2.0,
-        height: ringRy * 2.0,
-      ),
-      _baoRingOrbitPaint,
-    );
-    final activeFrontlineBay = activeCorridor + 8;
-    for (var b = 0; b < 16; b++) {
-      final theta =
-          (b / 16.0) * 2.0 * math.pi - math.pi * 0.5 - cam.yawRad * 0.6;
-      final bx = centerX + ringRx * math.cos(theta);
-      final by = shipY + ringRy * math.sin(theta);
-      final isFrontline = b >= 8;
-      final isTriad = millTriadBays.contains(b);
-      final isActiveBay = b == activeFrontlineBay;
-      _baoRingNodePaint.color = isTriad || isActiveBay
-          ? VoidTheme.solarGold
-          : (isFrontline
-                ? VoidTheme.plasmaCyan.withValues(alpha: 0.85)
-                : VoidTheme.nebulaAmethystLight.withValues(alpha: 0.75));
-      final nodeR =
-          (isTriad || isActiveBay ? 3.4 : (isFrontline ? 2.4 : 1.9)) * scale;
-      canvas.drawCircle(Offset(bx, by), nodeR, _baoRingNodePaint);
-    }
+    // Lateral Steering Chevrons (◄ ►) flanking the Defender so control is obvious
+    final chevOffset = 52.0 * scale;
+    final chevH = 7.0 * scale;
+    _scratchReticlePath.reset();
+    // Port (left) steering chevron ◄
+    _scratchReticlePath.moveTo(centerX - chevOffset + 6.0, shipY - chevH);
+    _scratchReticlePath.lineTo(centerX - chevOffset, shipY);
+    _scratchReticlePath.lineTo(centerX - chevOffset + 6.0, shipY + chevH);
+    // Starboard (right) steering chevron ►
+    _scratchReticlePath.moveTo(centerX + chevOffset - 6.0, shipY - chevH);
+    _scratchReticlePath.lineTo(centerX + chevOffset, shipY);
+    _scratchReticlePath.lineTo(centerX + chevOffset - 6.0, shipY + chevH);
+    canvas.drawPath(_scratchReticlePath, _steerChevronPaint);
 
-    // 6. 3D Spatial Attitude Angles & Perspective Dreadnought Mesh Projection
+    // 7. 3D Spatial Attitude Angles & Perspective Dreadnought Mesh Projection
     final lateralDisplacement =
         (dreadnought.targetPositionX - dreadnought.orbitalPositionX).clamp(
           -0.25,
@@ -1510,7 +1837,7 @@ class CombatPainter extends CustomPainter {
       isLowBattery: isLowBattery,
     );
 
-    // 7. 3D Aligned Twin Plasma Engine Exhaust Flames
+    // 8. 3D Aligned Twin Plasma Engine Exhaust Flames
     final thrustScale = (1.0 + 1.2 * normForward) * scale;
     final flameHeight =
         (20.0 + math.sin(animationTime * 20.0) * 5.0) * thrustScale;
@@ -1533,9 +1860,9 @@ class CombatPainter extends CustomPainter {
     _scratchRightFlamePath.close();
     canvas.drawPath(_scratchRightFlamePath, _flamePaint);
 
-    // 8. Trailing Ion Contrails during deep space forward flight
+    // 9. Trailing Ion Contrails during deep space forward flight
     if (normForward > 0.05) {
-      final contrailLen = (35.0 + 45.0 * normForward) * scale;
+      final contrailLen = (25.0 + 35.0 * normForward) * scale;
       final contrailAlpha = (0.2 + 0.5 * normForward).clamp(0.0, 0.7);
       _contrailPaint.color = VoidTheme.plasmaCyan.withValues(
         alpha: contrailAlpha,
@@ -1552,10 +1879,10 @@ class CombatPainter extends CustomPainter {
       );
     }
 
-    // 9. Deep Space Energetic Bow Shock Ripple Ahead of 3D Prow
+    // 10. Deep Space Energetic Bow Shock Ripple Ahead of 3D Prow
+    final prowTipX = _dreadMesh.projX[Dreadnought3DMesh.vProwTip];
+    final prowTipY = _dreadMesh.projY[Dreadnought3DMesh.vProwTip];
     if (normForward > 0.06) {
-      final prowTipX = _dreadMesh.projX[Dreadnought3DMesh.vProwTip];
-      final prowTipY = _dreadMesh.projY[Dreadnought3DMesh.vProwTip];
       final shockAlpha = (normForward * 0.85).clamp(0.0, 0.85);
       final shockW =
           104.0 * scale * (1.15 + 0.25 * math.sin(animationTime * 18.0));
@@ -1587,7 +1914,7 @@ class CombatPainter extends CustomPainter {
       );
     }
 
-    // 10. Forward Kinetic Energy Canopy Shield Arc
+    // 11. Forward Kinetic Energy Canopy Shield Arc
     final shieldW = 104.0 * scale * 1.15;
     final shieldH = 48.0 * scale;
     final shieldCenterY = shipY - 10.0 * scale;
@@ -1612,7 +1939,7 @@ class CombatPainter extends CustomPainter {
       _shieldArcPaint,
     );
 
-    // Upward Flight Discovery Hint
+    // Upward Cannon Aim Direction Hint above Prow
     if (normForward < 0.25) {
       final pulse = (0.5 + 0.5 * math.sin(animationTime * 4.0)).clamp(
         0.2,
@@ -1621,19 +1948,17 @@ class CombatPainter extends CustomPainter {
       final bucket = (((pulse - 0.20) / 0.75) * 15.0).round().clamp(0, 15);
       final painter = _flightHintPainters[bucket];
       final hintX = centerX - painter.width * 0.5;
-      final hintY = shipY - 54.0;
+      final hintY = prowY - 16.0;
       painter.paint(canvas, Offset(hintX, hintY));
     }
 
-    // Defender Conduit Label
-    if (normForward > 0.08) {
-      final labelPainter = _conduitLabelPainters[activeCorridor];
-      final labelX = (centerX - (labelPainter.width / 2)).clamp(
-        8.0,
-        size.width - labelPainter.width - 8.0,
-      );
-      labelPainter.paint(canvas, Offset(labelX, shipY + 16.0));
-    }
+    // Active Defender Conduit Badge (always shown so player knows which corridor is locked!)
+    final labelPainter = _conduitLabelPainters[activeCorridor];
+    final labelX = (centerX - (labelPainter.width / 2)).clamp(
+      8.0,
+      size.width - labelPainter.width - 8.0,
+    );
+    labelPainter.paint(canvas, Offset(labelX, shipY + 18.0));
 
     // Proximity Vanguard Telemetry Badge
     if (dreadnought.proximityMultiplier > 1.01) {
@@ -1643,7 +1968,7 @@ class CombatPainter extends CustomPainter {
       final tagPainter = _vanguardTagPainters[tierIndex];
       final tagW = tagPainter.width + 8.0;
       const tagH = 15.0;
-      final tagCenterY = (normForward > 0.08) ? (shipY + 34.0) : (prowY - 26.0);
+      final tagCenterY = prowY - 28.0;
       final tagLeft = centerX - tagW * 0.5;
       final tagTop = tagCenterY - tagH * 0.5;
       final tagRect = RRect.fromLTRBR(
@@ -1721,7 +2046,10 @@ class CombatPainter extends CustomPainter {
       Offset(railX + 8.0, yVanguard - _altimeterVanguardPainter.height / 2.0),
     );
 
-    final markerY = shipY.clamp(railTop, railBottom);
+    final markerY = (railBottom - normForward * maxTravelY).clamp(
+      railTop,
+      railBottom,
+    );
     canvas.drawCircle(Offset(railX, markerY), 4.5, _altimeterMarkerGlowPaint);
     canvas.drawCircle(Offset(railX, markerY), 2.5, _altimeterMarkerPaint);
     canvas.drawLine(

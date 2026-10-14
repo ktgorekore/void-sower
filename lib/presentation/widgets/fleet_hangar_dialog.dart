@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/fleet_service.dart';
 import '../services/haptic_service.dart';
+import 'dreadnought_3d_mesh.dart';
 import 'pro_upgrade_modal.dart';
 
 /// Interactive Fleet Hangar modal redesigned to strictly match the UX 3.0
@@ -448,39 +449,44 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Holographic Stage Viewer
+          // 3D Polyhedral Holographic Stage Viewer
           SizedBox(
             height: 140.0,
             child: Stack(
               alignment: Alignment.center,
               children: [
                 CustomPaint(
-                  size: const Size(280.0, 130.0),
-                  painter: _HologramRingsPainter(),
+                  size: const Size(280.0, 140.0),
+                  painter: _HologramRingsPainter(
+                    accentColor: classAccent,
+                    chassisId: chassis.chassisId,
+                  ),
                 ),
-                // Center Vessel Hologram Wireframe
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      classIcon,
-                      color: classAccent,
-                      size: 48.0,
-                      shadows: [Shadow(color: classAccent, blurRadius: 16.0)],
-                    ),
-                    const SizedBox(height: 4.0),
-                    Container(
-                      width: 40.0,
-                      height: 4.0,
-                      decoration: BoxDecoration(
+                // Corner class insignia & 3D telemetry badge
+                Positioned(
+                  top: 4.0,
+                  right: 6.0,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        classIcon,
                         color: classAccent,
-                        borderRadius: BorderRadius.circular(2.0),
-                        boxShadow: [
-                          BoxShadow(color: classAccent, blurRadius: 8.0),
-                        ],
+                        size: 16.0,
+                        shadows: [Shadow(color: classAccent, blurRadius: 8.0)],
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4.0),
+                      Text(
+                        '3D MESH // 16V',
+                        style: TextStyle(
+                          color: classAccent.withValues(alpha: 0.9),
+                          fontSize: 8.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -857,39 +863,98 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
 }
 
 class _HologramRingsPainter extends CustomPainter {
+  _HologramRingsPainter({required this.accentColor, required this.chassisId});
+
+  final Color accentColor;
+  final String chassisId;
+  static final Dreadnought3DMesh _mesh = Dreadnought3DMesh();
+
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height * 0.65);
+    final ringCenter = Offset(size.width / 2, size.height * 0.76);
 
     final outerPaint = Paint()
-      ..color = const Color(0xFF1E293B).withValues(alpha: 0.6)
+      ..color = const Color(0xFF1E293B).withValues(alpha: 0.75)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
     final midPaint = Paint()
-      ..color = const Color(0xFF00F0FF).withValues(alpha: 0.4)
+      ..color = accentColor.withValues(alpha: 0.45)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.2;
 
     final innerPaint = Paint()
-      ..color = const Color(0xFF00F0FF)
+      ..color = accentColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
+      ..strokeWidth = 1.6;
 
+    // 3D Drydock perspective rings
     canvas.drawOval(
-      Rect.fromCenter(center: center, width: size.width * 0.9, height: 44.0),
+      Rect.fromCenter(
+        center: ringCenter,
+        width: size.width * 0.92,
+        height: 42.0,
+      ),
       outerPaint,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: center, width: size.width * 0.6, height: 30.0),
+      Rect.fromCenter(
+        center: ringCenter,
+        width: size.width * 0.62,
+        height: 28.0,
+      ),
       midPaint,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: center, width: size.width * 0.3, height: 16.0),
+      Rect.fromCenter(
+        center: ringCenter,
+        width: size.width * 0.32,
+        height: 15.0,
+      ),
       innerPaint,
+    );
+
+    // Vertical laser altitude tether from drydock floor to 3D ship hull
+    final shipCenter = Offset(size.width / 2, size.height * 0.46);
+    canvas.drawLine(
+      ringCenter,
+      shipCenter,
+      Paint()
+        ..color = accentColor.withValues(alpha: 0.55)
+        ..strokeWidth = 1.4,
+    );
+
+    // Distinct 3D inspection angle per chassis class
+    double pitchRad = -0.42;
+    double rollRad = -0.24;
+    double yawRad = 0.32;
+    if (chassisId == 'mk2_monsoon') {
+      pitchRad = -0.48;
+      rollRad = 0.26;
+      yawRad = -0.30;
+    } else if (chassisId == 'mk3_singularity') {
+      pitchRad = -0.36;
+      rollRad = -0.32;
+      yawRad = 0.44;
+    } else if (chassisId == 'mk4_golden_sovereign') {
+      pitchRad = -0.52;
+      rollRad = 0.18;
+      yawRad = -0.38;
+    }
+
+    _mesh.projectAndPaint(
+      canvas,
+      center: shipCenter,
+      pitchRad: pitchRad,
+      rollRad: rollRad,
+      yawRad: yawRad,
+      scale: 1.55,
+      animationTime: 1.25,
     );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _HologramRingsPainter oldDelegate) =>
+      oldDelegate.accentColor != accentColor ||
+      oldDelegate.chassisId != chassisId;
 }

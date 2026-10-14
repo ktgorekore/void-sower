@@ -1179,6 +1179,11 @@ class CombatCoordinator extends ChangeNotifier {
         ? direction
         : _sowDirection;
     _sowDirection = BayRole.resolveSowDirection(bayIndex, desiredDir);
+    if (bayIndex >= 8 && bayIndex < 16) {
+      final alignedX = ((bayIndex - 8) + 0.5) / 8.0;
+      engine.setDreadnoughtTarget(alignedX, dreadnought.targetPositionY);
+      _syncDomainState();
+    }
     _state = _state.copyWith(selectedBay: bayIndex);
     prediction = engine.predictSow(bayIndex, _sowDirection);
     notifyListeners();
@@ -1236,6 +1241,14 @@ class CombatCoordinator extends ChangeNotifier {
     }
 
     final resolvedDirection = BayRole.resolveSowDirection(bayIndex, direction);
+    final sowPred = engine.predictSow(bayIndex, resolvedDirection);
+    if (sowPred.terminalCorridor >= 0 && sowPred.terminalCorridor < 8) {
+      final targetCorridorX = (sowPred.terminalCorridor + 0.5) / 8.0;
+      engine.setDreadnoughtTarget(targetCorridorX, dreadnought.targetPositionY);
+    } else if (bayIndex >= 8 && bayIndex < 16) {
+      final targetCorridorX = ((bayIndex - 8) + 0.5) / 8.0;
+      engine.setDreadnoughtTarget(targetCorridorX, dreadnought.targetPositionY);
+    }
 
     _sowAnimationGeneration++;
     final generation = _sowAnimationGeneration;
@@ -1446,6 +1459,9 @@ class CombatCoordinator extends ChangeNotifier {
 
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final targetBay = (bayIndex ?? (corridor + 8)).clamp(8, 15);
+    final targetCorridor = targetBay - 8;
+    final alignedX = (targetCorridor + 0.5) / 8.0;
+    engine.setDreadnoughtTarget(alignedX, dreadnought.targetPositionY);
     final triad = getMillTriadForBay(targetBay);
 
     _captureTurnSnapshot();
@@ -1498,6 +1514,10 @@ class CombatCoordinator extends ChangeNotifier {
     }
 
     _syncDomainState();
+    dreadnought = dreadnought.copyWith(
+      orbitalPositionX: alignedX,
+      targetPositionX: alignedX,
+    );
     _state = _state.copyWith(selectedBay: targetBay);
     prediction = engine.predictSow(targetBay, _sowDirection);
     notifyListeners();
