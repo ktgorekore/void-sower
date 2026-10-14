@@ -41,6 +41,8 @@ class MancalaBatteryDockWidget extends StatelessWidget {
     required this.onSowAction,
     required this.onInjectCore,
     required this.onQuickFire,
+    this.onDirectDischargeBay,
+    this.millTriadBays = const <int>{},
     this.onSlidePosition,
     this.onDirectionChanged,
     this.tacticalAdvice,
@@ -55,6 +57,8 @@ class MancalaBatteryDockWidget extends StatelessWidget {
   final void Function(int bayIndex, int direction) onSowAction;
   final void Function(int bayIndex, int direction) onInjectCore;
   final VoidCallback onQuickFire;
+  final ValueChanged<int>? onDirectDischargeBay;
+  final Set<int> millTriadBays;
   final ValueChanged<double>? onSlidePosition;
   final ValueChanged<int>? onDirectionChanged;
   final TacticalAdvice? tacticalAdvice;
@@ -81,7 +85,12 @@ class MancalaBatteryDockWidget extends StatelessWidget {
               colors: [Color(0xE60E1726), Color(0xF2070B14)],
             ),
             borderRadius: BorderRadius.circular(18.0),
-            border: Border.all(color: const Color(0xFF1E293B), width: 1.2),
+            border: Border.all(
+              color: millTriadBays.isNotEmpty
+                  ? VoidTheme.solarGold.withValues(alpha: 0.75)
+                  : const Color(0xFF1E293B),
+              width: 1.2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.65),
@@ -173,12 +182,13 @@ class MancalaBatteryDockWidget extends StatelessWidget {
 
   /// Builds the top header of the dock with clean labels.
   Widget _buildDockHeader() {
+    final hasMill = millTriadBays.isNotEmpty;
     return FittedBox(
       fit: BoxFit.scaleDown,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: const [
-          Text(
+        children: [
+          const Text(
             'ORBITAL BATTERY CONDUITS (C1–C8)',
             style: TextStyle(
               color: Color(0xFF64748B),
@@ -187,13 +197,15 @@ class MancalaBatteryDockWidget extends StatelessWidget {
               letterSpacing: 1.0,
             ),
           ),
-          SizedBox(width: 12.0),
+          const SizedBox(width: 12.0),
           Text(
-            '‹ SWIPE PIT TO SOW • TAP TO FIRE ›',
+            hasMill
+                ? '⚡ MORABARABA MILL TRIAD READY (1.5x)'
+                : '‹ SWIPE PIT TO SOW • TAP TO FIRE ›',
             style: TextStyle(
-              color: Color(0xFF0284C7),
+              color: hasMill ? VoidTheme.solarGold : const Color(0xFF0284C7),
               fontSize: 7.0,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ],
@@ -229,6 +241,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
         final isAligned = corridor == activeCorridor;
         final isSelected = selectedBay == bay.bayIndex;
         final isSowHop = activeSowBay == bay.bayIndex;
+        final isMillTriad = millTriadBays.contains(bay.bayIndex);
 
         return Expanded(
           child: Padding(
@@ -239,6 +252,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
               isAligned: isAligned,
               isSelected: isSelected,
               isSowHop: isSowHop,
+              isMillTriad: isMillTriad,
               activeDirection: sowDirection,
               onTap: () {
                 HapticService.instance.sowTick();
@@ -250,6 +264,9 @@ class MancalaBatteryDockWidget extends StatelessWidget {
                   onSlidePosition?.call(normX);
                 }
               },
+              onDoubleTap: onDirectDischargeBay != null
+                  ? () => onDirectDischargeBay!(bay.bayIndex)
+                  : null,
               onFire: onQuickFire,
               onSowAction: onSowAction,
               onInjectCore: onInjectCore,
@@ -475,8 +492,10 @@ class _Ux3FrontlineCell extends StatefulWidget {
     required this.isAligned,
     required this.isSelected,
     required this.isSowHop,
+    this.isMillTriad = false,
     required this.activeDirection,
     required this.onTap,
+    this.onDoubleTap,
     required this.onFire,
     required this.onSowAction,
     required this.onInjectCore,
@@ -487,8 +506,10 @@ class _Ux3FrontlineCell extends StatefulWidget {
   final bool isAligned;
   final bool isSelected;
   final bool isSowHop;
+  final bool isMillTriad;
   final int activeDirection;
   final VoidCallback onTap;
+  final VoidCallback? onDoubleTap;
   final VoidCallback onFire;
   final void Function(int bayIndex, int direction) onSowAction;
   final void Function(int bayIndex, int direction) onInjectCore;
@@ -507,12 +528,14 @@ class _Ux3FrontlineCellState extends State<_Ux3FrontlineCell> {
     final isAligned = widget.isAligned;
     final isSelected = widget.isSelected;
     final isSowHop = widget.isSowHop;
+    final isMillTriad = widget.isMillTriad;
     final count = bay.chargeUnits;
     final label = 'C${widget.corridor + 1}';
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: widget.onTap,
+      onLongPress: widget.onDoubleTap,
       onPanStart: (_) {
         _dragDx = 0.0;
         _dragDy = 0.0;
@@ -557,7 +580,11 @@ class _Ux3FrontlineCellState extends State<_Ux3FrontlineCell> {
               top: -6.0,
               child: CustomPaint(
                 size: const Size(8.0, 5.0),
-                painter: _UpwardArrowPainter(color: const Color(0xFF00F0FF)),
+                painter: _UpwardArrowPainter(
+                  color: isMillTriad
+                      ? VoidTheme.solarGold
+                      : const Color(0xFF00F0FF),
+                ),
               ),
             ),
 
@@ -574,31 +601,48 @@ class _Ux3FrontlineCellState extends State<_Ux3FrontlineCell> {
               borderRadius: BorderRadius.circular(6.0),
               border: Border.all(
                 color: isAligned
-                    ? Colors.white
-                    : (isSelected
-                          ? VoidTheme.plasmaCyan
-                          : (isSowHop
-                                ? VoidTheme.solarGold
-                                : const Color(0xFF1E293B))),
-                width: isAligned ? 1.8 : (isSelected ? 1.4 : 1.0),
+                    ? (isMillTriad ? VoidTheme.solarGold : Colors.white)
+                    : (isMillTriad
+                          ? VoidTheme.solarGold
+                          : (isSelected
+                                ? VoidTheme.plasmaCyan
+                                : (isSowHop
+                                      ? VoidTheme.solarGold
+                                      : const Color(0xFF1E293B)))),
+                width: isAligned
+                    ? 1.8
+                    : (isMillTriad || isSelected ? 1.4 : 1.0),
               ),
               boxShadow: isAligned
                   ? [
                       BoxShadow(
-                        color: const Color(0xFF00F0FF).withValues(alpha: 0.5),
+                        color:
+                            (isMillTriad
+                                    ? VoidTheme.solarGold
+                                    : const Color(0xFF00F0FF))
+                                .withValues(alpha: 0.5),
                         blurRadius: 8.0,
                       ),
                     ]
-                  : (isSelected
+                  : (isMillTriad
                         ? [
                             BoxShadow(
-                              color: VoidTheme.plasmaCyan.withValues(
-                                alpha: 0.3,
+                              color: VoidTheme.solarGold.withValues(
+                                alpha: 0.35,
                               ),
-                              blurRadius: 5.0,
+                              blurRadius: 6.0,
                             ),
                           ]
-                        : null),
+                        : (isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: VoidTheme.plasmaCyan.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                    blurRadius: 5.0,
+                                  ),
+                                ]
+                              : null)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

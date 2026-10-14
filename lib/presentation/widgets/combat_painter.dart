@@ -24,6 +24,7 @@ import '../../domain/models/lance_beam.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
 import 'dreadnought_3d_mesh.dart';
+import 'invader_3d_mesh.dart';
 
 /// Retained Skia static background layer rendering the 8 tactical corridors,
 /// atmospheric defense boundary line, and planetary defense rails.
@@ -242,6 +243,7 @@ class CombatPainter extends CustomPainter {
     required this.particles,
     this.damageNumbers = const [],
     this.enemyBullets = const [],
+    this.millTriadBays = const <int>{},
     this.predictedDamage,
     required this.animationTime,
     this.isLowBattery = false,
@@ -255,11 +257,20 @@ class CombatPainter extends CustomPainter {
   final List<VisualParticle> particles;
   final List<FloatingDamageNumber> damageNumbers;
   final List<EnemyBullet> enemyBullets;
+  final Set<int> millTriadBays;
   final double? predictedDamage;
   final double animationTime;
   final bool isLowBattery;
 
   static final Dreadnought3DMesh _dreadMesh = Dreadnought3DMesh();
+  static final Invader3DMesh _invaderMesh = Invader3DMesh();
+  static final Paint _millCorridorPaint = Paint()
+    ..color = VoidTheme.solarGold.withValues(alpha: 0.10)
+    ..style = PaintingStyle.fill;
+  static final Paint _millBorderPaint = Paint()
+    ..color = VoidTheme.solarGold.withValues(alpha: 0.55)
+    ..strokeWidth = 1.4
+    ..style = PaintingStyle.stroke;
 
   // ---------------------------------------------------------------------------
   // Reusable Path Scratchpads & Pre-compiled Static Geometry
@@ -435,8 +446,9 @@ class CombatPainter extends CustomPainter {
           shadows: [Shadow(color: Colors.black, blurRadius: 4.0)],
         ),
       ),
-      textDirection: TextDirection.ltr,
-    )..layout();
+    );
+    painter.textDirection = TextDirection.ltr;
+    painter.layout();
     return painter;
   });
 
@@ -652,6 +664,7 @@ class CombatPainter extends CustomPainter {
     final topMargin = size.height * 0.06;
     final corridorWidth = size.width / 8.0;
     final boundaryY = size.height - 18.0;
+    final vpX = size.width * 0.5;
 
     final forwardDepth =
         (dreadnought.orbitalPositionY - dreadnought.boundaryLineY).clamp(
@@ -665,20 +678,45 @@ class CombatPainter extends CustomPainter {
     final scale = 1.0 - normForward * 0.15;
     final shipProwY = shipY - 38.0 * scale;
 
-    // 1. Draw Active Particle Lances (FIRED AXIALLY FROM DREADNOUGHT PROW)
+    // 0. Draw Morabaraba 3-Bay Mill Triad 3D Perspective Resonance Corridors
+    if (millTriadBays.isNotEmpty) {
+      for (final bay in millTriadBays) {
+        final c = (bay - 8).clamp(0, 7);
+        final xLeftBottom = c * corridorWidth;
+        final xRightBottom = (c + 1) * corridorWidth;
+        final xLeftTop = vpX + (xLeftBottom - vpX) * 0.85;
+        final xRightTop = vpX + (xRightBottom - vpX) * 0.85;
+
+        _scratchVolumetricLancePath.reset();
+        _scratchVolumetricLancePath.moveTo(xLeftTop, topMargin);
+        _scratchVolumetricLancePath.lineTo(xRightTop, topMargin);
+        _scratchVolumetricLancePath.lineTo(xRightBottom, boundaryY);
+        _scratchVolumetricLancePath.lineTo(xLeftBottom, boundaryY);
+        _scratchVolumetricLancePath.close();
+
+        canvas.drawPath(_scratchVolumetricLancePath, _millCorridorPaint);
+        canvas.drawPath(_scratchVolumetricLancePath, _millBorderPaint);
+      }
+    }
+
+    // 1. Draw Active Particle Lances
+    final isMultiBeamBarrage = lances.length > 1;
     for (var i = 0; i < lances.length; i++) {
       final lance = lances[i];
       if (!lance.active) continue;
       final corridor = (lance.firingBayIndex >= 8)
           ? (lance.firingBayIndex - 8)
           : lance.firingBayIndex;
-      final centerX =
-          (dreadnought.orbitalPositionX >= 0.0 &&
-              dreadnought.orbitalPositionX <= 1.0)
-          ? dreadnought.orbitalPositionX * size.width
-          : (lance.originX >= 0.0 && lance.originX <= 1.0)
-          ? lance.originX * size.width
-          : (corridor + 0.5) * corridorWidth;
+      final centerX = isMultiBeamBarrage
+          ? ((lance.originX > 0.0 && lance.originX <= 1.0)
+                ? lance.originX * size.width
+                : (corridor + 0.5) * corridorWidth)
+          : ((dreadnought.orbitalPositionX >= 0.0 &&
+                    dreadnought.orbitalPositionX <= 1.0)
+                ? dreadnought.orbitalPositionX * size.width
+                : (lance.originX >= 0.0 && lance.originX <= 1.0)
+                ? lance.originX * size.width
+                : (corridor + 0.5) * corridorWidth);
       final rawWidth = lance.beamWidth <= 1.0
           ? (lance.beamWidth * size.width)
           : lance.beamWidth;
@@ -698,7 +736,9 @@ class CombatPainter extends CustomPainter {
       canvas.drawPath(_scratchVolumetricLancePath, _lanceGlowPaint);
 
       // Core axial laser beam
-      _lanceCorePaint.strokeWidth = math.max(beamW * 0.35, 3.5);
+      _lanceCorePaint
+        ..color = isMultiBeamBarrage ? VoidTheme.solarGoldLight : Colors.white
+        ..strokeWidth = math.max(beamW * 0.35, 3.5);
       canvas.drawLine(
         Offset(centerX, shipProwY),
         Offset(centerX, 0),
@@ -840,20 +880,9 @@ class CombatPainter extends CustomPainter {
     canvas.restore();
   }
 
-  /// Renders an enemy assault craft ([enemy]) at the specified screen coordinate ([x], [y]).
-  ///
-  /// Applies 3D perspective scaling ([depthScale]) relative to the atmospheric
-  /// defense line ([boundaryY]) and top viewport margin ([topMargin]). Selects hull
-  /// geometry and colors based on [EnemyCraft.vesselType] (drone, cruiser, flagship),
-  /// Renders an enemy assault craft ([enemy]) at the specified screen coordinate ([x], [y]).
-  ///
-  /// Restores and refines the classic 2D vector arrowhead/delta silhouette aesthetic with:
-  /// - Distinct tactical hull geometries for Drones (0), Cruisers (1), and Flagships (2).
-  /// - 3D perspective depth scaling ([depthScale]) from deep space (0.65x) to defense horizon (1.0x).
-  /// - Smooth banking roll ([bankAngleRad]) and dive pitch ([pitchAngleRad]) transformations.
-  /// - Hyperspace warp-in scaling and collapsing singularity ring FX ([warpInProgress]).
-  /// - Animated engine plasma thruster plumes oriented upward against descent direction.
-  /// - Real-time hull and shield energy gauge bars positioned horizontally above the vessel.
+  /// Renders an enemy assault craft ([enemy]) at the specified screen coordinate ([x], [y])
+  /// using [Invader3DMesh] 3D polyhedral projection layered with tactical vector details
+  /// and 3-corridor segmented boss shield arcs.
   void _drawEnemyVessel(
     Canvas canvas,
     double x,
@@ -886,6 +915,55 @@ class CombatPainter extends CustomPainter {
         ..color = VoidTheme.plasmaCyan.withValues(alpha: invProgress * 0.8)
         ..strokeWidth = 2.0 * depthScale;
       canvas.drawCircle(Offset(x, y), ringRadius, _warpSingularityPaint);
+    }
+
+    // 1b. Render 3D Polyhedral Mesh Projection via Invader3DMesh
+    _invaderMesh.projectAndPaint(
+      canvas,
+      center: Offset(x, y),
+      vesselType: enemy.vesselType,
+      pitchRad: enemy.pitchAngleRad + 0.14,
+      rollRad: enemy.bankAngleRad,
+      yawRad: math.sin(animationTime * 1.8 + enemy.entityId) * 0.08,
+      scale: depthScale * 0.65,
+      warpInProgress: warpProgress,
+      animationTime: animationTime,
+      isLowBattery: isLowBattery,
+    );
+
+    // 1c. Render 3-Corridor Segmented Boss Shield Arc for Flagships (vesselType == 2)
+    if (enemy.vesselType == 2 && enemy.currentShields > 0) {
+      final shieldRatio = (enemy.currentShields / math.max(enemy.maxShields, 1))
+          .clamp(0.0, 1.0);
+      _shieldGlowPaint.color = VoidTheme.plasmaCyan.withValues(
+        alpha: 0.25 * shieldRatio,
+      );
+      _shieldArcPaint.color = VoidTheme.plasmaCyan.withValues(
+        alpha: 0.85 * shieldRatio,
+      );
+      for (var seg = -1; seg <= 1; seg++) {
+        final segX = x + seg * (width * 0.65 * depthScale);
+        final segY = y + hh * 0.45;
+        final segRect = Rect.fromCenter(
+          center: Offset(segX, segY),
+          width: width * 0.55 * depthScale,
+          height: hh * 0.9,
+        );
+        canvas.drawArc(
+          segRect,
+          0.15 * math.pi,
+          0.70 * math.pi,
+          false,
+          _shieldGlowPaint,
+        );
+        canvas.drawArc(
+          segRect,
+          0.15 * math.pi,
+          0.70 * math.pi,
+          false,
+          _shieldArcPaint,
+        );
+      }
     }
 
     // 2. Transform canvas for banking, pitching, warp-scaling, and translation

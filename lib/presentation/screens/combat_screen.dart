@@ -19,6 +19,7 @@ import 'package:flutter/scheduler.dart';
 import '../../core/logging.dart';
 import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/dreadnought_state.dart';
+import '../../domain/models/narrative_transmission.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/ad_service.dart';
 import '../../domain/services/campaign_service.dart';
@@ -272,6 +273,11 @@ class _CombatScreenState extends State<CombatScreen>
         dread.quest,
         dread.questProgress,
         isVanguard,
+        _coordinator.checkpointPhase,
+        _coordinator.activeTransmission,
+        _coordinator.checkpointMutationChoices.length,
+        _coordinator.surgicalCullCharges,
+        _coordinator.hasActiveMillTriad,
       );
       if (questStateHash != _lastDirectiveHash) {
         _lastDirectiveHash = questStateHash;
@@ -1560,6 +1566,9 @@ class _CombatScreenState extends State<CombatScreen>
                                                                     _coordinator
                                                                         .bulletManager
                                                                         .bullets,
+                                                                millTriadBays:
+                                                                    _coordinator
+                                                                        .activeMillTriadBays,
                                                                 predictedDamage:
                                                                     _coordinator
                                                                         .prediction
@@ -1582,162 +1591,300 @@ class _CombatScreenState extends State<CombatScreen>
                                             },
                                           ),
                                         ),
-                                        // Live Deep-Space Tactical Sortie Directive Banner
+                                        // Live Deep-Space Tactical Sortie Directive Banner & Afrofuturist Comms
                                         Positioned(
                                           top: 6.0,
                                           left: 14.0,
                                           right: 14.0,
-                                          child: IgnorePointer(
-                                            child: ListenableBuilder(
-                                              listenable: _directiveNotifier,
-                                              builder: (context, _) {
-                                                final dread =
-                                                    _coordinator.dreadnought;
-                                                final quest = dread.quest;
-                                                final hasActiveQuest =
-                                                    quest != QuestType.none;
-                                                final isVanguard =
-                                                    dread.proximityMultiplier >
-                                                    1.01;
+                                          child: ListenableBuilder(
+                                            listenable: _directiveNotifier,
+                                            builder: (context, _) {
+                                              final dread =
+                                                  _coordinator.dreadnought;
+                                              final quest = dread.quest;
+                                              final hasActiveQuest =
+                                                  quest != QuestType.none;
+                                              final isVanguard =
+                                                  dread.proximityMultiplier >
+                                                  1.01;
+                                              final phase =
+                                                  _coordinator.checkpointPhase;
+                                              final transmission = _coordinator
+                                                  .activeTransmission;
+                                              final draftChoices = _coordinator
+                                                  .checkpointMutationChoices;
 
-                                                return Row(
-                                                  children: [
-                                                    Expanded(
+                                              return Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.stretch,
+                                                children: [
+                                                  IgnorePointer(
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal:
+                                                                      8.0,
+                                                                  vertical: 3.5,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color: VoidTheme
+                                                                  .obsidianBlack
+                                                                  .withValues(
+                                                                    alpha: 0.82,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6.0,
+                                                                  ),
+                                                              border: Border.all(
+                                                                color:
+                                                                    hasActiveQuest
+                                                                    ? VoidTheme
+                                                                          .solarGold
+                                                                          .withValues(
+                                                                            alpha:
+                                                                                0.5,
+                                                                          )
+                                                                    : VoidTheme
+                                                                          .plasmaCyan
+                                                                          .withValues(
+                                                                            alpha:
+                                                                                0.3,
+                                                                          ),
+                                                                width: 1.0,
+                                                              ),
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                Icon(
+                                                                  hasActiveQuest
+                                                                      ? Icons
+                                                                            .explore
+                                                                      : Icons
+                                                                            .radar,
+                                                                  size: 12.0,
+                                                                  color:
+                                                                      hasActiveQuest
+                                                                      ? VoidTheme
+                                                                            .solarGold
+                                                                      : VoidTheme
+                                                                            .plasmaCyan,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 5.0,
+                                                                ),
+                                                                Expanded(
+                                                                  child: Column(
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .start,
+                                                                    mainAxisSize:
+                                                                        MainAxisSize
+                                                                            .min,
+                                                                    children: [
+                                                                      Text(
+                                                                        hasActiveQuest
+                                                                            ? quest.title.toUpperCase()
+                                                                            : 'DEEP SPACE WARFARE',
+                                                                        maxLines:
+                                                                            1,
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        style: const TextStyle(
+                                                                          color:
+                                                                              Colors.white,
+                                                                          fontSize:
+                                                                              8.5,
+                                                                          fontWeight:
+                                                                              FontWeight.w900,
+                                                                          letterSpacing:
+                                                                              0.7,
+                                                                        ),
+                                                                      ),
+                                                                      if (hasActiveQuest) ...[
+                                                                        const SizedBox(
+                                                                          height:
+                                                                              2.0,
+                                                                        ),
+                                                                        ClipRRect(
+                                                                          borderRadius: BorderRadius.circular(
+                                                                            1.5,
+                                                                          ),
+                                                                          child: LinearProgressIndicator(
+                                                                            value: dread.questProgress.clamp(
+                                                                              0.0,
+                                                                              1.0,
+                                                                            ),
+                                                                            minHeight:
+                                                                                2.0,
+                                                                            backgroundColor:
+                                                                                Colors.white12,
+                                                                            valueColor:
+                                                                                const AlwaysStoppedAnimation<
+                                                                                  Color
+                                                                                >(
+                                                                                  VoidTheme.solarGold,
+                                                                                ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 6.0,
+                                                        ),
+                                                        // 3-Phase Ascending Sector Checkpoint Status Chip
+                                                        Container(
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 6.0,
+                                                                vertical: 3.5,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color: VoidTheme
+                                                                .obsidianBlack
+                                                                .withValues(
+                                                                  alpha: 0.88,
+                                                                ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  6.0,
+                                                                ),
+                                                            border: Border.all(
+                                                              color:
+                                                                  phase ==
+                                                                      SectorCheckpointPhase
+                                                                          .apexBoss
+                                                                  ? VoidTheme
+                                                                        .crimsonFlare
+                                                                  : (phase ==
+                                                                            SectorCheckpointPhase.tacticalSiege
+                                                                        ? VoidTheme
+                                                                              .solarGold
+                                                                        : VoidTheme.plasmaCyan.withValues(
+                                                                            alpha:
+                                                                                0.65,
+                                                                          )),
+                                                              width: 1.0,
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                            phase.shortLabel,
+                                                            style: TextStyle(
+                                                              color:
+                                                                  phase ==
+                                                                      SectorCheckpointPhase
+                                                                          .apexBoss
+                                                                  ? VoidTheme
+                                                                        .crimsonFlare
+                                                                  : (phase ==
+                                                                            SectorCheckpointPhase.tacticalSiege
+                                                                        ? VoidTheme
+                                                                              .solarGold
+                                                                        : VoidTheme
+                                                                              .plasmaCyan),
+                                                              fontSize: 8.0,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w900,
+                                                              letterSpacing:
+                                                                  0.5,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        if (isVanguard) ...[
+                                                          const SizedBox(
+                                                            width: 6.0,
+                                                          ),
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal:
+                                                                      6.0,
+                                                                  vertical: 3.5,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color: VoidTheme
+                                                                  .obsidianBlack
+                                                                  .withValues(
+                                                                    alpha: 0.88,
+                                                                  ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    6.0,
+                                                                  ),
+                                                              border: Border.all(
+                                                                color: VoidTheme
+                                                                    .solarGold
+                                                                    .withValues(
+                                                                      alpha:
+                                                                          0.75,
+                                                                    ),
+                                                                width: 1.0,
+                                                              ),
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                const Icon(
+                                                                  Icons.bolt,
+                                                                  size: 12.0,
+                                                                  color: VoidTheme
+                                                                      .solarGold,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 2.0,
+                                                                ),
+                                                                Text(
+                                                                  '+${((dread.proximityMultiplier - 1.0) * 100).toInt()}%',
+                                                                  style: const TextStyle(
+                                                                    color: VoidTheme
+                                                                        .solarGold,
+                                                                    fontSize:
+                                                                        9.0,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w900,
+                                                                    letterSpacing:
+                                                                        0.5,
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  // Compact Afrofuturist Narrative Comms Strip
+                                                  if (transmission != null) ...[
+                                                    const SizedBox(height: 4.0),
+                                                    GestureDetector(
+                                                      onTap: _coordinator
+                                                          .dismissNarrativeTransmission,
                                                       child: Container(
                                                         padding:
                                                             const EdgeInsets.symmetric(
                                                               horizontal: 8.0,
-                                                              vertical: 3.5,
+                                                              vertical: 4.0,
                                                             ),
                                                         decoration: BoxDecoration(
-                                                          color: VoidTheme
-                                                              .obsidianBlack
-                                                              .withValues(
-                                                                alpha: 0.82,
-                                                              ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                6.0,
-                                                              ),
-                                                          border: Border.all(
-                                                            color:
-                                                                hasActiveQuest
-                                                                ? VoidTheme
-                                                                      .solarGold
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.5,
-                                                                      )
-                                                                : VoidTheme
-                                                                      .plasmaCyan
-                                                                      .withValues(
-                                                                        alpha:
-                                                                            0.3,
-                                                                      ),
-                                                            width: 1.0,
-                                                          ),
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            Icon(
-                                                              hasActiveQuest
-                                                                  ? Icons
-                                                                        .explore
-                                                                  : Icons.radar,
-                                                              size: 12.0,
-                                                              color:
-                                                                  hasActiveQuest
-                                                                  ? VoidTheme
-                                                                        .solarGold
-                                                                  : VoidTheme
-                                                                        .plasmaCyan,
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 5.0,
-                                                            ),
-                                                            Expanded(
-                                                              child: Column(
-                                                                crossAxisAlignment:
-                                                                    CrossAxisAlignment
-                                                                        .start,
-                                                                mainAxisSize:
-                                                                    MainAxisSize
-                                                                        .min,
-                                                                children: [
-                                                                  Text(
-                                                                    hasActiveQuest
-                                                                        ? quest
-                                                                              .title
-                                                                              .toUpperCase()
-                                                                        : 'DEEP SPACE WARFARE',
-                                                                    maxLines: 1,
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    style: const TextStyle(
-                                                                      color: Colors
-                                                                          .white,
-                                                                      fontSize:
-                                                                          8.5,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w900,
-                                                                      letterSpacing:
-                                                                          0.7,
-                                                                    ),
-                                                                  ),
-                                                                  if (hasActiveQuest) ...[
-                                                                    const SizedBox(
-                                                                      height:
-                                                                          2.0,
-                                                                    ),
-                                                                    ClipRRect(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                            1.5,
-                                                                          ),
-                                                                      child: LinearProgressIndicator(
-                                                                        value: dread
-                                                                            .questProgress
-                                                                            .clamp(
-                                                                              0.0,
-                                                                              1.0,
-                                                                            ),
-                                                                        minHeight:
-                                                                            2.0,
-                                                                        backgroundColor:
-                                                                            Colors.white12,
-                                                                        valueColor:
-                                                                            const AlwaysStoppedAnimation<
-                                                                              Color
-                                                                            >(
-                                                                              VoidTheme.solarGold,
-                                                                            ),
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    if (isVanguard) ...[
-                                                      const SizedBox(
-                                                        width: 6.0,
-                                                      ),
-                                                      Container(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              horizontal: 6.0,
-                                                              vertical: 3.5,
-                                                            ),
-                                                        decoration: BoxDecoration(
-                                                          color: VoidTheme
-                                                              .obsidianBlack
-                                                              .withValues(
-                                                                alpha: 0.88,
+                                                          color:
+                                                              const Color(
+                                                                0xFF0A1222,
+                                                              ).withValues(
+                                                                alpha: 0.90,
                                                               ),
                                                           borderRadius:
                                                               BorderRadius.circular(
@@ -1747,45 +1894,191 @@ class _CombatScreenState extends State<CombatScreen>
                                                             color: VoidTheme
                                                                 .solarGold
                                                                 .withValues(
-                                                                  alpha: 0.75,
+                                                                  alpha: 0.55,
                                                                 ),
-                                                            width: 1.0,
+                                                            width: 0.9,
                                                           ),
                                                         ),
-                                                        child: Row(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           mainAxisSize:
                                                               MainAxisSize.min,
                                                           children: [
-                                                            const Icon(
-                                                              Icons.bolt,
-                                                              size: 12.0,
-                                                              color: VoidTheme
-                                                                  .solarGold,
+                                                            Row(
+                                                              children: [
+                                                                const Icon(
+                                                                  Icons
+                                                                      .graphic_eq,
+                                                                  size: 10.0,
+                                                                  color: VoidTheme
+                                                                      .solarGold,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 4.0,
+                                                                ),
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    '${transmission.speaker} • ${transmission.culturalHeritage}',
+                                                                    maxLines: 1,
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    style: const TextStyle(
+                                                                      color: VoidTheme
+                                                                          .solarGold,
+                                                                      fontSize:
+                                                                          7.5,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w900,
+                                                                      letterSpacing:
+                                                                          0.5,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                             const SizedBox(
-                                                              width: 2.0,
+                                                              height: 1.5,
                                                             ),
                                                             Text(
-                                                              '+${((dread.proximityMultiplier - 1.0) * 100).toInt()}%',
-                                                              style: const TextStyle(
-                                                                color: VoidTheme
-                                                                    .solarGold,
-                                                                fontSize: 9.0,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w900,
-                                                                letterSpacing:
-                                                                    0.5,
-                                                              ),
+                                                              transmission
+                                                                  .message,
+                                                              maxLines: 2,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style:
+                                                                  const TextStyle(
+                                                                    color: Colors
+                                                                        .white,
+                                                                    fontSize:
+                                                                        7.8,
+                                                                    height:
+                                                                        1.15,
+                                                                  ),
                                                             ),
                                                           ],
                                                         ),
                                                       ),
-                                                    ],
+                                                    ),
                                                   ],
-                                                );
-                                              },
-                                            ),
+                                                  // Checkpoint 1 Relic Draft Bar (Zero-Modal Tactical Selection)
+                                                  if (draftChoices
+                                                      .isNotEmpty) ...[
+                                                    const SizedBox(height: 4.0),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 6.0,
+                                                            vertical: 4.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            const Color(
+                                                              0xFF0E1729,
+                                                            ).withValues(
+                                                              alpha: 0.94,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8.0,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: VoidTheme
+                                                              .plasmaCyan
+                                                              .withValues(
+                                                                alpha: 0.75,
+                                                              ),
+                                                          width: 1.0,
+                                                        ),
+                                                      ),
+                                                      child: Row(
+                                                        children: [
+                                                          const Text(
+                                                            'RELIC:',
+                                                            style: TextStyle(
+                                                              color: VoidTheme
+                                                                  .plasmaCyan,
+                                                              fontSize: 7.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w900,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 4.0,
+                                                          ),
+                                                          for (final mutation
+                                                              in draftChoices)
+                                                            Expanded(
+                                                              child: Padding(
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          2.0,
+                                                                    ),
+                                                                child: GestureDetector(
+                                                                  onTap: () =>
+                                                                      _coordinator
+                                                                          .selectCheckpointMutation(
+                                                                            mutation,
+                                                                          ),
+                                                                  child: Container(
+                                                                    padding: const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          4.0,
+                                                                      vertical:
+                                                                          3.5,
+                                                                    ),
+                                                                    decoration: BoxDecoration(
+                                                                      color: const Color(
+                                                                        0xFF1E293B,
+                                                                      ),
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                            4.0,
+                                                                          ),
+                                                                      border: Border.all(
+                                                                        color: mutation
+                                                                            .accentColor,
+                                                                        width:
+                                                                            0.9,
+                                                                      ),
+                                                                    ),
+                                                                    child: Text(
+                                                                      mutation
+                                                                          .title,
+                                                                      maxLines:
+                                                                          1,
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      textAlign:
+                                                                          TextAlign
+                                                                              .center,
+                                                                      style: TextStyle(
+                                                                        color: mutation
+                                                                            .accentColor,
+                                                                        fontSize:
+                                                                            7.0,
+                                                                        fontWeight:
+                                                                            FontWeight.w800,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              );
+                                            },
                                           ),
                                         ),
                                         if (matchState.status ==
@@ -2226,6 +2519,161 @@ class _CombatScreenState extends State<CombatScreen>
                                               ),
                                             ),
                                           ),
+                                        // Ergonomic Yoté Surgical Cull & Morabaraba Mill Barrage Chips
+                                        if (!isSecured &&
+                                            (_coordinator.surgicalCullCharges >
+                                                    0 ||
+                                                _coordinator
+                                                    .hasActiveMillTriad))
+                                          Positioned(
+                                            bottom: 8.0,
+                                            right: 12.0,
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                if (_coordinator
+                                                    .hasActiveMillTriad)
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          right: 6.0,
+                                                        ),
+                                                    child: GestureDetector(
+                                                      onTap: () {
+                                                        final firstBay =
+                                                            _coordinator
+                                                                .activeMillTriadBays
+                                                                .first;
+                                                        _coordinator
+                                                            .dischargeFrontlineBay(
+                                                              firstBay,
+                                                            );
+                                                      },
+                                                      child: Container(
+                                                        constraints:
+                                                            const BoxConstraints(
+                                                              minWidth: 48.0,
+                                                              minHeight: 32.0,
+                                                            ),
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 9.0,
+                                                              vertical: 5.0,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: VoidTheme
+                                                              .obsidianBlack
+                                                              .withValues(
+                                                                alpha: 0.92,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8.0,
+                                                              ),
+                                                          border: Border.all(
+                                                            color: VoidTheme
+                                                                .solarGold,
+                                                            width: 1.2,
+                                                          ),
+                                                        ),
+                                                        child: const Row(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
+                                                            Icon(
+                                                              Icons
+                                                                  .auto_awesome_motion,
+                                                              size: 12.0,
+                                                              color: VoidTheme
+                                                                  .solarGold,
+                                                            ),
+                                                            SizedBox(
+                                                              width: 4.0,
+                                                            ),
+                                                            Text(
+                                                              'MILL 1.5x',
+                                                              style: TextStyle(
+                                                                color: VoidTheme
+                                                                    .solarGold,
+                                                                fontSize: 8.5,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w900,
+                                                                letterSpacing:
+                                                                    0.5,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                if (_coordinator
+                                                        .surgicalCullCharges >
+                                                    0)
+                                                  GestureDetector(
+                                                    onTap: _coordinator
+                                                        .executeSurgicalCull,
+                                                    child: Container(
+                                                      constraints:
+                                                          const BoxConstraints(
+                                                            minWidth: 48.0,
+                                                            minHeight: 32.0,
+                                                          ),
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 9.0,
+                                                            vertical: 5.0,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: VoidTheme
+                                                            .obsidianBlack
+                                                            .withValues(
+                                                              alpha: 0.92,
+                                                            ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8.0,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: VoidTheme
+                                                              .crimsonFlare,
+                                                          width: 1.2,
+                                                        ),
+                                                      ),
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          const Icon(
+                                                            Icons.gps_fixed,
+                                                            size: 12.0,
+                                                            color: VoidTheme
+                                                                .crimsonFlare,
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 4.0,
+                                                          ),
+                                                          Text(
+                                                            'CULL ×${_coordinator.surgicalCullCharges}',
+                                                            style: const TextStyle(
+                                                              color: VoidTheme
+                                                                  .crimsonFlare,
+                                                              fontSize: 8.5,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w900,
+                                                              letterSpacing:
+                                                                  0.5,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   ),
@@ -2250,6 +2698,10 @@ class _CombatScreenState extends State<CombatScreen>
                                     onInjectCore: _coordinator.injectCore,
                                     onQuickFire:
                                         _coordinator.quickFireActiveCorridor,
+                                    onDirectDischargeBay:
+                                        _coordinator.dischargeFrontlineBay,
+                                    millTriadBays:
+                                        _coordinator.activeMillTriadBays,
                                     onSlidePosition: _coordinator.slidePosition,
                                     onDirectionChanged:
                                         _coordinator.setSowDirection,
