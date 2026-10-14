@@ -25,14 +25,17 @@ import '../../domain/models/enemy_craft.dart';
 import '../../domain/models/flak_burst.dart';
 import '../../domain/models/floating_damage_number.dart';
 import '../../domain/models/lance_beam.dart';
+import '../../domain/models/narrative_transmission.dart';
 import '../../domain/models/prediction_result.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/models/sector_combat_doctrine.dart';
+import '../../domain/models/sowing_mutation.dart';
 import '../../domain/models/swarm_wave_phase.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/fleet_service.dart';
 import '../../domain/services/game_engine_interface.dart';
 import '../../domain/services/persistence_service.dart';
+import '../../domain/services/void_incursion_service.dart';
 import '../../domain/state/combat_match_state.dart';
 import '../services/haptic_service.dart';
 import '../services/particle_service.dart';
@@ -239,6 +242,139 @@ class CombatCoordinator extends ChangeNotifier {
   /// Current real-time holographic move advisory guidance.
   TacticalAdvice? get tacticalAdvice => solverController.currentAdvice;
 
+  // --- 3-Phase Ascending Sector Checkpoints & Narrative Comms ---
+  int _totalReinforcementQuota = 0;
+
+  /// Total initial reinforcement quota for the sector.
+  int get totalReinforcementQuota => _totalReinforcementQuota;
+
+  SectorCheckpointPhase _checkpointPhase = SectorCheckpointPhase.vanguardRecon;
+
+  /// Active ascending checkpoint phase (Phase 1: Recon, Phase 2: Siege, Phase 3: Apex Boss).
+  SectorCheckpointPhase get checkpointPhase => _checkpointPhase;
+
+  NarrativeTransmission? _activeTransmission;
+
+  /// Active Afrofuturist narrative transmission banner, if any.
+  NarrativeTransmission? get activeTransmission => _activeTransmission;
+
+  double _transmissionTimer = 0.0;
+
+  final List<SowingMutation> _sectorMutations = <SowingMutation>[];
+  List<SowingMutation> _checkpointMutationChoices = const [];
+
+  /// Pending 3-choice Relic / SowingMutation draft offered at Checkpoint 1.
+  List<SowingMutation> get checkpointMutationChoices =>
+      _checkpointMutationChoices;
+
+  /// Combined active SowingMutations from Void Incursion + mid-sector Checkpoint drafts.
+  List<SowingMutation> get activeMutations {
+    if (_isIncursionRun) {
+      return <SowingMutation>[
+        ...VoidIncursionService.instance.activeMutations,
+        ..._sectorMutations,
+      ];
+    }
+    return List<SowingMutation>.unmodifiable(_sectorMutations);
+  }
+
+  /// Effective lance damage multiplier from drafted SowingMutations.
+  double get mutationLanceMultiplier =>
+      activeMutations.fold(1.0, (acc, m) => acc * m.lanceDamageMultiplier);
+
+  /// Extra core siphon bonus per kill from drafted SowingMutations.
+  int get mutationCoreSiphonBonus =>
+      activeMutations.fold(0, (acc, m) => acc + m.coreSiphonBonus);
+
+  // --- Morabaraba 3-Bay Mill Triad, Fanorona Vectors & Yoté Surgical Cull ---
+  int _surgicalCullCharges = 0;
+
+  /// Available Yoté Surgical Cull orbital kinetic strike charges (0..3).
+  int get surgicalCullCharges => _surgicalCullCharges;
+
+  double _fanoronaCooldown = 0.0;
+
+  /// Remaining cooldown in seconds before the next Fanorona Vector Strike.
+  double get fanoronaCooldown => _fanoronaCooldown;
+
+  String _lastFanoronaVectorLabel = '';
+
+  /// Most recent Fanorona vector maneuver label ('APPROACH' or 'WITHDRAWAL').
+  String get lastFanoronaVectorLabel => _lastFanoronaVectorLabel;
+
+  double _lastOrbitalTargetY = 0.15;
+
+  /// Returns all frontline bay indices (8..15) currently linked in a
+  /// Morabaraba 3-Bay Mill Triad (3 adjacent frontline bays each with M >= 2).
+  Set<int> get activeMillTriadBays {
+    final linked = <int>{};
+    if (bays.length < 16) return linked;
+    for (var b = 8; b <= 13; b++) {
+      if (bays[b].chargeUnits >= 2 &&
+          bays[b + 1].chargeUnits >= 2 &&
+          bays[b + 2].chargeUnits >= 2) {
+        linked.add(b);
+        linked.add(b + 1);
+        linked.add(b + 2);
+      }
+    }
+    return linked;
+  }
+
+  /// Whether at least one Morabaraba 3-Bay Mill Triad is ready on the frontline ring.
+  bool get hasActiveMillTriad => activeMillTriadBays.isNotEmpty;
+
+  /// Returns the 3 frontline bays forming a Morabaraba Mill containing [bayIndex],
+  /// or an empty list if [bayIndex] is not part of an active Mill Triad.
+  List<int> getMillTriadForBay(int bayIndex) {
+    if (bayIndex < 8 || bayIndex > 15 || bays.length < 16) return const [];
+    for (
+      var start = math.max(8, bayIndex - 2);
+      start <= math.min(13, bayIndex);
+      start++
+    ) {
+      if (bays[start].chargeUnits >= 2 &&
+          bays[start + 1].chargeUnits >= 2 &&
+          bays[start + 2].chargeUnits >= 2) {
+        return <int>[start, start + 1, start + 2];
+      }
+    }
+    return const [];
+  }
+
+  /// Dismisses the active Afrofuturist narrative transmission banner.
+  void dismissNarrativeTransmission() {
+    if (_activeTransmission != null) {
+      _activeTransmission = null;
+      notifyListeners();
+    }
+  }
+
+  /// Selects a [SowingMutation] relic at Checkpoint 1 and applies its immediate bonuses.
+  void selectCheckpointMutation(SowingMutation mutation) {
+    if (!_sectorMutations.any((m) => m.id == mutation.id)) {
+      _sectorMutations.add(mutation);
+    }
+    _checkpointMutationChoices = const [];
+    engine.setLanceAlphaMultiplier(
+      _equippedChassis.lanceAlphaBonus * mutationLanceMultiplier,
+    );
+    if (mutation.bonusStartingCores > 0) {
+      grantEmergencyCores(mutation.bonusStartingCores);
+    }
+    damageNumbers.add(
+      FloatingDamageNumber(
+        text: 'RELIC ONLINE: ${mutation.title}',
+        x: 0.5,
+        y: 0.35,
+        color: mutation.accentColor,
+        isCritical: true,
+      ),
+    );
+    HapticService.instance.injectionClick();
+    notifyListeners();
+  }
+
   void _captureTurnSnapshot() {
     final maxSnapshots = isProRewindActive ? 30 : 10;
     if (_chronoSnapshots.length >= maxSnapshots) {
@@ -340,15 +476,32 @@ class CombatCoordinator extends ChangeNotifier {
     final resolvedChassisId =
         chassisId ?? PersistenceService.instance.selectedChassisId;
     _equippedChassis = FleetService.instance.getChassis(resolvedChassisId);
-    engine.setLanceAlphaMultiplier(_equippedChassis.lanceAlphaBonus);
+    _sectorMutations.clear();
+    _checkpointMutationChoices = const [];
+    _surgicalCullCharges = 0;
+    _fanoronaCooldown = 0.0;
+    _lastFanoronaVectorLabel = '';
+    _lastOrbitalTargetY = boundaryY;
+    _checkpointPhase = SectorCheckpointPhase.vanguardRecon;
+    engine.setLanceAlphaMultiplier(
+      _equippedChassis.lanceAlphaBonus * mutationLanceMultiplier,
+    );
 
     final doctrine = sector?.doctrine ?? SectorCombatDoctrine.standardOrbital;
     _remainingReinforcements = sector?.reinforcementQuota ?? 0;
+    _totalReinforcementQuota = _remainingReinforcements;
     _swarmPhase =
         (doctrine == SectorCombatDoctrine.voidSwarm ||
             _remainingReinforcements > 0)
         ? SwarmWavePhase.initialAssault
         : SwarmWavePhase.secured;
+
+    _activeTransmission = SectorNarrativeRegistry.resolve(
+      operationId: _resolveOperationId(sector),
+      sectorNumber: sector?.sectorId ?? 1,
+      phase: SectorCheckpointPhase.vanguardRecon,
+    );
+    _transmissionTimer = 7.5;
 
     vlog(
       6,
@@ -426,6 +579,20 @@ class CombatCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
+  int _resolveOperationId(CampaignSector? sector) {
+    if (sector == null) return 1;
+    if (sector.campaignId == 'phantom_drift' ||
+        (sector.sectorId >= 10 && sector.sectorId <= 18)) {
+      return 2;
+    }
+    if (sector.campaignId == 'void_swarm' ||
+        sector.campaignId == 'void_incursion' ||
+        sector.sectorId >= 19) {
+      return 3;
+    }
+    return 1;
+  }
+
   /// Synchronizes entity snapshots from the native C++ engine.
   void _syncDomainState() {
     dreadnought = engine.getDreadnoughtState();
@@ -480,14 +647,37 @@ class CombatCoordinator extends ChangeNotifier {
     _neutralizedEnemyIds.add(entityId);
 
     // Tactical Core Siphon (grantEmergencyCores already forwards to engine)
-    final siphonAmount =
+    final baseSiphon =
         _sector?.coreSiphonPerKill ??
         (vesselType == 2 ? 3 : (vesselType == 1 ? 2 : 1));
+    final siphonAmount = baseSiphon + mutationCoreSiphonBonus;
     grantEmergencyCores(siphonAmount);
 
     final enemyCorridorX = (worldPosX > 0.0 && worldPosX <= 1.0)
         ? worldPosX * viewportSize.width
         : (assignedCorridor + 0.5) * (viewportSize.width / 8.0);
+
+    // Yoté Surgical Cull: destroying an Armored Cruiser (1) or Flagship (2)
+    // grants a free orbital surgical strike charge!
+    if (vesselType >= 1 && _surgicalCullCharges < 3) {
+      _surgicalCullCharges++;
+      damageNumbers.add(
+        FloatingDamageNumber(
+          text: '+1 YOTÉ CULL READY!',
+          x: enemyCorridorX,
+          y: viewportSize.height * 0.34,
+          color: VoidTheme.crimsonFlare,
+          isCritical: true,
+        ),
+      );
+    }
+
+    // Advance active tactical quest progress during Phase 2 Siege
+    if (dreadnought.activeQuestType > 0 && dreadnought.questStatus == 1) {
+      final nextProgress = (dreadnought.questProgress + 0.34).clamp(0.0, 1.0);
+      final nextStatus = nextProgress >= 1.0 ? 2 : 1;
+      engine.updateQuest(nextProgress, nextStatus);
+    }
 
     // Quadratic burst explosion upon enemy destruction
     particleService.spawnFlakBurst(
@@ -510,7 +700,7 @@ class CombatCoordinator extends ChangeNotifier {
     );
     HapticService.instance.sowTick();
 
-    // Horde reinforcement spawning (for Void Swarm doctrine or any sector with remaining reinforcements)
+    // Horde reinforcement spawning
     if (_remainingReinforcements > 0) {
       _remainingReinforcements--;
       final respawnCorridor = _random.nextInt(8);
@@ -536,12 +726,85 @@ class CombatCoordinator extends ChangeNotifier {
         _swarmPhase = SwarmWavePhase.reinforcementWaves;
       }
     }
+
+    // 3-Phase Ascending Sector Checkpoints (evaluated whenever threats remain)
+    final livingOnField = enemies.where((e) => !e.isDestroyed).length;
+    final totalRemaining = livingOnField + _remainingReinforcements;
+    final killsSoFar = _neutralizedEnemyIds.length;
+    final totalSectorEnemies = killsSoFar + totalRemaining;
+
+    if (totalRemaining > 0 && totalSectorEnemies >= 3) {
+      final cp1Kills = math.max(1, totalSectorEnemies ~/ 3);
+      final cp2Kills = math.max(2, (totalSectorEnemies * 2) ~/ 3);
+
+      if (_checkpointPhase == SectorCheckpointPhase.vanguardRecon &&
+          killsSoFar >= cp1Kills) {
+        _checkpointPhase = SectorCheckpointPhase.tacticalSiege;
+        final questType = SectorNarrativeRegistry.questTypeForSector(
+          _sector?.sectorId ?? 1,
+        );
+        engine.setActiveQuest(questType);
+        engine.updateQuest(0.35, 1);
+        _checkpointMutationChoices = VoidIncursionService.instance
+            .generateMutationChoices();
+        _activeTransmission = SectorNarrativeRegistry.resolve(
+          operationId: _resolveOperationId(_sector),
+          sectorNumber: _sector?.sectorId ?? 1,
+          phase: SectorCheckpointPhase.tacticalSiege,
+        );
+        _transmissionTimer = 8.0;
+        grantEmergencyCores(3);
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: 'CHECKPOINT 1 • RELIC DRAFT READY',
+            x: viewportSize.width * 0.5,
+            y: viewportSize.height * 0.25,
+            color: VoidTheme.plasmaCyan,
+            isCritical: true,
+          ),
+        );
+      } else if (_checkpointPhase == SectorCheckpointPhase.tacticalSiege &&
+          killsSoFar >= cp2Kills) {
+        _checkpointPhase = SectorCheckpointPhase.apexBoss;
+        if (dreadnought.activeQuestType > 0) {
+          engine.updateQuest(1.0, 2);
+        }
+        if (_surgicalCullCharges < 3) {
+          _surgicalCullCharges++;
+        }
+        _activeTransmission = SectorNarrativeRegistry.resolve(
+          operationId: _resolveOperationId(_sector),
+          sectorNumber: _sector?.sectorId ?? 1,
+          phase: SectorCheckpointPhase.apexBoss,
+        );
+        _transmissionTimer = 8.0;
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: 'PHASE III • APEX BOSS INBOUND',
+            x: viewportSize.width * 0.5,
+            y: viewportSize.height * 0.24,
+            color: VoidTheme.crimsonFlare,
+            isCritical: true,
+          ),
+        );
+      }
+    }
   }
 
   /// Core 60 Hz update step driving physics, FSM, and rendering state.
   void update(double dt, Size viewportSize) {
     if (_isDisposed) return;
     final clampedDt = dt.clamp(0.001, 0.05);
+
+    if (_fanoronaCooldown > 0.0) {
+      _fanoronaCooldown = math.max(0.0, _fanoronaCooldown - clampedDt);
+    }
+    if (_transmissionTimer > 0.0) {
+      _transmissionTimer = math.max(0.0, _transmissionTimer - clampedDt);
+      if (_transmissionTimer == 0.0 && _activeTransmission != null) {
+        _activeTransmission = null;
+      }
+    }
 
     // If game is in tactical tutorial briefing, paused, defeated, or victorious, freeze combat simulation!
     // This guarantees enemies stop moving and shooting when the match reaches a terminal state.
@@ -1175,6 +1438,127 @@ class CombatCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Directly discharges the accumulated M^2 charge from a frontline bay
+  /// (`8..15`), or unleashes a synchronized 1.5x 3-corridor Morabaraba Mill
+  /// Barrage if the bay belongs to an active 3-Bay Mill Triad.
+  double dischargeFrontlineBay([int? bayIndex]) {
+    _finalizePendingSow();
+    if (!_state.canReceiveInput) return 0.0;
+
+    final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
+    final targetBay = (bayIndex ?? (corridor + 8)).clamp(8, 15);
+    final triad = getMillTriadForBay(targetBay);
+
+    _captureTurnSnapshot();
+    double totalDamage = 0.0;
+    final hasOvercharge = activeMutations.any(
+      (m) => m.id == 'kichwa_overcharge',
+    );
+
+    if (triad.isNotEmpty) {
+      for (final b in triad) {
+        final mult =
+            1.5 * ((hasOvercharge && (b == 8 || b == 15)) ? 1.35 : 1.0);
+        totalDamage += engine
+            .dischargeBay(b, damageMultiplier: mult)
+            .toDouble();
+      }
+      if (totalDamage > 0) {
+        HapticService.instance.injectionClick();
+        audio.onLanceFired();
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: 'MORABARABA MILL BARRAGE! (1.5x)',
+            x: ((triad[1] - 8) + 0.5) / 8.0,
+            y: (dreadnought.boundaryLineY + 0.08).clamp(0.0, 1.0),
+            color: VoidTheme.solarGold,
+            isCritical: true,
+          ),
+        );
+      }
+    } else {
+      final mult = (hasOvercharge && (targetBay == 8 || targetBay == 15))
+          ? 1.35
+          : 1.0;
+      totalDamage = engine
+          .dischargeBay(targetBay, damageMultiplier: mult)
+          .toDouble();
+      if (totalDamage > 0) {
+        HapticService.instance.injectionClick();
+        audio.onLanceFired();
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: 'M² LANCE (${totalDamage.toInt()} DMG)',
+            x: ((targetBay - 8) + 0.5) / 8.0,
+            y: (dreadnought.boundaryLineY + 0.06).clamp(0.0, 1.0),
+            color: VoidTheme.plasmaCyan,
+            isCritical: totalDamage >= 100.0,
+          ),
+        );
+      }
+    }
+
+    _syncDomainState();
+    _state = _state.copyWith(selectedBay: targetBay);
+    prediction = engine.predictSow(targetBay, _sowDirection);
+    notifyListeners();
+    return totalDamage;
+  }
+
+  /// Triggers a Malagasy Fanorona directional vector strike:
+  /// - [isApproach] = true: Approach Piercing Strike into the active corridor.
+  /// - [isApproach] = false: Withdrawal Antimatter Pulse against proximate threats.
+  double triggerFanoronaVectorStrike({required bool isApproach}) {
+    if (_fanoronaCooldown > 0.0) return 0.0;
+    final damage = engine
+        .triggerFanoronaStrike(isApproach: isApproach)
+        .toDouble();
+    if (damage <= 0.0) return 0.0;
+
+    _fanoronaCooldown = 1.5;
+    _lastFanoronaVectorLabel = isApproach ? 'APPROACH' : 'WITHDRAWAL';
+    HapticService.instance.injectionClick();
+    audio.onLanceFired();
+    damageNumbers.add(
+      FloatingDamageNumber(
+        text: isApproach
+            ? 'FANORONA APPROACH STRIKE! (${damage.toInt()} DMG)'
+            : 'FANORONA WITHDRAWAL PULSE! (${damage.toInt()} DMG)',
+        x: dreadnought.orbitalPositionX.clamp(0.1, 0.9),
+        y: (dreadnought.orbitalPositionY + 0.06).clamp(0.0, 1.0),
+        color: isApproach ? VoidTheme.plasmaCyan : VoidTheme.solarGold,
+        isCritical: true,
+      ),
+    );
+    _syncDomainState();
+    notifyListeners();
+    return damage;
+  }
+
+  /// Executes a West African Yoté Surgical Cull against a high-priority enemy
+  /// (`entityId == 0` targets the highest-integrity enemy on the battlefield).
+  bool executeSurgicalCull([int entityId = 0]) {
+    if (_surgicalCullCharges <= 0 || enemies.isEmpty) return false;
+    final success = engine.cullEnemy(entityId) > 0;
+    if (!success) return false;
+
+    _surgicalCullCharges--;
+    HapticService.instance.injectionClick();
+    audio.onLanceFired();
+    damageNumbers.add(
+      FloatingDamageNumber(
+        text: 'YOTÉ SURGICAL CULL! (-800 DMG)',
+        x: 0.5,
+        y: 0.62,
+        color: VoidTheme.solarGold,
+        isCritical: true,
+      ),
+    );
+    _syncDomainState();
+    notifyListeners();
+    return true;
+  }
+
   /// Sets the dreadnought's target horizontal position.
   void slidePosition(double targetX, {bool snapToCorridor = true}) {
     slidePosition2D(
@@ -1199,7 +1583,17 @@ class CombatCoordinator extends ChangeNotifier {
     final snappedX = (corridor + 0.5) / 8.0;
     final resolvedX = snapToCorridor ? snappedX : clampedX;
     final clampedY = targetY.clamp(dreadnought.boundaryLineY, 0.65);
+    final deltaY = clampedY - _lastOrbitalTargetY;
+    _lastOrbitalTargetY = clampedY;
+
     engine.setDreadnoughtTarget(resolvedX, clampedY);
+    if (_fanoronaCooldown <= 0.0 && enemies.isNotEmpty) {
+      if (deltaY >= 0.12) {
+        triggerFanoronaVectorStrike(isApproach: true);
+      } else if (deltaY <= -0.12) {
+        triggerFanoronaVectorStrike(isApproach: false);
+      }
+    }
     _syncDomainState();
     if (_state.status == CombatMatchStatus.paused) {
       dreadnought = dreadnought.copyWith(

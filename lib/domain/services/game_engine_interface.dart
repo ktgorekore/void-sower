@@ -52,6 +52,16 @@ abstract class IVoidSowerEngine {
   /// [direction]: +1 for Clockwise (CW), -1 for Counter-Clockwise (CCW).
   int injectCore(int bayIndex, int direction);
 
+  /// Directly discharges stored plasma mass from a frontline bay down its
+  /// assigned corridor (or consumes 1 reserve core if empty).
+  int dischargeBay(int bayIndex, {double damageMultiplier = 1.0});
+
+  /// Executes a Fanorona vector strike (Approach piercing lance or Withdrawal pulse).
+  int triggerFanoronaStrike({required bool isApproach});
+
+  /// Executes a Yoté surgical orbital cull strike against an enemy entity.
+  int cullEnemy(int entityId);
+
   /// Smoothly pans the dreadnought laterally along the orbital horizon.
   void slideDreadnought(double targetX);
 

@@ -157,6 +157,24 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
   }
 
   @override
+  int dischargeBay(int bayIndex, {double damageMultiplier = 1.0}) {
+    _checkDisposed();
+    return _bindings.void_sower_discharge_bay(bayIndex, damageMultiplier);
+  }
+
+  @override
+  int triggerFanoronaStrike({required bool isApproach}) {
+    _checkDisposed();
+    return _bindings.void_sower_trigger_fanorona_strike(isApproach ? 1 : 0);
+  }
+
+  @override
+  int cullEnemy(int entityId) {
+    _checkDisposed();
+    return _bindings.void_sower_cull_enemy(entityId);
+  }
+
+  @override
   void slideDreadnought(double targetX) {
     _checkDisposed();
     _bindings.void_sower_slide_dreadnought(targetX);

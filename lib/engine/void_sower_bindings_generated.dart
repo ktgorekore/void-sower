@@ -84,6 +84,39 @@ class VoidSowerBindings {
   late final _void_sower_inject_core = _void_sower_inject_corePtr
       .asFunction<int Function(int, int)>();
 
+  int void_sower_discharge_bay(int bay_index, double damage_multiplier) {
+    return _void_sower_discharge_bay(bay_index, damage_multiplier);
+  }
+
+  late final _void_sower_discharge_bayPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Uint8, ffi.Float)>>(
+        'void_sower_discharge_bay',
+      );
+  late final _void_sower_discharge_bay = _void_sower_discharge_bayPtr
+      .asFunction<int Function(int, double)>();
+
+  int void_sower_trigger_fanorona_strike(int is_approach) {
+    return _void_sower_trigger_fanorona_strike(is_approach);
+  }
+
+  late final _void_sower_trigger_fanorona_strikePtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Uint8)>>(
+        'void_sower_trigger_fanorona_strike',
+      );
+  late final _void_sower_trigger_fanorona_strike =
+      _void_sower_trigger_fanorona_strikePtr.asFunction<int Function(int)>();
+
+  int void_sower_cull_enemy(int entity_id) {
+    return _void_sower_cull_enemy(entity_id);
+  }
+
+  late final _void_sower_cull_enemyPtr =
+      _lookup<ffi.NativeFunction<ffi.Int32 Function(ffi.Uint32)>>(
+        'void_sower_cull_enemy',
+      );
+  late final _void_sower_cull_enemy = _void_sower_cull_enemyPtr
+      .asFunction<int Function(int)>();
+
   void void_sower_slide_dreadnought(double target_x) {
     return _void_sower_slide_dreadnought(target_x);
   }

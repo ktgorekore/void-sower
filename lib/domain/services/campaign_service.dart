@@ -300,6 +300,8 @@ class CampaignService {
         requiredSectorName: reqName,
         campaignId: 'kilwa_basin',
         doctrine: SectorCombatDoctrine.standardOrbital,
+        reinforcementQuota: 0,
+        coreSiphonPerKill: 2,
         isProRequired: false,
       );
     }).toList();
@@ -423,6 +425,8 @@ class CampaignService {
         requiredSectorName: reqName,
         campaignId: 'phantom_drift',
         doctrine: SectorCombatDoctrine.phantomDrift,
+        reinforcementQuota: 0,
+        coreSiphonPerKill: 2,
         isProRequired: sectorNeedsPro,
       );
     }).toList();

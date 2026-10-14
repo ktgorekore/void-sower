@@ -145,6 +145,13 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
     if (isFrontline && finalMass >= 1) {
       final lanceX = _orbitalX;
+      final alignedCorridor = (_orbitalX * 8.0).floor().clamp(0, 7);
+      final totalDmg =
+          finalMass *
+          finalMass *
+          100.0 *
+          _proximityMultiplier *
+          _lanceAlphaMultiplier;
       _lances.add(
         LanceBeam(
           firingBayIndex: currentBay,
@@ -153,19 +160,252 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
           beamWidth: 0.04 + (finalMass * 0.015),
           sustainedDuration: 0.5,
           remainingDuration: 0.5,
-          totalDamage:
-              finalMass *
-              finalMass *
-              100.0 *
-              _proximityMultiplier *
-              _lanceAlphaMultiplier,
+          totalDamage: totalDmg,
           active: true,
         ),
       );
+      _bayCharges[currentBay] = 0;
+
+      // Bao Mtaji Chain-Capture: when landing on an occupied frontline bay
+      // (finalMass >= 2) while aligned with a living enemy in alignedCorridor,
+      // harvest +2 plasma seeds into adjacent bays.
+      final hasAlignedEnemy = _enemies.any(
+        (e) => !e.isDestroyed && e.assignedCorridor == alignedCorridor,
+      );
+      if (finalMass >= 2 && hasAlignedEnemy) {
+        var mtajiBay = currentBay;
+        var mtajiDir = BayRole.resolveSowDirection(
+          currentBay,
+          effectiveDirection,
+        );
+        for (var s = 0; s < 2; s++) {
+          mtajiBay = (mtajiBay + mtajiDir + 16) & 0x0F;
+          _bayCharges[mtajiBay]++;
+          steps++;
+        }
+      }
     }
     _score += (finalMass * finalMass * 10);
 
     return steps;
+  }
+
+  @override
+  int dischargeBay(int bayIndex, {double damageMultiplier = 1.0}) {
+    if (bayIndex < 8 || bayIndex >= 16) return 0;
+    if (_simState == 8) {
+      _simState = 0;
+    }
+    var mass = _bayCharges[bayIndex];
+    if (mass == 0) {
+      if (_reserveCores == 0) return 0;
+      _reserveCores--;
+      _coresUsed++;
+      mass = 1;
+    } else {
+      _bayCharges[bayIndex] = 0;
+    }
+
+    final corridor = bayIndex - 8;
+    final lanceX = (corridor + 0.5) / 8.0;
+    final safeMult = damageMultiplier > 0.0 ? damageMultiplier : 1.0;
+    final damage =
+        mass *
+        mass *
+        100.0 *
+        _proximityMultiplier *
+        _lanceAlphaMultiplier *
+        safeMult;
+
+    _lances.add(
+      LanceBeam(
+        firingBayIndex: bayIndex,
+        originX: lanceX,
+        originY: _orbitalY,
+        beamWidth: (0.04 + (mass * 0.015)) * (safeMult > 1.1 ? 1.25 : 1.0),
+        sustainedDuration: 0.4,
+        remainingDuration: 0.4,
+        totalDamage: damage,
+        active: true,
+      ),
+    );
+
+    // Apply direct damage to first living enemy in corridor
+    var rem = damage;
+    for (var i = 0; i < _enemies.length; i++) {
+      final e = _enemies[i];
+      if (e.isDestroyed || e.assignedCorridor != corridor) continue;
+      var shields = e.currentShields;
+      var hull = e.currentHull;
+      var destroyed = false;
+      if (shields > 0) {
+        if (rem <= shields) {
+          shields -= rem;
+          rem = 0;
+        } else {
+          rem -= shields;
+          shields = 0;
+        }
+      }
+      if (rem > 0) {
+        if (rem >= hull) {
+          hull = 0;
+          destroyed = true;
+          _score += 100 * (e.vesselType + 1);
+        } else {
+          hull -= rem;
+          rem = 0;
+        }
+      }
+      _enemies[i] = e.copyWith(
+        currentShields: shields,
+        currentHull: hull,
+        isDestroyed: destroyed,
+      );
+      if (rem <= 0) break;
+    }
+    _score += (mass * mass * 10 * safeMult).round();
+    return 1;
+  }
+
+  @override
+  int triggerFanoronaStrike({required bool isApproach}) {
+    final alignedCorridor = (_orbitalX * 8.0).floor().clamp(0, 7);
+    if (isApproach) {
+      var hit = false;
+      final dmg = 250.0 * _proximityMultiplier;
+      for (var i = 0; i < _enemies.length; i++) {
+        final e = _enemies[i];
+        if (e.isDestroyed || e.assignedCorridor != alignedCorridor) continue;
+        hit = true;
+        var shields = e.currentShields;
+        var hull = e.currentHull;
+        var rem = dmg;
+        if (shields > 0) {
+          final strip = math.min(shields, rem * 1.25);
+          shields -= strip;
+          rem = math.max(0.0, rem - strip);
+        }
+        var destroyed = false;
+        if (rem > 0) {
+          if (rem >= hull) {
+            hull = 0;
+            destroyed = true;
+            _score += 120 * (e.vesselType + 1);
+          } else {
+            hull -= rem;
+          }
+        }
+        _enemies[i] = e.copyWith(
+          currentShields: shields,
+          currentHull: hull,
+          isDestroyed: destroyed,
+        );
+        break;
+      }
+      if (!hit) return 0;
+      _flaks.add(
+        FlakBurst(
+          worldPosX: _orbitalX,
+          worldPosY: (_orbitalY + 0.18).clamp(0.0, 0.95),
+          blastRadius: 0.22,
+          areaDamage: 120.0,
+          lifetime: 0.3,
+          remainingLifetime: 0.3,
+          active: true,
+        ),
+      );
+      return 1;
+    } else {
+      _flaks.add(
+        FlakBurst(
+          worldPosX: _orbitalX,
+          worldPosY: (_orbitalY + 0.10).clamp(0.0, 0.95),
+          blastRadius: 0.27,
+          areaDamage: 180.0,
+          lifetime: 0.35,
+          remainingLifetime: 0.35,
+          active: true,
+        ),
+      );
+      for (var i = 0; i < _enemies.length; i++) {
+        final e = _enemies[i];
+        if (e.isDestroyed) continue;
+        final dx = e.worldPosX - _orbitalX;
+        final dy = e.worldPosY - (_orbitalY + 0.10);
+        if (math.sqrt(dx * dx + dy * dy) <= 0.27) {
+          final newHull = math.max(0.0, e.currentHull - 100.0);
+          _enemies[i] = e.copyWith(
+            currentHull: newHull,
+            isDestroyed: newHull <= 0.0,
+          );
+        }
+      }
+      return 1;
+    }
+  }
+
+  @override
+  int cullEnemy(int entityId) {
+    var targetIdx = -1;
+    var bestPriority = -1.0;
+    for (var i = 0; i < _enemies.length; i++) {
+      final e = _enemies[i];
+      if (e.isDestroyed) continue;
+      if (entityId != 0 && e.entityId == entityId) {
+        targetIdx = i;
+        break;
+      }
+      if (entityId == 0) {
+        final p = e.vesselType * 10.0 + (1.0 - e.worldPosY.clamp(0.0, 1.0));
+        if (p > bestPriority) {
+          bestPriority = p;
+          targetIdx = i;
+        }
+      }
+    }
+    if (targetIdx < 0) return 0;
+
+    final target = _enemies[targetIdx];
+    var rem = 800.0;
+    var shields = target.currentShields;
+    var hull = target.currentHull;
+    var destroyed = false;
+    if (shields > 0) {
+      if (rem <= shields) {
+        shields -= rem;
+        rem = 0;
+      } else {
+        rem -= shields;
+        shields = 0;
+      }
+    }
+    if (rem > 0) {
+      if (rem >= hull) {
+        hull = 0;
+        destroyed = true;
+        _score += 150 * (target.vesselType + 1);
+      } else {
+        hull -= rem;
+      }
+    }
+    _enemies[targetIdx] = target.copyWith(
+      currentShields: shields,
+      currentHull: hull,
+      isDestroyed: destroyed,
+    );
+    _flaks.add(
+      FlakBurst(
+        worldPosX: target.worldPosX,
+        worldPosY: target.worldPosY,
+        blastRadius: 0.30,
+        areaDamage: 225.0,
+        lifetime: 0.35,
+        remainingLifetime: 0.35,
+        active: true,
+      ),
+    );
+    return 1;
   }
 
   @override
