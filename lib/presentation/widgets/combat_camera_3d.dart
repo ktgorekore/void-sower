@@ -111,17 +111,23 @@ class CombatCamera3D {
   double get meshYawBiasRad => -yawRad * 0.85;
 
   /// Perspective foreshortening strength derived from camera pitch.
+  ///
+  /// Tuned for a wide-field panoramic 3D space theater so the 8 orbital lanes
+  /// remain broad and readable all the way to the deep-space horizon.
   double get _perspStrength {
     final p = pitchRad;
-    return 2.15 * math.cos(p * 0.82);
+    return 0.56 * math.cos(p * 0.78);
   }
 
   /// Computes the 2D vanishing point `(vpX, vpY)` on a viewport of [size].
+  ///
+  /// Locked horizontally to `size.width * 0.5` and positioned below the top
+  /// comms HUD banner (`~19%` viewport height) so deep-space stellar targets
+  /// never overlap the header HUD.
   Offset vanishingPoint(Size size) {
     final p = pitchRad;
-    final y = yawRad;
-    final vpX = size.width * (0.5 + math.sin(y) * 0.10);
-    final vpY = size.height * (0.11 + (1.0 - math.sin(p)) * 0.14);
+    final vpX = size.width * 0.5;
+    final vpY = size.height * (0.165 + (1.0 - math.sin(p)) * 0.045);
     return Offset(vpX, vpY);
   }
 
@@ -132,9 +138,9 @@ class CombatCamera3D {
   double farHorizonY(Size size) {
     final vp = vanishingPoint(size);
     final p = pitchRad;
-    return (vp.dy + size.height * (0.04 + 0.05 * math.sin(p))).clamp(
-      size.height * 0.13,
-      size.height * 0.30,
+    return (vp.dy + size.height * (0.055 + 0.035 * math.sin(p))).clamp(
+      size.height * 0.22,
+      size.height * 0.32,
     );
   }
 
@@ -142,18 +148,17 @@ class CombatCamera3D {
   ///
   /// - [normX]: `0.0` (port trench wall) to `1.0` (starboard trench wall).
   /// - [elevationY]: `0.0` (trench floor grid) to `1.0` (high orbital altitude).
-  /// - [normZ]: `0.0` (near threshold defense line) to `1.0` (far apogee spawn horizon).
+  /// - [normZ]: `0.0` (near threshold defense line), `1.0` (tactical spawn gate),
+  ///   up to `8.0+` (infinite deep-space star horizon).
   ProjectedPoint3D project(
     Size size, {
     required double normX,
     required double normZ,
     double elevationY = 0.0,
   }) {
-    final clampedZ = normZ.clamp(-0.05, 1.15);
+    final clampedZ = normZ.clamp(-0.05, 8.0);
     final centeredX = normX - 0.5;
-    final yRad = yawRad;
     final pRad = pitchRad;
-    final sinY = math.sin(yRad);
 
     final persp = _perspStrength;
     final scaleAtZ =
@@ -162,19 +167,21 @@ class CombatCamera3D {
 
     final nearY = nearThresholdY(size);
     final farY = farHorizonY(size);
-
     final denom = math.max(0.05, 1.0 - scaleAtFar);
-    final tZ = ((1.0 - scaleAtZ) / denom).clamp(-0.06, 1.10);
 
-    // Subtle yaw depth tilt only affects far Z so nearZ = 0.0 aligns 1:1 with bottom C1..C8 dock
-    final yawFloorSkew =
-        centeredX * sinY * size.height * 0.035 * tZ.clamp(0.0, 1.0);
-    final groundY = nearY - tZ * (nearY - farY) + yawFloorSkew;
+    final double groundY;
+    if (clampedZ <= 1.0) {
+      final tZ = ((1.0 - scaleAtZ) / denom).clamp(-0.05, 1.0);
+      groundY = nearY - tZ * (nearY - farY);
+    } else {
+      final vpY = vanishingPoint(size).dy;
+      final deepFrac = 1.0 - (1.0 / clampedZ);
+      groundY = farY - deepFrac * (farY - vpY);
+    }
 
     // Near threshold width spans 96% of viewport width (matching the 8 C1..C8 dock columns)
     final baseSpanW = size.width * 0.96;
-    final centerLineX =
-        size.width * 0.5 + sinY * size.width * 0.10 * tZ.clamp(0.0, 1.0);
+    final centerLineX = size.width * 0.5;
     final groundX = centerLineX + (centeredX * baseSpanW) * scaleAtZ;
 
     // 3D vertical elevation lifts point upward perpendicular to the trench floor
@@ -208,8 +215,7 @@ class CombatCamera3D {
       1.0,
     );
 
-    final sinY = math.sin(yawRad);
-    final centerLineX = size.width * 0.5 + sinY * size.width * 0.10 * tZ;
+    final centerLineX = size.width * 0.5;
     final baseSpanW = math.max(1.0, size.width * 0.96 * scaleAtZ);
     final centeredX = (localPosition.dx - centerLineX) / baseSpanW;
     final normX = (centeredX + 0.5).clamp(0.0, 1.0);

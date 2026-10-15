@@ -140,7 +140,6 @@ class _CombatScreenState extends State<CombatScreen>
   double _viewportDragDx = 0.0;
   double _viewportDragDy = 0.0;
   CombatCamera3D _camera3D = const CombatCamera3D();
-  bool _isCameraOrbitDrag = false;
 
   @visibleForTesting
   CombatCamera3D get camera3D => _camera3D;
@@ -1330,27 +1329,12 @@ class _CombatScreenState extends State<CombatScreen>
                                                 onPanStart: (details) {
                                                   _viewportDragDx = 0.0;
                                                   _viewportDragDy = 0.0;
-                                                  _isCameraOrbitDrag =
-                                                      details.localPosition.dy <
-                                                      constraints.maxHeight *
-                                                          0.22;
                                                 },
                                                 onPanUpdate: (details) {
                                                   _viewportDragDx +=
                                                       details.delta.dx;
                                                   _viewportDragDy +=
                                                       details.delta.dy;
-                                                  if (_isCameraOrbitDrag) {
-                                                    _adjustCameraAngles(
-                                                      dPitch:
-                                                          details.delta.dy *
-                                                          0.22,
-                                                      dYaw:
-                                                          details.delta.dx *
-                                                          0.18,
-                                                    );
-                                                    return;
-                                                  }
                                                   final floorPos = _camera3D
                                                       .unprojectToTrenchFloor(
                                                         _combatViewportSize!,
@@ -1400,10 +1384,6 @@ class _CombatScreenState extends State<CombatScreen>
                                                   );
                                                 },
                                                 onPanEnd: (details) {
-                                                  if (_isCameraOrbitDrag) {
-                                                    _isCameraOrbitDrag = false;
-                                                    return;
-                                                  }
                                                   if (!matchState
                                                           .canReceiveInput &&
                                                       (_coordinator
@@ -1575,52 +1555,46 @@ class _CombatScreenState extends State<CombatScreen>
                                                         listenable:
                                                             _renderNotifier,
                                                         builder: (context, _) {
-                                                          return Transform.translate(
-                                                            offset: _coordinator
-                                                                .state
-                                                                .screenShake,
-                                                            child: CustomPaint(
-                                                              size:
-                                                                  _combatViewportSize!,
-                                                              painter: CombatPainter(
-                                                                dreadnought:
-                                                                    _coordinator
-                                                                        .dreadnought,
-                                                                enemies:
-                                                                    _coordinator
-                                                                        .enemies,
-                                                                lances:
-                                                                    _coordinator
-                                                                        .lances,
-                                                                flaks:
-                                                                    _coordinator
-                                                                        .flaks,
-                                                                particles: _coordinator
-                                                                    .particleService
-                                                                    .activeParticles,
-                                                                damageNumbers:
-                                                                    _coordinator
-                                                                        .damageNumbers,
-                                                                enemyBullets:
-                                                                    _coordinator
-                                                                        .bulletManager
-                                                                        .bullets,
-                                                                millTriadBays:
-                                                                    _coordinator
-                                                                        .activeMillTriadBays,
-                                                                predictedDamage:
-                                                                    _coordinator
-                                                                        .prediction
-                                                                        ?.predictedDamage,
-                                                                animationTime:
-                                                                    _animationTime,
-                                                                isLowBattery:
-                                                                    PersistenceService
-                                                                        .instance
-                                                                        .lowBatteryMode,
-                                                                camera:
-                                                                    _camera3D,
-                                                              ),
+                                                          return CustomPaint(
+                                                            size:
+                                                                _combatViewportSize!,
+                                                            painter: CombatPainter(
+                                                              dreadnought:
+                                                                  _coordinator
+                                                                      .dreadnought,
+                                                              enemies:
+                                                                  _coordinator
+                                                                      .enemies,
+                                                              lances:
+                                                                  _coordinator
+                                                                      .lances,
+                                                              flaks:
+                                                                  _coordinator
+                                                                      .flaks,
+                                                              particles: _coordinator
+                                                                  .particleService
+                                                                  .activeParticles,
+                                                              damageNumbers:
+                                                                  _coordinator
+                                                                      .damageNumbers,
+                                                              enemyBullets:
+                                                                  _coordinator
+                                                                      .bulletManager
+                                                                      .bullets,
+                                                              millTriadBays:
+                                                                  _coordinator
+                                                                      .activeMillTriadBays,
+                                                              predictedDamage:
+                                                                  _coordinator
+                                                                      .prediction
+                                                                      ?.predictedDamage,
+                                                              animationTime:
+                                                                  _animationTime,
+                                                              isLowBattery:
+                                                                  PersistenceService
+                                                                      .instance
+                                                                      .lowBatteryMode,
+                                                              camera: _camera3D,
                                                             ),
                                                           );
                                                         },

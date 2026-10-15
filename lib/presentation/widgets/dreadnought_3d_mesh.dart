@@ -14,19 +14,22 @@
 
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart' as vm;
 
 import '../theme/void_theme.dart';
 
-/// High-performance, zero-allocation 3D polygonal mesh renderer for the
-/// Dreadnought Flagship.
+/// High-performance, zero-allocation Solid 3D Gouraud-shaded & bevel-armored
+/// spacecraft renderer for the Dreadnought Defender Flagship.
 ///
-/// Implements full 3D spatial transformation (pitch, roll, yaw, perspective projection)
-/// and directional cosmic starlight shading with zero per-frame heap allocations.
-/// All local vertices, transformed coordinates, and projected screen points are
-/// managed within pre-allocated [Float32List] memory pools.
+/// Uses `vector_math` 3D transformation matrices, Z-sorted closed-manifold
+/// hull triangles, hardware-accelerated [ui.Vertices.raw] Gouraud shading,
+/// extruded 3D thruster nacelles, and a glossy 3D command canopy with zero
+/// per-frame heap allocations.
 class Dreadnought3DMesh {
-  /// Initializes the 3D model vertices, facet indices, and scratch buffers.
+  /// Initializes the 3D model vertices, closed-manifold triangle topology,
+  /// vertex normals, and pre-allocated scratch buffers.
   Dreadnought3DMesh() {
     _initMeshGeometry();
   }
@@ -34,10 +37,10 @@ class Dreadnought3DMesh {
   // ---------------------------------------------------------------------------
   // 3D Model Topology: 16 Local Vertices (X, Y, Z in Local Model Coordinates)
   //
-  // Coordinates system:
+  // Coordinate system:
   //   +X: Starboard (right)
   //   -X: Port (left)
-  //   -Y: Prow (forward heading)
+  //   -Y: Prow (forward heading into deep space)
   //   +Y: Stern (aft / engines)
   //   +Z: Dorsal (upward towards camera / command bridge)
   //   -Z: Ventral (downward / keel)
@@ -49,6 +52,11 @@ class Dreadnought3DMesh {
   final Float32List _localY = Float32List(vertexCount);
   final Float32List _localZ = Float32List(vertexCount);
 
+  // Local smooth vertex normals for Gouraud Blinn-Phong lighting
+  final Float32List _normX = Float32List(vertexCount);
+  final Float32List _normY = Float32List(vertexCount);
+  final Float32List _normZ = Float32List(vertexCount);
+
   // Transformed 3D camera space coordinate buffers
   final Float32List _camX = Float32List(vertexCount);
   final Float32List _camY = Float32List(vertexCount);
@@ -58,18 +66,63 @@ class Dreadnought3DMesh {
   final Float32List _projX = Float32List(vertexCount);
   final Float32List _projY = Float32List(vertexCount);
 
-  // Facet normal scratch components
-  static final Float32List _facetNormalX = Float32List(12);
-  static final Float32List _facetNormalY = Float32List(12);
-  static final Float32List _facetNormalZ = Float32List(12);
-  static final Float32List _facetLight = Float32List(12);
+  // Pre-allocated buffers for hardware-accelerated ui.Vertices.raw
+  static const int _triangleCount = 20;
+  final Float32List _interleavedPositions = Float32List(vertexCount * 2);
+  final Int32List _gouraudVertexColors = Int32List(vertexCount);
+  final Uint16List _sortedIndices = Uint16List(_triangleCount * 3);
+  final Float32List _triDepth = Float32List(_triangleCount);
+  final Int32List _triOrder = Int32List(_triangleCount);
 
-  // Directional Cosmic Key-Light Vector (Normalized from upper-right space)
-  static const double _lightDirX = 0.35355;
-  static const double _lightDirY = -0.53033;
-  static const double _lightDirZ = 0.77055;
+  // Pre-allocated vector_math rotation matrix
+  final vm.Matrix3 _rotMatrix = vm.Matrix3.identity();
 
-  // Pre-calculated base colors palette (Rich 3D Metallic Navy & Cobalt)
+  // Closed-manifold 20-triangle hull topology (3 indices per triangle)
+  static final Uint16List _hullTriangles = Uint16List.fromList([
+    // Ventral Keel & Underbody Chines (0..5)
+    vProwTip, vVentralKeel, vPortShoulder,
+    vProwTip, vStbdShoulder, vVentralKeel,
+    vVentralKeel, vSternKeel, vPortEngineMount,
+    vVentralKeel, vStbdEngineMount, vSternKeel,
+    vPortShoulder, vVentralKeel, vPortEngineMount,
+    vStbdShoulder, vStbdEngineMount, vVentralKeel,
+    // Port & Starboard Lower Wing Under-Plates (6..9)
+    vPortShoulder, vPortWingMid, vPortEngineMount,
+    vPortWingMid, vPortWingtip, vPortEngineBell,
+    vStbdShoulder, vStbdEngineMount, vStbdWingMid,
+    vStbdWingMid, vStbdEngineBell, vStbdWingtip,
+    // Aft Engine Deck & Nacelle Fairings (10..13)
+    vPortEngineMount, vPortEngineBell, vSternKeel,
+    vStbdEngineMount, vSternKeel, vStbdEngineBell,
+    vBridgeApex, vPortEngineMount, vReactorCore,
+    vBridgeApex, vReactorCore, vStbdEngineMount,
+    // Main Swept Delta Wings (14..15)
+    vPortShoulder, vPortWingMid, vPortWingtip,
+    vStbdShoulder, vStbdWingtip, vStbdWingMid,
+    // Forward Dorsal Prow Armor (16..17)
+    vProwTip, vProwSpine, vPortShoulder,
+    vProwTip, vStbdShoulder, vProwSpine,
+    // Command Citadel Upper Hull (18..19)
+    vProwSpine, vBridgeApex, vPortShoulder,
+    vProwSpine, vStbdShoulder, vBridgeApex,
+  ]);
+
+  // Base armor color index per triangle (0..3)
+  static final Uint8List _hullTriColorIdx = Uint8List.fromList([
+    2, 2, 2, 2, 2, 2, // Ventral keel
+    2, 0, 2, 0, // Lower wing plates
+    1, 1, 3, 3, // Aft deck & reactor housing
+    0, 0, // Swept outer wings
+    1, 1, // Forward dorsal prow
+    3, 3, // Command citadel
+  ]);
+
+  // Directional Cosmic Key-Light Vector (Normalized from upper-forward starlight)
+  static const double _lightDirX = 0.32;
+  static const double _lightDirY = -0.58;
+  static const double _lightDirZ = 0.75;
+
+  // Pre-calculated base colors palette (Rich 3D Metallic Navy, Cobalt & Titanium)
   static const List<Color> _baseColors = [
     Color(0xFF1B3B6F), // 0: Port/Stbd Forward Flank
     Color(0xFF28559A), // 1: Midship Broadside
@@ -84,11 +137,12 @@ class Dreadnought3DMesh {
       final base = _baseColors[cIdx];
       return List.generate(101, (step) {
         final light = step / 100.0;
+        final spec = math.pow(math.max(0.0, light - 0.55) / 0.45, 2.0) * 58.0;
         return Color.fromARGB(
           (base.a * 255.0).round().clamp(0, 255),
-          (base.r * 255.0 * light).round().clamp(0, 255),
-          (base.g * 255.0 * light).round().clamp(0, 255),
-          (base.b * 255.0 * light).round().clamp(0, 255),
+          (base.r * 255.0 * light + spec).round().clamp(0, 255),
+          (base.g * 255.0 * light + spec * 1.1).round().clamp(0, 255),
+          (base.b * 255.0 * light + spec * 1.25).round().clamp(0, 255),
         );
       });
     },
@@ -97,15 +151,7 @@ class Dreadnought3DMesh {
   // Reusable scratch paths to eliminate per-frame allocations
   static final Path _scratchFacetPath = Path();
   static final Path _scratchNozzlePath = Path();
-
-  // Helper mapping base color to LUT index
-  static int _baseColorIndex(Color c) {
-    final val = c.toARGB32() & 0x00FFFFFF;
-    if (val == 0x1B3B6F) return 0;
-    if (val == 0x28559A) return 1;
-    if (val == 0x102547) return 2;
-    return 3; // 0x336BC2
-  }
+  static final Path _scratchCanopyPath = Path();
 
   /// Shaded color lookup table view for unit testing.
   @visibleForTesting
@@ -116,41 +162,59 @@ class Dreadnought3DMesh {
   static Path get scratchNozzlePath => _scratchNozzlePath;
 
   // Static pre-cached paint instances
-  static final Paint _facetPaint = Paint()..style = PaintingStyle.fill;
-  static final Paint _facetOutlinePaint = Paint()
+  static final Paint _verticesPaint = Paint()..style = PaintingStyle.fill;
+  static final Paint _facetPaint = Paint()
+    ..style = PaintingStyle.fill
+    ..isAntiAlias = true;
+  static final Paint _panelSeamPaint = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.2
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.85);
-
-  static final Paint _ridgeGlowPaint = Paint()
+    ..strokeWidth = 0.85
+    ..color = const Color(0xFF09152B).withValues(alpha: 0.55);
+  static final Paint _hullRimPaint = Paint()
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 2.0
-    ..color = Colors.white.withValues(alpha: 0.90);
-
+    ..strokeWidth = 1.4
+    ..strokeCap = StrokeCap.round
+    ..color = const Color(0xFF93C5FD).withValues(alpha: 0.72);
+  static final Paint _canopyFillPaint = Paint()
+    ..style = PaintingStyle.fill
+    ..color = const Color(0xFF0EA5E9).withValues(alpha: 0.88);
+  static final Paint _canopyGlintPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.6
+    ..strokeCap = StrokeCap.round
+    ..color = Colors.white.withValues(alpha: 0.85);
+  static final Paint _cannonBarrelPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 3.2
+    ..strokeCap = StrokeCap.round
+    ..color = const Color(0xFF475569);
+  static final Paint _cannonCorePaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.4
+    ..strokeCap = StrokeCap.round
+    ..color = VoidTheme.plasmaCyan;
   static final Paint _engineBellPaint = Paint()
     ..style = PaintingStyle.fill
     ..color = const Color(0xFF1E293B);
-
+  static final Paint _engineRimPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.3
+    ..color = const Color(0xFF64748B);
   static final Paint _engineGazePaint = Paint()
     ..style = PaintingStyle.fill
     ..color = VoidTheme.plasmaCyan;
-
   static final Paint _reactorCenterPaint = Paint()
     ..style = PaintingStyle.fill
     ..color = Colors.white;
-
   static final Paint _reactorCorePaint = Paint()
     ..style = PaintingStyle.fill
     ..color = VoidTheme.plasmaCyan;
-
   static final Paint _reactorGlowPaint = Paint()
     ..style = PaintingStyle.fill
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35);
-
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.32);
   static final Paint _navPortPaint = Paint()
     ..style = PaintingStyle.fill
     ..color = VoidTheme.crimsonFlare;
-
   static final Paint _navStarboardPaint = Paint()
     ..style = PaintingStyle.fill
     ..color = VoidTheme.emeraldShield;
@@ -176,37 +240,37 @@ class Dreadnought3DMesh {
   static const int vVentralKeel = 15;
 
   void _initMeshGeometry() {
-    // 0: Prow Tip (Forward elevated prow)
+    // 0: Prow Tip (Forward sculpted armored nose)
     _localX[vProwTip] = 0.0;
     _localY[vProwTip] = -38.0;
     _localZ[vProwTip] = 8.0;
 
-    // 1: Prow Spine (Armored dorsal ridge)
+    // 1: Prow Spine (Armored dorsal forward ridge)
     _localX[vProwSpine] = 0.0;
     _localY[vProwSpine] = -18.0;
     _localZ[vProwSpine] = 14.0;
 
-    // 2: Bridge Apex (Command superstructure)
+    // 2: Bridge Apex (Elevated 3D Command Citadel)
     _localX[vBridgeApex] = 0.0;
     _localY[vBridgeApex] = 2.0;
     _localZ[vBridgeApex] = 18.0;
 
-    // 3: Reactor Core (Aft of bridge)
+    // 3: Reactor Core (Aft dorsal power dome)
     _localX[vReactorCore] = 0.0;
     _localY[vReactorCore] = 10.0;
     _localZ[vReactorCore] = 12.0;
 
-    // 4: Stern Keel (Rear lower hull)
+    // 4: Stern Keel (Rear armored tailcone)
     _localX[vSternKeel] = 0.0;
     _localY[vSternKeel] = 22.0;
     _localZ[vSternKeel] = -2.0;
 
-    // 5: Port Shoulder (Upper inner wing)
+    // 5: Port Shoulder (Upper inner hull chine)
     _localX[vPortShoulder] = -22.0;
     _localY[vPortShoulder] = -2.0;
     _localZ[vPortShoulder] = 8.0;
 
-    // 6: Port Wing Mid (Intermediate swept wing)
+    // 6: Port Wing Mid (Intermediate swept wing plate)
     _localX[vPortWingMid] = -42.0;
     _localY[vPortWingMid] = 8.0;
     _localZ[vPortWingMid] = 2.0;
@@ -226,12 +290,12 @@ class Dreadnought3DMesh {
     _localY[vPortEngineBell] = 24.0;
     _localZ[vPortEngineBell] = 0.0;
 
-    // 10: Starboard Shoulder (Upper inner wing)
+    // 10: Starboard Shoulder (Upper inner hull chine)
     _localX[vStbdShoulder] = 22.0;
     _localY[vStbdShoulder] = -2.0;
     _localZ[vStbdShoulder] = 8.0;
 
-    // 11: Starboard Wing Mid (Intermediate swept wing)
+    // 11: Starboard Wing Mid (Intermediate swept wing plate)
     _localX[vStbdWingMid] = 42.0;
     _localY[vStbdWingMid] = 8.0;
     _localZ[vStbdWingMid] = 2.0;
@@ -251,22 +315,30 @@ class Dreadnought3DMesh {
     _localY[vStbdEngineBell] = 24.0;
     _localZ[vStbdEngineBell] = 0.0;
 
-    // 15: Ventral Keel Floor (Bottom hull spine)
+    // 15: Ventral Keel Floor (Deep bottom hull spine)
     _localX[vVentralKeel] = 0.0;
     _localY[vVentralKeel] = 4.0;
     _localZ[vVentralKeel] = -12.0;
+
+    // Precompute outward-pointing unit vertex normals
+    for (var i = 0; i < vertexCount; i++) {
+      final vx = _localX[i];
+      final vy = _localY[i];
+      final vz = _localZ[i] * 2.2;
+      final len = math.sqrt(vx * vx + vy * vy + vz * vz);
+      if (len > 0.001) {
+        _normX[i] = vx / len;
+        _normY[i] = vy / len;
+        _normZ[i] = vz / len;
+      } else {
+        _normX[i] = 0.0;
+        _normY[i] = 0.0;
+        _normZ[i] = 1.0;
+      }
+    }
   }
 
-  /// Transforms and projects the 3D flagship mesh, rendering all shaded facets
-  /// onto [canvas].
-  ///
-  /// [center]: Viewport pivot coordinate for the dreadnought flagship.
-  /// [pitchRad]: 3D pitch angle in radians (negative = nose pitches down into space).
-  /// [rollRad]: 3D roll/bank angle in radians (positive = banks starboard).
-  /// [yawRad]: 3D yaw angle in radians.
-  /// [scale]: Base physical scale multiplier.
-  /// [animationTime]: Global continuous animation clock in seconds.
-  /// [isLowBattery]: When true, skips multi-pass glow passes to minimize GPU thermal footprint.
+  /// Transforms and projects the solid 3D flagship model onto [canvas].
   void projectAndPaint(
     Canvas canvas, {
     required Offset center,
@@ -278,7 +350,7 @@ class Dreadnought3DMesh {
     bool isLowBattery = false,
   }) {
     // -------------------------------------------------------------------------
-    // 1. 3D Rotation Matrix Calculation (Pitch * Yaw * Roll)
+    // 1. 3D Rotation Matrix Calculation via vector_math (Pitch * Yaw * Roll)
     // -------------------------------------------------------------------------
     final cp = math.cos(pitchRad);
     final sp = math.sin(pitchRad);
@@ -287,7 +359,6 @@ class Dreadnought3DMesh {
     final cy = math.cos(yawRad);
     final sy = math.sin(yawRad);
 
-    // Combined rotation matrix R = R_pitch * R_yaw * R_roll
     final r11 = cy * cr + sy * sp * sr;
     final r12 = -cy * sr + sy * sp * cr;
     final r13 = sy * cp;
@@ -300,19 +371,19 @@ class Dreadnought3DMesh {
     final r32 = sy * sr + cy * sp * cr;
     final r33 = cy * cp;
 
-    // Camera focal parameters
+    _rotMatrix.setValues(r11, r21, r31, r12, r22, r32, r13, r23, r33);
+
     const double cameraZ = 300.0;
     const double focalLength = 300.0;
 
     // -------------------------------------------------------------------------
-    // 2. Vertex Transformation & Perspective Projection
+    // 2. Vertex Transformation, Normal Lighting & Perspective Projection
     // -------------------------------------------------------------------------
     for (var i = 0; i < vertexCount; i++) {
       final lx = _localX[i] * scale;
       final ly = _localY[i] * scale;
       final lz = _localZ[i] * scale;
 
-      // Rotate into camera space
       final rx = r11 * lx + r12 * ly + r13 * lz;
       final ry = r21 * lx + r22 * ly + r23 * lz;
       final rz = r31 * lx + r32 * ly + r33 * lz;
@@ -321,170 +392,191 @@ class Dreadnought3DMesh {
       _camY[i] = ry;
       _camZ[i] = rz;
 
-      // Perspective divide
       final zDepth = math.max(1.0, cameraZ + rz);
       final invZ = focalLength / zDepth;
 
-      _projX[i] = center.dx + rx * invZ;
-      _projY[i] = center.dy + ry * invZ;
+      final px = center.dx + rx * invZ;
+      final py = center.dy + ry * invZ;
+      _projX[i] = px;
+      _projY[i] = py;
+      _interleavedPositions[i * 2] = px;
+      _interleavedPositions[i * 2 + 1] = py;
+
+      // Rotate vertex normal for smooth Gouraud Blinn-Phong shading
+      final nx = r11 * _normX[i] + r12 * _normY[i] + r13 * _normZ[i];
+      final ny = r21 * _normX[i] + r22 * _normY[i] + r23 * _normZ[i];
+      final nz = r31 * _normX[i] + r32 * _normY[i] + r33 * _normZ[i];
+
+      final dot = nx * _lightDirX + ny * _lightDirY + nz * _lightDirZ;
+      final light = (0.34 + 0.66 * math.max(0.0, dot)).clamp(0.22, 1.0);
+      final step = (light * 100.0).round().clamp(0, 100);
+      final colorIdx = (i <= vReactorCore)
+          ? 3
+          : ((i == vVentralKeel || i == vSternKeel) ? 2 : 1);
+      _gouraudVertexColors[i] = _shadedColorLUT[colorIdx][step].toARGB32();
     }
 
     // -------------------------------------------------------------------------
-    // 3. Facet Shading & Rendering (Ventral Keel first, then Dorsal Hull)
+    // 3. Z-Sort Closed-Manifold 3D Hull Triangles (Painter's Order + Gouraud)
     // -------------------------------------------------------------------------
+    for (var t = 0; t < _triangleCount; t++) {
+      final base = t * 3;
+      final i0 = _hullTriangles[base];
+      final i1 = _hullTriangles[base + 1];
+      final i2 = _hullTriangles[base + 2];
+      _triDepth[t] = (_camZ[i0] + _camZ[i1] + _camZ[i2]) * 0.333333;
+      _triOrder[t] = t;
+    }
 
-    // Ventral Keel Left & Right (3D hull depth under camera tilt)
-    _paintFacet(
-      canvas,
-      7,
-      vProwTip,
-      vVentralKeel,
-      vPortShoulder,
-      baseColor: const Color(0xFF102547),
-      isLowBattery: isLowBattery,
-    );
-    _paintFacet(
-      canvas,
-      8,
-      vProwTip,
-      vStbdShoulder,
-      vVentralKeel,
-      baseColor: const Color(0xFF102547),
-      isLowBattery: isLowBattery,
-    );
+    // Insertion sort on 20 triangles (fastest for small N, zero allocations)
+    for (var i = 1; i < _triangleCount; i++) {
+      final keyTri = _triOrder[i];
+      final keyDepth = _triDepth[keyTri];
+      var j = i - 1;
+      while (j >= 0 && _triDepth[_triOrder[j]] > keyDepth) {
+        _triOrder[j + 1] = _triOrder[j];
+        j--;
+      }
+      _triOrder[j + 1] = keyTri;
+    }
 
-    // Facet 1: Dorsal Prow Left
-    _paintFacet(
-      canvas,
-      0,
-      vProwTip,
-      vProwSpine,
-      vPortShoulder,
-      baseColor: const Color(0xFF1B3B6F),
-      isLowBattery: isLowBattery,
-    );
+    for (var s = 0; s < _triangleCount; s++) {
+      final t = _triOrder[s];
+      final src = t * 3;
+      final dst = s * 3;
+      _sortedIndices[dst] = _hullTriangles[src];
+      _sortedIndices[dst + 1] = _hullTriangles[src + 1];
+      _sortedIndices[dst + 2] = _hullTriangles[src + 2];
+    }
 
-    // Facet 2: Dorsal Prow Right
-    _paintFacet(
-      canvas,
-      1,
-      vProwTip,
-      vStbdShoulder,
-      vProwSpine,
-      baseColor: const Color(0xFF1B3B6F),
-      isLowBattery: isLowBattery,
+    // Hardware-accelerated Gouraud-shaded 3D hull pass
+    final hullVertices = ui.Vertices.raw(
+      ui.VertexMode.triangles,
+      _interleavedPositions,
+      colors: _gouraudVertexColors,
+      indices: _sortedIndices,
     );
-
-    // Facet 3: Bridge Deck Left
-    _paintFacet(
-      canvas,
-      2,
-      vProwSpine,
-      vBridgeApex,
-      vPortShoulder,
-      baseColor: const Color(0xFF28559A),
-      isLowBattery: isLowBattery,
-    );
-
-    // Facet 4: Bridge Deck Right
-    _paintFacet(
-      canvas,
-      3,
-      vProwSpine,
-      vStbdShoulder,
-      vBridgeApex,
-      baseColor: const Color(0xFF28559A),
-      isLowBattery: isLowBattery,
-    );
-
-    // Facet 5: Port Canted Main Wing
-    _paintQuad(
-      canvas,
-      4,
-      vPortShoulder,
-      vPortWingMid,
-      vPortWingtip,
-      vPortEngineMount,
-      baseColor: const Color(0xFF102547),
-      isLowBattery: isLowBattery,
-    );
-
-    // Facet 6: Starboard Canted Main Wing
-    _paintQuad(
-      canvas,
-      5,
-      vStbdShoulder,
-      vStbdEngineMount,
-      vStbdWingtip,
-      vStbdWingMid,
-      baseColor: const Color(0xFF102547),
-      isLowBattery: isLowBattery,
-    );
-
-    // Facet 7: Aft Deck & Keel Plate
-    _paintQuad(
-      canvas,
-      6,
-      vBridgeApex,
-      vPortEngineMount,
-      vSternKeel,
-      vStbdEngineMount,
-      baseColor: const Color(0xFF336BC2),
-      isLowBattery: isLowBattery,
-    );
+    canvas.drawVertices(hullVertices, BlendMode.dst, _verticesPaint);
 
     // -------------------------------------------------------------------------
-    // 4. Center Dorsal Spine Highlight
+    // 4. Sculpted 3D Bevelled Armor Plates (Flat-normal specular + dark seams)
     // -------------------------------------------------------------------------
+    for (var s = 0; s < _triangleCount; s++) {
+      final t = _triOrder[s];
+      final src = t * 3;
+      _paintSolidArmorTriangle(
+        canvas,
+        _hullTriangles[src],
+        _hullTriangles[src + 1],
+        _hullTriangles[src + 2],
+        colorIdx: _hullTriColorIdx[t],
+        isLowBattery: isLowBattery,
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. Heavy 3D Twin Forward Particle Cannon Pods (Nose Barrels)
+    // -------------------------------------------------------------------------
+    final prowX = _projX[vProwTip];
+    final prowY = _projY[vProwTip];
+    final spineX = _projX[vProwSpine];
+    final spineY = _projY[vProwSpine];
+    final barrelSpread = 5.2 * scale;
+    final barrelLen = 10.5 * scale;
+
+    _cannonBarrelPaint.strokeWidth = (3.0 * scale).clamp(1.5, 5.5);
+    _cannonCorePaint.strokeWidth = (1.3 * scale).clamp(0.8, 2.5);
+
+    final portMount = Offset(
+      (prowX * 0.65 + spineX * 0.35) - barrelSpread,
+      prowY * 0.65 + spineY * 0.35,
+    );
+    final stbdMount = Offset(
+      (prowX * 0.65 + spineX * 0.35) + barrelSpread,
+      prowY * 0.65 + spineY * 0.35,
+    );
+    final portMuzzle = Offset(portMount.dx, portMount.dy - barrelLen);
+    final stbdMuzzle = Offset(stbdMount.dx, stbdMount.dy - barrelLen);
+
+    canvas.drawLine(portMount, portMuzzle, _cannonBarrelPaint);
+    canvas.drawLine(stbdMount, stbdMuzzle, _cannonBarrelPaint);
+    canvas.drawLine(portMount, portMuzzle, _cannonCorePaint);
+    canvas.drawLine(stbdMount, stbdMuzzle, _cannonCorePaint);
+    canvas.drawCircle(portMuzzle, 1.8 * scale, _reactorCenterPaint);
+    canvas.drawCircle(stbdMuzzle, 1.8 * scale, _reactorCenterPaint);
+
+    // -------------------------------------------------------------------------
+    // 6. Glossy 3D Smoked-Sapphire Command Canopy & Dorsal Spine Bevel
+    // -------------------------------------------------------------------------
+    _scratchCanopyPath
+      ..reset()
+      ..moveTo(_projX[vProwSpine], _projY[vProwSpine])
+      ..lineTo(
+        (_projX[vBridgeApex] * 0.72 + _projX[vPortShoulder] * 0.28),
+        (_projY[vBridgeApex] * 0.72 + _projY[vPortShoulder] * 0.28),
+      )
+      ..lineTo(_projX[vReactorCore], _projY[vReactorCore])
+      ..lineTo(
+        (_projX[vBridgeApex] * 0.72 + _projX[vStbdShoulder] * 0.28),
+        (_projY[vBridgeApex] * 0.72 + _projY[vStbdShoulder] * 0.28),
+      )
+      ..close();
+    canvas.drawPath(_scratchCanopyPath, _canopyFillPaint);
     canvas.drawLine(
-      Offset(_projX[vProwTip], _projY[vProwTip]),
+      Offset(_projX[vProwSpine], _projY[vProwSpine]),
       Offset(_projX[vBridgeApex], _projY[vBridgeApex]),
-      _ridgeGlowPaint,
+      _canopyGlintPaint,
     );
 
-    // Forward Particle Lance Turret tips in 3D
-    final lanceTipLeft = Offset(
-      _projX[vProwSpine] - 6.5 * scale,
-      _projY[vProwSpine] - 12.0 * scale,
-    );
-    final lanceTipRight = Offset(
-      _projX[vProwSpine] + 6.5 * scale,
-      _projY[vProwSpine] - 12.0 * scale,
-    );
-    canvas.drawLine(
-      Offset(_projX[vProwSpine] - 6.5 * scale, _projY[vProwSpine]),
-      lanceTipLeft,
-      _ridgeGlowPaint,
-    );
-    canvas.drawLine(
-      Offset(_projX[vProwSpine] + 6.5 * scale, _projY[vProwSpine]),
-      lanceTipRight,
-      _ridgeGlowPaint,
-    );
-    canvas.drawCircle(lanceTipLeft, 2.0, _reactorCenterPaint);
-    canvas.drawCircle(lanceTipRight, 2.0, _reactorCenterPaint);
+    if (!isLowBattery) {
+      // Specular metallic leading-edge highlight along outer wing bevels only
+      canvas.drawLine(
+        Offset(_projX[vProwTip], _projY[vProwTip]),
+        Offset(_projX[vPortShoulder], _projY[vPortShoulder]),
+        _hullRimPaint,
+      );
+      canvas.drawLine(
+        Offset(_projX[vProwTip], _projY[vProwTip]),
+        Offset(_projX[vStbdShoulder], _projY[vStbdShoulder]),
+        _hullRimPaint,
+      );
+      canvas.drawLine(
+        Offset(_projX[vPortShoulder], _projY[vPortShoulder]),
+        Offset(_projX[vPortWingtip], _projY[vPortWingtip]),
+        _hullRimPaint,
+      );
+      canvas.drawLine(
+        Offset(_projX[vStbdShoulder], _projY[vStbdShoulder]),
+        Offset(_projX[vStbdWingtip], _projY[vStbdWingtip]),
+        _hullRimPaint,
+      );
+    }
 
     // -------------------------------------------------------------------------
-    // 5. 3D Twin Engine Exhaust Nozzles
+    // 7. 3D Twin Cylindrical Engine Exhaust Nozzles & Plasma Afterburners
     // -------------------------------------------------------------------------
     _paintEngineNozzle(
       canvas,
+      vPortEngineMount,
       vPortEngineBell,
       scale,
+      animationTime,
       isLowBattery: isLowBattery,
     );
     _paintEngineNozzle(
       canvas,
+      vStbdEngineMount,
       vStbdEngineBell,
       scale,
+      animationTime,
       isLowBattery: isLowBattery,
     );
 
     // -------------------------------------------------------------------------
-    // 6. Navigation Strobe Beacons (Port Crimson, Starboard Emerald)
+    // 8. Navigation Strobe Beacons (Port Crimson, Starboard Emerald)
     // -------------------------------------------------------------------------
-    final portStrobe = 0.5 + 0.5 * math.sin(animationTime * 15.0);
-    final stbdStrobe = 0.5 + 0.5 * math.cos(animationTime * 15.0);
+    final portStrobe = 0.55 + 0.45 * math.sin(animationTime * 15.0);
+    final stbdStrobe = 0.55 + 0.45 * math.cos(animationTime * 15.0);
     _navPortPaint.color = VoidTheme.crimsonFlare.withValues(alpha: portStrobe);
     _navStarboardPaint.color = VoidTheme.emeraldShield.withValues(
       alpha: stbdStrobe,
@@ -492,57 +584,51 @@ class Dreadnought3DMesh {
 
     canvas.drawCircle(
       Offset(_projX[vPortWingtip], _projY[vPortWingtip]),
-      3.2 * scale,
+      2.8 * scale,
       _navPortPaint,
     );
     canvas.drawCircle(
       Offset(_projX[vStbdWingtip], _projY[vStbdWingtip]),
-      3.2 * scale,
+      2.8 * scale,
       _navStarboardPaint,
     );
 
     // -------------------------------------------------------------------------
-    // 7. Pulsating Central Plasma Reactor Core
+    // 9. Pulsating Central 3D Plasma Reactor Core Dome
     // -------------------------------------------------------------------------
     final coreX = _projX[vReactorCore];
     final coreY = _projY[vReactorCore];
-    final corePulse = 1.0 + 0.25 * math.sin(animationTime * 12.0);
+    final corePulse = 1.0 + 0.20 * math.sin(animationTime * 12.0);
 
     if (!isLowBattery) {
       canvas.drawCircle(
         Offset(coreX, coreY),
-        10.0 * scale * corePulse,
+        8.5 * scale * corePulse,
         _reactorGlowPaint,
       );
     }
     canvas.drawCircle(
       Offset(coreX, coreY),
-      5.0 * scale * corePulse,
+      4.4 * scale * corePulse,
       _reactorCorePaint,
     );
     canvas.drawCircle(
       Offset(coreX, coreY),
-      2.2 * scale * corePulse,
+      2.0 * scale * corePulse,
       _reactorCenterPaint,
     );
   }
 
-  /// Renders a 3D triangular hull facet ([i0], [i1], [i2]) with directional lighting.
-  ///
-  /// Computes face normal in camera space via vector cross product, calculates
-  /// Lambertian directional illumination against the cosmic key-light vector,
-  /// modulates [baseColor], and rasters the facet path onto [canvas].
-  /// In [isLowBattery] mode, facet outline strokes are omitted to halve draw calls.
-  void _paintFacet(
+  /// Renders a solid 3D triangular armor plate with Blinn-Phong lighting and
+  /// subtle dark panel bevel seams (never bright wireframe lines).
+  void _paintSolidArmorTriangle(
     Canvas canvas,
-    int facetIdx,
     int i0,
     int i1,
     int i2, {
-    required Color baseColor,
+    required int colorIdx,
     bool isLowBattery = false,
   }) {
-    // Compute facet normal in camera space
     final ax = _camX[i1] - _camX[i0];
     final ay = _camY[i1] - _camY[i0];
     final az = _camZ[i1] - _camZ[i0];
@@ -562,105 +648,52 @@ class Dreadnought3DMesh {
       nz /= len;
     }
 
-    _facetNormalX[facetIdx] = nx;
-    _facetNormalY[facetIdx] = ny;
-    _facetNormalZ[facetIdx] = nz;
-
-    // Dot product with directional cosmic key-light
-    final dot = nx * _lightDirX + ny * _lightDirY + nz * _lightDirZ;
-    final light = (0.35 + 0.65 * math.max(0.0, dot)).clamp(0.25, 1.0);
-    _facetLight[facetIdx] = light;
-
-    // Shade base color via zero-allocation lookup table
+    final dot = nx * _lightDirX + ny * _lightDirY + nz.abs() * _lightDirZ;
+    final light = (0.36 + 0.64 * math.max(0.0, dot)).clamp(0.24, 1.0);
     final lightStep = (light * 100.0).round().clamp(0, 100);
-    final colorIdx = _baseColorIndex(baseColor);
-    _facetPaint.color = _shadedColorLUT[colorIdx][lightStep];
+    _facetPaint.color = _shadedColorLUT[colorIdx.clamp(0, 3)][lightStep]
+        .withValues(alpha: 0.78);
 
-    _scratchFacetPath.reset();
-    _scratchFacetPath.moveTo(_projX[i0], _projY[i0]);
-    _scratchFacetPath.lineTo(_projX[i1], _projY[i1]);
-    _scratchFacetPath.lineTo(_projX[i2], _projY[i2]);
-    _scratchFacetPath.close();
+    _scratchFacetPath
+      ..reset()
+      ..moveTo(_projX[i0], _projY[i0])
+      ..lineTo(_projX[i1], _projY[i1])
+      ..lineTo(_projX[i2], _projY[i2])
+      ..close();
 
     canvas.drawPath(_scratchFacetPath, _facetPaint);
     if (!isLowBattery) {
-      canvas.drawPath(_scratchFacetPath, _facetOutlinePaint);
+      canvas.drawPath(_scratchFacetPath, _panelSeamPaint);
     }
   }
 
-  /// Renders a 3D quadrilateral hull facet ([i0], [i1], [i2], [i3]) with directional lighting.
-  ///
-  /// Computes face normal from the first three coplanar vertices in camera space,
-  /// calculates directional illumination against the cosmic key-light vector,
-  /// modulates [baseColor], and rasters the quad path onto [canvas].
-  /// In [isLowBattery] mode, facet outline strokes are omitted to halve draw calls.
-  void _paintQuad(
-    Canvas canvas,
-    int facetIdx,
-    int i0,
-    int i1,
-    int i2,
-    int i3, {
-    required Color baseColor,
-    bool isLowBattery = false,
-  }) {
-    // Normal from first three vertices
-    final ax = _camX[i1] - _camX[i0];
-    final ay = _camY[i1] - _camY[i0];
-    final az = _camZ[i1] - _camZ[i0];
-
-    final bx = _camX[i2] - _camX[i0];
-    final by = _camY[i2] - _camY[i0];
-    final bz = _camZ[i2] - _camZ[i0];
-
-    var nx = ay * bz - az * by;
-    var ny = az * bx - ax * bz;
-    var nz = ax * by - ay * bx;
-
-    final len = math.sqrt(nx * nx + ny * ny + nz * nz);
-    if (len > 0.0001) {
-      nx /= len;
-      ny /= len;
-      nz /= len;
-    }
-
-    final dot = nx * _lightDirX + ny * _lightDirY + nz * _lightDirZ;
-    final light = (0.30 + 0.70 * math.max(0.0, dot)).clamp(0.20, 1.0);
-
-    final lightStep = (light * 100.0).round().clamp(0, 100);
-    final colorIdx = _baseColorIndex(baseColor);
-    _facetPaint.color = _shadedColorLUT[colorIdx][lightStep];
-
-    _scratchFacetPath.reset();
-    _scratchFacetPath.moveTo(_projX[i0], _projY[i0]);
-    _scratchFacetPath.lineTo(_projX[i1], _projY[i1]);
-    _scratchFacetPath.lineTo(_projX[i2], _projY[i2]);
-    _scratchFacetPath.lineTo(_projX[i3], _projY[i3]);
-    _scratchFacetPath.close();
-
-    canvas.drawPath(_scratchFacetPath, _facetPaint);
-    if (!isLowBattery) {
-      canvas.drawPath(_scratchFacetPath, _facetOutlinePaint);
-    }
-  }
-
-  /// Renders a 3D cylindrical engine exhaust nozzle at the projected vertex [bellIdx].
-  ///
-  /// Rasters an elliptical bell housing using [scale]-adjusted dimensions via [_scratchNozzlePath],
-  /// applies an outline stroke (omitted when [isLowBattery] is true), and
-  /// renders the glowing inner emitter aperture circle.
+  /// Renders a solid 3D cylindrical engine nacelle and afterburner nozzle.
   void _paintEngineNozzle(
     Canvas canvas,
+    int mountIdx,
     int bellIdx,
-    double scale, {
+    double scale,
+    double animationTime, {
     bool isLowBattery = false,
   }) {
+    final mx = _projX[mountIdx];
+    final my = _projY[mountIdx];
     final bx = _projX[bellIdx];
     final by = _projY[bellIdx];
-    final nozzleRadiusX = 5.5 * scale;
-    final nozzleRadiusY = 3.5 * scale;
+    final nozzleRadiusX = 5.4 * scale;
+    final nozzleRadiusY = 3.4 * scale;
 
-    // Zero-allocation ellipse generation using scratch Path
+    // 3D cylindrical nacelle housing from mount to bell
+    _scratchFacetPath
+      ..reset()
+      ..moveTo(mx - nozzleRadiusX * 0.88, my)
+      ..lineTo(mx + nozzleRadiusX * 0.88, my)
+      ..lineTo(bx + nozzleRadiusX, by)
+      ..lineTo(bx - nozzleRadiusX, by)
+      ..close();
+    canvas.drawPath(_scratchFacetPath, _engineBellPaint);
+
+    // Zero-allocation elliptical nozzle rim using _scratchNozzlePath
     _scratchNozzlePath.reset();
     for (var step = 0; step < 16; step++) {
       final theta = step * (2.0 * math.pi / 16.0);
@@ -676,11 +709,20 @@ class Dreadnought3DMesh {
 
     canvas.drawPath(_scratchNozzlePath, _engineBellPaint);
     if (!isLowBattery) {
-      canvas.drawPath(_scratchNozzlePath, _facetOutlinePaint);
+      canvas.drawPath(_scratchNozzlePath, _engineRimPaint);
     }
 
-    // Inner glowing emitter aperture
-    canvas.drawCircle(Offset(bx, by), 2.2 * scale, _engineGazePaint);
+    // Inner glowing plasma afterburner cone
+    final plumeLen = (7.5 + 2.5 * math.sin(animationTime * 22.0)) * scale;
+    _scratchFacetPath
+      ..reset()
+      ..moveTo(bx - nozzleRadiusX * 0.65, by)
+      ..lineTo(bx, by + plumeLen)
+      ..lineTo(bx + nozzleRadiusX * 0.65, by)
+      ..close();
+    canvas.drawPath(_scratchFacetPath, _reactorGlowPaint);
+    canvas.drawCircle(Offset(bx, by), 2.5 * scale, _engineGazePaint);
+    canvas.drawCircle(Offset(bx, by), 1.2 * scale, _reactorCenterPaint);
   }
 
   // ---------------------------------------------------------------------------
