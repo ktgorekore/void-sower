@@ -184,8 +184,15 @@ DischargeSystem::DischargeResult DischargeSystem::ExecuteDirectBayDischarge(
     return result;
   }
 
-  const float lance_origin_x = (static_cast<float>(target_corridor) + 0.5f) /
-                               static_cast<float>(kCorridorCount);
+  const int8_t dread_corridor = static_cast<int8_t>(
+      std::clamp(static_cast<int>(dread.orbital_position_x *
+                                  static_cast<float>(kCorridorCount)),
+                 0, kCorridorCount - 1));
+  const float lance_origin_x =
+      (target_corridor == dread_corridor)
+          ? dread.orbital_position_x
+          : (static_cast<float>(target_corridor) + 0.5f) /
+                static_cast<float>(kCorridorCount);
   const float lance_origin_y = dread.orbital_position_y;
   const float safe_mult = (damage_multiplier > 0.0f) ? damage_multiplier : 1.0f;
   const float damage =

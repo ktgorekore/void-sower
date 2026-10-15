@@ -107,6 +107,8 @@ void BaoCascadeSystem::StepFSM(
   if (dreadnought_entity == entt::null || !registry.valid(dreadnought_entity)) {
     return;
   }
+  (void)spatial_grid;
+  (void)discharge_system;
   (void)delta_time;
   auto &dread = registry.get<DreadnoughtStateComponent>(dreadnought_entity);
   auto current_state = static_cast<SimulationState>(dread.current_sim_state);
@@ -151,23 +153,6 @@ void BaoCascadeSystem::StepFSM(
         }
       }
 
-      // If this is an active relay cycle (> 0 laps), emit intermediate flak
-      // trail
-      if (sowing.cascade_depth > 0 && next_bay < kTotalBays &&
-          bay_entities[next_bay] != entt::null &&
-          registry.valid(bay_entities[next_bay])) {
-        const auto &bay =
-            registry.get<BatteryComponent>(bay_entities[next_bay]);
-        const float col_x = IsFrontlineBay(next_bay)
-                                ? (static_cast<float>(next_bay - 8) + 0.5f) /
-                                      static_cast<float>(kCorridorCount)
-                                : dread.orbital_position_x;
-        discharge_system.ExecuteFlakDetonation(
-            registry, dreadnought_entity, col_x,
-            dread.orbital_position_y + 0.05f, bay.charge_units);
-        sowing.flak_triggered = 1;
-      }
-
       if (sowing.remaining_units == 0) {
         dread.current_sim_state =
             static_cast<uint8_t>(SimulationState::EvaluateDestination);
@@ -194,62 +179,21 @@ void BaoCascadeSystem::StepFSM(
       const auto &bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
       const uint32_t final_mass = bay.charge_units;
 
-      if (IsFrontlineBay(term_bay)) {
-        const auto &dread_state =
-            registry.get<DreadnoughtStateComponent>(dreadnought_entity);
-        const int8_t dread_corridor = static_cast<int8_t>(
-            std::clamp(static_cast<int>(dread_state.orbital_position_x *
-                                        static_cast<float>(kCorridorCount)),
-                       0, kCorridorCount - 1));
-        const bool has_enemies =
-            (spatial_grid.GetCorridorCount(dread_corridor) > 0);
-
-        if (final_mass > 0 && (has_enemies || final_mass == 1)) {
-          const auto discharge_res = discharge_system.ExecuteCrossDischarge(
-              registry, dreadnought_entity, bay_entities, spatial_grid,
-              term_bay, final_mass);
-          if (final_mass >= 2 && discharge_res.hit_enemy &&
-              sowing.cascade_depth < 4) {
-            auto &mut_sowing =
-                registry.get<SowingStateComponent>(dreadnought_entity);
-            mut_sowing.remaining_units = discharge_res.harvested_seeds;
-            mut_sowing.cascade_depth++;
-            mut_sowing.step_direction =
-                ResolveSowDirection(term_bay, mut_sowing.step_direction);
-            dread.current_sim_state =
-                static_cast<uint8_t>(SimulationState::SowingTraversal);
-          } else {
-            dread.current_sim_state =
-                static_cast<uint8_t>(SimulationState::CrossDischarge);
-          }
-        } else if (final_mass > 1 && !IsNyumbaBay(term_bay)) {
-          dread.current_sim_state =
-              static_cast<uint8_t>(SimulationState::RelayOverload);
-        } else {
-          dread.current_sim_state =
-              static_cast<uint8_t>(SimulationState::CrossDischarge);
-          discharge_system.ExecuteCrossDischarge(registry, dreadnought_entity,
-                                                 bay_entities, spatial_grid,
-                                                 term_bay, final_mass);
-        }
+      // Sowing strictly redistributes plasma cores without auto-firing.
+      // Frontline bays (8..15) accumulate charge so the player can explicitly
+      // fire when ready; occupied non-Nyumba rear reservoir bays (0..7) relay.
+      if (!IsFrontlineBay(term_bay) && final_mass > 1 &&
+          !IsNyumbaBay(term_bay)) {
+        dread.current_sim_state =
+            static_cast<uint8_t>(SimulationState::RelayOverload);
       } else {
-        if (final_mass > 1 && !IsNyumbaBay(term_bay)) {
-          dread.current_sim_state =
-              static_cast<uint8_t>(SimulationState::RelayOverload);
-        } else {
-          dread.current_sim_state =
-              static_cast<uint8_t>(SimulationState::CleanupCheck);
-        }
+        dread.current_sim_state =
+            static_cast<uint8_t>(SimulationState::CleanupCheck);
       }
       break;
     }
 
     case SimulationState::CrossDischarge: {
-      // Instant lance transition: Lance damage and beam creation were executed
-      // immediately upon entry in ExecuteCrossDischarge. Transition immediately
-      // to CleanupCheck so the dreadnought returns to OrbitalIdle and remains
-      // responsive for subsequent tactical commands, while active lances render
-      // and decay independently.
       dread.current_sim_state =
           static_cast<uint8_t>(SimulationState::CleanupCheck);
       break;
@@ -272,34 +216,19 @@ void BaoCascadeSystem::StepFSM(
       }
 
       if (sowing.cascade_depth >= 10) {
-        // Prevent infinite cascade loops by forcing discharge on 10th lap
-        auto &bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
-        const uint32_t terminal_mass =
-            bay.charge_units > 0 ? bay.charge_units : 1;
+        // Prevent infinite relay loops by settling on 10th lap
         dread.current_sim_state =
-            static_cast<uint8_t>(SimulationState::CrossDischarge);
-        discharge_system.ExecuteCrossDischarge(registry, dreadnought_entity,
-                                               bay_entities, spatial_grid,
-                                               term_bay, terminal_mass);
+            static_cast<uint8_t>(SimulationState::CleanupCheck);
         break;
       }
 
       auto &bay = registry.get<BatteryComponent>(bay_entities[term_bay]);
-
       const uint32_t scooped_mass = bay.charge_units;
       bay.charge_units = 0;
       sowing.remaining_units = scooped_mass;
       sowing.cascade_depth++;
       sowing.step_direction =
           ResolveSowDirection(term_bay, sowing.step_direction);
-
-      const float col_x = IsFrontlineBay(term_bay)
-                              ? (static_cast<float>(term_bay - 8) + 0.5f) /
-                                    static_cast<float>(kCorridorCount)
-                              : dread.orbital_position_x;
-      discharge_system.ExecuteFlakDetonation(
-          registry, dreadnought_entity, col_x, dread.orbital_position_y + 0.05f,
-          scooped_mass);
 
       dread.current_sim_state =
           static_cast<uint8_t>(SimulationState::SowingTraversal);

@@ -73,17 +73,22 @@ void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,
 
     // 2. Behavioral flight patterns with multi-corridor lateral swaying
     float lateral_velocity = 0.0f;
+    float target_bank = 0.0f;
+    float target_pitch = 0.0f;
     const float phase = static_cast<float>(enemy.entity_id) * 1.57f;
+    const float attitude_blend = std::min(1.0f, delta_time * 8.0f);
 
     switch (enemy.behavior_mode) {
       case 1: {
         // Swooper: Wide elliptical swoop arc crossing adjacent corridors
         const float swoop_speed = 1.65f;
         lateral_velocity = std::cos(elapsed_time * swoop_speed + phase) * 0.25f;
-        enemy.pitch_angle_rad =
-            std::sin(elapsed_time * swoop_speed + phase) * 0.32f;
-        enemy.bank_angle_rad =
-            std::clamp(lateral_velocity * 2.1f, -0.58f, 0.58f);
+        target_pitch = std::sin(elapsed_time * swoop_speed + phase) * 0.32f;
+        target_bank = std::clamp(lateral_velocity * 2.1f, -0.58f, 0.58f);
+        enemy.pitch_angle_rad +=
+            (target_pitch - enemy.pitch_angle_rad) * attitude_blend;
+        enemy.bank_angle_rad +=
+            (target_bank - enemy.bank_angle_rad) * attitude_blend;
         enemy.world_pos_y -=
             enemy.velocity_y *
             (1.0f + 0.3f * std::max(0.0f, enemy.pitch_angle_rad)) * delta_time;
@@ -93,10 +98,11 @@ void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,
         // Lane Weaver: Dynamic S-curve weaving across 2+ corridors
         const float weave_speed = 1.95f;
         lateral_velocity = std::sin(elapsed_time * weave_speed + phase) * 0.28f;
-        enemy.bank_angle_rad =
-            std::clamp(lateral_velocity * 1.9f, -0.55f, 0.55f);
+        target_bank = std::clamp(lateral_velocity * 1.9f, -0.55f, 0.55f);
+        enemy.bank_angle_rad +=
+            (target_bank - enemy.bank_angle_rad) * attitude_blend;
         enemy.pitch_angle_rad +=
-            (0.0f - enemy.pitch_angle_rad) * 4.0f * delta_time;
+            (0.0f - enemy.pitch_angle_rad) * attitude_blend;
         enemy.world_pos_y -= enemy.velocity_y * delta_time;
         break;
       }
@@ -106,36 +112,34 @@ void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,
         const bool is_damaged = (enemy.current_hull < enemy.max_hull ||
                                  enemy.current_shields < enemy.max_shields);
         const float speed_mult = is_damaged ? 1.55f : 1.0f;
-        enemy.pitch_angle_rad = is_damaged ? 0.38f : 0.0f;
+        target_pitch = is_damaged ? 0.38f : 0.0f;
+        enemy.pitch_angle_rad +=
+            (target_pitch - enemy.pitch_angle_rad) * attitude_blend;
         if (lateral_drift) {
           lateral_velocity = std::sin(elapsed_time * 1.75f + phase) * 0.22f;
-          enemy.bank_angle_rad =
-              std::clamp(lateral_velocity * 1.8f, -0.52f, 0.52f);
-        } else {
-          enemy.bank_angle_rad +=
-              (0.0f - enemy.bank_angle_rad) * 4.0f * delta_time;
+          target_bank = std::clamp(lateral_velocity * 1.8f, -0.52f, 0.52f);
         }
+        enemy.bank_angle_rad +=
+            (target_bank - enemy.bank_angle_rad) * attitude_blend;
         enemy.world_pos_y -= enemy.velocity_y * speed_mult * delta_time;
         break;
       }
       default: {
         // Standard flight
+        if (lateral_drift) {
+          lateral_velocity = std::sin(elapsed_time * 1.60f + phase) * 0.23f;
+          target_bank = std::clamp(lateral_velocity * 1.9f, -0.55f, 0.55f);
+        }
         enemy.bank_angle_rad +=
-            (0.0f - enemy.bank_angle_rad) * 4.0f * delta_time;
+            (target_bank - enemy.bank_angle_rad) * attitude_blend;
         enemy.pitch_angle_rad +=
-            (0.0f - enemy.pitch_angle_rad) * 4.0f * delta_time;
+            (0.0f - enemy.pitch_angle_rad) * attitude_blend;
         enemy.world_pos_y -= enemy.velocity_y * delta_time;
         break;
       }
     }
 
-    // 3. Global Lateral Sway: Smooth multi-corridor weaving when enabled
-    if (lateral_drift && enemy.behavior_mode == 0) {
-      lateral_velocity = std::sin(elapsed_time * 1.60f + phase) * 0.23f;
-      enemy.bank_angle_rad = std::clamp(lateral_velocity * 1.9f, -0.55f, 0.55f);
-    }
-
-    // 4. Integrate lateral position across corridors and update assigned
+    // 3. Integrate lateral position across corridors and update assigned
     // corridor
     enemy.velocity_x = lateral_velocity;
     if (lateral_velocity != 0.0f) {
@@ -149,7 +153,8 @@ void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,
     active_entities.push_back(entity);
   }
 
-  // 5. Pairwise 2D spatial separation so swaying ships never stack or overlap
+  // 4. Smooth continuous pairwise 2D spring separation so swaying ships
+  // smoothly glide around each other without frame-to-frame snapping/stuttering
   if (active_entities.size() > 1) {
     std::sort(active_entities.begin(), active_entities.end(),
               [&view](entt::entity a, entt::entity b) {
@@ -158,20 +163,30 @@ void MovementSystem::AdvanceEnemies(entt::registry& registry, float delta_time,
               });
 
     constexpr float kMinGapX = 0.095f;
-    constexpr float kMinGapY = 0.16f;
+    constexpr float kMinGapY = 0.14f;
+    constexpr float kSpringRateX = 0.28f;
+    constexpr float kSpringRateY = 0.32f;
     for (size_t i = 0; i < active_entities.size(); ++i) {
       const auto& leader = view.get<EnemyVesselComponent>(active_entities[i]);
       for (size_t j = i + 1; j < active_entities.size(); ++j) {
         auto& trailer = view.get<EnemyVesselComponent>(active_entities[j]);
         const float dx = trailer.world_pos_x - leader.world_pos_x;
         const float dy = trailer.world_pos_y - leader.world_pos_y;
-        if (std::abs(dx) < kMinGapX && dy < kMinGapY) {
-          trailer.world_pos_y = std::min(0.98f, leader.world_pos_y + kMinGapY);
+        const float abs_dx = std::abs(dx);
+        if (abs_dx < kMinGapX && dy < kMinGapY) {
+          const float overlap_x = (kMinGapX - abs_dx) / kMinGapX;
+          const float overlap_y =
+              std::clamp((kMinGapY - dy) / kMinGapY, 0.0f, 1.0f);
+          const float weight = overlap_x * overlap_y;
+          const float nudge_sign = (dx >= 0.0f) ? 1.0f : -1.0f;
+          trailer.world_pos_x =
+              std::clamp(trailer.world_pos_x +
+                             nudge_sign * kSpringRateX * weight * delta_time,
+                         0.0625f, 0.9375f);
+          trailer.world_pos_y = std::min(
+              0.98f, trailer.world_pos_y + kSpringRateY * weight * delta_time);
           trailer.world_pos_z =
               std::clamp(1.0f - trailer.world_pos_y, 0.0f, 1.0f);
-          const float nudge_sign = (dx >= 0.0f) ? 1.0f : -1.0f;
-          trailer.world_pos_x = std::clamp(
-              trailer.world_pos_x + nudge_sign * 0.035f, 0.0625f, 0.9375f);
           trailer.assigned_corridor = static_cast<uint16_t>(
               std::clamp(static_cast<int>(trailer.world_pos_x * 8.0f), 0, 7));
         }

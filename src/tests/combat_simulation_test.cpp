@@ -99,18 +99,20 @@ TEST(CombatSimulationTest, CrossDischargeDestroysEnemy) {
   // becomes 0
   combat.Update(kFixedTimeStep);
 
-  // Next step: EvaluateDestination detects frontline alignment with corridor 0
-  // and fires lance
+  // Next step: EvaluateDestination settles in bay 8 WITHOUT auto-firing
   combat.Update(kFixedTimeStep);
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_shields, 50.0f);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
+
+  // Now explicitly trigger weapon discharge on frontline bay 8
+  EXPECT_TRUE(combat.DischargeBay(8, 1.0f));
 
   // Verify enemy in corridor 0 took lance damage (D(1) = 100, absorbs 50 shield
   // + 50 hull -> 50 hull remaining)
-  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_EQ(vessel.current_shields, 0.0f);
   EXPECT_FLOAT_EQ(vessel.current_hull, 50.0f);
   EXPECT_EQ(vessel.is_destroyed, 0);
-
-  // Second injection with 2 units would finish it off!
 }
 
 TEST(CombatSimulationTest, AxialLanceFiresFromDreadnoughtPosition) {
@@ -140,10 +142,16 @@ TEST(CombatSimulationTest, AxialLanceFiresFromDreadnoughtPosition) {
                                                     .is_destroyed = 0,
                                                 });
 
-  // Inject into bay 10 (+1) -> lands in bay 11
+  // Inject into bay 10 (+1) -> lands in bay 11 and primes it without firing
   EXPECT_TRUE(combat.InjectCore(10, 1));
   combat.Update(kFixedTimeStep);  // SowingTraversal
-  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
+  combat.Update(kFixedTimeStep);  // EvaluateDestination (settles in bay 11)
+
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 200.0f);
+
+  // Explicitly fire bay 11
+  EXPECT_TRUE(combat.DischargeBay(11, 1.0f));
 
   // Check that ParticleLance component was created with origin_x matching
   // dreadnought position
@@ -160,7 +168,6 @@ TEST(CombatSimulationTest, AxialLanceFiresFromDreadnoughtPosition) {
 
   // Verify enemy in Corridor 3 received lance damage (D(1) = 100 -> 100 hull
   // remaining)
-  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
@@ -341,7 +348,14 @@ TEST(CombatSimulationTest, Bay15KichwaLanceDischarge) {
     }
   }
 
-  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
+  combat.Update(kFixedTimeStep);  // EvaluateDestination (settles in Bay 14)
+
+  // Sowing alone must not auto-fire
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 200.0f);
+
+  // Explicitly discharge primed Bay 14
+  EXPECT_TRUE(combat.DischargeBay(14, 1.0f));
 
   // Verify particle lance fired strictly from dreadnought prow and damaged
   // enemy in Corridor 6
@@ -355,7 +369,6 @@ TEST(CombatSimulationTest, Bay15KichwaLanceDischarge) {
   }
   EXPECT_TRUE(found_lance);
 
-  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
@@ -402,7 +415,12 @@ TEST(CombatSimulationTest, Bay8KichwaLanceDischarge) {
     }
   }
 
-  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge
+  combat.Update(kFixedTimeStep);  // EvaluateDestination (settles in Bay 9)
+  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
+  EXPECT_FLOAT_EQ(vessel.current_hull, 200.0f);
+
+  // Explicitly discharge primed Bay 9
+  EXPECT_TRUE(combat.DischargeBay(9, 1.0f));
 
   // Verify particle lance fired strictly from dreadnought prow and damaged
   // enemy in Corridor 1
@@ -416,7 +434,6 @@ TEST(CombatSimulationTest, Bay8KichwaLanceDischarge) {
   }
   EXPECT_TRUE(found_lance);
 
-  const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
@@ -455,8 +472,7 @@ TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
 
   // Dry-run forward prediction:
   // From Bay 13 (+1), sows 3 units: 14 (+1) -> 15 (+1) [reverses to -1] -> 14
-  // (-1). Lands on frontline Bay 14 with final_mass 2, triggering lance in
-  // Corridor 6!
+  // (-1). Lands on frontline Bay 14 with final_mass 2!
   auto pred = combat.PredictSow(13, 1);
   EXPECT_EQ(pred.terminal_bay, 14);
   EXPECT_EQ(pred.terminal_corridor, 6);
@@ -472,12 +488,12 @@ TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
   combat.Update(kFixedTimeStep);  // Step 2 -> Bay 15 (reversal triggered)
   combat.Update(kFixedTimeStep);  // Step 3 -> Bay 14
   combat.Update(
-      kFixedTimeStep);  // EvaluateDestination -> CrossDischarge on Bay 14
+      kFixedTimeStep);  // EvaluateDestination -> settles in Bay 14 with mass 2
 
-  // Verify terminal bay distribution after CrossDischarge:
+  // Verify terminal bay distribution after sowing (before firing):
   // Bay 13: 0
-  // Bay 14: 0 (discharged as axial particle lance)
-  // Bay 15: 1 (deposited on step 2, untouched by discharge)
+  // Bay 14: 2 (accumulated charge waiting for player fire command)
+  // Bay 15: 1 (deposited on step 2)
   // Bay 0:  0 (never entered inner reservoir)
   auto bay_view = registry.view<BatteryComponent>();
   for (auto b_entity : bay_view) {
@@ -485,7 +501,7 @@ TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
     if (b.bay_index == 13) {
       EXPECT_EQ(b.charge_units, 0);
     } else if (b.bay_index == 14) {
-      EXPECT_EQ(b.charge_units, 0);
+      EXPECT_EQ(b.charge_units, 2);
     } else if (b.bay_index == 15) {
       EXPECT_EQ(b.charge_units, 1);
     } else if (b.bay_index == 0) {
@@ -493,13 +509,15 @@ TEST(CombatSimulationTest, KichwaVectorConduitMomentumReversalInFlight) {
     }
   }
 
+  // Now explicitly discharge Bay 14
+  EXPECT_TRUE(combat.DischargeBay(14, 1.0f));
+
   // Verify enemy in Corridor 6 took damage from 2-unit lance: D(2) = 400.0f
   const auto &vessel = registry.get<EnemyVesselComponent>(enemy);
   EXPECT_FLOAT_EQ(vessel.current_hull, 100.0f);
 }
 
-TEST(CombatSimulationTest,
-     LanceOnlyFiresFromDreadnoughtFrontAndNeverDisplacedToBay) {
+TEST(CombatSimulationTest, SowingDoesNotAutoFireUntilExplicitlyDischarged) {
   entt::registry registry;
   CombatSystem combat(registry);
   combat.InitializeDreadnought(12, 0.2f);
@@ -510,7 +528,7 @@ TEST(CombatSimulationTest,
     combat.Update(kFixedTimeStep);
   }
 
-  // Spawn enemy in Corridor 5 (Bay 13), NOT in front of dreadnought
+  // Spawn enemy in Corridor 5 (Bay 13)
   auto enemy_c5 = registry.create();
   registry.emplace<EnemyVesselComponent>(enemy_c5, EnemyVesselComponent{
                                                        .entity_id = 505,
@@ -527,10 +545,6 @@ TEST(CombatSimulationTest,
                                                    });
   combat.RebuildSpatialGrid();
 
-  // Directly trigger cross discharge from Bay 13
-  // Even though Bay 13 corresponds to Corridor 5 and has an enemy in Corridor
-  // 5, the lance MUST strictly fire from the dreadnought prow at Corridor 2 (X
-  // = 0.3125f).
   std::array<uint32_t, kTotalBays> charges{};
   charges[13] = 2;
   combat.RestoreSnapshot(charges, 12, 0);
@@ -538,20 +552,16 @@ TEST(CombatSimulationTest,
   // Inject into bay 12 (+1) -> destination is bay 13
   EXPECT_TRUE(combat.InjectCore(12, 1));
   combat.Update(kFixedTimeStep);  // SowingTraversal: steps 12 -> 13
-  combat.Update(kFixedTimeStep);  // EvaluateDestination
+  combat.Update(kFixedTimeStep);  // EvaluateDestination: settles in bay 13
 
-  // Check lance origin: MUST match dreadnought position (Corridor 2, 0.3125f),
-  // NOT Corridor 5 (0.6875f)
+  // Verify no active lance was auto-spawned during sowing
   auto lance_view = registry.view<ParticleLanceComponent>();
   for (auto l_entity : lance_view) {
     const auto &lance = lance_view.get<ParticleLanceComponent>(l_entity);
-    if (lance.active == 0) continue;
-    EXPECT_NEAR(lance.origin_x, 0.3125f, 0.05f);
-    EXPECT_NE(lance.origin_x, 0.6875f);
+    EXPECT_EQ(lance.active, 0);
   }
 
-  // The enemy in Corridor 5 must NOT have taken damage because dreadnought was
-  // aiming at Corridor 2
+  // Enemy must be completely untouched during sowing
   const auto &vessel_c5 = registry.get<EnemyVesselComponent>(enemy_c5);
   EXPECT_FLOAT_EQ(vessel_c5.current_hull, 500.0f);
 }
@@ -830,11 +840,11 @@ TEST(CombatSimulationTest,
   // Inject into Bay 9 (+1 CW) -> lands on Bay 10 with final_mass = 2
   ASSERT_TRUE(combat.InjectCore(9, 1));
   combat.Update(kFixedTimeStep);  // Step 9 -> 10 (remaining_units = 0)
-  combat.Update(kFixedTimeStep);  // EvaluateDestination -> CrossDischarge +
-                                  // Mtaji harvest (+2 seeds)
+  combat.Update(kFixedTimeStep);  // EvaluateDestination -> settles in Bay 10
 
-  // Because Mtaji harvested +2 seeds from the enemy hit, simulation continues
-  // in SowingTraversal!
+  // Explicitly discharge primed Bay 10 (mass = 2) -> fires lance and harvests
+  // +2 Mtaji seeds into SowingTraversal!
+  ASSERT_TRUE(combat.DischargeBay(10, 1.0f));
   EXPECT_EQ(combat.GetSimulationState(), SimulationState::SowingTraversal);
 
   // Advance 2 more steps to sow the 2 harvested Mtaji seeds into Bays 11 & 12
@@ -896,6 +906,33 @@ TEST(CombatSimulationTest,
     } else if (enemies[i].assigned_corridor == 1) {
       EXPECT_EQ(enemies[i].is_destroyed, 0);
     }
+  }
+}
+
+TEST(CombatSimulationTest, SmoothInvaderSeparationNoStuttering) {
+  Engine engine;
+  engine.Initialize(12, 0.2f);
+  engine.SetLateralDrift(true);
+
+  // Spawn two invaders close together in the same corridor
+  ASSERT_TRUE(engine.SpawnEnemy(3, 0.80f, 0.02f, 50.0f, 100.0f, 0));
+  ASSERT_TRUE(engine.SpawnEnemy(3, 0.84f, 0.02f, 50.0f, 100.0f, 1));
+
+  std::array<EnemyVesselComponent, 8> prev{};
+  std::array<EnemyVesselComponent, 8> curr{};
+  ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(prev)), 2u);
+
+  for (int step = 0; step < 60; ++step) {
+    engine.Update(kFixedTimeStep);
+    ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(curr)), 2u);
+    for (size_t i = 0; i < 2; ++i) {
+      const float dx = std::abs(curr[i].world_pos_x - prev[i].world_pos_x);
+      const float dy = std::abs(curr[i].world_pos_y - prev[i].world_pos_y);
+      // Verify no sudden position teleportation (> 0.015 per 16ms frame)
+      EXPECT_LT(dx, 0.015f);
+      EXPECT_LT(dy, 0.015f);
+    }
+    prev = curr;
   }
 }
 

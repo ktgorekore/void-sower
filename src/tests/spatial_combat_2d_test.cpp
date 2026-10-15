@@ -101,8 +101,11 @@ TEST(SpatialCombat2DTest, ProximityScalesQuadraticLanceDamageInDeepSpace) {
 
   // Step SowingTraversal
   combat.Update(kFixedTimeStep);
-  // Step EvaluateDestination & CrossDischarge
+  // Step EvaluateDestination (settles in bay 8 without auto-firing)
   combat.Update(kFixedTimeStep);
+
+  // Explicitly fire bay 8
+  EXPECT_TRUE(combat.DischargeBay(8, 1.0f));
 
   // In deep space at y=0.65, proximity multiplier is 1.60.
   // Base lance damage M=1 is 100.
