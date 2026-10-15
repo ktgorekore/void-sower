@@ -17,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:void_sower/domain/models/campaign_sector.dart';
 import 'package:void_sower/domain/models/narrative_transmission.dart';
+import 'package:void_sower/domain/models/space_anomaly.dart';
 import 'package:void_sower/domain/services/persistence_service.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/presentation/controllers/combat_coordinator.dart';
@@ -89,12 +90,17 @@ void main() {
         final steps = engine.injectCore(8, 1);
         expect(steps, greaterThan(0));
 
+        // Sowing harvests +2 bonus seeds into adjacent bays without auto-firing.
         final afterCharges = engine.getBays().fold<int>(
           0,
           (sum, b) => sum + b.chargeUnits,
         );
+        expect(engine.getLances(), isEmpty);
+        expect(afterCharges, greaterThanOrEqualTo(beforeCharges + 2));
+
+        // Explicit discharge fires the accumulated frontline bay charge.
+        expect(engine.dischargeBay(9), equals(1));
         expect(engine.getLances(), isNotEmpty);
-        expect(afterCharges, greaterThanOrEqualTo(beforeCharges - 2));
       },
     );
 
@@ -320,11 +326,80 @@ void main() {
         final bridgeCam = chaseCam.nextMode();
         expect(bridgeCam.mode, CombatCameraMode.bridge3D);
         expect(bridgeCam.yawDeg, closeTo(-22.0, 0.01));
+
+        // Verify exact algebraic unprojection under oblique 3D yaw & chase parallax
+        final orbitCam = bridgeCam.copyWith(followX: 0.68, followZ: 0.14);
+        final obliqueProj = orbitCam.project(
+          size,
+          normX: 0.72,
+          normZ: 0.38,
+          elevationY: 0.0,
+        );
+        final obliqueUnproj = orbitCam.unprojectToTrenchFloor(
+          size,
+          obliqueProj.groundOffset,
+        );
+        expect(obliqueUnproj.dx, closeTo(0.72, 0.01));
+        expect(obliqueUnproj.dy, closeTo(0.38, 0.01));
+      },
+    );
+
+    test(
+      'Decoupled sowing redistributes cores without auto-firing until explicitly discharged',
+      () {
+        coordinator.initialize(sector: testSector1);
+        expect(coordinator.lances, isEmpty);
+
+        // Sowing from Bay 8 redistributes cores without spawning a lance
+        coordinator.sow(8, 1);
+        expect(coordinator.lances, isEmpty);
+
+        // Explicit frontline bay discharge fires the accumulated charge
+        final dmg = coordinator.dischargeFrontlineBay(9);
+        expect(dmg, greaterThan(0.0));
+        expect(coordinator.lances, isNotEmpty);
+      },
+    );
+
+    test(
+      '3D Space Anomalies drift toward Defender and grant rewards on interception or lance hit',
+      () {
+        coordinator.initialize(sector: testSector1);
+        final initialCores = coordinator.dreadnought.reserveCores;
+
+        // Spawn a coreCache anomaly right ahead of the Defender in Corridor 3
+        final slot = coordinator.spawnSpaceAnomaly(
+          corridor: 3,
+          type: SpaceAnomalyType.coreCache,
+          normZ: 0.08,
+        );
+        expect(slot, isNotNull);
+        expect(slot!.active, isTrue);
+
+        // Step simulation so the Defender intercepts the drifting anomaly in 3D space
+        coordinator.slidePosition2D(0.4375, 0.18);
+        coordinator.update(0.05, const Size(400, 800));
+
+        expect(coordinator.anomaliesDiscovered, equals(1));
+        expect(coordinator.dreadnought.reserveCores, equals(initialCores + 4));
+
+        // Spawn an ionNebulaSurge anomaly in Corridor 5 and intercept via lance fire
+        final surgeSlot = coordinator.spawnSpaceAnomaly(
+          corridor: 5,
+          type: SpaceAnomalyType.ionNebulaSurge,
+          normZ: 0.65,
+        );
+        expect(surgeSlot, isNotNull);
+        final cullBefore = coordinator.surgicalCullCharges;
+
+        coordinator.dischargeFrontlineBay(13); // Bay 13 = Corridor 5
+        expect(coordinator.anomaliesDiscovered, equals(2));
+        expect(coordinator.surgicalCullCharges, equals(cullBefore + 1));
       },
     );
 
     testWidgets(
-      'CombatScreen renders 3-Phase Checkpoint HUD, Comms Strip, and interactive 3D Camera Gimbal',
+      'CombatScreen removes top clutter banners and renders interactive 3D Camera Gimbal',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(1080, 2400));
         addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -341,10 +416,10 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 50));
 
-        // Verify 3-Phase Checkpoint chip is visible.
-        expect(find.textContaining('P1: RECON'), findsOneWidget);
-        // Verify Afrofuturist Narrative Comms speaker is visible.
-        expect(find.textContaining('ADMIRAL ZAWADI'), findsOneWidget);
+        // Verify top viewport clutter banners (checkpoint & narrative comms) are removed.
+        expect(find.textContaining('P1: RECON'), findsNothing);
+        expect(find.textContaining('ADMIRAL ZAWADI'), findsNothing);
+
         // Verify 3D Camera Gimbal Dock starts in CHASE 3D mode and cycles on tap.
         expect(find.textContaining('CHASE 3D'), findsOneWidget);
         await tester.tap(find.byKey(const Key('camera_mode_button')));

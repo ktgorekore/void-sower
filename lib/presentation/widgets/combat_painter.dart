@@ -23,17 +23,15 @@ import '../../domain/models/enemy_craft.dart';
 import '../../domain/models/flak_burst.dart';
 import '../../domain/models/floating_damage_number.dart';
 import '../../domain/models/lance_beam.dart';
+import '../../domain/models/space_anomaly.dart';
 import '../services/particle_service.dart';
 import '../theme/void_theme.dart';
 import 'combat_camera_3d.dart';
 import 'dreadnought_3d_mesh.dart';
 import 'invader_3d_mesh.dart';
 
-/// Retained Skia 3D perspective background layer rendering a wide-field 3D
-/// deep-space nebula expanse, the radiant 3D Target Star & Ringed Dyson
-/// Sanctuary, curved 3D radar distance arcs, and 8 sculpted 3D hexagonal
-/// Orbital Emitter Docks (`C1..C8`) at the defense perimeter without
-/// wireframe corridor grid outlines.
+/// Retained Skia 3D perspective background layer rendering a clean, clutter-free
+/// wide-field 3D deep-space nebula expanse and bottom defense perimeter line.
 class CombatBackgroundPainter extends CustomPainter {
   const CombatBackgroundPainter({
     this.isLowBattery = false,
@@ -81,71 +79,14 @@ class CombatBackgroundPainter extends CustomPainter {
     ..color = const Color(0xFFF59E0B).withValues(alpha: 0.06)
     ..style = PaintingStyle.fill;
 
-  static final Paint _emitterSkirtPaint = Paint()
-    ..color = const Color(0xFF081428).withValues(alpha: 0.95)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _emitterTopPaint = Paint()
-    ..color = const Color(0xFF102544).withValues(alpha: 0.92)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _emitterRimPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.55)
-    ..strokeWidth = 1.2
-    ..style = PaintingStyle.stroke;
-
-  static final Paint _emitterCorePaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.28)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _starCoronaOuterPaint = Paint()
-    ..color = VoidTheme.solarGold.withValues(alpha: 0.13)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _starCoronaMidPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.20)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _planetBodyPaint = Paint()
-    ..color = const Color(0xFFD97706)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _planetShadowPaint = Paint()
-    ..color = const Color(0xFF1E1B4B).withValues(alpha: 0.55)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _starCorePaint = Paint()
-    ..color = const Color(0xFFFFFBEB)
-    ..style = PaintingStyle.fill;
-
-  static final Paint _planetRimPaint = Paint()
-    ..color = VoidTheme.solarGoldLight.withValues(alpha: 0.88)
-    ..strokeWidth = 1.6
-    ..style = PaintingStyle.stroke;
-
-  static final Paint _planetRingPaint = Paint()
-    ..color = VoidTheme.solarGold.withValues(alpha: 0.58)
-    ..strokeWidth = 2.0
-    ..style = PaintingStyle.stroke;
-
-  static final Paint _planetRingInnerPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.48)
-    ..strokeWidth = 1.3
-    ..style = PaintingStyle.stroke;
-
   static final Paint _boundaryPaint = Paint()
-    ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.65)
-    ..strokeWidth = 1.8
+    ..color = VoidTheme.crimsonFlare.withValues(alpha: 0.48)
+    ..strokeWidth = 1.4
     ..style = PaintingStyle.stroke;
 
   static final Paint _railPaint = Paint()
-    ..color = VoidTheme.solarGold.withValues(alpha: 0.42)
-    ..strokeWidth = 1.6
-    ..style = PaintingStyle.stroke;
-
-  static final Paint _horizonArcPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.16)
-    ..strokeWidth = 1.0
+    ..color = VoidTheme.solarGold.withValues(alpha: 0.35)
+    ..strokeWidth = 1.4
     ..style = PaintingStyle.stroke;
 
   static final TextPainter _apogeePainter = TextPainter(
@@ -190,8 +131,6 @@ class CombatBackgroundPainter extends CustomPainter {
     textDirection: TextDirection.ltr,
   )..layout();
 
-  static final Path _scratchArcPath = Path();
-
   /// Static pre-laid out painter for atmospheric threshold label.
   @visibleForTesting
   static TextPainter get thresholdPainter => _thresholdPainter;
@@ -218,116 +157,25 @@ class CombatBackgroundPainter extends CustomPainter {
     textDirection: TextDirection.ltr,
   )..layout();
 
-  static final TextPainter _warpGateHeaderPainter = TextPainter(
-    text: TextSpan(
-      text: '★ STELLAR CONQUEST TARGET • DEEP-SPACE SANCTUARY ★',
-      style: TextStyle(
-        color: VoidTheme.solarGoldLight.withValues(alpha: 0.88),
-        fontSize: 7.4,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 1.0,
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-
-  static final List<TextPainter> _corridorPadPainters = List.generate(8, (i) {
-    return TextPainter(
-      text: TextSpan(
-        text: 'C${i + 1}',
-        style: TextStyle(
-          color: VoidTheme.solarGoldLight.withValues(alpha: 0.92),
-          fontSize: 8.2,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.6,
-          fontFamily: 'monospace',
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-  });
-
-  /// Renders the 3D Target Star & Ringed Dyson Sanctuary cleanly in the
-  /// deep-space vista below the top Admiral Zawadi comms banner.
-  void _draw3DTargetStarAndSanctuary(Canvas canvas, Size size) {
-    final starPt = camera.project(
-      size,
-      normX: 0.5,
-      normZ: 1.35,
-      elevationY: 0.04,
-    );
-    // Clamp vertical center so the star & rings always sit cleanly below the top comms banner
-    final starCenter = Offset(
-      starPt.screenOffset.dx,
-      starPt.screenOffset.dy.clamp(size.height * 0.24, size.height * 0.30),
-    );
-    final starR = size.width * 0.052;
-
-    if (!isLowBattery) {
-      canvas.drawCircle(starCenter, starR * 2.4, _starCoronaOuterPaint);
-      canvas.drawCircle(starCenter, starR * 1.5, _starCoronaMidPaint);
-    }
-
-    // Tilted 3D Dyson Sanctuary Rings orbiting the Target Star
-    canvas.save();
-    canvas.translate(starCenter.dx, starCenter.dy);
-    final ringTilt = math.sin(camera.pitchRad * 0.72).clamp(0.24, 0.56);
-    final outerRingRect = Rect.fromCenter(
-      center: Offset.zero,
-      width: starR * 3.9,
-      height: starR * 3.9 * ringTilt,
-    );
-    final innerRingRect = Rect.fromCenter(
-      center: Offset.zero,
-      width: starR * 2.65,
-      height: starR * 2.65 * ringTilt,
-    );
-    canvas.drawOval(outerRingRect, _planetRingPaint);
-    canvas.drawOval(innerRingRect, _planetRingInnerPaint);
-    canvas.restore();
-
-    // Solid 3D Radiant Star Sphere, Crescent Shadow & Bright Stellar Core
-    canvas.drawCircle(starCenter, starR, _planetBodyPaint);
-    canvas.drawCircle(
-      Offset(starCenter.dx - starR * 0.22, starCenter.dy + starR * 0.16),
-      starR * 0.82,
-      _planetShadowPaint,
-    );
-    canvas.drawCircle(
-      Offset(starCenter.dx + starR * 0.14, starCenter.dy - starR * 0.14),
-      starR * 0.54,
-      _starCorePaint,
-    );
-    canvas.drawCircle(starCenter, starR, _planetRimPaint);
-
-    // Paint Target Star header cleanly below the outer ring
-    final headerX = (starCenter.dx - _warpGateHeaderPainter.width * 0.5).clamp(
-      8.0,
-      math.max<double>(8.0, size.width - _warpGateHeaderPainter.width - 8.0),
-    );
-    _warpGateHeaderPainter.paint(
-      canvas,
-      Offset(headerX, starCenter.dy + starR * 1.35 + 4.0),
-    );
-  }
-
   /// Renders a seamless, lineless 3D deep-space nebula & cosmic horizon field
   /// using Gouraud-shaded hardware vertices without rigid lane grid outlines.
   void _drawDeepSpaceNebulaExpanse(Canvas canvas, Size size) {
     if (!isLowBattery) {
+      final shiftX = -camera.followX * 36.0;
+      final shiftY = camera.followZ * 28.0;
       canvas.drawCircle(
-        Offset(size.width * 0.24, size.height * 0.38),
-        size.width * 0.34,
+        Offset(size.width * 0.24 + shiftX, size.height * 0.34 + shiftY),
+        size.width * 0.36,
         _nebulaTealPaint,
       );
       canvas.drawCircle(
-        Offset(size.width * 0.76, size.height * 0.44),
-        size.width * 0.36,
+        Offset(size.width * 0.76 + shiftX * 0.8, size.height * 0.42 + shiftY),
+        size.width * 0.38,
         _nebulaAmethystPaint,
       );
       canvas.drawCircle(
-        Offset(size.width * 0.50, size.height * 0.27),
-        size.width * 0.28,
+        Offset(size.width * 0.50 + shiftX * 0.5, size.height * 0.22 + shiftY),
+        size.width * 0.30,
         _nebulaGoldPaint,
       );
     }
@@ -393,148 +241,12 @@ class CombatBackgroundPainter extends CustomPainter {
     canvas.drawVertices(vertices, BlendMode.dst, _deckVerticesPaint);
   }
 
-  /// Renders a subtle curved 3D radar range arc instead of a rigid grid line.
-  void _drawCurvedRadarHorizonArc(
-    Canvas canvas,
-    Size size,
-    double normZ,
-    TextPainter labelPainter,
-  ) {
-    final leftPt = camera.project(size, normX: 0.04, normZ: normZ);
-    final midPt = camera.project(size, normX: 0.50, normZ: normZ + 0.035);
-    final rightPt = camera.project(size, normX: 0.96, normZ: normZ);
-
-    _scratchArcPath
-      ..reset()
-      ..moveTo(leftPt.groundOffset.dx, leftPt.groundOffset.dy)
-      ..quadraticBezierTo(
-        midPt.groundOffset.dx,
-        midPt.groundOffset.dy,
-        rightPt.groundOffset.dx,
-        rightPt.groundOffset.dy,
-      );
-    canvas.drawPath(_scratchArcPath, _horizonArcPaint);
-
-    final lx = (rightPt.groundOffset.dx - labelPainter.width - 6.0).clamp(
-      8.0,
-      math.max<double>(8.0, size.width - labelPainter.width - 8.0),
-    );
-    labelPainter.paint(canvas, Offset(lx, rightPt.groundOffset.dy + 2.0));
-  }
-
-  /// Renders 8 sculpted 3D hexagonal Orbital Emitter Docks (`C1..C8`) along
-  /// the bottom defense perimeter so each corridor's origin is indicated
-  /// diegetically without drawing wireframe corridor lines up the screen.
-  void _draw3DEmitterDocks(Canvas canvas, Size size) {
-    for (var c = 0; c < 8; c++) {
-      final centerX = (c + 0.5) / 8.0;
-      final halfW = 0.046;
-      final nearLeft = camera.project(
-        size,
-        normX: centerX - halfW,
-        normZ: 0.002,
-      );
-      final nearRight = camera.project(
-        size,
-        normX: centerX + halfW,
-        normZ: 0.002,
-      );
-      final topNearLeft = camera.project(
-        size,
-        normX: centerX - halfW * 0.88,
-        normZ: 0.006,
-        elevationY: 0.028,
-      );
-      final topNearRight = camera.project(
-        size,
-        normX: centerX + halfW * 0.88,
-        normZ: 0.006,
-        elevationY: 0.028,
-      );
-      final topFarLeft = camera.project(
-        size,
-        normX: centerX - halfW * 0.72,
-        normZ: 0.048,
-        elevationY: 0.028,
-      );
-      final topFarRight = camera.project(
-        size,
-        normX: centerX + halfW * 0.72,
-        normZ: 0.048,
-        elevationY: 0.028,
-      );
-      final topFarTip = camera.project(
-        size,
-        normX: centerX,
-        normZ: 0.064,
-        elevationY: 0.028,
-      );
-
-      // 1. Solid 3D Front Extruded Armor Skirt of the Emitter Dock
-      _scratchArcPath
-        ..reset()
-        ..moveTo(nearLeft.groundOffset.dx, nearLeft.groundOffset.dy)
-        ..lineTo(nearRight.groundOffset.dx, nearRight.groundOffset.dy)
-        ..lineTo(topNearRight.screenOffset.dx, topNearRight.screenOffset.dy)
-        ..lineTo(topNearLeft.screenOffset.dx, topNearLeft.screenOffset.dy)
-        ..close();
-      canvas.drawPath(_scratchArcPath, _emitterSkirtPaint);
-
-      // 2. Solid 3D Pentagonal/Hexagonal Bevelled Top Emitter Deck
-      _scratchArcPath
-        ..reset()
-        ..moveTo(topNearLeft.screenOffset.dx, topNearLeft.screenOffset.dy)
-        ..lineTo(topNearRight.screenOffset.dx, topNearRight.screenOffset.dy)
-        ..lineTo(topFarRight.screenOffset.dx, topFarRight.screenOffset.dy)
-        ..lineTo(topFarTip.screenOffset.dx, topFarTip.screenOffset.dy)
-        ..lineTo(topFarLeft.screenOffset.dx, topFarLeft.screenOffset.dy)
-        ..close();
-      canvas.drawPath(_scratchArcPath, _emitterTopPaint);
-      canvas.drawPath(_scratchArcPath, _emitterRimPaint);
-
-      // 3. Glowing 3D Emitter Core Lens & C1..C8 Holographic Badge
-      final padCenter = camera.project(
-        size,
-        normX: centerX,
-        normZ: 0.028,
-        elevationY: 0.028,
-      );
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: padCenter.screenOffset,
-          width: 18.0,
-          height: 7.5,
-        ),
-        _emitterCorePaint,
-      );
-      final padPainter = _corridorPadPainters[c];
-      padPainter.paint(
-        canvas,
-        Offset(
-          padCenter.screenOffset.dx - padPainter.width * 0.5,
-          padCenter.screenOffset.dy - padPainter.height * 0.5,
-        ),
-      );
-    }
-  }
-
   @override
   void paint(Canvas canvas, Size size) {
-    // 1. Seamless 3D Deep-Space Nebula & Cosmic Horizon Field (no grid mesh!)
+    // 1. Seamless 3D Deep-Space Nebula & Cosmic Horizon Field (no target star, emitter docks, or text clutter!)
     _drawDeepSpaceNebulaExpanse(canvas, size);
 
-    // 2. Radiant 3D Target Star & Ringed Dyson Sanctuary below top comms banner
-    _draw3DTargetStarAndSanctuary(canvas, size);
-
-    // 3. Subtle Curved 3D Radar Range Arcs (+10km, +20km, +40km)
-    _drawCurvedRadarHorizonArc(canvas, size, 0.88, _apogeePainter);
-    _drawCurvedRadarHorizonArc(canvas, size, 0.56, _midCombatPainter);
-    _drawCurvedRadarHorizonArc(canvas, size, 0.28, _forwardEngagePainter);
-
-    // 4. 8 Sculpted 3D Hexagonal Orbital Emitter Docks (C1..C8) at Defense Perimeter
-    _draw3DEmitterDocks(canvas, size);
-
-    // 5. Bottom 3D Defender Perimeter Threshold Line at normZ = 0.0
+    // 2. Subtle Bottom 3D Defender Perimeter Threshold Line at normZ = 0.0
     final threshLeft = camera.project(size, normX: 0.02, normZ: 0.0);
     final threshRight = camera.project(size, normX: 0.98, normZ: 0.0);
     canvas.drawLine(
@@ -543,17 +255,7 @@ class CombatBackgroundPainter extends CustomPainter {
       _boundaryPaint,
     );
 
-    final threshMidX = math.max(
-      4.0,
-      (threshLeft.groundOffset.dx + threshRight.groundOffset.dx) * 0.5 -
-          _thresholdPainter.width * 0.5,
-    );
-    _thresholdPainter.paint(
-      canvas,
-      Offset(threshMidX, threshLeft.groundOffset.dy + 3.0),
-    );
-
-    // 6. Planetary Defense Base Rail
+    // 3. Planetary Defense Base Rail
     canvas.drawLine(
       Offset(0, size.height - 1.5),
       Offset(size.width, size.height - 1.5),
@@ -578,6 +280,7 @@ class CombatPainter extends CustomPainter {
     required this.lances,
     required this.flaks,
     required this.particles,
+    this.anomalies = const [],
     this.damageNumbers = const [],
     this.enemyBullets = const [],
     this.millTriadBays = const <int>{},
@@ -593,6 +296,7 @@ class CombatPainter extends CustomPainter {
   final List<LanceBeam> lances;
   final List<FlakBurst> flaks;
   final List<VisualParticle> particles;
+  final List<SpaceAnomaly> anomalies;
   final List<FloatingDamageNumber> damageNumbers;
   final List<EnemyBullet> enemyBullets;
   final Set<int> millTriadBays;
@@ -723,27 +427,6 @@ class CombatPainter extends CustomPainter {
     ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35)
     ..strokeWidth = 5.0
     ..style = PaintingStyle.stroke;
-
-  // ---------------------------------------------------------------------------
-  // Pre-computed Text Layout Pool (8 Tactical Conduits C1..C8)
-  // ---------------------------------------------------------------------------
-  static final List<TextPainter> _conduitLabelPainters = List.generate(8, (i) {
-    final painter = TextPainter(
-      text: TextSpan(
-        text: '⌖ [C${i + 1}]',
-        style: const TextStyle(
-          color: VoidTheme.solarGold,
-          fontSize: 8.5,
-          fontWeight: FontWeight.w900,
-          letterSpacing: 0.8,
-          shadows: [Shadow(color: Colors.black, blurRadius: 4.0)],
-        ),
-      ),
-    );
-    painter.textDirection = TextDirection.ltr;
-    painter.layout();
-    return painter;
-  });
 
   static final Paint _damageTagBgPaint = Paint()
     ..color = VoidTheme.obsidianBlack.withValues(alpha: 0.92)
@@ -882,76 +565,6 @@ class CombatPainter extends CustomPainter {
     ..strokeWidth = 2.4
     ..strokeCap = StrokeCap.round;
 
-  static final Paint _altimeterRailPaint = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.2
-    ..color = const Color(0xFF1E293B);
-
-  static final Paint _altimeterTickPaint = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 1.2
-    ..color = const Color(0xFF334155);
-
-  static final Paint _altimeterMarkerPaint = Paint()
-    ..style = PaintingStyle.fill
-    ..color = VoidTheme.plasmaCyan;
-
-  static final Paint _altimeterMarkerGlowPaint = Paint()
-    ..style = PaintingStyle.fill
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.35);
-
-  static final TextPainter _altimeterOrbitPainter = TextPainter(
-    text: const TextSpan(
-      text: 'ORB',
-      style: TextStyle(
-        color: VoidTheme.emeraldShield,
-        fontSize: 6.5,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0.5,
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-
-  static final TextPainter _altimeterStratoPainter = TextPainter(
-    text: const TextSpan(
-      text: 'STR',
-      style: TextStyle(
-        color: VoidTheme.textMuted,
-        fontSize: 6.5,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 0.5,
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-
-  static final TextPainter _altimeterDeepSpacePainter = TextPainter(
-    text: const TextSpan(
-      text: 'DEEP',
-      style: TextStyle(
-        color: VoidTheme.plasmaCyan,
-        fontSize: 6.5,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0.5,
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-
-  static final TextPainter _altimeterVanguardPainter = TextPainter(
-    text: const TextSpan(
-      text: '+60%',
-      style: TextStyle(
-        color: VoidTheme.solarGold,
-        fontSize: 6.5,
-        fontWeight: FontWeight.w900,
-        letterSpacing: 0.5,
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-
   static final Paint _powerFeedGlowPaint = Paint()
     ..color = VoidTheme.solarGold.withValues(alpha: 0.38)
     ..strokeWidth = 5.0
@@ -983,9 +596,9 @@ class CombatPainter extends CustomPainter {
 
   static final Int32List _enemySortOrder = Int32List(64);
 
-  /// Renders scrolling 3D flanking Stargate wing-pylons and floating 3D astral
-  /// lane buoys (instead of wireframe corridor outlines or horizontal grid lines)
-  /// streaming from the distant Target Star (`normZ = 1.35`) down to `0.04`.
+  /// Renders floating 3D astral lane buoys and active-corridor chevrons
+  /// streaming through 3D space without cluttering the viewport with wing-pylons
+  /// or emitter dock ovals.
   void _drawInfiniteScrollingHighway3D(
     Canvas canvas,
     Size size,
@@ -1006,83 +619,11 @@ class CombatPainter extends CustomPainter {
       }
     }
 
-    // 2. Illuminate base 3D Emitter Docks for occupied or active corridors
-    for (var c = 0; c < 8; c++) {
-      final isOccupied = (occupiedMask & (1 << c)) != 0;
-      final isActive = c == activeCorridor;
-      if (!isOccupied && !isActive) continue;
-
-      final dockPt = cam.project(
-        size,
-        normX: (c + 0.5) / 8.0,
-        normZ: 0.028,
-        elevationY: 0.028,
-      );
-      _scrollPylonPaint
-        ..color = (isActive ? VoidTheme.plasmaCyan : VoidTheme.crimsonFlare)
-            .withValues(alpha: isActive ? 0.78 : 0.62)
-        ..strokeWidth = isActive ? 2.0 : 1.5;
-      canvas.drawOval(
-        Rect.fromCenter(
-          center: dockPt.screenOffset,
-          width: isActive ? 34.0 : 28.0,
-          height: isActive ? 13.0 : 10.5,
-        ),
-        _scrollPylonPaint,
-      );
-    }
-
-    // 3. Scrolling 3D Astral Waypoint Buoys along each lane center (no corridor lines!)
+    // 2. Scrolling 3D Astral Waypoint Buoys along each lane center
     const totalBuoyRows = 6;
     for (var s = 0; s < totalBuoyRows; s++) {
       final u = ((s + phase) / totalBuoyRows).clamp(0.02, 0.98);
       final normZ = math.pow(1.0 - u, 1.35).toDouble() * 1.22 + 0.06;
-
-      // Flanking 3D Stargate Wing-Pylons rushing past in peripheral space
-      if (!isLowBattery) {
-        for (final isLeft in const [true, false]) {
-          final baseX = isLeft ? 0.015 : 0.985;
-          final tipX = isLeft ? 0.045 : 0.955;
-          final pBase = cam.project(
-            size,
-            normX: baseX,
-            normZ: normZ,
-            elevationY: 0.04,
-          );
-          final pTop = cam.project(
-            size,
-            normX: tipX,
-            normZ: normZ,
-            elevationY: 0.22,
-          );
-          final pAft = cam.project(
-            size,
-            normX: baseX,
-            normZ: (normZ - 0.04).clamp(0.0, 1.4),
-            elevationY: 0.10,
-          );
-          final gateAlpha = (u * 0.45 + normForward * 0.22).clamp(0.08, 0.58);
-          _scrollSleeperPaint.color = const Color(
-            0xFF1E3A6D,
-          ).withValues(alpha: gateAlpha * 0.75);
-          _scratchReticlePath
-            ..reset()
-            ..moveTo(pBase.screenOffset.dx, pBase.screenOffset.dy)
-            ..lineTo(pTop.screenOffset.dx, pTop.screenOffset.dy)
-            ..lineTo(pAft.screenOffset.dx, pAft.screenOffset.dy)
-            ..close();
-          canvas.drawPath(_scratchReticlePath, _scrollSleeperPaint);
-
-          _scrollPylonPaint
-            ..color = VoidTheme.plasmaCyan.withValues(alpha: gateAlpha)
-            ..strokeWidth = (1.6 * pBase.perspectiveScale).clamp(0.7, 1.8);
-          canvas.drawLine(
-            pBase.screenOffset,
-            pTop.screenOffset,
-            _scrollPylonPaint,
-          );
-        }
-      }
 
       // Floating 3D Astral Lane Buoys for each of the 8 corridors (C1..C8)
       for (var c = 0; c < 8; c++) {
@@ -1134,20 +675,124 @@ class CombatPainter extends CustomPainter {
           if (isOccupied) {
             buoyColor = VoidTheme.crimsonFlare;
             buoyAlpha = (u * 0.55 + 0.20).clamp(0.20, 0.72);
-            r = (3.2 * pScale).clamp(1.6, 3.6);
+            r = (3.0 * pScale).clamp(1.4, 3.4);
           } else if (isMill) {
             buoyColor = VoidTheme.solarGold;
             buoyAlpha = (u * 0.55 + 0.22).clamp(0.22, 0.75);
-            r = (3.2 * pScale).clamp(1.6, 3.6);
+            r = (3.0 * pScale).clamp(1.4, 3.4);
           } else {
             buoyColor = VoidTheme.plasmaCyan;
-            buoyAlpha = (u * 0.24 + 0.08).clamp(0.08, 0.30);
-            r = (2.1 * pScale).clamp(1.1, 2.4);
+            buoyAlpha = (u * 0.20 + 0.06).clamp(0.06, 0.24);
+            r = (1.9 * pScale).clamp(1.0, 2.2);
           }
           _scrollSleeperPaint.color = buoyColor.withValues(alpha: buoyAlpha);
           canvas.drawCircle(buoyPt.screenOffset, r, _scrollSleeperPaint);
         }
       }
+    }
+  }
+
+  /// Renders discoverable 3D space anomalies (Plasma Core Caches, Ancient Bao
+  /// Relics, and Ion Nebula Surges) drifting through 3D space.
+  void _drawSpaceAnomalies3D(Canvas canvas, Size size, CombatCamera3D cam) {
+    for (var i = 0; i < anomalies.length; i++) {
+      final anomaly = anomalies[i];
+      if (!anomaly.active) continue;
+
+      final normX = anomaly.normX.clamp(0.04, 0.96);
+      final normZ = anomaly.normZ.clamp(0.0, 1.0);
+      final bobElev =
+          anomaly.elevationY +
+          0.022 * math.sin(animationTime * 3.2 + anomaly.id);
+      final proj = cam.project(
+        size,
+        normX: normX,
+        normZ: normZ,
+        elevationY: bobElev,
+      );
+      final pScale = proj.perspectiveScale;
+      final cx = proj.screenOffset.dx;
+      final cy = proj.screenOffset.dy;
+
+      final Color primaryColor;
+      final Color coreColor;
+      switch (anomaly.type) {
+        case SpaceAnomalyType.coreCache:
+          primaryColor = VoidTheme.solarGold;
+          coreColor = VoidTheme.solarGoldLight;
+        case SpaceAnomalyType.ancientRelic:
+          primaryColor = const Color(0xFFA855F7);
+          coreColor = const Color(0xFFE9D5FF);
+        case SpaceAnomalyType.ionNebulaSurge:
+          primaryColor = VoidTheme.plasmaCyan;
+          coreColor = Colors.white;
+      }
+
+      // 1. Subtle 3D ground projection tether & ring
+      final groundW = 22.0 * pScale;
+      final groundH = 7.5 * pScale;
+      _scrollPylonPaint
+        ..color = primaryColor.withValues(alpha: 0.32)
+        ..strokeWidth = 1.0;
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: proj.groundOffset,
+          width: groundW,
+          height: groundH,
+        ),
+        _scrollPylonPaint,
+      );
+      canvas.drawLine(proj.groundOffset, proj.screenOffset, _scrollPylonPaint);
+
+      // 2. Rotating 3D orbital energy ring around the anomaly crystal
+      final radius = (15.0 * pScale).clamp(7.0, 19.0);
+      final spin = anomaly.rotationRad + animationTime * 1.8;
+      canvas.save();
+      canvas.translate(cx, cy);
+      canvas.rotate(math.sin(spin) * 0.42);
+      _scrollPylonPaint
+        ..color = primaryColor.withValues(alpha: 0.72)
+        ..strokeWidth = (1.6 * pScale).clamp(0.9, 2.0);
+      canvas.drawOval(
+        Rect.fromCenter(
+          center: Offset.zero,
+          width: radius * 2.3,
+          height: radius * 0.9,
+        ),
+        _scrollPylonPaint,
+      );
+      canvas.restore();
+
+      // 3. 3D Octahedral Crystal Facets
+      final waistX =
+          radius * 0.78 * math.cos(spin * 0.7).abs().clamp(0.35, 1.0);
+      _scratchReticlePath
+        ..reset()
+        ..moveTo(cx, cy - radius)
+        ..lineTo(cx + waistX, cy)
+        ..lineTo(cx, cy + radius)
+        ..lineTo(cx - waistX, cy)
+        ..close();
+      _scrollSleeperPaint.color = primaryColor.withValues(alpha: 0.45);
+      canvas.drawPath(_scratchReticlePath, _scrollSleeperPaint);
+
+      _scrollPylonPaint
+        ..color = coreColor.withValues(alpha: 0.92)
+        ..strokeWidth = (1.5 * pScale).clamp(0.9, 1.8);
+      canvas.drawPath(_scratchReticlePath, _scrollPylonPaint);
+
+      // Internal 3D crystal ridge lines
+      canvas.drawLine(
+        Offset(cx, cy - radius),
+        Offset(cx, cy + radius),
+        _scrollPylonPaint,
+      );
+      _scrollSleeperPaint.color = coreColor;
+      canvas.drawCircle(
+        Offset(cx, cy),
+        (3.4 * pScale).clamp(1.8, 4.4),
+        _scrollSleeperPaint,
+      );
     }
   }
 
@@ -1189,7 +834,7 @@ class CombatPainter extends CustomPainter {
     final dreadElevation = 0.12 + normForward * 0.08;
     final activeCorridor = (dreadNormX * 8.0).floor().clamp(0, 7);
 
-    // -1. Render Scrolling 3D Stargate Pylons & Floating 3D Astral Lane Buoys
+    // -1. Render Floating 3D Astral Lane Buoys & Discoverable 3D Space Anomalies
     _drawInfiniteScrollingHighway3D(
       canvas,
       size,
@@ -1197,6 +842,7 @@ class CombatPainter extends CustomPainter {
       normForward,
       activeCorridor,
     );
+    _drawSpaceAnomalies3D(canvas, size, cam);
 
     final shipProj = cam.project(
       size,
@@ -1781,14 +1427,12 @@ class CombatPainter extends CustomPainter {
       canvas.drawPath(_scratchBarPath, _healthHullPaint);
     }
 
-    var topLabelY = barY - 2.0;
     if (enemy.maxShields > 0) {
       final shieldFraction = (enemy.currentShields / enemy.maxShields).clamp(
         0.0,
         1.0,
       );
       final sBarY = barY - 4.0;
-      topLabelY = sBarY - 2.0;
       _scratchBarPath.reset();
       _scratchBarPath.moveTo(barLeft, sBarY);
       _scratchBarPath.lineTo(barLeft + barW, sBarY);
@@ -1806,19 +1450,6 @@ class CombatPainter extends CustomPainter {
         _scratchBarPath.close();
         canvas.drawPath(_scratchBarPath, _healthShieldPaint);
       }
-    }
-
-    // Live diegetic corridor badge ([C1]..[C8]) above each swaying invader
-    if (!isLowBattery && warpProgress > 0.5) {
-      final cIdx = enemy.assignedCorridor.clamp(0, 7);
-      final badgePainter = _conduitLabelPainters[cIdx];
-      badgePainter.paint(
-        canvas,
-        Offset(
-          x - badgePainter.width / 2,
-          topLabelY - badgePainter.height - 1.5,
-        ),
-      );
     }
   }
 
@@ -1914,7 +1545,7 @@ class CombatPainter extends CustomPainter {
       _flightTrackPaint,
     );
 
-    // 3. Glowing Plasma Power Tether from Active C1..C8 Dock Pad to Defender Reactor
+    // 3. Glowing Plasma Power Tether from Active Dock Pad to Defender Reactor
     final activeDockPad = cam.project(
       size,
       normX: (activeCorridor + 0.5) / 8.0,
@@ -2226,125 +1857,6 @@ class CombatPainter extends CustomPainter {
       math.pi * 0.7,
       false,
       _shieldArcPaint,
-    );
-
-    // Upward Cannon Aim Direction Hint above Prow
-    if (normForward < 0.25) {
-      final pulse = (0.5 + 0.5 * math.sin(animationTime * 4.0)).clamp(
-        0.2,
-        0.95,
-      );
-      final bucket = (((pulse - 0.20) / 0.75) * 15.0).round().clamp(0, 15);
-      final painter = _flightHintPainters[bucket];
-      final hintX = centerX - painter.width * 0.5;
-      final hintY = prowY - 16.0;
-      painter.paint(canvas, Offset(hintX, hintY));
-    }
-
-    // Active Defender Conduit Badge (always shown so player knows which corridor is locked!)
-    final labelPainter = _conduitLabelPainters[activeCorridor];
-    final labelX = (centerX - (labelPainter.width / 2)).clamp(
-      8.0,
-      size.width - labelPainter.width - 8.0,
-    );
-    labelPainter.paint(canvas, Offset(labelX, shipY + 18.0));
-
-    // Proximity Vanguard Telemetry Badge
-    if (dreadnought.proximityMultiplier > 1.01) {
-      final tierIndex = ((dreadnought.proximityMultiplier - 1.0) * 10)
-          .clamp(0, 6)
-          .toInt();
-      final tagPainter = _vanguardTagPainters[tierIndex];
-      final tagW = tagPainter.width + 8.0;
-      const tagH = 15.0;
-      final tagCenterY = prowY - 28.0;
-      final tagLeft = centerX - tagW * 0.5;
-      final tagTop = tagCenterY - tagH * 0.5;
-      final tagRect = RRect.fromLTRBR(
-        tagLeft,
-        tagTop,
-        tagLeft + tagW,
-        tagTop + tagH,
-        const Radius.circular(3.0),
-      );
-      canvas.drawRRect(tagRect, _damageTagBgPaint);
-      canvas.drawRRect(tagRect, _damageTagBorderPaint);
-      tagPainter.paint(
-        canvas,
-        Offset(
-          centerX - tagPainter.width * 0.5,
-          tagCenterY - tagPainter.height * 0.5,
-        ),
-      );
-    }
-
-    // -------------------------------------------------------------------------
-    // Tactical Spatial Altimeter / Elevation Rail (Left Margin)
-    // -------------------------------------------------------------------------
-    final maxTravelY = (boundaryY - topMargin) * 0.60;
-    final railBottom = boundaryY - 4.0;
-    final railTop = railBottom - maxTravelY;
-    const railX = 14.0;
-
-    canvas.drawLine(
-      Offset(railX, railTop - 6.0),
-      Offset(railX, railBottom + 6.0),
-      _altimeterRailPaint,
-    );
-
-    final yOrbit = railBottom;
-    final yStrato = railBottom - maxTravelY * 0.35;
-    final yDeep = railBottom - maxTravelY * 0.70;
-    final yVanguard = railTop;
-
-    canvas.drawLine(
-      Offset(railX - 3.0, yOrbit),
-      Offset(railX + 5.0, yOrbit),
-      _altimeterTickPaint,
-    );
-    canvas.drawLine(
-      Offset(railX - 2.0, yStrato),
-      Offset(railX + 4.0, yStrato),
-      _altimeterTickPaint,
-    );
-    canvas.drawLine(
-      Offset(railX - 2.0, yDeep),
-      Offset(railX + 4.0, yDeep),
-      _altimeterTickPaint,
-    );
-    canvas.drawLine(
-      Offset(railX - 3.0, yVanguard),
-      Offset(railX + 5.0, yVanguard),
-      _altimeterTickPaint,
-    );
-
-    _altimeterOrbitPainter.paint(
-      canvas,
-      Offset(railX + 8.0, yOrbit - _altimeterOrbitPainter.height / 2.0),
-    );
-    _altimeterStratoPainter.paint(
-      canvas,
-      Offset(railX + 8.0, yStrato - _altimeterStratoPainter.height / 2.0),
-    );
-    _altimeterDeepSpacePainter.paint(
-      canvas,
-      Offset(railX + 8.0, yDeep - _altimeterDeepSpacePainter.height / 2.0),
-    );
-    _altimeterVanguardPainter.paint(
-      canvas,
-      Offset(railX + 8.0, yVanguard - _altimeterVanguardPainter.height / 2.0),
-    );
-
-    final markerY = (railBottom - normForward * maxTravelY).clamp(
-      railTop,
-      railBottom,
-    );
-    canvas.drawCircle(Offset(railX, markerY), 4.5, _altimeterMarkerGlowPaint);
-    canvas.drawCircle(Offset(railX, markerY), 2.5, _altimeterMarkerPaint);
-    canvas.drawLine(
-      Offset(railX - 4.0, markerY),
-      Offset(railX + 4.0, markerY),
-      _altimeterMarkerPaint,
     );
   }
 

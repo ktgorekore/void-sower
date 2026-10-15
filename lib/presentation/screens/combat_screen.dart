@@ -18,8 +18,6 @@ import 'package:flutter/scheduler.dart';
 
 import '../../core/logging.dart';
 import '../../domain/models/campaign_sector.dart';
-import '../../domain/models/dreadnought_state.dart';
-import '../../domain/models/narrative_transmission.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/ad_service.dart';
 import '../../domain/services/campaign_service.dart';
@@ -44,7 +42,6 @@ import '../widgets/landscape_orientation_shield.dart';
 import '../widgets/mutation_selection_dialog.dart';
 import '../widgets/pause_menu_dialog.dart';
 import '../widgets/profile_modal.dart';
-import '../../domain/models/bay_role.dart';
 import '../widgets/pro_boost_modal.dart';
 import '../widgets/pro_upgrade_modal.dart';
 import '../widgets/rewarded_ad_modal.dart';
@@ -338,6 +335,10 @@ class _CombatScreenState extends State<CombatScreen>
       final velocityDx = (dread.targetPositionX - dread.orbitalPositionX).clamp(
         -1.0,
         1.0,
+      );
+      _camera3D = _camera3D.copyWith(
+        followX: dread.orbitalPositionX.clamp(0.0, 1.0),
+        followZ: normForward.clamp(0.0, 1.0),
       );
       _starfieldSimulation.update(
         dt: clampedDt,
@@ -1395,86 +1396,17 @@ class _CombatScreenState extends State<CombatScreen>
                                                               .isAutoSolving)) {
                                                     return;
                                                   }
-                                                  final vx = details
-                                                      .velocity
-                                                      .pixelsPerSecond
-                                                      .dx;
-                                                  final vy = details
-                                                      .velocity
-                                                      .pixelsPerSecond
-                                                      .dy;
-
-                                                  final activeCorridor =
-                                                      (_coordinator
-                                                                  .dreadnought
-                                                                  .orbitalPositionX *
-                                                              8.0)
-                                                          .floor()
-                                                          .clamp(0, 7);
-                                                  final activeBay =
-                                                      activeCorridor + 8;
-
                                                   final totalDragDistance =
                                                       _viewportDragDx.abs() +
                                                       _viewportDragDy.abs();
 
-                                                  // 1. Minimal displacement tap -> Quick-fire axial lance
+                                                  // 1. Minimal displacement tap -> Explicitly fire active corridor
                                                   if (totalDragDistance <
-                                                      15.0) {
+                                                      12.0) {
                                                     _coordinator
                                                         .quickFireActiveCorridor();
-                                                  }
-                                                  // 2. Upward flick -> Quick-fire axial lance / inject core (Namua)
-                                                  else if ((vy < -140.0 ||
-                                                          _viewportDragDy <
-                                                              -20.0) &&
-                                                      _viewportDragDy.abs() >
-                                                          _viewportDragDx
-                                                              .abs()) {
-                                                    _coordinator
-                                                        .quickFireActiveCorridor();
-                                                  }
-                                                  // 3. Swiped RIGHT (Clockwise)
-                                                  else if (_viewportDragDx >
-                                                          10.0 &&
-                                                      (vx > 90.0 ||
-                                                          _viewportDragDx >
-                                                              25.0)) {
-                                                    final resolvedDir =
-                                                        BayRole.resolveSowDirection(
-                                                          activeBay,
-                                                          1,
-                                                        );
-                                                    _coordinator
-                                                        .setSowDirection(
-                                                          resolvedDir,
-                                                        );
-                                                    _coordinator.sow(
-                                                      activeBay,
-                                                      resolvedDir,
-                                                    );
-                                                  }
-                                                  // 4. Swiped LEFT (Counter-Clockwise)
-                                                  else if (_viewportDragDx <
-                                                          -10.0 &&
-                                                      (vx < -90.0 ||
-                                                          _viewportDragDx <
-                                                              -25.0)) {
-                                                    final resolvedDir =
-                                                        BayRole.resolveSowDirection(
-                                                          activeBay,
-                                                          -1,
-                                                        );
-                                                    _coordinator
-                                                        .setSowDirection(
-                                                          resolvedDir,
-                                                        );
-                                                    _coordinator.sow(
-                                                      activeBay,
-                                                      resolvedDir,
-                                                    );
                                                   } else {
-                                                    // Settle smoothly into corridor center upon finger release
+                                                    // 2. Settle Defender smoothly into corridor center after 3D space steering
                                                     final currentNormX =
                                                         _coordinator
                                                             .dreadnought
@@ -1537,16 +1469,22 @@ class _CombatScreenState extends State<CombatScreen>
                                                         },
                                                       ),
                                                     ),
-                                                    // Retained Static Skia Surface (3D Trench Walls, Skybox & Corridors)
+                                                    // 3D Deep-Space Nebula & Horizon Plane
                                                     RepaintBoundary(
-                                                      child: CustomPaint(
-                                                        painter: CombatBackgroundPainter(
-                                                          isLowBattery:
-                                                              PersistenceService
-                                                                  .instance
-                                                                  .lowBatteryMode,
-                                                          camera: _camera3D,
-                                                        ),
+                                                      child: ListenableBuilder(
+                                                        listenable:
+                                                            _renderNotifier,
+                                                        builder: (context, _) {
+                                                          return CustomPaint(
+                                                            painter: CombatBackgroundPainter(
+                                                              isLowBattery:
+                                                                  PersistenceService
+                                                                      .instance
+                                                                      .lowBatteryMode,
+                                                              camera: _camera3D,
+                                                            ),
+                                                          );
+                                                        },
                                                       ),
                                                     ),
                                                     // Dynamic Combat Entities Layer (Zero Allocation & Isolated Repaint)
@@ -1574,6 +1512,9 @@ class _CombatScreenState extends State<CombatScreen>
                                                               particles: _coordinator
                                                                   .particleService
                                                                   .activeParticles,
+                                                              anomalies:
+                                                                  _coordinator
+                                                                      .anomalies,
                                                               damageNumbers:
                                                                   _coordinator
                                                                       .damageNumbers,
@@ -1606,7 +1547,7 @@ class _CombatScreenState extends State<CombatScreen>
                                             },
                                           ),
                                         ),
-                                        // Live Deep-Space Tactical Sortie Directive Banner & Afrofuturist Comms
+                                        // Checkpoint Relic Draft Bar (shown only when a Relic Draft is active)
                                         Positioned(
                                           top: 6.0,
                                           left: 14.0,
@@ -1614,484 +1555,107 @@ class _CombatScreenState extends State<CombatScreen>
                                           child: ListenableBuilder(
                                             listenable: _directiveNotifier,
                                             builder: (context, _) {
-                                              final dread =
-                                                  _coordinator.dreadnought;
-                                              final quest = dread.quest;
-                                              final hasActiveQuest =
-                                                  quest != QuestType.none;
-                                              final isVanguard =
-                                                  dread.proximityMultiplier >
-                                                  1.01;
-                                              final phase =
-                                                  _coordinator.checkpointPhase;
-                                              final transmission = _coordinator
-                                                  .activeTransmission;
                                               final draftChoices = _coordinator
                                                   .checkpointMutationChoices;
-
-                                              return Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.stretch,
-                                                children: [
-                                                  IgnorePointer(
-                                                    child: Row(
-                                                      children: [
-                                                        Expanded(
-                                                          child: Container(
-                                                            padding:
-                                                                const EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      8.0,
-                                                                  vertical: 3.5,
-                                                                ),
-                                                            decoration: BoxDecoration(
-                                                              color: VoidTheme
-                                                                  .obsidianBlack
-                                                                  .withValues(
-                                                                    alpha: 0.82,
-                                                                  ),
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    6.0,
-                                                                  ),
-                                                              border: Border.all(
-                                                                color:
-                                                                    hasActiveQuest
-                                                                    ? VoidTheme
-                                                                          .solarGold
-                                                                          .withValues(
-                                                                            alpha:
-                                                                                0.5,
-                                                                          )
-                                                                    : VoidTheme
-                                                                          .plasmaCyan
-                                                                          .withValues(
-                                                                            alpha:
-                                                                                0.3,
-                                                                          ),
-                                                                width: 1.0,
-                                                              ),
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                Icon(
-                                                                  hasActiveQuest
-                                                                      ? Icons
-                                                                            .explore
-                                                                      : Icons
-                                                                            .radar,
-                                                                  size: 12.0,
-                                                                  color:
-                                                                      hasActiveQuest
-                                                                      ? VoidTheme
-                                                                            .solarGold
-                                                                      : VoidTheme
-                                                                            .plasmaCyan,
-                                                                ),
-                                                                const SizedBox(
-                                                                  width: 5.0,
-                                                                ),
-                                                                Expanded(
-                                                                  child: Column(
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .start,
-                                                                    mainAxisSize:
-                                                                        MainAxisSize
-                                                                            .min,
-                                                                    children: [
-                                                                      Text(
-                                                                        hasActiveQuest
-                                                                            ? quest.title.toUpperCase()
-                                                                            : 'DEEP SPACE WARFARE',
-                                                                        maxLines:
-                                                                            1,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        style: const TextStyle(
-                                                                          color:
-                                                                              Colors.white,
-                                                                          fontSize:
-                                                                              8.5,
-                                                                          fontWeight:
-                                                                              FontWeight.w900,
-                                                                          letterSpacing:
-                                                                              0.7,
-                                                                        ),
-                                                                      ),
-                                                                      if (hasActiveQuest) ...[
-                                                                        const SizedBox(
-                                                                          height:
-                                                                              2.0,
-                                                                        ),
-                                                                        ClipRRect(
-                                                                          borderRadius: BorderRadius.circular(
-                                                                            1.5,
-                                                                          ),
-                                                                          child: LinearProgressIndicator(
-                                                                            value: dread.questProgress.clamp(
-                                                                              0.0,
-                                                                              1.0,
-                                                                            ),
-                                                                            minHeight:
-                                                                                2.0,
-                                                                            backgroundColor:
-                                                                                Colors.white12,
-                                                                            valueColor:
-                                                                                const AlwaysStoppedAnimation<
-                                                                                  Color
-                                                                                >(
-                                                                                  VoidTheme.solarGold,
-                                                                                ),
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ],
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
+                                              if (draftChoices.isEmpty) {
+                                                return const SizedBox.shrink();
+                                              }
+                                              return Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6.0,
+                                                      vertical: 4.0,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(
+                                                    0xFF0E1729,
+                                                  ).withValues(alpha: 0.94),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        8.0,
+                                                      ),
+                                                  border: Border.all(
+                                                    color: VoidTheme.plasmaCyan
+                                                        .withValues(
+                                                          alpha: 0.75,
                                                         ),
-                                                        const SizedBox(
-                                                          width: 6.0,
-                                                        ),
-                                                        // 3-Phase Ascending Sector Checkpoint Status Chip
-                                                        Container(
+                                                    width: 1.0,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    const Text(
+                                                      'RELIC:',
+                                                      style: TextStyle(
+                                                        color: VoidTheme
+                                                            .plasmaCyan,
+                                                        fontSize: 7.5,
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4.0),
+                                                    for (final mutation
+                                                        in draftChoices)
+                                                      Expanded(
+                                                        child: Padding(
                                                           padding:
                                                               const EdgeInsets.symmetric(
-                                                                horizontal: 6.0,
-                                                                vertical: 3.5,
+                                                                horizontal: 2.0,
                                                               ),
-                                                          decoration: BoxDecoration(
-                                                            color: VoidTheme
-                                                                .obsidianBlack
-                                                                .withValues(
-                                                                  alpha: 0.88,
-                                                                ),
-                                                            borderRadius:
-                                                                BorderRadius.circular(
-                                                                  6.0,
-                                                                ),
-                                                            border: Border.all(
-                                                              color:
-                                                                  phase ==
-                                                                      SectorCheckpointPhase
-                                                                          .apexBoss
-                                                                  ? VoidTheme
-                                                                        .crimsonFlare
-                                                                  : (phase ==
-                                                                            SectorCheckpointPhase.tacticalSiege
-                                                                        ? VoidTheme
-                                                                              .solarGold
-                                                                        : VoidTheme.plasmaCyan.withValues(
-                                                                            alpha:
-                                                                                0.65,
-                                                                          )),
-                                                              width: 1.0,
-                                                            ),
-                                                          ),
-                                                          child: Text(
-                                                            phase.shortLabel,
-                                                            style: TextStyle(
-                                                              color:
-                                                                  phase ==
-                                                                      SectorCheckpointPhase
-                                                                          .apexBoss
-                                                                  ? VoidTheme
-                                                                        .crimsonFlare
-                                                                  : (phase ==
-                                                                            SectorCheckpointPhase.tacticalSiege
-                                                                        ? VoidTheme
-                                                                              .solarGold
-                                                                        : VoidTheme
-                                                                              .plasmaCyan),
-                                                              fontSize: 8.0,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w900,
-                                                              letterSpacing:
-                                                                  0.5,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        if (isVanguard) ...[
-                                                          const SizedBox(
-                                                            width: 6.0,
-                                                          ),
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets.symmetric(
-                                                                  horizontal:
-                                                                      6.0,
-                                                                  vertical: 3.5,
-                                                                ),
-                                                            decoration: BoxDecoration(
-                                                              color: VoidTheme
-                                                                  .obsidianBlack
-                                                                  .withValues(
-                                                                    alpha: 0.88,
-                                                                  ),
-                                                              borderRadius:
-                                                                  BorderRadius.circular(
-                                                                    6.0,
-                                                                  ),
-                                                              border: Border.all(
-                                                                color: VoidTheme
-                                                                    .solarGold
-                                                                    .withValues(
-                                                                      alpha:
-                                                                          0.75,
+                                                          child: GestureDetector(
+                                                            onTap: () =>
+                                                                _coordinator
+                                                                    .selectCheckpointMutation(
+                                                                      mutation,
                                                                     ),
-                                                                width: 1.0,
-                                                              ),
-                                                            ),
-                                                            child: Row(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .min,
-                                                              children: [
-                                                                const Icon(
-                                                                  Icons.bolt,
-                                                                  size: 12.0,
-                                                                  color: VoidTheme
-                                                                      .solarGold,
-                                                                ),
-                                                                const SizedBox(
-                                                                  width: 2.0,
-                                                                ),
-                                                                Text(
-                                                                  '+${((dread.proximityMultiplier - 1.0) * 100).toInt()}%',
-                                                                  style: const TextStyle(
-                                                                    color: VoidTheme
-                                                                        .solarGold,
-                                                                    fontSize:
-                                                                        9.0,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w900,
-                                                                    letterSpacing:
-                                                                        0.5,
+                                                            child: Container(
+                                                              padding:
+                                                                  const EdgeInsets.symmetric(
+                                                                    horizontal:
+                                                                        4.0,
+                                                                    vertical:
+                                                                        3.5,
                                                                   ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  // Compact Afrofuturist Narrative Comms Strip
-                                                  if (transmission != null) ...[
-                                                    const SizedBox(height: 4.0),
-                                                    GestureDetector(
-                                                      onTap: _coordinator
-                                                          .dismissNarrativeTransmission,
-                                                      child: Container(
-                                                        padding:
-                                                            const EdgeInsets.symmetric(
-                                                              horizontal: 8.0,
-                                                              vertical: 4.0,
-                                                            ),
-                                                        decoration: BoxDecoration(
-                                                          color:
-                                                              const Color(
-                                                                0xFF0A1222,
-                                                              ).withValues(
-                                                                alpha: 0.90,
-                                                              ),
-                                                          borderRadius:
-                                                              BorderRadius.circular(
-                                                                6.0,
-                                                              ),
-                                                          border: Border.all(
-                                                            color: VoidTheme
-                                                                .solarGold
-                                                                .withValues(
-                                                                  alpha: 0.55,
-                                                                ),
-                                                            width: 0.9,
-                                                          ),
-                                                        ),
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          mainAxisSize:
-                                                              MainAxisSize.min,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                const Icon(
-                                                                  Icons
-                                                                      .graphic_eq,
-                                                                  size: 10.0,
-                                                                  color: VoidTheme
-                                                                      .solarGold,
-                                                                ),
-                                                                const SizedBox(
-                                                                  width: 4.0,
-                                                                ),
-                                                                Expanded(
-                                                                  child: Text(
-                                                                    '${transmission.speaker} • ${transmission.culturalHeritage}',
-                                                                    maxLines: 1,
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    style: const TextStyle(
-                                                                      color: VoidTheme
-                                                                          .solarGold,
-                                                                      fontSize:
-                                                                          7.5,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w900,
-                                                                      letterSpacing:
-                                                                          0.5,
+                                                              decoration: BoxDecoration(
+                                                                color:
+                                                                    const Color(
+                                                                      0xFF1E293B,
                                                                     ),
-                                                                  ),
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      4.0,
+                                                                    ),
+                                                                border: Border.all(
+                                                                  color: mutation
+                                                                      .accentColor,
+                                                                  width: 0.9,
                                                                 ),
-                                                              ],
+                                                              ),
+                                                              child: Text(
+                                                                mutation.title,
+                                                                maxLines: 1,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .center,
+                                                                style: TextStyle(
+                                                                  color: mutation
+                                                                      .accentColor,
+                                                                  fontSize: 7.0,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w800,
+                                                                ),
+                                                              ),
                                                             ),
-                                                            const SizedBox(
-                                                              height: 1.5,
-                                                            ),
-                                                            Text(
-                                                              transmission
-                                                                  .message,
-                                                              maxLines: 2,
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              style:
-                                                                  const TextStyle(
-                                                                    color: Colors
-                                                                        .white,
-                                                                    fontSize:
-                                                                        7.8,
-                                                                    height:
-                                                                        1.15,
-                                                                  ),
-                                                            ),
-                                                          ],
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
                                                   ],
-                                                  // Checkpoint 1 Relic Draft Bar (Zero-Modal Tactical Selection)
-                                                  if (draftChoices
-                                                      .isNotEmpty) ...[
-                                                    const SizedBox(height: 4.0),
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 6.0,
-                                                            vertical: 4.0,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color:
-                                                            const Color(
-                                                              0xFF0E1729,
-                                                            ).withValues(
-                                                              alpha: 0.94,
-                                                            ),
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              8.0,
-                                                            ),
-                                                        border: Border.all(
-                                                          color: VoidTheme
-                                                              .plasmaCyan
-                                                              .withValues(
-                                                                alpha: 0.75,
-                                                              ),
-                                                          width: 1.0,
-                                                        ),
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          const Text(
-                                                            'RELIC:',
-                                                            style: TextStyle(
-                                                              color: VoidTheme
-                                                                  .plasmaCyan,
-                                                              fontSize: 7.5,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w900,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 4.0,
-                                                          ),
-                                                          for (final mutation
-                                                              in draftChoices)
-                                                            Expanded(
-                                                              child: Padding(
-                                                                padding:
-                                                                    const EdgeInsets.symmetric(
-                                                                      horizontal:
-                                                                          2.0,
-                                                                    ),
-                                                                child: GestureDetector(
-                                                                  onTap: () =>
-                                                                      _coordinator
-                                                                          .selectCheckpointMutation(
-                                                                            mutation,
-                                                                          ),
-                                                                  child: Container(
-                                                                    padding: const EdgeInsets.symmetric(
-                                                                      horizontal:
-                                                                          4.0,
-                                                                      vertical:
-                                                                          3.5,
-                                                                    ),
-                                                                    decoration: BoxDecoration(
-                                                                      color: const Color(
-                                                                        0xFF1E293B,
-                                                                      ),
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                            4.0,
-                                                                          ),
-                                                                      border: Border.all(
-                                                                        color: mutation
-                                                                            .accentColor,
-                                                                        width:
-                                                                            0.9,
-                                                                      ),
-                                                                    ),
-                                                                    child: Text(
-                                                                      mutation
-                                                                          .title,
-                                                                      maxLines:
-                                                                          1,
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      textAlign:
-                                                                          TextAlign
-                                                                              .center,
-                                                                      style: TextStyle(
-                                                                        color: mutation
-                                                                            .accentColor,
-                                                                        fontSize:
-                                                                            7.0,
-                                                                        fontWeight:
-                                                                            FontWeight.w800,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ],
+                                                ),
                                               );
                                             },
                                           ),
