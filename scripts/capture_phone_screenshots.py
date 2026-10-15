@@ -183,14 +183,14 @@ def main():
   capture("01_tactical_combat_grid.png", "phone_01_tactical_combat_grid.png", "01_combat_tactical_depth.png")
 
   # =========================================================================
-  # Phase 3: BRIDGE 3D (38°/-22°) Isometric Command Angle + Nose Cannon Lance
+  # Phase 3: BRIDGE 3D (38°/-22°) Isometric Command Angle + Forward Star Thrust + Nose Cannon Lance
   # =========================================================================
-  print("\n[Phase 3] Switching to BRIDGE 3D (38°/-22°), aligning Defender to C4 & Firing Nose Cannon Lance...")
+  print("\n[Phase 3] Switching to BRIDGE 3D (38°/-22°), thrusting forward along C4 toward Target Star & Firing Nose Cannon Lance...")
   # Tap 3D Camera Gimbal mode button (x=200, y=2365) -> switches to BRIDGE 3D 38°/-22°
   tap(200, 2365)
   time.sleep(0.35)
-  # Steer Defender laterally to C4 along the bottom defense perimeter
-  swipe(350, 2220, 600, 2220, 220)
+  # Steer Defender to C4 and thrust forward along the infinite 3D orbital highway toward Target Star
+  swipe(350, 2220, 600, 1780, 250)
   time.sleep(0.25)
 
   # Fire Axial Particle Lance via C4 pad repeatedly while capturing mid-beam

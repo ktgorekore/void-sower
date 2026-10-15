@@ -300,9 +300,9 @@ Style: HudBanner,Sans,25,&H0066D1FF,&H00FFD54F,&H5505070B,&HDD05070B,-1,0,0,0,10
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-Dialogue: 0,0:00:00.20,0:00:04.40,HudBanner,,0,0,32,,CHASE 3D (26°/0°) • 1:1 CORRIDORS & BAO MTAJI SOWING
-Dialogue: 0,0:00:04.50,0:00:09.40,HudBanner,,0,0,32,,BRIDGE 3D (38°/-22°) • LATERAL DEFENDER TRACK & NOSE CANNON LANCES
-Dialogue: 0,0:00:09.50,0:00:14.40,HudBanner,,0,0,32,,ORBIT 3D (32°/18°) & TOP-DOWN (76°/0°) • 3D CAMERA GIMBAL
+Dialogue: 0,0:00:00.20,0:00:04.40,HudBanner,,0,0,32,,CHASE 3D (26°/0°) • SOLID 3D INFINITE CORRIDORS & TARGET STAR
+Dialogue: 0,0:00:04.50,0:00:09.40,HudBanner,,0,0,32,,BRIDGE 3D (38°/-22°) • DEEP-SPACE STAR THRUST & NOSE CANNON LANCES
+Dialogue: 0,0:00:09.50,0:00:14.40,HudBanner,,0,0,32,,ORBIT 3D (32°/18°) & TOP-DOWN (76°/0°) • SOLID 3D FLEET & GIMBAL
 Dialogue: 0,0:00:14.50,0:00:21.40,HudBanner,,0,0,32,,AI SOLVER • MORABARABA MILL, P2 RELIC DRAFT & P3 APEX BOSS
 Dialogue: 0,0:00:21.50,0:00:29.90,HudBanner,,0,0,32,,MULTI-THEATER CAMPAIGN MAP • SPECIAL OPS & 3D FLEET HANGAR
 """
@@ -328,13 +328,16 @@ def execute_gameplay_actions():
     time.sleep(0.15)
   time.sleep(0.7)
 
-  # T = 4.5s..9.5s: Switch to BRIDGE 3D (38°/-22°), steer Defender laterally & fire Nose Cannon Lances
+  # T = 4.5s..9.5s: Switch to BRIDGE 3D (38°/-22°), thrust forward toward Target Star & fire Nose Cannon Lances
   print("[Action] Switching 3D Camera Gimbal -> BRIDGE 3D (38°/-22°)...")
   tap(200, 2365)
-  time.sleep(0.8)
-  print("[Action] Steering 3D Defender Flagship laterally across C2 -> C7 perimeter track...")
-  swipe(280, 2220, 1060, 2220, 280)
-  time.sleep(0.9)
+  time.sleep(0.6)
+  print("[Action] Thrusting 3D Defender forward along Infinite Orbital Highway toward Target Star...")
+  swipe(600, 2180, 600, 1620, 320)
+  time.sleep(0.5)
+  print("[Action] Steering 3D Defender Flagship laterally across C4 -> C6...")
+  swipe(600, 1750, 880, 1850, 260)
+  time.sleep(0.4)
   print("[Action] Discharging Volumetric 3D Nose Cannon Lances up C4 & C2 corridors...")
   for _ in range(4):
     tap(600, 2580)
@@ -342,7 +345,7 @@ def execute_gameplay_actions():
   for _ in range(4):
     tap(290, 2580)
     time.sleep(0.14)
-  time.sleep(1.2)
+  time.sleep(1.1)
 
   # T = 9.5s..14.5s: Switch to ORBIT 3D (32°/18°), tilt Yaw/Pitch gimbal, show TOP-DOWN (76°/0°)
   print("[Action] Switching 3D Camera Gimbal -> ORBIT 3D (32°/18°) & tilting Yaw/Pitch...")
