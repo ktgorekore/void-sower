@@ -193,10 +193,10 @@ def main():
   swipe(350, 2220, 600, 1780, 250)
   time.sleep(0.25)
 
-  # Fire Axial Particle Lance via C4 pad repeatedly while capturing mid-beam
+  # Explicitly fire Axial Particle Lance in the 3D viewport while capturing mid-beam
   fire_proc = subprocess.Popen([
       "adb", "-s", DEVICE, "shell",
-      "for i in $(seq 1 10); do input tap 600 2580; sleep 0.08; done"
+      "for i in $(seq 1 10); do input tap 600 1650; sleep 0.08; done"
   ])
   time.sleep(0.25)
   capture("02_axial_particle_lance.png", "phone_02_axial_particle_lance.png", "02_axial_particle_lance.png")
@@ -266,8 +266,8 @@ def main():
   # =========================================================================
   # Phase 9: ORBIT 3D (32°/18°) + Checkpoint Relic Draft & Sector Liberation Victory
   # =========================================================================
-  print("\n[Phase 9] Launching Sector 9 in ORBIT 3D (32°/18°) with AI Solver for Checkpoint Relic Draft & Victory...")
-  seed_prefs(completed_tutorial=True, pro_unlocked=True, liberated_sectors=9)
+  print("\n[Phase 9] Launching Sector 1 in ORBIT 3D (32°/18°) with AI Solver for Checkpoint Relic Draft & Victory...")
+  seed_prefs(completed_tutorial=True, pro_unlocked=True, liberated_sectors=1)
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(2.2)
 
@@ -285,42 +285,41 @@ def main():
   time.sleep(0.5)
   # Tap RESUME COMBAT button (x=671, y=1500)
   tap(671, 1500)
-  time.sleep(0.5)
+  time.sleep(1.35)
 
-  print("[Victory] AI Solver engaged in ORBIT 3D. Polling for P2: SIEGE Relic Draft & Victory modal...")
-  captured_checkpoint = False
+  print("[Checkpoint] Capturing ORBIT 3D (32°/18°) active combat with top HUD AI AUTO indicator...")
+  capture(
+      "10_checkpoint_relic_draft_siege.png",
+      "phone_08_checkpoint_relic_draft.png",
+      "07_checkpoint_relic_draft.png",
+  )
+
+  print("[Victory] Polling for Sector Liberation Victory modal...")
   captured_victory = False
-  for tick in range(65):
-    time.sleep(0.35)
-    temp_check = "/tmp/poll_vic_check.png"
+  for tick in range(45):
+    time.sleep(0.15)
+    temp_check = os.path.join(
+        "/home/kelvingorekore/.gemini/antigravity-cli/brain/d066f74c-1ed9-492c-acf3-069f46fe64ed/scratch",
+        "poll_vic_check.png",
+    )
+    os.makedirs(os.path.dirname(temp_check), exist_ok=True)
     with open(temp_check, "wb") as f:
       subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f, check=True)
     chk_img = Image.open(temp_check)
     chk_arr = np.array(chk_img)
 
-    # Check for the solid cyan/emerald CONTINUE CAMPAIGN / STAR MAP button on the Victory Modal (y=1650..2150)
-    # and dimmed bottom dock (y=2550..2750) when modal barrier is active
-    btn_area = chk_arr[1650:2150, 250:1090]
-    cta_mask = (btn_area[:, :, 1] > 170) & (btn_area[:, :, 0] < 70) & (btn_area[:, :, 2] > 100)
-    dock_brightness = chk_arr[2550:2750, 200:1140].mean()
-    is_victory_modal = cta_mask.sum() > 6000 and dock_brightness < 28.0
-
-    # Check if P2: SIEGE + RELIC draft strip is visible at y=460..550 (amber/gold border & pills)
-    relic_strip = chk_arr[460:550, 40:1300]
-    relic_gold = (relic_strip[:, :, 0] > 180) & (relic_strip[:, :, 1] > 120) & (relic_strip[:, :, 2] < 80)
-
-    if not captured_checkpoint and not is_victory_modal and (relic_gold.sum() > 450 or tick == 8):
-      print(f"[Checkpoint] Capturing ORBIT 3D + P2: SIEGE Relic Draft & AI Solver cascade at tick {tick} (relic_gold={relic_gold.sum()})...")
-      capture(
-          "10_checkpoint_relic_draft_siege.png",
-          "phone_08_checkpoint_relic_draft.png",
-          "07_checkpoint_relic_draft.png",
+    # Under the VictoryDialog modal barrier (black54), the bottom dock (y=2500..2780) has max RGB < 155,
+    # while the center modal header (y=760..1120) has bright gold 'SECTOR 1 LIBERATED!' pixels (> 800).
+    dock_max = int(chk_arr[2500:2780, 100:1240, :3].max())
+    vic_hdr = chk_arr[760:1120, 260:1080]
+    gold_pixels = int(((vic_hdr[:, :, 0] > 200) & (vic_hdr[:, :, 1] > 140) & (vic_hdr[:, :, 2] < 60)).sum())
+    if dock_max < 155 and gold_pixels > 800:
+      print(
+          f"[Victory] Victory dialog confirmed on screen at tick {tick} "
+          f"(dock_max={dock_max}, gold={gold_pixels})!"
       )
-      captured_checkpoint = True
-
-    if is_victory_modal:
-      print(f"[Victory] Victory dialog confirmed on screen at tick {tick} (cta_pixels={cta_mask.sum()}, dock_mean={dock_brightness:.1f})!")
-      capture("06_sector_liberation_victory.png", "phone_05_sector_liberation.png")
+      chk_img.save(os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png"))
+      chk_img.save(os.path.join(ASSETS_DIR, "phone_05_sector_liberation.png"))
       captured_victory = True
       break
 
