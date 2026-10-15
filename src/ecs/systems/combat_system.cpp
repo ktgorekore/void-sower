@@ -103,7 +103,7 @@ bool CombatSystem::DischargeBay(uint8_t bay_index, float damage_multiplier) {
   const auto &bay = registry_.get<BatteryComponent>(bay_entities_[bay_index]);
   auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
   const uint32_t prior_mass = bay.charge_units;
-  if (prior_mass == 0 && dread.reserve_cores == 0) {
+  if (prior_mass == 0 && dread.reserve_cores == 0 && dread.cores_used == 0) {
     return false;
   }
   const auto discharge_res = discharge_system_.ExecuteDirectBayDischarge(

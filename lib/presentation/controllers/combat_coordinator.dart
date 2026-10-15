@@ -30,6 +30,7 @@ import '../../domain/models/prediction_result.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/models/sector_combat_doctrine.dart';
 import '../../domain/models/sowing_mutation.dart';
+import '../../domain/models/space_anomaly.dart';
 import '../../domain/models/swarm_wave_phase.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../../domain/services/fleet_service.dart';
@@ -304,6 +305,185 @@ class CombatCoordinator extends ChangeNotifier {
 
   double _lastOrbitalTargetY = 0.15;
 
+  // --- 3D Space Traversal & Discoverable Anomalies Pool (Zero Allocation) ---
+  final List<SpaceAnomaly> _anomalyPool = List<SpaceAnomaly>.generate(
+    6,
+    (_) => SpaceAnomaly(),
+  );
+  int _nextAnomalyId = 1;
+  double _anomalySpawnTimer = 2.5;
+  int _anomaliesDiscovered = 0;
+
+  /// Pre-allocated pool of 3D space anomalies (check `anomaly.active`).
+  List<SpaceAnomaly> get anomalies => _anomalyPool;
+
+  /// Number of 3D space anomalies discovered/intercepted during the current sortie.
+  int get anomaliesDiscovered => _anomaliesDiscovered;
+
+  /// Spawns a discoverable 3D anomaly into an available pool slot.
+  SpaceAnomaly? spawnSpaceAnomaly({
+    int? corridor,
+    SpaceAnomalyType? type,
+    double normZ = 0.96,
+  }) {
+    SpaceAnomaly? slot;
+    for (var i = 0; i < _anomalyPool.length; i++) {
+      if (!_anomalyPool[i].active) {
+        slot = _anomalyPool[i];
+        break;
+      }
+    }
+    if (slot == null) return null;
+
+    final chosenCorridor = (corridor ?? _random.nextInt(8)).clamp(0, 7);
+    final chosenType =
+        type ??
+        SpaceAnomalyType.values[(_nextAnomalyId - 1) %
+            SpaceAnomalyType.values.length];
+
+    slot
+      ..id = _nextAnomalyId++
+      ..type = chosenType
+      ..corridor = chosenCorridor
+      ..normX = (chosenCorridor + 0.5) / 8.0
+      ..normZ = normZ.clamp(0.05, 1.0)
+      ..elevationY = chosenType == SpaceAnomalyType.ancientRelic ? 0.24 : 0.18
+      ..velocityZ = 0.055 + (_currentDifficulty * 0.006)
+      ..rotationRad = (_nextAnomalyId * 0.7) % (2 * math.pi)
+      ..active = true;
+    return slot;
+  }
+
+  /// Collects an active [SpaceAnomaly], granting its 3D discovery reward.
+  bool collectAnomaly(
+    SpaceAnomaly anomaly, [
+    Size viewportSize = const Size(400, 800),
+  ]) {
+    if (!anomaly.active) return false;
+    anomaly.active = false;
+    _anomaliesDiscovered++;
+
+    final screenX = anomaly.normX * viewportSize.width;
+    final screenY = viewportSize.height * 0.36;
+
+    switch (anomaly.type) {
+      case SpaceAnomalyType.coreCache:
+        grantEmergencyCores(4);
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: '+4 CORES (CACHE DISCOVERED)',
+            x: screenX,
+            y: screenY,
+            color: VoidTheme.solarGold,
+            isCritical: true,
+          ),
+        );
+        break;
+      case SpaceAnomalyType.ancientRelic:
+        if (_checkpointMutationChoices.isEmpty && _sectorMutations.length < 2) {
+          _checkpointMutationChoices = VoidIncursionService.instance
+              .generateMutationChoices();
+          damageNumbers.add(
+            FloatingDamageNumber(
+              text: 'RELIC POD INTERCEPTED!',
+              x: screenX,
+              y: screenY,
+              color: VoidTheme.nebulaAmethyst,
+              isCritical: true,
+            ),
+          );
+        } else {
+          grantEmergencyCores(3);
+          damageNumbers.add(
+            FloatingDamageNumber(
+              text: '+3 CORES (RELIC RESONANCE)',
+              x: screenX,
+              y: screenY,
+              color: VoidTheme.nebulaAmethyst,
+              isCritical: true,
+            ),
+          );
+        }
+        break;
+      case SpaceAnomalyType.ionNebulaSurge:
+        if (_surgicalCullCharges < 3) {
+          _surgicalCullCharges++;
+        }
+        grantEmergencyCores(2);
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: '+1 YOTÉ CULL & +2 CORES',
+            x: screenX,
+            y: screenY,
+            color: VoidTheme.plasmaCyan,
+            isCritical: true,
+          ),
+        );
+        break;
+    }
+
+    particleService.spawnFlakBurst(
+      screenX,
+      screenY,
+      anomaly.type == SpaceAnomalyType.coreCache
+          ? VoidTheme.solarGold
+          : (anomaly.type == SpaceAnomalyType.ancientRelic
+                ? VoidTheme.nebulaAmethyst
+                : VoidTheme.plasmaCyan),
+      count: 16,
+    );
+    HapticService.instance.injectionClick();
+    notifyListeners();
+    return true;
+  }
+
+  void _updateSpaceAnomalies(double dt, Size viewportSize) {
+    final forwardDepth =
+        (dreadnought.orbitalPositionY - dreadnought.boundaryLineY).clamp(
+          0.0,
+          0.45,
+        );
+    final normForward = (forwardDepth / 0.45).clamp(0.0, 1.0);
+    final dreadNormZ = 0.02 + normForward * 0.12;
+    final flightSpeedMult = 1.0 + normForward * 0.90;
+
+    _anomalySpawnTimer -= dt * flightSpeedMult;
+    if (_anomalySpawnTimer <= 0.0) {
+      _anomalySpawnTimer = 5.5;
+      spawnSpaceAnomaly(normZ: 0.98);
+    }
+
+    for (var i = 0; i < _anomalyPool.length; i++) {
+      final a = _anomalyPool[i];
+      if (!a.active) continue;
+
+      a.normZ -= a.velocityZ * flightSpeedMult * dt;
+      a.rotationRad = (a.rotationRad + dt * 2.2) % (2 * math.pi);
+
+      final hitByShip =
+          (a.normX - dreadnought.orbitalPositionX).abs() < 0.095 &&
+          (a.normZ - dreadNormZ).abs() < 0.14;
+      var hitByLance = false;
+      for (var lIdx = 0; lIdx < lances.length; lIdx++) {
+        final l = lances[lIdx];
+        if (!l.active) continue;
+        final lCorridor = l.firingBayIndex >= 8
+            ? l.firingBayIndex - 8
+            : l.firingBayIndex;
+        if (lCorridor == a.corridor || (l.originX - a.normX).abs() < 0.085) {
+          hitByLance = true;
+          break;
+        }
+      }
+
+      if (hitByShip || hitByLance) {
+        collectAnomaly(a, viewportSize);
+      } else if (a.normZ < -0.02) {
+        a.active = false;
+      }
+    }
+  }
+
   /// Returns all frontline bay indices (8..15) currently linked in a
   /// Morabaraba 3-Bay Mill Triad (3 adjacent frontline bays each with M >= 2).
   Set<int> get activeMillTriadBays {
@@ -542,6 +722,13 @@ class CombatCoordinator extends ChangeNotifier {
     bulletManager.clear();
     _activeLanceBays.clear();
     _hasActiveFlak = false;
+
+    for (var i = 0; i < _anomalyPool.length; i++) {
+      _anomalyPool[i].active = false;
+    }
+    _anomaliesDiscovered = 0;
+    _nextAnomalyId = 1;
+    _anomalySpawnTimer = 1.6;
 
     // Reset Chrono-Anchor snapshots and allocate rewinds
     _chronoSnapshots.clear();
@@ -1140,6 +1327,9 @@ class CombatCoordinator extends ChangeNotifier {
       }
     }
 
+    // 7b. Advance 3D space anomalies and check Defender/lance interception
+    _updateSpaceAnomalies(clampedDt, viewportSize);
+
     // 8. Autonomous AI Tactical Solver / Advisor step
     if (solverController.mode != TacticalSolverMode.disabled &&
         _state.status == CombatMatchStatus.activeCombat) {
@@ -1258,6 +1448,8 @@ class CombatCoordinator extends ChangeNotifier {
   }
 
   /// Triggers a sequential pit-to-pit sowing traversal animation then executes on native engine.
+  ///
+  /// Sowing strictly redistributes plasma cores around the 16 bays without auto-firing.
   void sow(int bayIndex, int direction) {
     if (_state.status != CombatMatchStatus.activeCombat) return;
     _captureTurnSnapshot();
@@ -1321,13 +1513,27 @@ class CombatCoordinator extends ChangeNotifier {
               ? CombatMatchStatus.paused
               : CombatMatchStatus.activeCombat;
 
+          final focusBay =
+              (sowPred.terminalBay >= 8 && sowPred.terminalBay < 16)
+              ? sowPred.terminalBay
+              : bayIndex;
+
           _state = _state.copyWith(
             status: nextStatus,
             clearActiveSowBay: true,
-            selectedBay: bayIndex,
+            selectedBay: focusBay,
           );
-          prediction = engine.predictSow(bayIndex, resolvedDirection);
-          notifyListeners();
+          prediction = engine.predictSow(focusBay, resolvedDirection);
+
+          // In AI Autopilot mode only, follow up the sow with an explicit discharge
+          // if the terminal frontline bay is aligned with a threat.
+          if (_state.isAutoSolving &&
+              sowPred.terminalBay >= 8 &&
+              sowPred.terminalBay < 16) {
+            dischargeFrontlineBay(sowPred.terminalBay);
+          } else {
+            notifyListeners();
+          }
 
           if (_sowAnimationCompleter != null &&
               !_sowAnimationCompleter!.isCompleted) {
@@ -1362,7 +1568,7 @@ class CombatCoordinator extends ChangeNotifier {
     step();
   }
 
-  /// Direct core injection into a designated bay.
+  /// Direct core injection into a designated bay (redistributes cores without auto-firing).
   void injectCore(int bayIndex, int direction) {
     if (!_state.canReceiveInput) {
       if ((_state.status == CombatMatchStatus.defeat ||
@@ -1412,7 +1618,7 @@ class CombatCoordinator extends ChangeNotifier {
   }
 
   /// Discharges an immediate axial particle lance from the Dreadnought's prow
-  /// into the current corridor, drawing from the aligned bay or injecting a core.
+  /// into the current corridor when explicitly triggered by the player.
   void quickFireActiveCorridor() {
     _finalizePendingSow();
     if (!_state.canReceiveInput) {
@@ -1435,44 +1641,47 @@ class CombatCoordinator extends ChangeNotifier {
         reserveCores: dreadnought.reserveCores + 1000,
       );
     }
-    final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
+
+    final corridor = (dreadnought.targetPositionX * 8.0).floor().clamp(0, 7);
     final activeBay = corridor + 8;
-    // Quick-fire axial lance honors active sowing direction with Kichwa boundary resolution
-    final direction = BayRole.resolveSowDirection(activeBay, _sowDirection);
-    final steps = engine.injectCore(activeBay, direction);
-    if (steps <= 0) return;
-
-    _captureTurnSnapshot();
-    if (_state.status == CombatMatchStatus.paused) {
-      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
-    }
-    _sowDirection = direction;
-
-    _sessionSeedsSown++;
-    HapticService.instance.injectionClick();
-    audio.onCoreInjected();
-    vlog(
-      6,
-      'CombatCoordinator: Quick-fire active corridor $corridor via bay $activeBay dir $direction',
+    final rawInwardDirection = corridor < 4 ? 1 : -1;
+    final resolvedDirection = BayRole.resolveSowDirection(
+      activeBay,
+      rawInwardDirection,
     );
 
+    final steps = engine.injectCore(activeBay, resolvedDirection);
+    if (steps <= 0) return;
+
+    engine.dischargeBay(activeBay);
+
+    _captureTurnSnapshot();
+    _sessionSeedsSown++;
+    _sowDirection = resolvedDirection;
+    HapticService.instance.injectionClick();
+    audio.onCoreInjected();
+    audio.onLanceFired();
     damageNumbers.add(
       FloatingDamageNumber(
-        text: '-1 CORE (AXIAL LANCE)',
-        x:
-            (dreadnought.orbitalPositionX > 0.0 &&
-                dreadnought.orbitalPositionX <= 1.0)
-            ? dreadnought.orbitalPositionX
-            : 0.4375,
-        y: (dreadnought.boundaryLineY + 0.04).clamp(0.0, 1.0),
-        color: VoidTheme.solarGold,
+        text: 'AXIAL LANCE (-1 CORE)',
+        x: dreadnought.orbitalPositionX,
+        y: (dreadnought.boundaryLineY + 0.05).clamp(0.0, 1.0),
+        color: VoidTheme.plasmaCyan,
         isCritical: false,
       ),
     );
-
     _syncDomainState();
-    _state = _state.copyWith(selectedBay: activeBay);
-    prediction = engine.predictSow(activeBay, direction);
+    for (var i = 0; i < _anomalyPool.length; i++) {
+      final a = _anomalyPool[i];
+      if (a.active && a.corridor == corridor) {
+        collectAnomaly(a);
+      }
+    }
+    _state = _state.copyWith(
+      selectedBay: activeBay,
+      status: CombatMatchStatus.activeCombat,
+    );
+    prediction = engine.predictSow(activeBay, resolvedDirection);
     notifyListeners();
   }
 
@@ -1481,7 +1690,26 @@ class CombatCoordinator extends ChangeNotifier {
   /// Barrage if the bay belongs to an active 3-Bay Mill Triad.
   double dischargeFrontlineBay([int? bayIndex]) {
     _finalizePendingSow();
-    if (!_state.canReceiveInput) return 0.0;
+    if (!_state.canReceiveInput) {
+      if ((_state.status == CombatMatchStatus.defeat ||
+              _state.status == CombatMatchStatus.sowingSequence ||
+              dreadnought.isGameOver) &&
+          (dreadnought.reserveCores > 0 || isUnlimitedCores)) {
+        _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+        dreadnought = dreadnought.copyWith(
+          currentSimState: 0,
+          isCascading: false,
+        );
+      } else {
+        return 0.0;
+      }
+    }
+    if (isUnlimitedCores && dreadnought.reserveCores < 100) {
+      engine.grantCores(1000);
+      dreadnought = dreadnought.copyWith(
+        reserveCores: dreadnought.reserveCores + 1000,
+      );
+    }
 
     final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
     final targetBay = (bayIndex ?? (corridor + 8)).clamp(8, 15);
@@ -1491,6 +1719,9 @@ class CombatCoordinator extends ChangeNotifier {
     final triad = getMillTriadForBay(targetBay);
 
     _captureTurnSnapshot();
+    if (_state.status == CombatMatchStatus.paused) {
+      _state = _state.copyWith(status: CombatMatchStatus.activeCombat);
+    }
     double totalDamage = 0.0;
     final hasOvercharge = activeMutations.any(
       (m) => m.id == 'kichwa_overcharge',
@@ -1540,6 +1771,14 @@ class CombatCoordinator extends ChangeNotifier {
     }
 
     _syncDomainState();
+    for (var i = 0; i < _anomalyPool.length; i++) {
+      final a = _anomalyPool[i];
+      if (!a.active) continue;
+      if (a.corridor == targetCorridor ||
+          (triad.isNotEmpty && triad.contains(a.corridor + 8))) {
+        collectAnomaly(a);
+      }
+    }
     dreadnought = dreadnought.copyWith(
       orbitalPositionX: alignedX,
       targetPositionX: alignedX,

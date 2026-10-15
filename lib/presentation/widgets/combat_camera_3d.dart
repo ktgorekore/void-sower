@@ -76,6 +76,7 @@ class CombatCamera3D {
     this.pitchDeg = 26.0,
     this.yawDeg = 0.0,
     this.followX = 0.5,
+    this.followZ = 0.0,
   });
 
   /// Active camera preset mode.
@@ -90,6 +91,9 @@ class CombatCamera3D {
   /// Normalized lateral X position (`0.0` to `1.0`) of the Dreadnought for chase parallax.
   final double followX;
 
+  /// Normalized forward Z thrust (`0.0` to `1.0`) of the Dreadnought for depth FOV scaling.
+  final double followZ;
+
   /// Pitch angle in radians.
   double get pitchRad => pitchDeg.clamp(14.0, 82.0) * (math.pi / 180.0);
 
@@ -98,8 +102,6 @@ class CombatCamera3D {
 
   /// Relative mesh pitch bias in radians so 3D ship meshes tilt with the camera pitch.
   double get meshPitchBiasRad {
-    // At 80 deg (top-down), mesh pitch bias is ~0. At 26 deg (chase 3D), mesh tilts
-    // ~0.58 rad (~33 deg) so the camera views the 3D aft/dorsal superstructure in perspective.
     final normTilt = ((80.0 - pitchDeg.clamp(14.0, 80.0)) / 66.0).clamp(
       0.0,
       1.0,
@@ -110,24 +112,23 @@ class CombatCamera3D {
   /// Relative mesh yaw bias in radians so 3D ship meshes rotate with the camera yaw.
   double get meshYawBiasRad => -yawRad * 0.85;
 
-  /// Perspective foreshortening strength derived from camera pitch.
-  ///
-  /// Tuned for a wide-field panoramic 3D space theater so the 8 orbital lanes
-  /// remain broad and readable all the way to the deep-space horizon.
+  /// Perspective foreshortening strength derived from camera pitch and forward thrust.
   double get _perspStrength {
     final p = pitchRad;
-    return 0.56 * math.cos(p * 0.78);
+    final thrustBoost = 1.0 + followZ.clamp(0.0, 1.0) * 0.14;
+    return 0.56 * math.cos(p * 0.78) * thrustBoost;
   }
 
   /// Computes the 2D vanishing point `(vpX, vpY)` on a viewport of [size].
-  ///
-  /// Locked horizontally to `size.width * 0.5` and positioned below the top
-  /// comms HUD banner (`~19%` viewport height) so deep-space stellar targets
-  /// never overlap the header HUD.
   Offset vanishingPoint(Size size) {
     final p = pitchRad;
-    final vpX = size.width * 0.5;
-    final vpY = size.height * (0.165 + (1.0 - math.sin(p)) * 0.045);
+    final yRad = yawRad;
+    final followBias = (followX.clamp(0.0, 1.0) - 0.5);
+    final vpX =
+        size.width * 0.5 +
+        math.sin(yRad) * (size.width * 0.14) -
+        followBias * (size.width * 0.10);
+    final vpY = size.height * (0.10 + (1.0 - math.sin(p)) * 0.045);
     return Offset(vpX, vpY);
   }
 
@@ -138,18 +139,15 @@ class CombatCamera3D {
   double farHorizonY(Size size) {
     final vp = vanishingPoint(size);
     final p = pitchRad;
-    return (vp.dy + size.height * (0.055 + 0.035 * math.sin(p))).clamp(
-      size.height * 0.22,
-      size.height * 0.32,
+    return (vp.dy + size.height * (0.045 + 0.035 * math.sin(p))).clamp(
+      size.height * 0.14,
+      size.height * 0.25,
     );
   }
 
   /// Projects a 3D world point `(normX, elevationY, normZ)` onto the 2D canvas of [size].
   ///
-  /// - [normX]: `0.0` (port trench wall) to `1.0` (starboard trench wall).
-  /// - [elevationY]: `0.0` (trench floor grid) to `1.0` (high orbital altitude).
-  /// - [normZ]: `0.0` (near threshold defense line), `1.0` (tactical spawn gate),
-  ///   up to `8.0+` (infinite deep-space star horizon).
+  /// Incorporates camera pitch, azimuthal yaw, and dynamic chase parallax (`followX`, `followZ`).
   ProjectedPoint3D project(
     Size size, {
     required double normX,
@@ -159,6 +157,7 @@ class CombatCamera3D {
     final clampedZ = normZ.clamp(-0.05, 8.0);
     final centeredX = normX - 0.5;
     final pRad = pitchRad;
+    final yRad = yawRad;
 
     final persp = _perspStrength;
     final scaleAtZ =
@@ -179,9 +178,15 @@ class CombatCamera3D {
       groundY = farY - deepFrac * (farY - vpY);
     }
 
-    // Near threshold width spans 96% of viewport width (matching the 8 C1..C8 dock columns)
-    final baseSpanW = size.width * 0.96;
-    final centerLineX = size.width * 0.5;
+    final depthFactor = clampedZ.clamp(0.0, 1.0);
+    final yawLateralOffset = math.sin(yRad) * depthFactor * (size.width * 0.14);
+    final chaseParallaxOffset =
+        -(followX.clamp(0.0, 1.0) - 0.5) * depthFactor * (size.width * 0.10);
+    final yawSpanScale = math.cos(yRad * 0.45);
+
+    final baseSpanW = size.width * 0.96 * yawSpanScale;
+    final centerLineX =
+        size.width * 0.5 + yawLateralOffset + chaseParallaxOffset;
     final groundX = centerLineX + (centeredX * baseSpanW) * scaleAtZ;
 
     // 3D vertical elevation lifts point upward perpendicular to the trench floor
@@ -201,6 +206,8 @@ class CombatCamera3D {
 
   /// Unprojects a 2D screen touch point [localPosition] back onto the 3D trench floor
   /// returning normalized `(normX, normZ)` in `[0.0, 1.0]`.
+  ///
+  /// Exact algebraic inverse of [project] at `elevationY = 0.0` across all pitch, yaw, and chase states.
   Offset unprojectToTrenchFloor(Size size, Offset localPosition) {
     final nearY = nearThresholdY(size);
     final farY = farHorizonY(size);
@@ -215,9 +222,20 @@ class CombatCamera3D {
       1.0,
     );
 
-    final centerLineX = size.width * 0.5;
-    final baseSpanW = math.max(1.0, size.width * 0.96 * scaleAtZ);
-    final centeredX = (localPosition.dx - centerLineX) / baseSpanW;
+    final yRad = yawRad;
+    final depthFactor = normZ.clamp(0.0, 1.0);
+    final yawLateralOffset = math.sin(yRad) * depthFactor * (size.width * 0.14);
+    final chaseParallaxOffset =
+        -(followX.clamp(0.0, 1.0) - 0.5) * depthFactor * (size.width * 0.10);
+    final yawSpanScale = math.cos(yRad * 0.45);
+
+    final centerLineX =
+        size.width * 0.5 + yawLateralOffset + chaseParallaxOffset;
+    final effectiveSpanW = math.max(
+      1.0,
+      size.width * 0.96 * yawSpanScale * scaleAtZ,
+    );
+    final centeredX = (localPosition.dx - centerLineX) / effectiveSpanW;
     final normX = (centeredX + 0.5).clamp(0.0, 1.0);
 
     return Offset(normX, normZ);
@@ -229,12 +247,14 @@ class CombatCamera3D {
     double? pitchDeg,
     double? yawDeg,
     double? followX,
+    double? followZ,
   }) {
     return CombatCamera3D(
       mode: mode ?? this.mode,
       pitchDeg: pitchDeg ?? this.pitchDeg,
       yawDeg: yawDeg ?? this.yawDeg,
       followX: followX ?? this.followX,
+      followZ: followZ ?? this.followZ,
     );
   }
 
@@ -248,6 +268,7 @@ class CombatCamera3D {
       pitchDeg: next.defaultPitchDeg,
       yawDeg: next.defaultYawDeg,
       followX: followX,
+      followZ: followZ,
     );
   }
 
@@ -258,6 +279,7 @@ class CombatCamera3D {
       pitchDeg: (pitchDeg + dPitch).clamp(15.0, 80.0),
       yawDeg: (yawDeg + dYaw).clamp(-42.0, 42.0),
       followX: followX,
+      followZ: followZ,
     );
   }
 
@@ -268,7 +290,8 @@ class CombatCamera3D {
         other.mode == mode &&
         (other.pitchDeg - pitchDeg).abs() < 0.01 &&
         (other.yawDeg - yawDeg).abs() < 0.01 &&
-        (other.followX - followX).abs() < 0.005;
+        (other.followX - followX).abs() < 0.005 &&
+        (other.followZ - followZ).abs() < 0.005;
   }
 
   @override
@@ -277,5 +300,6 @@ class CombatCamera3D {
     (pitchDeg * 100).round(),
     (yawDeg * 100).round(),
     (followX * 200).round(),
+    (followZ * 200).round(),
   );
 }

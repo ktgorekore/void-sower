@@ -126,6 +126,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     _bayCharges[currentBay] = 0;
 
     var steps = 0;
+    var relayLaps = 0;
     while (carriedMass > 0) {
       currentBay = (currentBay + effectiveDirection + 16) & 0x0F;
       _bayCharges[currentBay]++;
@@ -138,54 +139,48 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
           effectiveDirection = 1;
         }
       }
+
+      // If hand is empty on an occupied non-Nyumba rear bay, relay (Takata).
+      // Frontline bays (8..15) accumulate charge without auto-firing!
+      if (carriedMass == 0 &&
+          currentBay < 8 &&
+          _bayCharges[currentBay] > 1 &&
+          currentBay != 3 &&
+          currentBay != 4 &&
+          relayLaps < 10) {
+        carriedMass = _bayCharges[currentBay];
+        _bayCharges[currentBay] = 0;
+        relayLaps++;
+        effectiveDirection = BayRole.resolveSowDirection(
+          currentBay,
+          effectiveDirection,
+        );
+      }
     }
 
-    final finalMass = _bayCharges[currentBay];
-    final isFrontline = currentBay >= 8;
-
-    if (isFrontline && finalMass >= 1) {
-      final lanceX = _orbitalX;
-      final alignedCorridor = (_orbitalX * 8.0).floor().clamp(0, 7);
-      final totalDmg =
-          finalMass *
-          finalMass *
-          100.0 *
-          _proximityMultiplier *
-          _lanceAlphaMultiplier;
-      _lances.add(
-        LanceBeam(
-          firingBayIndex: currentBay,
-          originX: lanceX,
-          originY: _orbitalY,
-          beamWidth: 0.04 + (finalMass * 0.015),
-          sustainedDuration: 0.5,
-          remainingDuration: 0.5,
-          totalDamage: totalDmg,
-          active: true,
-        ),
+    // Bao Mtaji Capture Synergy: when sowing lands on a populated frontline bay
+    // aligned with a living enemy, harvest +2 bonus seeds into adjacent bays
+    // without auto-firing a weapon.
+    if (currentBay >= 8 && _bayCharges[currentBay] >= 2) {
+      final corridor = currentBay - 8;
+      final hasEnemyInCorridor = _enemies.any(
+        (e) => !e.isDestroyed && e.assignedCorridor == corridor,
       );
-      _bayCharges[currentBay] = 0;
-
-      // Bao Mtaji Chain-Capture: when landing on an occupied frontline bay
-      // (finalMass >= 2) while aligned with a living enemy in alignedCorridor,
-      // harvest +2 plasma seeds into adjacent bays.
-      final hasAlignedEnemy = _enemies.any(
-        (e) => !e.isDestroyed && e.assignedCorridor == alignedCorridor,
-      );
-      if (finalMass >= 2 && hasAlignedEnemy) {
+      if (hasEnemyInCorridor) {
         var mtajiBay = currentBay;
-        var mtajiDir = BayRole.resolveSowDirection(
+        final mtajiDir = BayRole.resolveSowDirection(
           currentBay,
           effectiveDirection,
         );
         for (var s = 0; s < 2; s++) {
           mtajiBay = (mtajiBay + mtajiDir + 16) & 0x0F;
           _bayCharges[mtajiBay]++;
-          steps++;
         }
       }
     }
-    _score += (finalMass * finalMass * 10);
+
+    final finalMass = _bayCharges[currentBay];
+    _score += (finalMass * 5);
 
     return steps;
   }
@@ -196,18 +191,21 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     if (_simState == 8) {
       _simState = 0;
     }
-    var mass = _bayCharges[bayIndex];
+    final priorMass = _bayCharges[bayIndex];
+    var mass = priorMass;
     if (mass == 0) {
-      if (_reserveCores == 0) return 0;
-      _reserveCores--;
-      _coresUsed++;
+      if (_reserveCores == 0 && _coresUsed == 0) return 0;
       mass = 1;
     } else {
-      _bayCharges[bayIndex] = 0;
+      final isKichwa = bayIndex == 8 || bayIndex == 15;
+      _bayCharges[bayIndex] = (isKichwa && priorMass >= 2) ? 2 : 0;
     }
 
     final corridor = bayIndex - 8;
-    final lanceX = (corridor + 0.5) / 8.0;
+    final alignedCorridor = (_orbitalX * 8.0).floor().clamp(0, 7);
+    final lanceX = (corridor == alignedCorridor)
+        ? _orbitalX
+        : (corridor + 0.5) / 8.0;
     final safeMult = damageMultiplier > 0.0 ? damageMultiplier : 1.0;
     final damage =
         mass *
@@ -230,7 +228,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       ),
     );
 
-    // Apply direct damage to first living enemy in corridor
+    // Apply direct damage to living enemies in corridor
     var rem = damage;
     for (var i = 0; i < _enemies.length; i++) {
       final e = _enemies[i];
@@ -264,6 +262,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       );
       if (rem <= 0) break;
     }
+
     _score += (mass * mass * 10 * safeMult).round();
     return 1;
   }
@@ -525,11 +524,15 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
       var posX = e.worldPosX;
       var corridor = e.assignedCorridor.clamp(0, 7);
+      var bankRad = e.bankAngleRad;
       if (_lateralDrift) {
         final phase = e.entityId * 1.57;
         final lateralVel = math.sin(_elapsedDriftTime * 1.65 + phase) * 0.24;
         posX = (posX + lateralVel * deltaTime).clamp(0.0625, 0.9375);
         corridor = (posX * 8.0).floor().clamp(0, 7);
+        final targetBank = (lateralVel * 1.9).clamp(-0.55, 0.55);
+        final blend = math.min(1.0, deltaTime * 8.0);
+        bankRad += (targetBank - bankRad) * blend;
       }
 
       // Lance collision check
@@ -575,6 +578,9 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         maxHull: e.maxHull,
         vesselType: e.vesselType,
         isDestroyed: destroyed,
+        worldPosZ: (1.0 - newY).clamp(0.0, 1.0),
+        bankAngleRad: bankRad,
+        pitchAngleRad: e.pitchAngleRad,
       );
     }
 

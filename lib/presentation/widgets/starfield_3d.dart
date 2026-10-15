@@ -160,6 +160,7 @@ class Starfield3DSimulation {
 
   // Drifting cosmic nebula anchor positions
   double _nebulaPhase = 0.0;
+  double _nebulaLateralShift = 0.0;
   bool _lowBatteryDirty = false;
 
   /// Pre-allocates and initializes all [starCount] stars in typed memory pools.
@@ -231,14 +232,19 @@ class Starfield3DSimulation {
     }
 
     final clampedDt = dt.clamp(0.001, 0.05);
-    final warpMultiplier = 1.0 + (1.2 * normForward.clamp(0.0, 1.0));
+    final warpMultiplier =
+        1.15 +
+        (1.8 * normForward.clamp(0.0, 1.0)) +
+        (velocityDx.abs() * 0.40).clamp(0.0, 0.85);
     final centerX = viewportSize.width * 0.5;
     final centerY =
-        viewportSize.height * 0.18; // Vanishing point aligned to 3D horizon
+        viewportSize.height * 0.14; // Vanishing point aligned to 3D horizon
     final scaleX = viewportSize.width * 0.48;
     final scaleY = viewportSize.height * 0.48;
 
-    _nebulaPhase += clampedDt * (0.015 + 0.03 * normForward);
+    _nebulaPhase += clampedDt * (0.02 + 0.045 * normForward);
+    _nebulaLateralShift = (_nebulaLateralShift - velocityDx * clampedDt * 0.14)
+        .clamp(-0.35, 0.35);
 
     final activeCount = isLowBattery ? (starCount ~/ 2) : starCount;
     for (var i = 0; i < activeCount; i++) {
@@ -248,7 +254,7 @@ class Starfield3DSimulation {
 
       // 2. Lateral parallax drift inversely proportional to Z depth
       final parallaxFactor = (1.15 - _posZ[i]).clamp(0.15, 1.0);
-      _posX[i] -= velocityDx * clampedDt * 0.08 * parallaxFactor;
+      _posX[i] -= velocityDx * clampedDt * 0.18 * parallaxFactor;
 
       // Check for camera pass or boundary exit
       if (_posZ[i] <= 0.06) {
@@ -396,14 +402,19 @@ class Starfield3DSimulation {
   /// Skipped entirely when low battery mode is enabled.
   void _paintCosmicNebulae(Canvas canvas, Size size, double normForward) {
     // Drifting luminous nebula clouds in the Kilwa cosmic basin
+    final shiftPx = _nebulaLateralShift * size.width;
     final nebula1X =
-        size.width * 0.25 + math.sin(_nebulaPhase * 0.8) * (size.width * 0.12);
+        size.width * 0.25 +
+        shiftPx +
+        math.sin(_nebulaPhase * 0.8) * (size.width * 0.12);
     final nebula1Y =
         size.height * 0.30 +
         math.cos(_nebulaPhase * 0.6) * (size.height * 0.08);
 
     final nebula2X =
-        size.width * 0.78 + math.cos(_nebulaPhase * 0.7) * (size.width * 0.10);
+        size.width * 0.78 +
+        shiftPx * 0.75 +
+        math.cos(_nebulaPhase * 0.7) * (size.width * 0.10);
     final nebula2Y =
         size.height * 0.55 +
         math.sin(_nebulaPhase * 0.5) * (size.height * 0.10);

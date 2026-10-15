@@ -169,11 +169,9 @@ DischargeSystem::DischargeResult DischargeSystem::ExecuteDirectBayDischarge(
 
   uint32_t mass = bay.charge_units;
   if (mass == 0) {
-    if (dread.reserve_cores == 0) {
+    if (dread.reserve_cores == 0 && dread.cores_used == 0) {
       return result;
     }
-    dread.reserve_cores--;
-    dread.cores_used++;
     mass = 1;
   } else {
     bay.charge_units = 0;
