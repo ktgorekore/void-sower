@@ -167,13 +167,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: "Release ${{ steps.vars.outputs.tag }}"
+          name: "Release ${{ steps.vars.outputs.tag }} — 3D Deep-Space Theater & Afrofuturist Overhaul"
           draft: ${{ github.event.inputs.draft || false }}
           prerelease: ${{ github.event.inputs.prerelease || false }}
           generate_release_notes: true
           body: |
-            ### 🎮 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }}
-            
+            ### 🚀 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }} (Build 42)
+
+            #### ✨ Release Highlights
+            * **Wide-Field 3D Space & Camera Gimbal (`CombatCamera3D`):** Switch effortlessly between **Chase 3D (`26°/0°`)**, **Bridge 3D (`38°/-22°`)**, **Orbit 3D (`32°/18°`)**, and **Top-Down (`76°/0°`)** angles with 1-finger yaw/pitch tilting and spacious wide-field lane projection (`62.5%+` viewport width at the horizon) toward the **3D Target Star & Dyson Sanctuary**.
+            * **Lineless Diegetic 3D Space Architecture:** Eliminated rigid wireframe corridor outlines and horizontal grid ribs in favor of **8 Sculpted 3D Hexagonal Orbital Emitter Docks (`C1..C8`)**, **Floating 3D Astral Waypoint Buoys**, and **Scrolling 3D Flanking Stargate Wing-Pylons**.
+            * **Solid Gouraud-Shaded 3D Fleet & Multi-Corridor Swaying Invaders:** Hardware-accelerated `ui.Vertices.raw` Gouraud-shaded 3D ships bank and weave dynamically across **2–3 adjacent corridors** during descent with live **`⌖ [C1]..[C8]`** corridor lock badges and pairwise 2D anti-overlap separation.
+            * **Pan-African Strategic Fusions & 3-Phase Checkpoints:** **Morabaraba 3-Bay Mill Resonance** (`1.5x` lance multiplier), **Yoté Cross-Capture Surgical Cull**, **Fanorona Approach & Withdrawal** dual-vector discharges, and **3-Phase Sector Checkpoints (`P1: RECON`, `P2: SIEGE`, `P3: APEX BOSS`)** with mid-sector **Tactical Relic Drafts**.
+            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`docs/releases/release_notes_${{ steps.vars.outputs.tag }}.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_${{ steps.vars.outputs.tag }}.md)
+
             #### 📦 Release Artifacts:
             * **Android App Bundle (.aab):** `void-sower-${{ steps.vars.outputs.tag }}.aab` (${{ steps.artifacts.outputs.aab_size_mb }} MB)
             * **Release APK (.apk):** `void-sower-${{ steps.vars.outputs.tag }}.apk` (${{ steps.artifacts.outputs.apk_size_mb }} MB)

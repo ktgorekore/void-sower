@@ -1009,5 +1009,26 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Author release notes in `docs/releases/release_notes_v0.3.1.md`.
   - [x] Tag git release `v0.3.1`.
 
+---
 
+## 🌌 Phase 29: 3D Deep-Space Theater, Diegetic Corridor Architecture & Afrofuturist Engagement Overhaul (Completed ✅)
 
+- [x] **Task 29.1: Interactive 3D Perspective Camera Gimbal (`CombatCamera3D`)**
+  - [x] Implement true 3D perspective camera projection (`lib/presentation/widgets/combat_camera_3d.dart`) with 4 one-tap presets (`CHASE 3D 26°/0°`, `BRIDGE 3D 38°/-22°`, `ORBIT 3D 32°/18°`, `TOP-DOWN 76°/0°`), fine `◄` `►` yaw / `▼` `▲` pitch step buttons, and 1-finger upper-viewport drag tilting.
+  - [x] Calibrate wide-field perspective foreshortening (`_perspStrength = 0.56 * math.cos(p * 0.78)`) so the 8 lanes span `62.5%+` of viewport width at `normZ = 1.0` and the **3D Target Star & Dyson Sanctuary** sits cleanly below the Admiral Zawadi comms strip.
+
+- [x] **Task 29.2: Lineless Diegetic 3D Space & Emitter Dock Architecture (`CombatBackgroundPainter`, `CombatPainter`)**
+  - [x] Remove vertical wireframe corridor grid lines, horizontal sleeper ribs, and full-screen corridor border boxes.
+  - [x] Render 8 sculpted 3D hexagonal Orbital Emitter Docks (`C1..C8`) at the bottom defense perimeter (`normZ = 0.002..0.064`), floating 3D astral waypoint buoys along each lane center, and scrolling 3D flanking Stargate wing-pylons.
+
+- [x] **Task 29.3: Solid Gouraud-Shaded 3D Fleet & Dynamic Multi-Corridor Invader Swaying (`Dreadnought3DMesh`, `Invader3DMesh`, `MovementSystem`)**
+  - [x] Build hardware-accelerated `ui.Vertices.raw(ui.VertexMode.triangles, ...)` Gouraud-shaded polyhedral 3D meshes with painter's-algorithm depth sorting and zero per-frame allocations for the Defender Flagship and 3 enemy vessel classes.
+  - [x] Enable sinusoidal multi-corridor swaying across all sectors (`engine.setLateralDrift(true)`), dynamically updating `assigned_corridor`, banking 3D wings (`effectiveRoll` / `effectiveYaw`), rendering live `⌖ [C1]..[C8]` corridor lock badges, and enforcing pairwise 2D anti-overlap separation (`kMinGapX = 0.095f`, `kMinGapY = 0.16f`).
+
+- [x] **Task 29.4: Pan-African Strategic Fusions & 3-Phase Ascending Sector Checkpoints (`CombatCoordinator`, `CombatScreen`)**
+  - [x] Implement **Morabaraba 3-Bay Mill Resonance** (`1.5x` lance multiplier), **Yoté Cross-Capture Surgical Cull**, **Fanorona Approach & Withdrawal** dual-vector discharges, and **3-Phase Sector Checkpoints (`P1: RECON`, `P2: SIEGE`, `P3: APEX BOSS`)** with mid-sector **Tactical Relic Drafts** and **Admiral Zawadi** narrative briefings.
+
+- [x] **Task 29.5: Release Deployment & Documentation (`v0.4.0+42`)**
+  - [x] Bump version in `pubspec.yaml` to `0.4.0+42`.
+  - [x] Author release notes in `docs/releases/release_notes_v0.4.0.md` and `store_listing/release_notes_v0.4.0.md`.
+  - [x] Tag git release `v0.4.0` and push to GitHub.
