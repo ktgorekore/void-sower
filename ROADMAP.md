@@ -1032,3 +1032,32 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Bump version in `pubspec.yaml` to `0.4.0+42`.
   - [x] Author release notes in `docs/releases/release_notes_v0.4.0.md` and `store_listing/release_notes_v0.4.0.md`.
   - [x] Tag git release `v0.4.0` and push to GitHub.
+
+---
+
+## 🛰️ Phase 30: 3D Camera Angles, Decoupled Sowing, Pronounced Quadratic Lances, Viewport De-Cluttering & Top-HUD AI Indicator (`v0.4.1+43`)
+
+- [x] **Task 30.1: Smooth 3D Invader Movement & Separation (`MovementSystem`, `MockVoidSowerEngine`)**
+  - [x] Replace instantaneous attitude snaps with continuous exponential attitude damping (`1.0f - exp(-12.0f * dt)`).
+  - [x] Replace pairwise anti-overlap position teleportation with continuous soft spring separation, eliminating visual stuttering.
+
+- [x] **Task 30.2: Decouple Bao Sowing from Weapon Firing (`BaoCascadeSystem`, `CombatSystem`, `CombatCoordinator`)**
+  - [x] Remove automatic weapon firing from `BaoCascadeSystem::StepFSM` so sowing strictly builds capacitor charge without auto-discharging.
+  - [x] Ensure weapons fire only upon explicit player command (dock `FIRE` button, frontline bay tap, or deliberate viewport tap).
+  - [x] Trigger Bao Mtaji capture seed redistribution (`+2` seeds) on explicit multi-core frontline discharges ($M \ge 2$) that hit an enemy without auto-firing.
+
+- [x] **Task 30.3: Pronounced Quadratic ($M^2$) Particle Lances (`CombatPainter`, `DischargeSystem`, `CombatCoordinator`)**
+  - [x] Fix volumetric glow shader bounds for full screen-space visibility.
+  - [x] Render multi-tier 3D perspective volumetric plasma cone, white-hot axial core spine, twin counter-wound gold/white helical plasma waves, concentric 3D shockwave rings, and 8-point muzzle/impact detonation novas.
+  - [x] Harden victory evaluation so explicit frontline bay discharges neutralizing the final enemy transition immediately to `CombatMatchStatus.victory`.
+
+- [x] **Task 30.4: Viewport De-Cluttering, Straight Defender & Top-HUD AI Indicator (`CombatPainter`, `CombatScreen`, `SlimlineHudHeader`)**
+  - [x] Lock Defender orientation straight up its corridor without axis yaw tilt when idle, and remove idle targeting line.
+  - [x] Strip clutter: remove rectangular-triangle corridor emitters, radar distance rings, and floating mid-board text banners.
+  - [x] Move AI Autopilot status from the middle of the board into a glowing crimson `AI AUTO / ON ●` indicator in the top HUD header.
+  - [x] Replace static target star with discoverable 3D deep-space anomalies (`Core Caches`, `Ancient Bao Relics`, `Ion Nebula Surges`).
+
+- [x] **Task 30.5: Release Deployment & Documentation (`v0.4.1+43`)**
+  - [x] Bump version in `pubspec.yaml` to `0.4.1+43`.
+  - [x] Author release notes in `docs/releases/release_notes_v0.4.1.md` and `store_listing/release_notes_v0.4.1.md`.
+  - [x] Tag git release `v0.4.1` and push to GitHub.
