@@ -183,7 +183,12 @@ class SlimlineHudHeader extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF0F172A).withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+          border: Border.all(
+            color: isAutoSolving
+                ? VoidTheme.crimsonFlare.withValues(alpha: 0.75)
+                : const Color(0xFF1E293B),
+            width: 1.0,
+          ),
         ),
         child: Center(
           child: FittedBox(
@@ -197,8 +202,10 @@ class SlimlineHudHeader extends StatelessWidget {
                   sectorBadgeText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Color(0xFF38BDF8),
+                  style: TextStyle(
+                    color: isAutoSolving
+                        ? VoidTheme.crimsonFlare
+                        : const Color(0xFF38BDF8),
                     fontSize: 7.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.3,
@@ -225,7 +232,11 @@ class SlimlineHudHeader extends StatelessWidget {
   }
 
   Widget _buildProPill() {
-    return _ProSlimlinePill(isPro: isPro, onTap: onProTap);
+    return _ProSlimlinePill(
+      isPro: isPro,
+      isAutoSolving: isAutoSolving,
+      onTap: isAutoSolving ? (onToggleAutoSolve ?? onProTap) : onProTap,
+    );
   }
 
   Widget _buildCoresPill() {
@@ -395,9 +406,14 @@ class SlimlineHudHeader extends StatelessWidget {
 }
 
 class _ProSlimlinePill extends StatefulWidget {
-  const _ProSlimlinePill({required this.isPro, required this.onTap});
+  const _ProSlimlinePill({
+    required this.isPro,
+    this.isAutoSolving = false,
+    required this.onTap,
+  });
 
   final bool isPro;
+  final bool isAutoSolving;
   final VoidCallback? onTap;
 
   @override
@@ -453,6 +469,68 @@ class _ProSlimlinePillState extends State<_ProSlimlinePill> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.isAutoSolving) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF280A14).withValues(alpha: 0.90),
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(color: VoidTheme.crimsonFlare, width: 1.2),
+            boxShadow: [
+              BoxShadow(
+                color: VoidTheme.crimsonFlare.withValues(alpha: 0.35),
+                blurRadius: 6.0,
+              ),
+            ],
+          ),
+          child: const Center(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.smart_toy,
+                    size: 12.0,
+                    color: VoidTheme.crimsonFlare,
+                  ),
+                  SizedBox(width: 4.0),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'AI AUTO',
+                        style: TextStyle(
+                          color: VoidTheme.crimsonFlare,
+                          fontSize: 7.0,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                      Text(
+                        'ON ●',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 9.0,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     final ent = EntitlementService.instance;
     final isLifetime = widget.isPro || ent.isProUnlocked;
     final isBoost = !isLifetime && ent.isBoostActive;

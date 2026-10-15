@@ -1734,66 +1734,6 @@ class _CombatScreenState extends State<CombatScreen>
                                               ),
                                             ),
                                           ),
-                                        // Floating AI Tactical Solver Badge (Zero vertical footprint)
-                                        if (matchState.isAutoSolving)
-                                          Positioned(
-                                            top: 124.0,
-                                            left: 0,
-                                            right: 0,
-                                            child: Center(
-                                              child: GestureDetector(
-                                                onTap: _toggleAutoSolve,
-                                                child: Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 8.0,
-                                                        vertical: 2.0,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(
-                                                      0xFF0F172A,
-                                                    ).withValues(alpha: 0.85),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          10.0,
-                                                        ),
-                                                    border: Border.all(
-                                                      color: VoidTheme
-                                                          .crimsonFlare
-                                                          .withValues(
-                                                            alpha: 0.7,
-                                                          ),
-                                                      width: 0.8,
-                                                    ),
-                                                  ),
-                                                  child: const Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                        Icons.smart_toy,
-                                                        color: VoidTheme
-                                                            .crimsonFlare,
-                                                        size: 11.0,
-                                                      ),
-                                                      SizedBox(width: 4.0),
-                                                      Text(
-                                                        'AI TACTICAL SOLVER ACTIVE',
-                                                        style: TextStyle(
-                                                          color: VoidTheme
-                                                              .crimsonFlare,
-                                                          fontSize: 8.0,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          letterSpacing: 0.6,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
                                         // Ergonomic Sector Secured Bottom Command Dock when modal is dismissed
                                         if (isSecured &&
                                             _overlayState ==

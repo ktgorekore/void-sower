@@ -207,6 +207,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         ? _orbitalX
         : (corridor + 0.5) / 8.0;
     final safeMult = damageMultiplier > 0.0 ? damageMultiplier : 1.0;
+    final effectiveMass = math.max(mass.toDouble(), math.sqrt(safeMult));
     final damage =
         mass *
         mass *
@@ -220,9 +221,10 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         firingBayIndex: bayIndex,
         originX: lanceX,
         originY: _orbitalY,
-        beamWidth: (0.04 + (mass * 0.015)) * (safeMult > 1.1 ? 1.25 : 1.0),
-        sustainedDuration: 0.4,
-        remainingDuration: 0.4,
+        beamWidth:
+            (0.045 + (effectiveMass * 0.018)) * (safeMult > 1.1 ? 1.25 : 1.0),
+        sustainedDuration: 0.48,
+        remainingDuration: 0.48,
         totalDamage: damage,
         active: true,
       ),

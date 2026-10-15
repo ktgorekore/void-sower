@@ -1034,16 +1034,10 @@ class CombatCoordinator extends ChangeNotifier {
       );
     }
 
-    final bool allEnemiesDestroyed =
-        enemies.isNotEmpty && enemies.every((e) => e.isDestroyed);
     final bool isTerminalState =
         (_state.status == CombatMatchStatus.defeat &&
             dreadnought.reserveCores <= 0) ||
-        _state.status == CombatMatchStatus.victory ||
-        (dreadnought.isGameOver && dreadnought.reserveCores <= 0) ||
-        (dreadnought.isVictory &&
-            _remainingReinforcements <= 0 &&
-            allEnemiesDestroyed);
+        _state.status == CombatMatchStatus.victory;
 
     if (_state.status == CombatMatchStatus.briefing ||
         _state.status == CombatMatchStatus.paused ||
@@ -1526,11 +1520,34 @@ class CombatCoordinator extends ChangeNotifier {
           prediction = engine.predictSow(focusBay, resolvedDirection);
 
           // In AI Autopilot mode only, follow up the sow with an explicit discharge
-          // if the terminal frontline bay is aligned with a threat.
-          if (_state.isAutoSolving &&
-              sowPred.terminalBay >= 8 &&
-              sowPred.terminalBay < 16) {
-            dischargeFrontlineBay(sowPred.terminalBay);
+          // on the highest-charge frontline bay aligned with a living enemy.
+          if (_state.isAutoSolving) {
+            int? targetFireBay;
+            int bestCharge = -1;
+            for (var b = 8; b < 16 && b < bays.length; b++) {
+              final corr = b - 8;
+              final hasEnemy = enemies.any(
+                (e) => !e.isDestroyed && e.assignedCorridor == corr,
+              );
+              if (hasEnemy && bays[b].chargeUnits > bestCharge) {
+                bestCharge = bays[b].chargeUnits;
+                targetFireBay = b;
+              }
+            }
+            targetFireBay ??=
+                (sowPred.terminalBay >= 8 && sowPred.terminalBay < 16)
+                ? sowPred.terminalBay
+                : null;
+            if (targetFireBay != null) {
+              final fireCorridorX = ((targetFireBay - 8) + 0.5) / 8.0;
+              engine.setDreadnoughtTarget(
+                fireCorridorX,
+                dreadnought.targetPositionY,
+              );
+              dischargeFrontlineBay(targetFireBay);
+            } else {
+              notifyListeners();
+            }
           } else {
             notifyListeners();
           }
@@ -1617,8 +1634,8 @@ class CombatCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Discharges an immediate axial particle lance from the Dreadnought's prow
-  /// into the current corridor when explicitly triggered by the player.
+  /// Discharges an immediate quadratic ($M^2$) axial particle lance from the
+  /// Dreadnought's prow into the current corridor when explicitly triggered.
   void quickFireActiveCorridor() {
     _finalizePendingSow();
     if (!_state.canReceiveInput) {
@@ -1650,10 +1667,21 @@ class CombatCoordinator extends ChangeNotifier {
       rawInwardDirection,
     );
 
+    final priorMass = (activeBay < bays.length)
+        ? bays[activeBay].chargeUnits
+        : 0;
     final steps = engine.injectCore(activeBay, resolvedDirection);
     if (steps <= 0) return;
 
-    engine.dischargeBay(activeBay);
+    final postBays = engine.getBays();
+    final postMass = (activeBay < postBays.length)
+        ? postBays[activeBay].chargeUnits
+        : 0;
+    final effectiveQuadMass = math.max(1, math.max(priorMass + 1, postMass));
+    final quadMult = (postMass <= 1 && effectiveQuadMass > 1)
+        ? (effectiveQuadMass * effectiveQuadMass).toDouble()
+        : 1.0;
+    engine.dischargeBay(activeBay, damageMultiplier: quadMult);
 
     _captureTurnSnapshot();
     _sessionSeedsSown++;
@@ -1661,13 +1689,16 @@ class CombatCoordinator extends ChangeNotifier {
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
     audio.onLanceFired();
+    final quadDmg = effectiveQuadMass * effectiveQuadMass * 100;
     damageNumbers.add(
       FloatingDamageNumber(
-        text: 'AXIAL LANCE (-1 CORE)',
+        text: 'M² = $effectiveQuadMass² AXIAL LANCE ($quadDmg DMG)',
         x: dreadnought.orbitalPositionX,
         y: (dreadnought.boundaryLineY + 0.05).clamp(0.0, 1.0),
-        color: VoidTheme.plasmaCyan,
-        isCritical: false,
+        color: effectiveQuadMass >= 3
+            ? VoidTheme.solarGold
+            : VoidTheme.plasmaCyan,
+        isCritical: effectiveQuadMass >= 2,
       ),
     );
     _syncDomainState();
@@ -1690,7 +1721,7 @@ class CombatCoordinator extends ChangeNotifier {
   /// Barrage if the bay belongs to an active 3-Bay Mill Triad.
   double dischargeFrontlineBay([int? bayIndex]) {
     _finalizePendingSow();
-    if (!_state.canReceiveInput) {
+    if (!_state.canReceiveInput && !_state.isAutoSolving) {
       if ((_state.status == CombatMatchStatus.defeat ||
               _state.status == CombatMatchStatus.sowingSequence ||
               dreadnought.isGameOver) &&
@@ -1749,6 +1780,10 @@ class CombatCoordinator extends ChangeNotifier {
         );
       }
     } else {
+      final priorMass = math.max(
+        1,
+        (targetBay < bays.length) ? bays[targetBay].chargeUnits : 1,
+      );
       final mult = (hasOvercharge && (targetBay == 8 || targetBay == 15))
           ? 1.35
           : 1.0;
@@ -1758,13 +1793,14 @@ class CombatCoordinator extends ChangeNotifier {
       if (totalDamage > 0) {
         HapticService.instance.injectionClick();
         audio.onLanceFired();
+        final quadDmg = (priorMass * priorMass * 100 * mult).round();
         damageNumbers.add(
           FloatingDamageNumber(
-            text: 'M² LANCE (${totalDamage.toInt()} DMG)',
+            text: 'M² = $priorMass² LANCE ($quadDmg DMG)',
             x: ((targetBay - 8) + 0.5) / 8.0,
             y: (dreadnought.boundaryLineY + 0.06).clamp(0.0, 1.0),
-            color: VoidTheme.plasmaCyan,
-            isCritical: totalDamage >= 100.0,
+            color: priorMass >= 3 ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
+            isCritical: priorMass >= 2,
           ),
         );
       }

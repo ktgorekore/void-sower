@@ -318,7 +318,10 @@ class CombatPainter extends CustomPainter {
   // ---------------------------------------------------------------------------
   // Reusable Path Scratchpads & Pre-compiled Static Geometry
   // ---------------------------------------------------------------------------
+  static final Path _scratchOuterLancePath = Path();
   static final Path _scratchVolumetricLancePath = Path();
+  static final Path _scratchHelixPathA = Path();
+  static final Path _scratchHelixPathB = Path();
   static final Path _scratchLeftFlamePath = Path();
   static final Path _scratchRightFlamePath = Path();
   static final Path _scratchReticlePath = Path();
@@ -331,35 +334,45 @@ class CombatPainter extends CustomPainter {
     ..color = Colors.white
     ..strokeCap = StrokeCap.round;
 
-  static final Shader _staticLanceGlowShader = LinearGradient(
-    begin: Alignment.centerLeft,
-    end: Alignment.centerRight,
-    colors: [
-      Colors.transparent,
-      VoidTheme.plasmaCyan.withValues(alpha: 0.50),
-      Colors.white.withValues(alpha: 0.85),
-      VoidTheme.plasmaCyan.withValues(alpha: 0.50),
-      Colors.transparent,
-    ],
-  ).createShader(const Rect.fromLTWH(-1.0, 0, 2.0, 1.0));
+  static final Paint _lanceOuterSheathPaint = Paint()
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.30)
+    ..style = PaintingStyle.fill;
 
   static final Paint _lanceGlowPaint = Paint()
-    ..style = PaintingStyle.fill
-    ..shader = _staticLanceGlowShader;
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.65)
+    ..style = PaintingStyle.fill;
+
+  static final Paint _lanceHelixPaintA = Paint()
+    ..color = VoidTheme.solarGold
+    ..strokeWidth = 2.8
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _lanceHelixPaintB = Paint()
+    ..color = Colors.white.withValues(alpha: 0.92)
+    ..strokeWidth = 2.2
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+
+  static final Paint _lanceShockRingPaint = Paint()
+    ..color = VoidTheme.solarGold.withValues(alpha: 0.85)
+    ..strokeWidth = 2.2
+    ..style = PaintingStyle.stroke;
 
   static final Paint _muzzlePaint = Paint()..color = Colors.white;
   static final Paint _muzzleGlowPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.45)
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.52)
     ..style = PaintingStyle.fill;
 
   static final Paint _muzzleSpikePaint = Paint()
     ..color = VoidTheme.solarGold
-    ..strokeWidth = 2.5;
+    ..strokeCap = StrokeCap.round
+    ..strokeWidth = 2.8;
 
   static final Paint _impactPaint = Paint()
-    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.85)
+    ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.90)
     ..style = PaintingStyle.stroke
-    ..strokeWidth = 3.0;
+    ..strokeWidth = 3.2;
 
   static final Paint _flakPaint = Paint()..style = PaintingStyle.stroke;
 
@@ -962,45 +975,66 @@ class CombatPainter extends CustomPainter {
       final rawWidth = lance.beamWidth <= 1.0
           ? (lance.beamWidth * size.width)
           : lance.beamWidth;
-      final beamW = math.max(rawWidth, 16.0);
-      final prowW = beamW * 1.40 * nearLaneProj.perspectiveScale;
-      final deepSpaceW = beamW * 1.15 * farBeam.perspectiveScale;
+      final quadM = math.sqrt((lance.totalDamage / 100.0).clamp(1.0, 64.0));
+      final pulse = 0.88 + 0.12 * math.sin(animationTime * 28.0);
+      final beamW = math.max(rawWidth, 22.0 + quadM * 8.0);
+      final outerProwW = beamW * 1.85 * nearLaneProj.perspectiveScale * pulse;
+      final outerFarW = beamW * 1.35 * impactBeam.perspectiveScale * pulse;
+      final innerProwW = outerProwW * 0.56;
+      final innerFarW = outerFarW * 0.56;
 
-      _scratchVolumetricLancePath.reset();
-      _scratchVolumetricLancePath.moveTo(
-        muzzleOrigin.dx - prowW * 0.5,
-        muzzleOrigin.dy,
-      );
-      _scratchVolumetricLancePath.lineTo(
-        farBeam.screenOffset.dx - deepSpaceW * 0.5,
-        farBeam.screenOffset.dy,
-      );
-      _scratchVolumetricLancePath.lineTo(
-        farBeam.screenOffset.dx + deepSpaceW * 0.5,
-        farBeam.screenOffset.dy,
-      );
-      _scratchVolumetricLancePath.lineTo(
-        muzzleOrigin.dx + prowW * 0.5,
-        muzzleOrigin.dy,
-      );
-      _scratchVolumetricLancePath.close();
+      // 1a. Wide Outer Volumetric Plasma Sheath Cone
+      _scratchOuterLancePath
+        ..reset()
+        ..moveTo(muzzleOrigin.dx - outerProwW * 0.5, muzzleOrigin.dy)
+        ..lineTo(
+          impactBeam.screenOffset.dx - outerFarW * 0.5,
+          impactBeam.screenOffset.dy,
+        )
+        ..lineTo(
+          impactBeam.screenOffset.dx + outerFarW * 0.5,
+          impactBeam.screenOffset.dy,
+        )
+        ..lineTo(muzzleOrigin.dx + outerProwW * 0.5, muzzleOrigin.dy)
+        ..close();
+      _lanceOuterSheathPaint.color =
+          (isMultiBeamBarrage ? VoidTheme.solarGold : VoidTheme.plasmaCyan)
+              .withValues(alpha: 0.34);
+      canvas.drawPath(_scratchOuterLancePath, _lanceOuterSheathPaint);
 
+      // 1b. High-Intensity Inner Volumetric Plasma Core Cone
+      _scratchVolumetricLancePath
+        ..reset()
+        ..moveTo(muzzleOrigin.dx - innerProwW * 0.5, muzzleOrigin.dy)
+        ..lineTo(
+          impactBeam.screenOffset.dx - innerFarW * 0.5,
+          impactBeam.screenOffset.dy,
+        )
+        ..lineTo(
+          impactBeam.screenOffset.dx + innerFarW * 0.5,
+          impactBeam.screenOffset.dy,
+        )
+        ..lineTo(muzzleOrigin.dx + innerProwW * 0.5, muzzleOrigin.dy)
+        ..close();
+      _lanceGlowPaint.color =
+          (isMultiBeamBarrage ? VoidTheme.solarGoldLight : VoidTheme.plasmaCyan)
+              .withValues(alpha: 0.72);
       canvas.drawPath(_scratchVolumetricLancePath, _lanceGlowPaint);
 
-      // Primary high-intensity axial laser core from Defender Nose Cannon to Enemy Target
+      // 1c. Blinding White-Hot Axial Spine from Defender Nose Cannon to Target
       _lanceCorePaint
         ..color = isMultiBeamBarrage ? VoidTheme.solarGoldLight : Colors.white
         ..strokeWidth = math.max(
-          beamW * 0.40 * nearLaneProj.perspectiveScale,
-          4.2,
+          (6.5 + quadM * 1.8) * nearLaneProj.perspectiveScale * pulse,
+          5.5,
         );
       canvas.drawLine(muzzleOrigin, impactBeam.screenOffset, _lanceCorePaint);
 
-      // Secondary over-penetration beam continuing from target to Warp Horizon
+      // 1d. Secondary Over-Penetration Beam Continuing from Target to Warp Horizon
       if (impactZ < 0.99) {
         _lanceCorePaint
-          ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.55)
-          ..strokeWidth = 2.2;
+          ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.65)
+          ..strokeWidth = 3.2;
         canvas.drawLine(
           impactBeam.screenOffset,
           farBeam.screenOffset,
@@ -1008,59 +1042,118 @@ class CombatPainter extends CustomPainter {
         );
       }
 
-      // Animated Upward-Traveling Plasma Tracer Chevrons from Muzzle to Target
-      for (var b = 0; b < 3; b++) {
-        final t = ((animationTime * 6.5) + (b / 3.0)) % 1.0;
-        final bx =
-            muzzleOrigin.dx +
-            (impactBeam.screenOffset.dx - muzzleOrigin.dx) * t;
-        final by =
-            muzzleOrigin.dy +
-            (impactBeam.screenOffset.dy - muzzleOrigin.dy) * t;
-        final cw = (10.0 * (1.0 - t * 0.45)).clamp(4.0, 12.0);
-        _scratchReticlePath.reset();
-        _scratchReticlePath.moveTo(bx - cw, by + cw * 0.7);
-        _scratchReticlePath.lineTo(bx, by - cw * 0.9);
-        _scratchReticlePath.lineTo(bx + cw, by + cw * 0.7);
-        canvas.drawPath(_scratchReticlePath, _muzzleSpikePaint);
+      // 1e. Twin Counter-Wound Quadratic (M²) Helical Plasma Ribbons
+      final dx = impactBeam.screenOffset.dx - muzzleOrigin.dx;
+      final dy = impactBeam.screenOffset.dy - muzzleOrigin.dy;
+      final beamLen = math.sqrt(dx * dx + dy * dy);
+      if (beamLen > 8.0) {
+        final nx = -dy / beamLen;
+        final ny = dx / beamLen;
+        const segments = 16;
+        final freq = math.pi * (3.0 + quadM * 0.75);
+        final phaseShift = animationTime * 22.0;
+        _scratchHelixPathA.reset();
+        _scratchHelixPathB.reset();
+        for (var s = 0; s <= segments; s++) {
+          final t = s / segments;
+          final bx = muzzleOrigin.dx + dx * t;
+          final by = muzzleOrigin.dy + dy * t;
+          final env = (outerProwW * (1.0 - t) + outerFarW * t) * 0.46;
+          final waveA = math.sin(t * freq - phaseShift) * env;
+          final waveB = math.sin(t * freq - phaseShift + math.pi) * env;
+          final ax = bx + nx * waveA;
+          final ay = by + ny * waveA;
+          final bbx = bx + nx * waveB;
+          final bby = by + ny * waveB;
+          if (s == 0) {
+            _scratchHelixPathA.moveTo(ax, ay);
+            _scratchHelixPathB.moveTo(bbx, bby);
+          } else {
+            _scratchHelixPathA.lineTo(ax, ay);
+            _scratchHelixPathB.lineTo(bbx, bby);
+          }
+        }
+        _lanceHelixPaintA.strokeWidth = (2.4 + quadM * 0.35).clamp(2.4, 4.5);
+        _lanceHelixPaintB.strokeWidth = (2.0 + quadM * 0.28).clamp(2.0, 3.8);
+        canvas.drawPath(_scratchHelixPathA, _lanceHelixPaintA);
+        canvas.drawPath(_scratchHelixPathB, _lanceHelixPaintB);
       }
 
-      // Muzzle Flare at 3D Defender Nose Cannon Origin
-      canvas.drawCircle(
-        muzzleOrigin,
-        beamW * 1.55 * nearLaneProj.perspectiveScale,
-        _muzzleGlowPaint,
-      );
-      canvas.drawCircle(
-        muzzleOrigin,
-        beamW * 0.80 * nearLaneProj.perspectiveScale,
-        _muzzlePaint,
+      // 1f. Concentric 3D Quadratic (M²) Shockwave Rings Pulsing Up the Beam
+      final ringCount = quadM.round().clamp(2, 6);
+      for (var r = 0; r < ringCount; r++) {
+        final t = ((animationTime * 3.8) + (r / ringCount)) % 1.0;
+        final rx = muzzleOrigin.dx + dx * t;
+        final ry = muzzleOrigin.dy + dy * t;
+        final ringW = (outerProwW * (1.0 - t) + outerFarW * t) * 1.15;
+        final ringH = (ringW * 0.36).clamp(5.0, 28.0);
+        _lanceShockRingPaint.color =
+            (r.isEven ? VoidTheme.solarGold : VoidTheme.plasmaCyan).withValues(
+              alpha: (0.90 - t * 0.35).clamp(0.35, 0.90),
+            );
+        canvas.drawOval(
+          Rect.fromCenter(center: Offset(rx, ry), width: ringW, height: ringH),
+          _lanceShockRingPaint,
+        );
+      }
+
+      // 1g. Pronounced 8-Point Muzzle Blast Nova at Defender Nose Cannon Origin
+      final muzScale = nearLaneProj.perspectiveScale;
+      final muzOuterR = (26.0 + quadM * 6.5) * muzScale * pulse;
+      final muzInnerR = (11.0 + quadM * 3.0) * muzScale;
+      final muzSpikeLen = (38.0 + quadM * 8.0) * muzScale * pulse;
+      final muzDiagLen = muzSpikeLen * 0.62;
+      canvas.drawCircle(muzzleOrigin, muzOuterR, _muzzleGlowPaint);
+      canvas.drawCircle(muzzleOrigin, muzOuterR * 0.72, _impactPaint);
+      canvas.drawCircle(muzzleOrigin, muzInnerR, _muzzlePaint);
+      canvas.drawLine(
+        Offset(muzzleOrigin.dx - muzSpikeLen, muzzleOrigin.dy),
+        Offset(muzzleOrigin.dx + muzSpikeLen, muzzleOrigin.dy),
+        _muzzleSpikePaint,
       );
       canvas.drawLine(
-        Offset(
-          muzzleOrigin.dx - beamW * 2.2 * nearLaneProj.perspectiveScale,
-          muzzleOrigin.dy,
-        ),
-        Offset(
-          muzzleOrigin.dx + beamW * 2.2 * nearLaneProj.perspectiveScale,
-          muzzleOrigin.dy,
-        ),
+        Offset(muzzleOrigin.dx, muzzleOrigin.dy - muzSpikeLen * 0.85),
+        Offset(muzzleOrigin.dx, muzzleOrigin.dy + muzSpikeLen * 0.55),
+        _muzzleSpikePaint,
+      );
+      canvas.drawLine(
+        Offset(muzzleOrigin.dx - muzDiagLen, muzzleOrigin.dy - muzDiagLen),
+        Offset(muzzleOrigin.dx + muzDiagLen, muzzleOrigin.dy + muzDiagLen),
+        _muzzleSpikePaint,
+      );
+      canvas.drawLine(
+        Offset(muzzleOrigin.dx - muzDiagLen, muzzleOrigin.dy + muzDiagLen),
+        Offset(muzzleOrigin.dx + muzDiagLen, muzzleOrigin.dy - muzDiagLen),
         _muzzleSpikePaint,
       );
 
-      // Target Impact Shockwave & Crosshair Flare directly on the Enemy Hit
-      final impR = beamW * 1.65 * impactBeam.perspectiveScale;
-      canvas.drawCircle(impactBeam.screenOffset, impR * 1.25, _muzzleGlowPaint);
-      canvas.drawCircle(impactBeam.screenOffset, impR, _impactPaint);
+      // 1h. Pronounced Target Detonation Nova Directly on the Enemy Hit
+      final impScale = impactBeam.perspectiveScale;
+      final impOuterR = (28.0 + quadM * 7.5) * impScale * pulse;
+      final impSpikeLen = (40.0 + quadM * 8.5) * impScale * pulse;
+      final impDiagLen = impSpikeLen * 0.65;
+      final impCenter = impactBeam.screenOffset;
+      canvas.drawCircle(impCenter, impOuterR * 1.25, _muzzleGlowPaint);
+      canvas.drawCircle(impCenter, impOuterR, _impactPaint);
+      canvas.drawCircle(impCenter, impOuterR * 0.42, _muzzlePaint);
       canvas.drawLine(
-        Offset(
-          impactBeam.screenOffset.dx - impR * 1.4,
-          impactBeam.screenOffset.dy,
-        ),
-        Offset(
-          impactBeam.screenOffset.dx + impR * 1.4,
-          impactBeam.screenOffset.dy,
-        ),
+        Offset(impCenter.dx - impSpikeLen, impCenter.dy),
+        Offset(impCenter.dx + impSpikeLen, impCenter.dy),
+        _muzzleSpikePaint,
+      );
+      canvas.drawLine(
+        Offset(impCenter.dx, impCenter.dy - impSpikeLen * 0.75),
+        Offset(impCenter.dx, impCenter.dy + impSpikeLen * 0.75),
+        _muzzleSpikePaint,
+      );
+      canvas.drawLine(
+        Offset(impCenter.dx - impDiagLen, impCenter.dy - impDiagLen),
+        Offset(impCenter.dx + impDiagLen, impCenter.dy + impDiagLen),
+        _muzzleSpikePaint,
+      );
+      canvas.drawLine(
+        Offset(impCenter.dx - impDiagLen, impCenter.dy + impDiagLen),
+        Offset(impCenter.dx + impDiagLen, impCenter.dy - impDiagLen),
         _muzzleSpikePaint,
       );
     }
@@ -1562,37 +1655,16 @@ class CombatPainter extends CustomPainter {
       _powerFeedCorePaint,
     );
 
-    // 4. 3D Perspective Targeting Laser Sight from Dreadnought Nose Cannon to Nearest Enemy / Horizon
-    double aimTargetZ = 1.0;
-    double aimTargetElev = dreadElevation;
-    for (var i = 0; i < enemies.length; i++) {
-      final enemy = enemies[i];
-      if (!enemy.isDestroyed && enemy.assignedCorridor == activeCorridor) {
-        final ez = _worldYToTrenchNormZ(enemy.worldPosY, topMargin, boundaryY);
-        if (ez < aimTargetZ) {
-          aimTargetZ = ez;
-          aimTargetElev = enemy.vesselType == 2
-              ? 0.28
-              : (enemy.vesselType == 1 ? 0.22 : 0.17);
-        }
-      }
-    }
-
-    final farAim = cam.project(
-      size,
-      normX: (activeCorridor + 0.5) / 8.0,
-      normZ: aimTargetZ,
-      elevationY: aimTargetElev,
-    );
+    // 4. Compact Prow Muzzle Ready Indicator (no idle laser beam when not firing!)
     final aimPulse = 0.45 + 0.25 * math.sin(animationTime * 10.0);
     _aimGlowPaint.color = VoidTheme.plasmaCyan.withValues(
-      alpha: aimPulse * 0.50,
+      alpha: aimPulse * 0.40,
     );
-    canvas.drawLine(Offset(centerX, prowY), farAim.screenOffset, _aimGlowPaint);
-
-    _aimPaint.color = Colors.white.withValues(alpha: aimPulse * 0.92);
-    _aimPaint.strokeWidth = 1.8;
-    canvas.drawLine(Offset(centerX, prowY), farAim.screenOffset, _aimPaint);
+    canvas.drawCircle(Offset(centerX, prowY), 4.2 * scale, _aimGlowPaint);
+    _aimPaint
+      ..color = Colors.white.withValues(alpha: aimPulse * 0.85)
+      ..strokeWidth = 1.6;
+    canvas.drawCircle(Offset(centerX, prowY), 2.0 * scale, _aimPaint);
 
     // 5. Holographic 3D Lock-On Reticles on Enemies in Active Corridor
     for (var i = 0; i < enemies.length; i++) {
@@ -1736,15 +1808,16 @@ class CombatPainter extends CustomPainter {
     canvas.drawPath(_scratchReticlePath, _steerChevronPaint);
 
     // 7. 3D Spatial Attitude Angles & Perspective Dreadnought Mesh Projection
+    // Keep rollRad = 0.0 so the Defender nose always points straight ahead along
+    // the firing corridor without tilting sideways around its Z-axis.
     final lateralDisplacement =
         (dreadnought.targetPositionX - dreadnought.orbitalPositionX).clamp(
           -0.25,
           0.25,
         );
-    final rollRad =
-        lateralDisplacement * 24.0 * (math.pi / 180.0) - cam.yawRad * 0.38;
-    final pitchRad = -normForward * 0.26 - cam.meshPitchBiasRad * 0.72;
-    final yawRad = lateralDisplacement * 0.14 + cam.meshYawBiasRad * 0.65;
+    const rollRad = 0.0;
+    final pitchRad = -0.18 - normForward * 0.16;
+    final yawRad = (lateralDisplacement * 0.85).clamp(-0.20, 0.20);
 
     _dreadMesh.projectAndPaint(
       canvas,

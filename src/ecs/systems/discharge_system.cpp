@@ -96,9 +96,9 @@ DischargeSystem::DischargeResult DischargeSystem::ExecuteCrossDischarge(
   lance.firing_bay_index = firing_bay;
   lance.origin_x = lance_origin_x;
   lance.origin_y = lance_origin_y;
-  lance.beam_width = 0.04f + 0.015f * static_cast<float>(mass);
-  lance.sustained_duration = 0.35f;
-  lance.remaining_duration = 0.35f;
+  lance.beam_width = 0.045f + 0.018f * static_cast<float>(mass);
+  lance.sustained_duration = 0.48f;
+  lance.remaining_duration = 0.48f;
   lance.total_damage = damage;
   lance.active = 1;
 
@@ -222,14 +222,16 @@ DischargeSystem::DischargeResult DischargeSystem::ExecuteDirectBayDischarge(
     target_slot = lance_pool_[overwrite_idx];
   }
 
+  const float effective_mass =
+      std::max(static_cast<float>(mass), std::sqrt(safe_mult));
   auto& lance = registry.get<ParticleLanceComponent>(target_slot);
   lance.firing_bay_index = firing_bay;
   lance.origin_x = lance_origin_x;
   lance.origin_y = lance_origin_y;
-  lance.beam_width = (0.04f + 0.015f * static_cast<float>(mass)) *
-                     (safe_mult > 1.1f ? 1.25f : 1.0f);
-  lance.sustained_duration = 0.35f;
-  lance.remaining_duration = 0.35f;
+  lance.beam_width =
+      (0.045f + 0.018f * effective_mass) * (safe_mult > 1.1f ? 1.25f : 1.0f);
+  lance.sustained_duration = 0.48f;
+  lance.remaining_duration = 0.48f;
   lance.total_damage = damage;
   lance.active = 1;
 

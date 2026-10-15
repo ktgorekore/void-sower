@@ -110,11 +110,15 @@ bool CombatSystem::DischargeBay(uint8_t bay_index, float damage_multiplier) {
       registry_, dreadnought_entity_, bay_entities_, spatial_grid_, bay_index,
       damage_multiplier);
   RebuildSpatialGrid();
+  match_lifecycle_system_.CheckVictoryLossConditions(
+      registry_, dreadnought_entity_, bay_entities_);
 
   // Bao Mtaji Capture Synergy: When explicitly discharging a multi-core
-  // frontline bay (M >= 2) hits an enemy, harvest +2 seeds and redistribute
-  // them into adjacent bays without auto-firing.
-  if (prior_mass >= 2 && discharge_res.hit_enemy &&
+  // frontline bay (M >= 2) hits an enemy and combat continues, harvest +2 seeds
+  // and redistribute them into adjacent bays without auto-firing.
+  if (dread.current_sim_state !=
+          static_cast<uint8_t>(SimulationState::Victory) &&
+      prior_mass >= 2 && discharge_res.hit_enemy &&
       discharge_res.harvested_seeds > 0) {
     registry_.emplace_or_replace<SowingStateComponent>(
         dreadnought_entity_,
@@ -130,9 +134,6 @@ bool CombatSystem::DischargeBay(uint8_t bay_index, float damage_multiplier) {
     dread.is_cascading = 1;
     dread.current_sim_state =
         static_cast<uint8_t>(SimulationState::SowingTraversal);
-  } else {
-    match_lifecycle_system_.CheckVictoryLossConditions(
-        registry_, dreadnought_entity_, bay_entities_);
   }
   return true;
 }
