@@ -418,6 +418,17 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                               float velocity_y, float shields, float hull,
                               uint8_t vessel_type) {
   if (corridor >= kCorridorCount) return false;
+  float spawn_y = world_pos_y;
+  auto existing_view = registry_.view<EnemyVesselComponent>();
+  for (auto existing_ent : existing_view) {
+    const auto &existing =
+        existing_view.get<EnemyVesselComponent>(existing_ent);
+    if (existing.is_destroyed == 0 && existing.assigned_corridor == corridor) {
+      if (std::abs(existing.world_pos_y - spawn_y) < 0.18f) {
+        spawn_y = std::clamp(existing.world_pos_y + 0.18f, 0.55f, 0.99f);
+      }
+    }
+  }
   auto entity = registry_.create();
   const float corridor_x = (static_cast<float>(corridor) + 0.5f) /
                            static_cast<float>(kCorridorCount);
@@ -426,7 +437,7 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                   .entity_id = reinforcement_id_++,
                   .assigned_corridor = corridor,
                   .world_pos_x = corridor_x,
-                  .world_pos_y = world_pos_y,
+                  .world_pos_y = spawn_y,
                   .velocity_y = velocity_y,
                   .current_shields = shields,
                   .max_shields = shields,
@@ -434,7 +445,7 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                   .max_hull = hull,
                   .vessel_type = vessel_type,
                   .is_destroyed = 0,
-                  .world_pos_z = std::clamp(1.0f - world_pos_y, 0.0f, 1.0f),
+                  .world_pos_z = std::clamp(1.0f - spawn_y, 0.0f, 1.0f),
                   .velocity_x = 0.0f,
                   .velocity_z = 0.0f,
                   .bank_angle_rad = 0.0f,

@@ -515,7 +515,7 @@ class CombatCoordinator extends ChangeNotifier {
     _initialCores = standardInitialCores;
     final initialCores = isUnlimitedCores ? 9999 : standardInitialCores;
     engine.initialize(startingCores: initialCores, boundaryY: boundaryY);
-    engine.setLateralDrift(doctrine == SectorCombatDoctrine.phantomDrift);
+    engine.setLateralDrift(true);
 
     EntitlementService.instance.removeListener(_handleEntitlementChanged);
     EntitlementService.instance.addListener(_handleEntitlementChanged);
@@ -700,10 +700,36 @@ class CombatCoordinator extends ChangeNotifier {
     );
     HapticService.instance.sowTick();
 
-    // Horde reinforcement spawning
+    // Horde reinforcement spawning: choose a clear corridor (or the lane whose
+    // rearmost vessel has the most horizon clearance) so ships never stack.
     if (_remainingReinforcements > 0) {
       _remainingReinforcements--;
-      final respawnCorridor = _random.nextInt(8);
+      final baseCorridor = _random.nextInt(8);
+      var respawnCorridor = baseCorridor;
+      var bestMaxY = 2.0;
+      for (var offset = 0; offset < 8; offset++) {
+        final candidate = (baseCorridor + offset) & 7;
+        var maxLaneY = -1.0;
+        for (final activeEnemy in enemies) {
+          if (!activeEnemy.isDestroyed &&
+              activeEnemy.assignedCorridor == candidate &&
+              activeEnemy.worldPosY > maxLaneY) {
+            maxLaneY = activeEnemy.worldPosY;
+          }
+        }
+        if (maxLaneY < 0.0) {
+          respawnCorridor = candidate;
+          bestMaxY = -1.0;
+          break;
+        }
+        if (maxLaneY < bestMaxY) {
+          bestMaxY = maxLaneY;
+          respawnCorridor = candidate;
+        }
+      }
+      final spawnPosY = bestMaxY > 0.78
+          ? (bestMaxY + 0.18).clamp(0.82, 0.99)
+          : 0.96;
       final vType = ((_remainingReinforcements & 3) == 0)
           ? 1
           : ((_remainingReinforcements == 0) ? 2 : 0);
@@ -713,7 +739,7 @@ class CombatCoordinator extends ChangeNotifier {
 
       engine.spawnEnemy(
         corridor: respawnCorridor,
-        worldPosY: 0.96,
+        worldPosY: spawnPosY,
         velocityY: velY,
         shields: shields,
         hull: hull,

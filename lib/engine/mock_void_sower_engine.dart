@@ -524,11 +524,11 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       }
 
       var posX = e.worldPosX;
-      var corridor = e.assignedCorridor;
+      var corridor = e.assignedCorridor.clamp(0, 7);
       if (_lateralDrift) {
         final phase = e.entityId * 1.57;
-        final lateralVel = math.sin(_elapsedDriftTime * 2.8 + phase) * 0.28;
-        posX = (posX + lateralVel * deltaTime).clamp(0.06, 0.94);
+        final lateralVel = math.sin(_elapsedDriftTime * 1.65 + phase) * 0.24;
+        posX = (posX + lateralVel * deltaTime).clamp(0.0625, 0.9375);
         corridor = (posX * 8.0).floor().clamp(0, 7);
       }
 

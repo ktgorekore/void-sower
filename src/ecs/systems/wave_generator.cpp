@@ -64,9 +64,26 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
 
   // 2. Perform Backward-Play Program Inversion
   for (uint32_t m = 0; m < moves_to_invert; ++m) {
-    // Select an outer frontline bay to receive an inverse lance
+    // Select an outer frontline bay to receive an inverse lance, preferring
+    // unoccupied corridors so initial wave ships never stack on top of each
+    // other.
     std::uniform_int_distribution<int> corr_dist(0, kCorridorCount - 1);
     uint8_t corridor = static_cast<uint8_t>(corr_dist(rng));
+    for (uint8_t attempt = 0; attempt < kCorridorCount; ++attempt) {
+      const uint8_t candidate =
+          static_cast<uint8_t>((corridor + attempt) & (kCorridorCount - 1));
+      bool occupied = false;
+      for (const auto &existing : planned_enemies) {
+        if (existing.corridor == candidate) {
+          occupied = true;
+          break;
+        }
+      }
+      if (!occupied) {
+        corridor = candidate;
+        break;
+      }
+    }
     uint8_t frontline_bay = FrontlineBayForCorridor(corridor);
 
     // Pick terminal mass M that was discharged
@@ -129,13 +146,22 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
     }
   }
 
-  // 4. Instantiate planned enemies in their corridors
-  float base_y = 0.90f;
+  // 4. Instantiate planned enemies in their corridors with per-corridor depth
+  // separation so vessels never spawn on top of each other.
+  std::array<float, kCorridorCount> corridor_next_y{};
+  corridor_next_y.fill(0.92f);
   uint32_t next_id = 1000;
-  for (const auto &enemy_info : planned_enemies) {
+  for (size_t idx = 0; idx < planned_enemies.size(); ++idx) {
+    const auto &enemy_info = planned_enemies[idx];
     auto enemy_entity = registry_.create();
-    const float corridor_x = (static_cast<float>(enemy_info.corridor) + 0.5f) /
-                             static_cast<float>(kCorridorCount);
+    const uint8_t corr =
+        static_cast<uint8_t>(enemy_info.corridor & (kCorridorCount - 1));
+    const float corridor_x =
+        (static_cast<float>(corr) + 0.5f) / static_cast<float>(kCorridorCount);
+    const float stagger_offset = 0.03f * static_cast<float>(idx & 3);
+    const float spawn_y =
+        std::clamp(corridor_next_y[corr] - stagger_offset, 0.58f, 0.95f);
+    corridor_next_y[corr] = std::max(0.55f, spawn_y - 0.22f);
     const float half_health = enemy_info.health * 0.5f;
 
     uint8_t behavior = 0;
@@ -149,9 +175,9 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
         enemy_entity,
         EnemyVesselComponent{
             .entity_id = next_id++,
-            .assigned_corridor = enemy_info.corridor,
+            .assigned_corridor = corr,
             .world_pos_x = corridor_x,
-            .world_pos_y = base_y,
+            .world_pos_y = spawn_y,
             .velocity_y = config.initial_velocity_y,
             .current_shields =
                 (enemy_info.type != VesselType::Escort) ? half_health : 0.0f,
@@ -165,7 +191,7 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
                             : enemy_info.health,
             .vessel_type = static_cast<uint8_t>(enemy_info.type),
             .is_destroyed = 0,
-            .world_pos_z = std::clamp(1.0f - base_y, 0.0f, 1.0f),
+            .world_pos_z = std::clamp(1.0f - spawn_y, 0.0f, 1.0f),
             .velocity_x = 0.0f,
             .velocity_z = 0.0f,
             .bank_angle_rad = 0.0f,
@@ -173,8 +199,6 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
             .behavior_mode = behavior,
             .warp_in_progress = 1.0f,
         });
-
-    base_y = std::max(0.60f, base_y - 0.08f);
   }
 
   return true;
