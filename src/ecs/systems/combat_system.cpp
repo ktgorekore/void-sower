@@ -25,6 +25,7 @@ namespace void_sower::ecs {
 
 CombatSystem::CombatSystem(entt::registry &registry) : registry_(registry) {
   bay_entities_.fill(entt::null);
+  totem_fire_cooldowns_.fill(1.5f);
 }
 
 void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
@@ -32,6 +33,7 @@ void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
   VLOG(6) << "CombatSystem::InitializeDreadnought: starting_cores="
           << starting_cores << ", boundary_y=" << boundary_y;
   reinforcement_id_ = 10000;
+  totem_fire_cooldowns_.fill(1.5f);
   if (dreadnought_entity_ == entt::null ||
       !registry_.valid(dreadnought_entity_)) {
     dreadnought_entity_ = registry_.create();
@@ -113,13 +115,14 @@ bool CombatSystem::DischargeBay(uint8_t bay_index, float damage_multiplier) {
   match_lifecycle_system_.CheckVictoryLossConditions(
       registry_, dreadnought_entity_, bay_entities_);
 
-  // Bao Mtaji Capture Synergy: When explicitly discharging a multi-core
-  // frontline bay (M >= 2) hits an enemy and combat continues, harvest +2 seeds
-  // and redistribute them into adjacent bays without auto-firing.
+  // Bao Mtaji Capture & Totem Seed Harvest Synergy:
+  // When discharging a frontline bay kills an enemy OR hits an enemy with a
+  // multi-core charge (M >= 2) while combat continues, harvest ancestral seeds
+  // and redistribute them into adjacent frontline Totem Turrets.
   if (dread.current_sim_state !=
           static_cast<uint8_t>(SimulationState::Victory) &&
-      prior_mass >= 2 && discharge_res.hit_enemy &&
-      discharge_res.harvested_seeds > 0) {
+      (prior_mass >= 2 || discharge_res.killed_enemy) &&
+      discharge_res.hit_enemy && discharge_res.harvested_seeds > 0) {
     registry_.emplace_or_replace<SowingStateComponent>(
         dreadnought_entity_,
         SowingStateComponent{
@@ -354,6 +357,12 @@ void CombatSystem::Update(float delta_time) {
   // 5. Rebuild spatial grid for raycasting
   RebuildSpatialGrid();
 
+  // 5b. Autonomous Ancestral Totem Turrets (Concept D)
+  sim_state = static_cast<SimulationState>(dread.current_sim_state);
+  if (sim_state == SimulationState::OrbitalIdle) {
+    ProcessAutonomousTotemTurrets(delta_time);
+  }
+
   // 6. Reap destroyed enemies that have survived >= 10 frames in destroyed
   // state, allowing FFI polling to capture the kill while preventing unbounded
   // entity bloat.
@@ -374,6 +383,47 @@ void CombatSystem::Update(float delta_time) {
   // 7. Check victory/loss conditions
   match_lifecycle_system_.CheckVictoryLossConditions(
       registry_, dreadnought_entity_, bay_entities_);
+}
+
+void CombatSystem::ProcessAutonomousTotemTurrets(float delta_time) {
+  for (uint8_t c = 0; c < kCorridorCount; ++c) {
+    const uint8_t bay_idx = static_cast<uint8_t>(kCorridorCount + c);
+    if (!registry_.valid(bay_entities_[bay_idx])) continue;
+    auto &bay = registry_.get<BatteryComponent>(bay_entities_[bay_idx]);
+    if (bay.charge_units < 2 || spatial_grid_.GetCorridorCount(c) == 0) {
+      totem_fire_cooldowns_[c] = 1.5f;
+      continue;
+    }
+
+    totem_fire_cooldowns_[c] -= delta_time;
+    if (totem_fire_cooldowns_[c] <= 0.0f) {
+      bool is_triad = false;
+      for (int start = static_cast<int>(c) - 2; start <= static_cast<int>(c);
+           ++start) {
+        if (start >= 0 && start + 2 < static_cast<int>(kCorridorCount)) {
+          const auto &b0 = registry_.get<BatteryComponent>(
+              bay_entities_[kCorridorCount + start]);
+          const auto &b1 = registry_.get<BatteryComponent>(
+              bay_entities_[kCorridorCount + start + 1]);
+          const auto &b2 = registry_.get<BatteryComponent>(
+              bay_entities_[kCorridorCount + start + 2]);
+          if (b0.charge_units >= 2 && b1.charge_units >= 2 &&
+              b2.charge_units >= 2) {
+            is_triad = true;
+            break;
+          }
+        }
+      }
+
+      const uint32_t saved_mass = bay.charge_units;
+      const float triad_mult = is_triad ? 1.5f : 1.0f;
+      discharge_system_.ExecuteDirectBayDischarge(
+          registry_, dreadnought_entity_, bay_entities_, spatial_grid_, bay_idx,
+          triad_mult);
+      bay.charge_units = saved_mass;
+      totem_fire_cooldowns_[c] = is_triad ? 1.1f : 1.5f;
+    }
+  }
 }
 
 void CombatSystem::RebuildSpatialGrid() {
@@ -516,6 +566,7 @@ void CombatSystem::RestoreSnapshot(
     }
   }
 
+  totem_fire_cooldowns_.fill(1.5f);
   discharge_system_.Reset(registry_);
   registry_.clear<SowingStateComponent>();
 }

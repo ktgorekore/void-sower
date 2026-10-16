@@ -936,4 +936,48 @@ TEST(CombatSimulationTest, SmoothInvaderSeparationNoStuttering) {
   }
 }
 
+TEST(CombatSimulationTest,
+     AutonomousTotemTurretFiresWithoutConsumingChargeAndKillHarvestsSeeds) {
+  Engine engine;
+  engine.Initialize(10, 0.2f);
+
+  // Spawn an enemy in Corridor 2 (Totem Bay 10) with 500 hull, and a second
+  // enemy in Corridor 5 so the match stays in OrbitalIdle.
+  ASSERT_TRUE(engine.SpawnEnemy(2, 0.75f, 0.0f, 0.0f, 500.0f, 1));
+  ASSERT_TRUE(engine.SpawnEnemy(5, 0.85f, 0.0f, 0.0f, 500.0f, 1));
+
+  // Set Totem Bay 10 to Tier 2 (M = 2)
+  std::array<uint32_t, kTotalBays> charges{};
+  charges[10] = 2;
+  engine.RestoreSnapshot(charges, 10, 0);
+
+  // Step 1.55 seconds (95 ticks of 0.0166s) so autonomous Totem Turret fires
+  for (int i = 0; i < 95; ++i) {
+    engine.Update(kFixedTimeStep);
+  }
+
+  // Verify Totem Bay 10 preserved its 2 charge_units while damaging Enemy 0
+  std::array<BatteryComponent, kTotalBays> bays{};
+  engine.GetBays(absl::MakeSpan(bays));
+  EXPECT_EQ(bays[10].charge_units, 2u);
+
+  std::array<EnemyVesselComponent, 8> enemies{};
+  ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(enemies)), 2u);
+  float corridor2_hull = 500.0f;
+  for (const auto &e : enemies) {
+    if (e.assigned_corridor == 2) corridor2_hull = e.current_hull;
+  }
+  EXPECT_LT(corridor2_hull, 500.0f);
+
+  // Now finish off the weakened enemy in Corridor 2 via Flagship Harvester
+  // (M = 1 in Bay 10) and verify killing the enemy harvests +1 seed into Bay 11
+  charges[10] = 1;
+  engine.RestoreSnapshot(charges, 10, 0);
+  ASSERT_TRUE(engine.DischargeBay(10, 1.0f));
+  EXPECT_EQ(engine.GetSimulationState(), SimulationState::SowingTraversal);
+  engine.Update(kFixedTimeStep);
+  engine.GetBays(absl::MakeSpan(bays));
+  EXPECT_EQ(bays[11].charge_units, 1u);
+}
+
 }  // namespace void_sower::ecs

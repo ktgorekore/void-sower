@@ -121,6 +121,9 @@ class CombatSystem {
   void RestoreSnapshot(const std::array<uint32_t, kTotalBays> &bay_charges,
                        uint32_t reserve_cores, uint32_t total_score);
 
+  /// Steps autonomous firing for Tier 2+ frontline Ancestral Totem Turrets.
+  void ProcessAutonomousTotemTurrets(float delta_time);
+
  private:
   entt::registry &registry_;
   SpatialGrid spatial_grid_;
@@ -130,6 +133,7 @@ class CombatSystem {
   BaoCascadeSystem bao_cascade_system_;
   entt::entity dreadnought_entity_{entt::null};
   std::array<entt::entity, kTotalBays> bay_entities_{};
+  std::array<float, kCorridorCount> totem_fire_cooldowns_{};
   bool lateral_drift_{false};
   float elapsed_combat_time_{0.0f};
   uint32_t reinforcement_id_{10000};
