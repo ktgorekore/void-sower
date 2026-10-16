@@ -1061,3 +1061,26 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Bump version in `pubspec.yaml` to `0.4.1+43`.
   - [x] Author release notes in `docs/releases/release_notes_v0.4.1.md` and `store_listing/release_notes_v0.4.1.md`.
   - [x] Tag git release `v0.4.1` and push to GitHub.
+
+---
+
+## 🛡️ Phase 31: 3D Ancestral Totem Turrets, Morabaraba Laser Fence & Plain-English Visual UI (`v0.4.2+44`)
+
+- [x] **Task 31.1: Shoot-to-Harvest Seed Loop & Autonomous 3D Totem Turrets (`DischargeSystem`, `CombatSystem`, `CombatCoordinator`, `CombatPainter`)**
+  - [x] Replace the 2D 16-box footer with 8 3D Ancestral Totem Turrets rendered directly in the 3D orbital arena (`normZ = 0.032`) and a streamlined 3-control Martial Command Bar (`[ ‹ SOW ]`, `[ TOTEM STATUS / SUPER BEAM ]`, `[ SOW › ]`, `[ BLASTER FIRE ]`).
+  - [x] Implement `HarvestSeedToBay` in C++ `CombatSystem` and `MockVoidSowerEngine` so every 2 blaster hits or any enemy kill harvests a glowing seed directly into the active corridor's 3D Totem Turret.
+  - [x] Implement `StepTotemTurrets` so Totem Turrets with `2+` seeds (`AUTO-GUN`) automatically fire plasma bolts up their corridor every `1.5s`, dealing `25 × M` damage.
+
+- [x] **Task 31.2: Morabaraba 3-in-a-Row Laser Fence (`CombatCoordinator`, `InvaderBulletManager`, `CombatPainter`)**
+  - [x] Project a golden 3D Morabaraba Laser Fence across any 3 adjacent Auto-Gun Turrets (`2+` seeds each) that automatically intercepts and vaporizes descending enemy plasma bombs (`LASER FENCE ZAP! +50`) and grants a `1.5x` beam multiplier.
+
+- [x] **Task 31.3: Plain-English Visual UI, Seed Pips & Updated 60 FPS Animated Tutorials (`MancalaBatteryDockWidget`, `KineticRuleDiorama`, `TutorialOverlay`, `TacticalDirectivesModal`, `BaoCodexDialog`)**
+  - [x] Remove mathematical/technical jargon (`M²`, `M=0`, `T0 DORMANT`, `T3 SUPER-PRISM`, `NAMUA`, `SIPHON`, `CCW`) across the HUD, floating combat callouts, and tutorials.
+  - [x] Add 4 glowing visual seed pips (`● ● ○ ○`), plain-English turret levels (`EMPTY`, `SHIELD`, `AUTO-GUN`, `MEGA GUN`), and ultra-short directive nuggets (`🎯 SHOOT = +SEEDS  •  ⚡ 2+ SEEDS = AUTO-GUN  •  🛡️ 3 IN A ROW = LASER FENCE`).
+  - [x] Update all 4 60 FPS animated `KineticRuleDiorama` canvases (`sowingAndNamua`, `relayAndCascade`, `quadraticDamage`, `vanguardAltitude`) with pre-laid-out static `TextPainter`s (zero per-frame allocations) and refresh the 5-step interactive Flight Academy, How-to-Play Directives, and Bao Codex.
+
+- [x] **Task 31.4: Release Deployment & Documentation (`v0.4.2+44`)**
+  - [x] Bump version in `pubspec.yaml` to `0.4.2+44`.
+  - [x] Author release notes in `docs/releases/release_notes_v0.4.2.md` and `store_listing/release_notes_v0.4.2.md`.
+  - [x] Tag git release `v0.4.2` and `v0.4.2+44` and push to GitHub.
+
