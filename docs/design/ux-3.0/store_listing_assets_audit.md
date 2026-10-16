@@ -35,16 +35,27 @@ This document records the visual assets, live emulator verification, and audit o
 
 Captured directly from Android 17 (16 KB page-size kernel) on physical resolution **`1344 x 2992 px`** with **zero debug banners**, **zero test ads**, and **zero intrusive login prompts**.
 
-### Screenshot Portfolio Overview
+### Phone Screenshot Portfolio (`1344 x 2992 px`)
 
 | # | Screen ID | Target File | Dimensions | Visual Subject & Audit Findings |
 | :-: | :--- | :--- | :--- | :--- |
-| **01** | **Combat Viewport (3D Depth)** | [`01_combat_tactical_depth.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/01_combat_tactical_depth.png) | `1344 x 2992` | Flagship dreadnought cruising into apogee horizon with concentric 3D depth rings (`+10km`, `+20km`, `+40km`), ground projection anchor ring, descending alien invaders, 16-bay capacitor matrix, and subtle universal tactical advisory bar (`TACTICAL AI SCANNING CORRIDORS... STANDBY`). |
-| **02** | **Corridor Lock-on & Lance** | [`02_axial_particle_lance.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/02_axial_particle_lance.png) | `1344 x 2992` | Dreadnought locked onto corridor 5 (`[C5] VANGUARD +60% LANCE`), invader framed dead-center inside the targeting crosshairs, particle trails, and falling atmosphere cores (`-5 ATMOS PASS`). |
-| **03** | **Orbital Command Deck** | [`03_orbital_command_campaign.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/03_orbital_command_campaign.png) | `1344 x 2992` | Clean, decluttered Campaign Star Map with spine progression, Sector 1 Zanzibar Reef Gate active, Tier 1–3 locked sectors, mode selector, and ergonomic bottom navigation. |
+| **01** | **Combat Viewport (3D Depth)** | [`01_combat_tactical_depth.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/01_combat_tactical_depth.png) | `1344 x 2992` | Flagship dreadnought cruising into apogee horizon (`CHASE 3D 26°/0°`) with 8 3D Ancestral Totem Turrets across orbital lanes, 3D Morabaraba Laser Fence bridges, concentric depth rings (`+10km`, `+20km`, `+40km`), and compact 56px Martial Flight & Totem Command Bar (`AUTO SOW: ON`, `TOTEM TURRETS`, `BLASTER FIRE`). |
+| **02** | **Corridor Lock-on & Lance** | [`02_axial_particle_lance.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/02_axial_particle_lance.png) | `1344 x 2992` | Cinematic `BRIDGE 3D (38°/-22°)` perspective with dreadnought firing axial particle lances (`SUPER CRIT`), active Tier 2 Autonomous Totem Spires (`T2`), Morabaraba Laser Fence links, and compact 56px Martial Command Bar. |
+| **03** | **Orbital Command Deck** | [`03_orbital_command_campaign.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/03_orbital_command_campaign.png) | `1344 x 2992` | Clean, decluttered Campaign Star Map with spine progression, Sector 1 Zanzibar Reef Gate active, Tier 1–3 sectors, mode selector, and ergonomic bottom navigation. |
 | **04** | **Fleet Hangar Inspection** | [`04_fleet_hangar_inspection.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/04_fleet_hangar_inspection.png) | `1344 x 2992` | Frosted glass inspection panel showcasing Vanguard Flagship stats (Core Capacity: 16, Lance Alpha: 60%, Hull Integrity: 100%), tactical perks, and active chassis selection. |
 | **05** | **Tactical Directives Codex** | [`05_tactical_directives_codex.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/05_tactical_directives_codex.png) | `1344 x 2992` | 20-second combat rules interactive briefing displaying circular capacitor sowing animations, corridor targeting diagrams, flight academy, and quick engagement launch. |
 | **06** | **Tactical Pause Menu** | [`06_tactical_pause_controls.png`](file:///home/kelvingorekore/projects/void-sower/docs/media/store_screenshots/06_tactical_pause_controls.png) | `1344 x 2992` | Translucent combat pause overlay featuring real-time sortie score, chrono-rewind, pro boost stacker, high-contrast action buttons (Restart, Resume, Abort), and quick utility icons. |
+
+### Tablet Screenshot Portfolio (`1600 x 2560 px`)
+
+| # | Screen ID | Target File | Dimensions | Visual Subject & Audit Findings |
+| :-: | :--- | :--- | :--- | :--- |
+| **01** | **Tablet Tactical Combat** | [`01_tablet_tactical_combat.png`](file:///home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet/01_tablet_tactical_combat.png) | `1600 x 2560` | Wide-aspect 10-inch tablet combat viewport with 8 3D Ancestral Totem Turrets, Morabaraba Laser Fence bridges, 3D orbital perspective, and 56px Martial Command Bar. |
+| **02** | **Tablet Axial Particle Lance** | [`02_tablet_axial_particle_lance.png`](file:///home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet/02_tablet_axial_particle_lance.png) | `1600 x 2560` | Active particle lance discharge (`SUPER CRIT +1600`) with Shoot-to-Harvest core cascade and 3D Ancestral Totem Turrets across wide tablet horizon. |
+| **03** | **Tablet Campaign Star Map** | [`03_tablet_campaign_map.png`](file:///home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet/03_tablet_campaign_map.png) | `1600 x 2560` | Orbital Command Deck Star Map layout on 16:10 tablet display. |
+| **04** | **Tablet Fleet Hangar** | [`04_tablet_fleet_hangar.png`](file:///home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet/04_tablet_fleet_hangar.png) | `1600 x 2560` | Vanguard Flagship inspection deck and hull telemetry on 16:10 tablet display. |
+| **05** | **Tablet Flight Academy** | [`05_tablet_flight_academy.png`](file:///home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet/05_tablet_flight_academy.png) | `1600 x 2560` | Interactive Flight Academy onboarding with 3D Ancestral Totem Turrets and step-by-step tactical briefing. |
+| **06** | **Tablet Bao Orbital Codex** | [`06_tablet_bao_codex.png`](file:///home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet/06_tablet_bao_codex.png) | `1600 x 2560` | Tactical Directives Codex modal on 16:10 tablet display. |
 
 ---
 

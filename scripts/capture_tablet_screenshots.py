@@ -97,10 +97,10 @@ def capture(dest_name, mirror_name=None):
 
 def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6):
   adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
+  adb_cmd(["shell", "input", "keyevent", "3"])
+  time.sleep(0.5)
   adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
   time.sleep(0.5)
-  adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
-  time.sleep(0.8)
 
   profile_json = (
       '{"id":"pilot_default","callsign":"Vanguard-01","insignia":"shonaStar",'
@@ -176,12 +176,12 @@ def main():
     swipe(800, 2000, 800, 1400, 250)
     time.sleep(0.3)
 
-    # Fire Axial Particle Lance via FIRE trigger repeatedly
+    # Fire Axial Particle Lance via BLASTER FIRE trigger and 3D viewport tap repeatedly
     fire_proc = subprocess.Popen([
         "adb", "-s", DEVICE, "shell",
-        "for i in $(seq 1 12); do input tap 710 2260; sleep 0.08; done"
+        "for i in $(seq 1 4); do input tap 1280 2370; input tap 800 1400; sleep 0.08; done"
     ])
-    time.sleep(0.25)
+    time.sleep(0.22)
     capture("02_tablet_axial_particle_lance.png", mirror_name="02_tablet_sowing_trajectory.png")
     fire_proc.wait()
     time.sleep(0.5)
@@ -206,12 +206,16 @@ def main():
     # Phase 5: Tablet Multi-Theater Campaign Star Map
     # =========================================================================
     print("\n[Tablet Phase 5] Capturing Campaign Map...")
-    # Re-open pause menu via back keyevent
-    keyevent(4)
-    time.sleep(0.8)
-    # Tap SECTORS MAP button in pause menu (x=650, y=1420)
-    tap(650, 1420)
-    time.sleep(2.0)
+    seed_prefs(
+        pro_unlocked=True,
+        completed_tutorial=True,
+        high_score=34820,
+        liberated_sectors=6,
+    )
+    adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+    time.sleep(2.5)
+    tap(35, 175)
+    time.sleep(1.8)
     capture("03_tablet_campaign_map.png")
 
     # =========================================================================

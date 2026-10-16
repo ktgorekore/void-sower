@@ -186,20 +186,28 @@ def main():
   # Phase 3: BRIDGE 3D (38°/-22°) Isometric Command Angle + Forward Star Thrust + Nose Cannon Lance
   # =========================================================================
   print("\n[Phase 3] Switching to BRIDGE 3D (38°/-22°), thrusting forward along C4 toward Target Star & Firing Nose Cannon Lance...")
-  # Tap 3D Camera Gimbal mode button (x=200, y=2365) -> switches to BRIDGE 3D 38°/-22°
-  tap(200, 2365)
+  # Tap 3D Camera Gimbal mode button (x=200, y=2640) -> switches to BRIDGE 3D 38°/-22°
+  tap(200, 2640)
   time.sleep(0.35)
   # Steer Defender to C4 and thrust forward along the infinite 3D orbital highway toward Target Star
   swipe(350, 2220, 600, 1780, 250)
   time.sleep(0.25)
 
-  # Explicitly fire Axial Particle Lance in the 3D viewport while capturing mid-beam
+  # Explicitly fire Axial Particle Lance and BLASTER FIRE while capturing mid-beam
   fire_proc = subprocess.Popen([
       "adb", "-s", DEVICE, "shell",
-      "for i in $(seq 1 10); do input tap 600 1650; sleep 0.08; done"
+      "for i in $(seq 1 4); do input tap 1180 2780; input tap 600 1650; sleep 0.08; done"
   ])
-  time.sleep(0.25)
+  time.sleep(0.22)
   capture("02_axial_particle_lance.png", "phone_02_axial_particle_lance.png", "02_axial_particle_lance.png")
+  shutil.copyfile(
+      os.path.join(SCREENSHOTS_DIR, "02_axial_particle_lance.png"),
+      os.path.join(ASSETS_DIR, "phone_02_capacitor_sowing.png"),
+  )
+  shutil.copyfile(
+      os.path.join(SCREENSHOTS_DIR, "02_axial_particle_lance.png"),
+      os.path.join(ASSETS_DIR, "phone_02_nyumba_storage.png"),
+  )
   fire_proc.wait()
   time.sleep(0.5)
 
@@ -227,10 +235,8 @@ def main():
   # Phase 5: Multi-Theater Campaign Star Map
   # =========================================================================
   print("\n[Phase 5] Returning to Star Map...")
-  tap(1250, 224)
-  time.sleep(0.8)
-  tap(460, 1735)
-  time.sleep(2.0)
+  tap(56, 224)
+  time.sleep(1.8)
   capture("05_kilwa_basin_campaign_map.png", docs_name="03_orbital_command_campaign.png")
 
   # =========================================================================
@@ -271,10 +277,10 @@ def main():
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(2.2)
 
-  # Tap 3D Camera Gimbal twice (x=200, y=2365) -> CHASE 3D -> BRIDGE 3D -> ORBIT 3D 32°/18°
-  tap(200, 2365)
+  # Tap 3D Camera Gimbal twice (x=200, y=2640) -> CHASE 3D -> BRIDGE 3D -> ORBIT 3D 32°/18°
+  tap(200, 2640)
   time.sleep(0.25)
-  tap(200, 2365)
+  tap(200, 2640)
   time.sleep(0.35)
 
   # Open Tactical Pause via keyevent 4
@@ -296,21 +302,17 @@ def main():
 
   print("[Victory] Polling for Sector Liberation Victory modal...")
   captured_victory = False
-  for tick in range(45):
+  for tick in range(55):
     time.sleep(0.15)
-    temp_check = os.path.join(
-        "/home/kelvingorekore/.gemini/antigravity-cli/brain/d066f74c-1ed9-492c-acf3-069f46fe64ed/scratch",
-        "poll_vic_check.png",
-    )
-    os.makedirs(os.path.dirname(temp_check), exist_ok=True)
+    temp_check = "/tmp/poll_vic_check.png"
     with open(temp_check, "wb") as f:
       subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f, check=True)
     chk_img = Image.open(temp_check)
     chk_arr = np.array(chk_img)
 
-    # Under the VictoryDialog modal barrier (black54), the bottom dock (y=2500..2780) has max RGB < 155,
+    # Under the VictoryDialog modal barrier (black54), the bottom dock (y=2720..2850) has max RGB < 155,
     # while the center modal header (y=760..1120) has bright gold 'SECTOR 1 LIBERATED!' pixels (> 800).
-    dock_max = int(chk_arr[2500:2780, 100:1240, :3].max())
+    dock_max = int(chk_arr[2720:2850, 100:1240, :3].max())
     vic_hdr = chk_arr[760:1120, 260:1080]
     gold_pixels = int(((vic_hdr[:, :, 0] > 200) & (vic_hdr[:, :, 1] > 140) & (vic_hdr[:, :, 2] < 60)).sum())
     if dock_max < 155 and gold_pixels > 800:
@@ -320,6 +322,7 @@ def main():
       )
       chk_img.save(os.path.join(SCREENSHOTS_DIR, "06_sector_liberation_victory.png"))
       chk_img.save(os.path.join(ASSETS_DIR, "phone_05_sector_liberation.png"))
+      chk_img.save(os.path.join(DOCS_STORE_DIR, "06_sector_liberation_victory.png"))
       captured_victory = True
       break
 
