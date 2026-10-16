@@ -19,11 +19,11 @@ import '../theme/void_theme.dart';
 import 'kinetic_rule_diorama.dart';
 import 'tactile_button.dart';
 
-/// Consolidated, ultra-fast (<20 seconds) Tactical Combat Directives modal.
+/// Visual-first, plain-English Tactical Combat Directives modal.
 ///
-/// Merges the Bao Orbital Codex and Flight Academy into 4 illustrated visual flashcards,
-/// completely eliminating instructional wall-of-text fatigue while giving commanders
-/// immediate one-tap access to the hands-on academy simulator.
+/// Uses animated 60 FPS dioramas, visual seed badges, and ultra-short 1-line
+/// captions so any player understands the 3D Turret & Laser Fence mechanics
+/// in seconds.
 class TacticalDirectivesModal extends StatelessWidget {
   const TacticalDirectivesModal({
     super.key,
@@ -65,7 +65,7 @@ class TacticalDirectivesModal extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Top Header: Insignia + Title + Subtitle + Close Button
+            // Top Header
             Padding(
               padding: const EdgeInsets.fromLTRB(18.0, 16.0, 12.0, 10.0),
               child: Row(
@@ -80,12 +80,6 @@ class TacticalDirectivesModal extends StatelessWidget {
                         color: VoidTheme.plasmaCyan,
                         width: 1.5,
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: VoidTheme.plasmaCyan.withValues(alpha: 0.4),
-                          blurRadius: 10.0,
-                        ),
-                      ],
                     ),
                     child: const Icon(
                       Icons.military_tech,
@@ -94,10 +88,10 @@ class TacticalDirectivesModal extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12.0),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'TACTICAL DIRECTIVES',
                           style: TextStyle(
@@ -109,7 +103,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                         ),
                         SizedBox(height: 2.0),
                         Text(
-                          'CORE COMBAT RULES IN 20 SECONDS',
+                          'HOW TO PLAY AT A GLANCE',
                           style: TextStyle(
                             color: VoidTheme.plasmaCyanLight,
                             fontSize: 9.5,
@@ -134,7 +128,7 @@ class TacticalDirectivesModal extends StatelessWidget {
             ),
             const Divider(color: VoidTheme.cardSurface, height: 1.0),
 
-            // Scrollable 4-Card Visual Micro-Briefing
+            // Scrollable 4-Card Visual Guide
             Flexible(
               child: ListView(
                 shrinkWrap: true,
@@ -143,55 +137,59 @@ class TacticalDirectivesModal extends StatelessWidget {
                   vertical: 12.0,
                 ),
                 children: [
-                  // Card 1: Swipe to Sow
                   _buildRuleCard(
                     stepNumber: '1',
-                    title: 'SWIPE TO SOW',
-                    subtitle: 'TRAVERSAL',
+                    title: 'SHOOT & SPREAD SEEDS',
+                    subtitle: '‹ SOW / SOW ›',
                     description:
-                        'Swipe left or right to distribute cores. Land in charged bays for free cascade laps.',
+                        'Shoot enemies to get seeds. Swipe ‹ SOW or SOW › to spread them across turrets.',
+                    chips: const ['🎯 SHOOT = +SEEDS', '‹ SOW / SOW ›'],
                     icon: Icons.sync_alt_rounded,
                     accentColor: VoidTheme.plasmaCyan,
                     dioramaType: DioramaType.sowingAndNamua,
                   ),
                   const SizedBox(height: 10.0),
 
-                  // Card 2: Corridors C1–C8
                   _buildRuleCard(
                     stepNumber: '2',
-                    title: 'CORRIDORS C1–C8',
-                    subtitle: 'TARGETING',
+                    title: 'GROW 3D TURRETS',
+                    subtitle: '1 TO 4 SEEDS',
                     description:
-                        'Bays C1–C8 target the 8 enemy lanes. Align your dreadnought to aim.',
-                    icon: Icons.filter_center_focus,
-                    accentColor: VoidTheme.plasmaCyanLight,
-                    dioramaType: DioramaType.vanguardAltitude,
-                  ),
-                  const SizedBox(height: 10.0),
-
-                  // Card 3: Charged Laser Beams
-                  _buildRuleCard(
-                    stepNumber: '3',
-                    title: 'CHARGED LASERS',
-                    subtitle: 'POWER MULTIPLIER',
-                    description:
-                        'Frontline bays shoot laser beams. Stacking cores multiplies damage: 4 cores = 16x power!',
+                        '1 seed = Shield. 2+ = Auto-Gun. 4+ = 16x Super Beam!',
+                    chips: const [
+                      '●○○○ SHIELD',
+                      '●●○○ AUTO-GUN',
+                      '●●●● 16x BEAM',
+                    ],
                     icon: Icons.bolt,
-                    accentColor: VoidTheme.emeraldShield,
+                    accentColor: VoidTheme.crimsonFlare,
                     dioramaType: DioramaType.quadraticDamage,
                   ),
                   const SizedBox(height: 10.0),
 
-                  // Card 4: Shield Deflection
                   _buildRuleCard(
-                    stepNumber: '4',
-                    title: 'SHIELD CANOPY',
-                    subtitle: 'DEFLECTION',
+                    stepNumber: '3',
+                    title: '3 IN A ROW = LASER FENCE',
+                    subtitle: 'ZAPS BOMBS',
                     description:
-                        'Charged frontline bays automatically deflect enemy bombs safely (+50 PTS).',
+                        'Line up 3 Auto-Guns side-by-side to zap enemy bombs in mid-air!',
+                    chips: const ['🗼—🗼—🗼 3 IN A ROW', '⚡ ZAPS BOMBS'],
                     icon: Icons.shield,
                     accentColor: VoidTheme.solarGold,
                     dioramaType: DioramaType.relayAndCascade,
+                  ),
+                  const SizedBox(height: 10.0),
+
+                  _buildRuleCard(
+                    stepNumber: '4',
+                    title: 'AIM & FLY FORWARD',
+                    subtitle: '+60% POWER',
+                    description:
+                        'Drag left/right to aim. Slide up into the green zone for +60% power!',
+                    chips: const ['◄ ► AIM LANE', '▲ +60% POWER'],
+                    icon: Icons.filter_center_focus,
+                    accentColor: VoidTheme.emeraldShield,
+                    dioramaType: DioramaType.vanguardAltitude,
                   ),
                 ],
               ),
@@ -206,7 +204,6 @@ class TacticalDirectivesModal extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Secondary Action: Interactive Flight Academy Simulator (if available)
                   if (onLaunchAcademy != null) ...[
                     OutlinedButton.icon(
                       onPressed: () {
@@ -293,7 +290,6 @@ class TacticalDirectivesModal extends StatelessWidget {
                     const SizedBox(height: 10.0),
                   ],
 
-                  // Primary Engage Combat Button
                   TactileButton(
                     label: 'ENGAGE',
                     icon: Icons.rocket_launch,
@@ -319,6 +315,7 @@ class TacticalDirectivesModal extends StatelessWidget {
     required String title,
     required String subtitle,
     required String description,
+    required List<String> chips,
     required IconData icon,
     required Color accentColor,
     DioramaType? dioramaType,
@@ -337,12 +334,10 @@ class TacticalDirectivesModal extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Left Glyph Box
               Container(
-                width: 40.0,
-                height: 40.0,
+                width: 34.0,
+                height: 34.0,
                 decoration: BoxDecoration(
                   color: accentColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8.0),
@@ -351,63 +346,38 @@ class TacticalDirectivesModal extends StatelessWidget {
                     width: 1.0,
                   ),
                 ),
-                child: Icon(icon, color: accentColor, size: 20.0),
+                child: Icon(icon, color: accentColor, size: 18.0),
               ),
-              const SizedBox(width: 12.0),
-
-              // Content
+              const SizedBox(width: 10.0),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '$stepNumber. $title',
-                            style: TextStyle(
-                              color: accentColor,
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6.0),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5.0,
-                            vertical: 1.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: accentColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(3.0),
-                          ),
-                          child: Text(
-                            subtitle,
-                            style: TextStyle(
-                              color: accentColor,
-                              fontSize: 7.5,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5.0),
-                    Text(
-                      description,
-                      style: const TextStyle(
-                        color: VoidTheme.starWhite,
-                        fontSize: 11.0,
-                        height: 1.35,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  '$stepNumber. $title',
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 12.0,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.7,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 6.0,
+                  vertical: 2.0,
+                ),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(4.0),
+                ),
+                child: Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 8.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.4,
+                  ),
                 ),
               ),
             ],
@@ -416,10 +386,50 @@ class TacticalDirectivesModal extends StatelessWidget {
             const SizedBox(height: 8.0),
             KineticRuleDiorama(
               type: dioramaType,
-              height: 75.0,
+              height: 84.0,
               accentColor: accentColor,
             ),
           ],
+          const SizedBox(height: 8.0),
+          Wrap(
+            spacing: 6.0,
+            runSpacing: 4.0,
+            children: chips
+                .map(
+                  (c) => Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6.0,
+                      vertical: 2.0,
+                    ),
+                    decoration: BoxDecoration(
+                      color: accentColor.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(4.0),
+                      border: Border.all(
+                        color: accentColor.withValues(alpha: 0.4),
+                        width: 0.8,
+                      ),
+                    ),
+                    child: Text(
+                      c,
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 5.0),
+          Text(
+            description,
+            style: const TextStyle(
+              color: VoidTheme.starWhite,
+              fontSize: 10.8,
+              height: 1.3,
+            ),
+          ),
         ],
       ),
     );

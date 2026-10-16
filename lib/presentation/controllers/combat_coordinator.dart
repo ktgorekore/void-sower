@@ -850,7 +850,7 @@ class CombatCoordinator extends ChangeNotifier {
       _surgicalCullCharges++;
       damageNumbers.add(
         FloatingDamageNumber(
-          text: '+1 YOTÉ CULL READY!',
+          text: '+1 SNIPE READY!',
           x: enemyCorridorX,
           y: viewportSize.height * 0.34,
           color: VoidTheme.crimsonFlare,
@@ -878,7 +878,7 @@ class CombatCoordinator extends ChangeNotifier {
 
     damageNumbers.add(
       FloatingDamageNumber(
-        text: '+$siphonAmount CORES (SIPHON)',
+        text: '+$siphonAmount SEEDS',
         x: enemyCorridorX,
         y: viewportSize.height * 0.40,
         color: VoidTheme.solarGold,
@@ -1638,7 +1638,7 @@ class CombatCoordinator extends ChangeNotifier {
     );
     damageNumbers.add(
       FloatingDamageNumber(
-        text: '-1 CORE (NAMUA)',
+        text: '+1 SEED',
         x: dreadnought.orbitalPositionX,
         y: (dreadnought.boundaryLineY + 0.04).clamp(0.0, 1.0),
         color: VoidTheme.solarGold,
@@ -1707,13 +1707,14 @@ class CombatCoordinator extends ChangeNotifier {
     HapticService.instance.injectionClick();
     audio.onCoreInjected();
     audio.onLanceFired();
-    final quadDmg = effectiveQuadMass * effectiveQuadMass * 100;
+    final powerMult = effectiveQuadMass * effectiveQuadMass;
+    final quadDmg = powerMult * 100;
     final isTier3Overdrive = priorMass >= 4;
     damageNumbers.add(
       FloatingDamageNumber(
         text: isTier3Overdrive
-            ? 'TOTEM OVERDRIVE M² = $effectiveQuadMass² AXIAL LANCE ($quadDmg DMG)'
-            : 'M² = $effectiveQuadMass² AXIAL LANCE ($quadDmg DMG)',
+            ? '${powerMult}x SUPER BEAM! ($quadDmg DMG)'
+            : '${powerMult}x AXIAL LANCE ($quadDmg DMG)',
         x: dreadnought.orbitalPositionX,
         y: (dreadnought.boundaryLineY + 0.05).clamp(0.0, 1.0),
         color: effectiveQuadMass >= 3
@@ -1814,10 +1815,11 @@ class CombatCoordinator extends ChangeNotifier {
       if (totalDamage > 0) {
         HapticService.instance.injectionClick();
         audio.onLanceFired();
-        final quadDmg = (priorMass * priorMass * 100 * mult).round();
+        final powerMult = priorMass * priorMass;
+        final quadDmg = (powerMult * 100 * mult).round();
         damageNumbers.add(
           FloatingDamageNumber(
-            text: 'M² = $priorMass² LANCE ($quadDmg DMG)',
+            text: '${powerMult}x SUPER BEAM ($quadDmg DMG)',
             x: ((targetBay - 8) + 0.5) / 8.0,
             y: (dreadnought.boundaryLineY + 0.06).clamp(0.0, 1.0),
             color: priorMass >= 3 ? VoidTheme.solarGold : VoidTheme.plasmaCyan,

@@ -81,12 +81,9 @@ void main() {
 
       // Verify key titles remain available
       expect(find.text('BAO ORBITAL CODEX'), findsOneWidget);
-      expect(find.text('1. NAMUA (CORE INJECTION)'), findsOneWidget);
-      expect(find.text('2. CHARGED LASERS (STACKING POWER)'), findsOneWidget);
-      expect(
-        find.text('3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)'),
-        findsOneWidget,
-      );
+      expect(find.text('1. SHOOT & SPREAD SEEDS'), findsOneWidget);
+      expect(find.text('2. TURRET LEVELS & SUPER BEAMS'), findsOneWidget);
+      expect(find.text('3. 3 IN A ROW = LASER FENCE'), findsOneWidget);
 
       await tester.pump(const Duration(milliseconds: 300));
     });
@@ -100,15 +97,15 @@ void main() {
 
         expect(find.byType(TacticalDirectivesModal), findsOneWidget);
         expect(find.byType(KineticRuleDiorama), findsWidgets);
-        expect(find.text('1. SWIPE TO SOW'), findsOneWidget);
-        expect(find.text('2. CORRIDORS C1–C8'), findsOneWidget);
+        expect(find.text('1. SHOOT & SPREAD SEEDS'), findsOneWidget);
+        expect(find.text('2. GROW 3D TURRETS'), findsOneWidget);
 
         await tester.scrollUntilVisible(
-          find.text('4. SHIELD CANOPY'),
+          find.text('4. AIM & FLY FORWARD'),
           150.0,
           scrollable: find.byType(Scrollable).first,
         );
-        expect(find.text('4. SHIELD CANOPY'), findsOneWidget);
+        expect(find.text('4. AIM & FLY FORWARD'), findsOneWidget);
 
         await tester.pump(const Duration(milliseconds: 300));
       },

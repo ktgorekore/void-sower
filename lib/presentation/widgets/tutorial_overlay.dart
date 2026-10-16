@@ -21,7 +21,8 @@ import 'bao_codex_dialog.dart';
 import 'kinetic_rule_diorama.dart';
 import 'tactile_button.dart';
 
-/// Interactive hands-on Flight Academy onboarding overlay teaching Bao orbital mechanics.
+/// Interactive hands-on Flight Academy onboarding overlay teaching the 3D
+/// Turret & Laser Fence mechanics with visuals and ultra-short plain English.
 class TutorialOverlay extends StatefulWidget {
   const TutorialOverlay({super.key, required this.onDismiss, this.onOpenCodex});
 
@@ -39,9 +40,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   int _demoCores = 28;
   int _demoBayCharge = 0;
   int _demoActiveBay = 11;
-  int _demoMass = 3;
+  int _demoMass = 4;
   bool _lanceFired = false;
-  int _demoCorridor = 3; // 0..7 (C4)
+  int _demoCorridor = 3; // 0..7 (Lane 4)
   bool _bombDeflected = false;
 
   Timer? _lanceTimer;
@@ -199,57 +200,34 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                       ),
                       const SizedBox(height: 6.0),
 
-                      // Tactical Briefing Badge & Video Option
+                      // Visual Step Progress Dots (● ● ○ ○ ○)
                       Row(
-                        children: [
-                          Expanded(
+                        children: List.generate(5, (idx) {
+                          final active = idx == _currentStep;
+                          final done = idx < _currentStep;
+                          return Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                                vertical: 4.0,
+                              height: 4.0,
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 2.0,
                               ),
                               decoration: BoxDecoration(
-                                color: VoidTheme.emeraldShield.withValues(
-                                  alpha: 0.15,
-                                ),
-                                borderRadius: BorderRadius.circular(4.0),
-                                border: Border.all(
-                                  color: VoidTheme.emeraldShield.withValues(
-                                    alpha: 0.4,
-                                  ),
-                                  width: 0.8,
-                                ),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.touch_app,
-                                    color: VoidTheme.emeraldShield,
-                                    size: 13.0,
-                                  ),
-                                  SizedBox(width: 5.0),
-                                  Flexible(
-                                    child: Text(
-                                      'INTERACTIVE LESSON',
-                                      style: TextStyle(
-                                        color: VoidTheme.emeraldShield,
-                                        fontSize: 9.0,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.4,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                                borderRadius: BorderRadius.circular(2.0),
+                                color: active
+                                    ? _getStepAccent()
+                                    : (done
+                                          ? _getStepAccent().withValues(
+                                              alpha: 0.45,
+                                            )
+                                          : VoidTheme.cardSurface),
                               ),
                             ),
-                          ),
-                        ],
+                          );
+                        }),
                       ),
-                      const Divider(color: VoidTheme.cardSurface, height: 16.0),
+                      const Divider(color: VoidTheme.cardSurface, height: 14.0),
 
-                      // Step Title & Body
+                      // Step Title & Short 1-Line Body
                       Text(
                         _getStepTitle(),
                         style: const TextStyle(
@@ -259,20 +237,20 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                           letterSpacing: 0.8,
                         ),
                       ),
-                      const SizedBox(height: 4.0),
+                      const SizedBox(height: 3.0),
                       Text(
                         _getStepBody(),
                         style: const TextStyle(
                           color: VoidTheme.textSecondary,
-                          fontSize: 12.0,
-                          height: 1.35,
+                          fontSize: 11.5,
+                          height: 1.3,
                         ),
                       ),
                       const SizedBox(height: 8.0),
 
-                      // Kinetic 60 FPS Visual Rule Diorama
+                      // Prominent 60 FPS Visual Rule Diorama
                       Container(
-                        height: 64.0,
+                        height: 86.0,
                         margin: const EdgeInsets.only(bottom: 10.0),
                         decoration: BoxDecoration(
                           color: const Color(0xFF060B17),
@@ -291,7 +269,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
 
                       // Interactive Hands-On Simulation Widget
                       _buildInteractiveWidget(),
-                      const SizedBox(height: 14.0),
+                      const SizedBox(height: 12.0),
 
                       // Navigation Controls
                       Row(
@@ -399,16 +377,16 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   String _getStepTitle() {
     switch (_currentStep) {
       case 0:
-        return '1. CORE INJECTION (NAMUA)';
+        return '1. SHOOT TO GROW TURRETS';
       case 1:
-        return '2. SOWING TRAVERSAL';
+        return '2. SWIPE TO SPREAD SEEDS';
       case 2:
-        return '3. CHARGED LASER BLAST';
+        return '3. STACK SEEDS = SUPER BEAM';
       case 3:
-        return '4. ORBITAL PLATFORM ALIGNMENT';
+        return '4. SLIDE SHIP TO AIM';
       case 4:
       default:
-        return '5. BOMB EVASION & BREACH';
+        return '5. 3 IN A ROW = LASER FENCE';
     }
   }
 
@@ -431,16 +409,16 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   String _getStepBody() {
     switch (_currentStep) {
       case 0:
-        return 'Tap bay to prime capacitor (-1 Core).';
+        return 'Shooting enemies drops seeds that upgrade your 8 turrets.';
       case 1:
-        return 'Swipe left or right to distribute cores across bays.';
+        return 'Swipe ‹ SOW or SOW › to spread seeds to neighbor turrets.';
       case 2:
-        return 'Frontline bays fire laser beams. Stacking cores multiplies damage: 4 cores = 16x power!';
+        return '1 seed = Shield. 2+ = Auto-Gun. 4+ = 16x Super Beam!';
       case 3:
-        return 'Slide horizontally to align targeting corridor.';
+        return 'Drag left/right to aim. Slide forward for +60% power!';
       case 4:
       default:
-        return 'Charged frontline bays deflect falling bombs (+50 PTS).';
+        return '3 Auto-Guns side-by-side form a Laser Fence that zaps bombs!';
     }
   }
 
@@ -495,6 +473,22 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   }
 
   Widget _buildStep0InjectionWidget() {
+    final String upgradeLabel;
+    final Color upgradeColor;
+    if (_demoBayCharge >= 4) {
+      upgradeLabel = 'MEGA GUN (16x)';
+      upgradeColor = VoidTheme.solarGold;
+    } else if (_demoBayCharge >= 2) {
+      upgradeLabel = 'AUTO-GUN';
+      upgradeColor = VoidTheme.plasmaCyan;
+    } else if (_demoBayCharge == 1) {
+      upgradeLabel = 'SHIELD DOME';
+      upgradeColor = VoidTheme.emeraldShield;
+    } else {
+      upgradeLabel = 'EMPTY TURRET';
+      upgradeColor = VoidTheme.textSecondary;
+    }
+
     return Container(
       padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
@@ -512,29 +506,29 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             children: [
               Row(
                 mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.bolt,
-                    color: VoidTheme.solarGold,
-                    size: 14.0,
-                  ),
-                  const SizedBox(width: 3.0),
-                  Text(
-                    '$_demoCores CORES',
-                    style: const TextStyle(
-                      color: VoidTheme.solarGold,
-                      fontSize: 10.0,
-                      fontWeight: FontWeight.w900,
+                children: List.generate(4, (i) {
+                  final filled = i < _demoBayCharge;
+                  return Container(
+                    width: 10.0,
+                    height: 10.0,
+                    margin: const EdgeInsets.only(right: 4.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: filled ? upgradeColor : Colors.transparent,
+                      border: Border.all(
+                        color: filled ? upgradeColor : Colors.white30,
+                        width: 1.2,
+                      ),
                     ),
-                  ),
-                ],
+                  );
+                }),
               ),
               Text(
-                'BAY 11: $_demoBayCharge CHARGE',
-                style: const TextStyle(
-                  color: VoidTheme.plasmaCyan,
-                  fontSize: 10.0,
-                  fontWeight: FontWeight.bold,
+                upgradeLabel,
+                style: TextStyle(
+                  color: upgradeColor,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
@@ -554,13 +548,13 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 HapticService.instance.injectionClick();
                 setState(() {
                   _demoCores--;
-                  _demoBayCharge++;
+                  _demoBayCharge = (_demoBayCharge % 4) + 1;
                 });
               }
             },
-            icon: const Icon(Icons.add, size: 14.0),
+            icon: const Icon(Icons.gps_fixed, size: 14.0),
             label: const Text(
-              'INJECT 1 CORE (NAMUA)',
+              'SHOOT & ADD SEED (+1)',
               style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.w900),
             ),
           ),
@@ -581,11 +575,10 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
         children: [
           // Holographic Swipe Visualization Track
           SizedBox(
-            height: 72.0,
+            height: 66.0,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // 8 Bay Capsules Track
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: List.generate(8, (i) {
@@ -637,12 +630,6 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                                     decoration: const BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Color(0xFF00E5FF),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color(0xFF00E5FF),
-                                          blurRadius: 4.0,
-                                        ),
-                                      ],
                                     ),
                                   ),
                                   const SizedBox(width: 2.0),
@@ -652,12 +639,6 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                                     decoration: const BoxDecoration(
                                       shape: BoxShape.circle,
                                       color: Color(0xFF00E5FF),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color(0xFF00E5FF),
-                                          blurRadius: 4.0,
-                                        ),
-                                      ],
                                     ),
                                   ),
                                 ],
@@ -679,7 +660,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                               ),
                               const SizedBox(height: 2.0),
                               const Text(
-                                'BURST',
+                                'GROW',
                                 style: TextStyle(
                                   color: Color(0xFFC084FC),
                                   fontSize: 8.0,
@@ -688,7 +669,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                               ),
                             ] else ...[
                               Text(
-                                'C$bayNum',
+                                '#$bayNum',
                                 style: TextStyle(
                                   color: isDim
                                       ? VoidTheme.textMuted.withValues(
@@ -706,8 +687,6 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                     );
                   }),
                 ),
-
-                // Holographic Arc Overlay
                 Positioned.fill(
                   child: IgnorePointer(
                     child: CustomPaint(
@@ -722,7 +701,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
               ],
             ),
           ),
-          const SizedBox(height: 10.0),
+          const SizedBox(height: 8.0),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -746,7 +725,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 },
                 icon: const Icon(Icons.arrow_back, size: 12.0),
                 label: const Text(
-                  '◄ SOW CCW',
+                  '‹ SOW LEFT',
                   style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -771,7 +750,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 },
                 icon: const Icon(Icons.arrow_forward, size: 12.0),
                 label: const Text(
-                  'SOW CW ►',
+                  'SOW RIGHT ›',
                   style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -783,7 +762,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
   }
 
   Widget _buildStep2LanceWidget() {
-    final damage = 100 * _demoMass * _demoMass;
+    final mult = _demoMass * _demoMass;
 
     return Container(
       padding: const EdgeInsets.all(12.0),
@@ -798,19 +777,34 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  'STACKED: $_demoMass CORES',
-                  style: const TextStyle(
-                    color: VoidTheme.solarGold,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(4, (i) {
+                  final filled = i < _demoMass;
+                  return GestureDetector(
+                    onTap: () => setState(() => _demoMass = i + 1),
+                    child: Container(
+                      width: 16.0,
+                      height: 16.0,
+                      margin: const EdgeInsets.only(right: 5.0),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: filled
+                            ? VoidTheme.solarGold
+                            : Colors.transparent,
+                        border: Border.all(
+                          color: filled ? VoidTheme.solarGold : Colors.white38,
+                          width: 1.5,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
               ),
               Text(
-                'BEAM POWER: $damage DMG',
+                '$_demoMass SEEDS = ${mult}x POWER!',
                 style: const TextStyle(
                   color: VoidTheme.crimsonFlare,
                   fontSize: 11.0,
@@ -819,17 +813,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
               ),
             ],
           ),
-          Slider(
-            value: _demoMass.toDouble(),
-            min: 1,
-            max: 6,
-            divisions: 5,
-            activeColor: VoidTheme.crimsonFlare,
-            inactiveColor: VoidTheme.obsidianBlack,
-            onChanged: (val) {
-              setState(() => _demoMass = val.round());
-            },
-          ),
+          const SizedBox(height: 10.0),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
               backgroundColor: VoidTheme.crimsonFlare,
@@ -849,9 +833,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             },
             icon: const Icon(Icons.bolt, size: 15.0),
             label: Text(
-              _lanceFired
-                  ? '⚡ DIRECT HIT! $damage DMG'
-                  : 'TEST FIRE CHARGED LASER',
+              _lanceFired ? '⚡ ${mult}x SUPER BEAM FIRED!' : 'FIRE SUPER BEAM',
               style: const TextStyle(
                 fontSize: 10.0,
                 fontWeight: FontWeight.w900,
@@ -901,7 +883,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      'C${i + 1}',
+                      '#${i + 1}',
                       style: TextStyle(
                         color: isSelected
                             ? VoidTheme.obsidianBlack
@@ -917,7 +899,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
           ),
           const SizedBox(height: 8.0),
           Text(
-            'LOCKED: CORRIDOR ${_demoCorridor + 1} (FRONTLINE BAY ${_demoCorridor + 8})',
+            'AIMED AT TURRET #${_demoCorridor + 1}',
             style: const TextStyle(
               color: VoidTheme.emeraldShield,
               fontSize: 10.0,
@@ -948,7 +930,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  _bombDeflected ? Icons.shield : Icons.shield_outlined,
+                  _bombDeflected ? Icons.shield : Icons.bolt,
                   color: _bombDeflected
                       ? VoidTheme.emeraldShield
                       : VoidTheme.solarGold,
@@ -956,7 +938,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 ),
                 const SizedBox(width: 6.0),
                 Text(
-                  _bombDeflected ? 'DEFLECTED! +50 PTS' : 'CONDUIT SHIELDING',
+                  _bombDeflected
+                      ? 'BOMB ZAPPED! +75 PTS'
+                      : '3 IN A ROW = LASER FENCE',
                   style: TextStyle(
                     color: _bombDeflected
                         ? VoidTheme.emeraldShield
@@ -986,9 +970,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 if (mounted) setState(() => _bombDeflected = false);
               });
             },
-            icon: const Icon(Icons.sports_baseball, size: 14.0),
+            icon: const Icon(Icons.shield, size: 14.0),
             label: const Text(
-              'TEST ENEMY BOMB DROP',
+              'TEST LASER FENCE ZAP',
               style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.w900),
             ),
           ),
@@ -1022,7 +1006,6 @@ class HolographicSwipePainter extends CustomPainter {
       ..moveTo(startX, baseY)
       ..quadraticBezierTo(midX, peakY, endX, baseY);
 
-    // Glow underlay
     final glowPaint = Paint()
       ..color = accentColor.withValues(alpha: 0.3)
       ..style = PaintingStyle.stroke
@@ -1030,7 +1013,6 @@ class HolographicSwipePainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
     canvas.drawPath(path, glowPaint);
 
-    // Dashed trajectory path
     final arcPaint = Paint()
       ..color = accentColor
       ..style = PaintingStyle.stroke
@@ -1051,7 +1033,6 @@ class HolographicSwipePainter extends CustomPainter {
       }
     }
 
-    // Arrowhead at destination
     final arrowPaint = Paint()
       ..color = accentColor
       ..style = PaintingStyle.fill;
@@ -1063,7 +1044,6 @@ class HolographicSwipePainter extends CustomPainter {
       ..close();
     canvas.drawPath(arrowPath, arrowPaint);
 
-    // Touch gesture indicator at start
     final touchRing = Paint()
       ..color = accentColor.withValues(alpha: 0.25)
       ..style = PaintingStyle.fill;

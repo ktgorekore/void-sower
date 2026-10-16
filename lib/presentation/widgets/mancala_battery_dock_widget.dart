@@ -20,12 +20,12 @@ import '../controllers/tactical_solver_controller.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 
-/// Compact 60px Martial Flight & Totem Command Bar replacing the legacy 142px
+/// Compact 56px Martial Flight & Totem Command Bar replacing the legacy 142px
 /// 16-box spreadsheet dock.
 ///
-/// The 8 Ancestral Totem Turrets (`bays[8..15]`) and 3D Morabaraba Laser Fences
-/// render directly on the 3D battlefield floor inside [CombatPainter], keeping
-/// 100% of the player's visual focus on the 3D combat arena.
+/// Uses visual seed pips and ultra-short plain-English nuggets so players
+/// immediately understand turret growth, seed spreading, and the 3-in-a-row
+/// Laser Fence without mathematical jargon.
 class MancalaBatteryDockWidget extends StatelessWidget {
   const MancalaBatteryDockWidget({
     super.key,
@@ -70,18 +70,32 @@ class MancalaBatteryDockWidget extends StatelessWidget {
 
     final String tierLabel;
     final Color tierColor;
+    final IconData tierIcon;
     if (alignedMass >= 4) {
-      tierLabel = 'T3 SUPER-PRISM';
+      tierLabel = 'MEGA GUN';
       tierColor = VoidTheme.solarGold;
+      tierIcon = Icons.auto_awesome;
     } else if (alignedMass >= 2) {
-      tierLabel = 'T2 AUTO-TURRET';
+      tierLabel = 'AUTO-GUN';
       tierColor = VoidTheme.plasmaCyan;
+      tierIcon = Icons.bolt;
     } else if (alignedMass == 1) {
-      tierLabel = 'T1 SHIELD DOME';
+      tierLabel = 'SHIELD';
       tierColor = VoidTheme.emeraldShield;
+      tierIcon = Icons.shield;
     } else {
-      tierLabel = 'T0 DORMANT';
+      tierLabel = 'EMPTY';
       tierColor = VoidTheme.crimsonFlare;
+      tierIcon = Icons.radio_button_unchecked;
+    }
+
+    final String subActionText;
+    if (alignedMass >= 2) {
+      subActionText = '⚡ TAP FOR ${alignedMass * alignedMass}x SUPER BEAM';
+    } else if (alignedMass == 1) {
+      subActionText = '🛡️ BLOCKS BOMBS • SHOOT TO GROW';
+    } else {
+      subActionText = '🎯 SHOOT ENEMIES TO GROW';
     }
 
     return Column(
@@ -129,7 +143,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
             ),
             child: Row(
               children: [
-                // 1. Left Pill: SOW TOTEMS ‹ ›
+                // 1. Left Pill: SOW / SPREAD SEEDS ‹ ›
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -162,7 +176,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 6.0),
 
-                // 2. Center Status & Totem Overdrive Pill
+                // 2. Center Visual Turret Meter & One-Tap Super Beam Pill
                 Expanded(
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
@@ -192,24 +206,56 @@ class MancalaBatteryDockWidget extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              'TOTEM #${activeCorridor + 1} • $tierLabel (M=$alignedMass)',
-                              style: TextStyle(
-                                color: tierColor,
-                                fontSize: 8.5,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(tierIcon, size: 11.0, color: tierColor),
+                                const SizedBox(width: 4.0),
+                                Text(
+                                  'TOTEM #${activeCorridor + 1} • $tierLabel',
+                                  style: TextStyle(
+                                    color: tierColor,
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(width: 6.0),
+                                // 4 visual glowing seed pips instead of "M=..."
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: List.generate(4, (pipIdx) {
+                                    final filled = pipIdx < alignedMass;
+                                    return Container(
+                                      width: 6.5,
+                                      height: 6.5,
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 1.2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: filled
+                                            ? tierColor
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: filled
+                                              ? tierColor
+                                              : Colors.white30,
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 2.0),
+                            const SizedBox(height: 2.5),
                             Text(
-                              alignedMass >= 2
-                                  ? 'TAP FOR M²=${alignedMass * alignedMass}x OVERDRIVE'
-                                  : 'SHOOT INVADERS TO HARVEST TOTEM SEEDS',
+                              subActionText,
                               style: const TextStyle(
                                 color: Colors.white70,
-                                fontSize: 7.2,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 7.4,
+                                fontWeight: FontWeight.w800,
                                 letterSpacing: 0.4,
                               ),
                             ),
@@ -221,7 +267,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 6.0),
 
-                // 3. Right Pill: MORABARABA FENCE 1.5x or HARVEST BLASTER
+                // 3. Right Pill: FENCE BLAST or BLASTER FIRE
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
@@ -257,7 +303,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          hasMill ? 'FENCE\n1.5x' : 'BLASTER\nFIRE',
+                          hasMill ? 'FENCE\nBLAST' : 'BLASTER\nFIRE',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: hasMill
@@ -312,13 +358,13 @@ class MancalaBatteryDockWidget extends StatelessWidget {
     );
   }
 
-  /// Builds a subtle, single-line fixed-height advisory indicator that prevents layout jumps.
+  /// Builds a crisp, visual-first, human-readable directive nugget row.
   Widget _buildSubtleAdvisoryBar() {
     final advice = tacticalAdvice;
     if (advice != null) {
-      final dirStr = advice.recommendedDirection > 0 ? '› RIGHT' : '‹ LEFT';
+      final dirStr = advice.recommendedDirection > 0 ? 'SOW ›' : '‹ SOW';
       return SizedBox(
-        height: 14.0,
+        height: 15.0,
         child: Center(
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -326,17 +372,17 @@ class MancalaBatteryDockWidget extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
-                  Icons.auto_awesome,
-                  size: 9.0,
-                  color: Color(0xFF38BDF8),
+                  Icons.lightbulb,
+                  size: 10.0,
+                  color: VoidTheme.solarGold,
                 ),
                 const SizedBox(width: 4.0),
                 Text(
-                  'TACTICAL ADVISORY: SOW TOTEM #${(advice.recommendedBay & 7) + 1} $dirStr • EST. ${advice.predictedDamage.toInt()} DMG',
+                  'TIP: TAP $dirStr TO POWER UP TOTEM #${(advice.recommendedBay & 7) + 1}',
                   style: const TextStyle(
                     color: Color(0xFF38BDF8),
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 8.0,
+                    fontWeight: FontWeight.w900,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -348,19 +394,49 @@ class MancalaBatteryDockWidget extends StatelessWidget {
     }
 
     return const SizedBox(
-      height: 14.0,
+      height: 15.0,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(
-            'SHOOT TO HARVEST SEEDS • EVOLVE 3D TOTEM TURRETS • 3 ADJACENT = LASER FENCE',
-            style: TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 7.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.6,
-            ),
-            textAlign: TextAlign.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.gps_fixed, size: 9.5, color: VoidTheme.plasmaCyan),
+              SizedBox(width: 3.0),
+              Text(
+                'SHOOT = +SEEDS',
+                style: TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 7.8,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              SizedBox(width: 8.0),
+              Icon(Icons.bolt, size: 10.0, color: VoidTheme.plasmaCyan),
+              SizedBox(width: 2.0),
+              Text(
+                '2+ SEEDS = AUTO-GUN',
+                style: TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontSize: 7.8,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+              SizedBox(width: 8.0),
+              Icon(Icons.shield, size: 9.5, color: VoidTheme.solarGold),
+              SizedBox(width: 3.0),
+              Text(
+                '3 IN A ROW = LASER FENCE',
+                style: TextStyle(
+                  color: VoidTheme.solarGold,
+                  fontSize: 7.8,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            ],
           ),
         ),
       ),

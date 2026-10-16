@@ -61,27 +61,27 @@ void main() {
       );
 
       expect(find.text('FLIGHT ACADEMY'), findsOneWidget);
-      expect(find.text('1. CORE INJECTION (NAMUA)'), findsOneWidget);
+      expect(find.text('1. SHOOT TO GROW TURRETS'), findsOneWidget);
 
       // Step to next
       await tester.tap(find.text('NEXT'));
       await tester.pumpAndSettle();
-      expect(find.text('2. SOWING TRAVERSAL'), findsOneWidget);
+      expect(find.text('2. SWIPE TO SPREAD SEEDS'), findsOneWidget);
 
       // Step to next
       await tester.tap(find.text('NEXT'));
       await tester.pumpAndSettle();
-      expect(find.text('3. CHARGED LASER BLAST'), findsOneWidget);
+      expect(find.text('3. STACK SEEDS = SUPER BEAM'), findsOneWidget);
 
       // Step to next
       await tester.tap(find.text('NEXT'));
       await tester.pumpAndSettle();
-      expect(find.text('4. ORBITAL PLATFORM ALIGNMENT'), findsOneWidget);
+      expect(find.text('4. SLIDE SHIP TO AIM'), findsOneWidget);
 
-      // Step to next (Bomb Evasion)
+      // Step to next (Laser Fence)
       await tester.tap(find.text('NEXT'));
       await tester.pumpAndSettle();
-      expect(find.text('5. BOMB EVASION & BREACH'), findsOneWidget);
+      expect(find.text('5. 3 IN A ROW = LASER FENCE'), findsOneWidget);
 
       // Final step -> launch
       await tester.tap(find.text('LAUNCH!'));
@@ -166,13 +166,10 @@ void main() {
       );
 
       expect(find.text('BAO ORBITAL CODEX'), findsOneWidget);
-      expect(find.text('ANCIENT MATHEMATICAL ROOTS'), findsOneWidget);
-      expect(find.text('1. NAMUA (CORE INJECTION)'), findsOneWidget);
-      expect(find.text('2. CHARGED LASERS (STACKING POWER)'), findsOneWidget);
-      expect(
-        find.text('3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)'),
-        findsOneWidget,
-      );
+      expect(find.text('AFRICAN STRATEGY MEETS 3D SHOOTER'), findsOneWidget);
+      expect(find.text('1. SHOOT & SPREAD SEEDS'), findsOneWidget);
+      expect(find.text('2. TURRET LEVELS & SUPER BEAMS'), findsOneWidget);
+      expect(find.text('3. 3 IN A ROW = LASER FENCE'), findsOneWidget);
       expect(find.text('WATCH VIDEO TUTORIAL (60s)'), findsNothing);
       expect(find.text('DISMISS'), findsOneWidget);
     });

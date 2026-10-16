@@ -18,7 +18,8 @@ import '../theme/void_theme.dart';
 import 'kinetic_rule_diorama.dart';
 import 'tactile_button.dart';
 
-/// In-game Bao Codex and Tactical Rules Guide detailing orbital battery principles.
+/// Visual-first Bao Orbital Codex explaining the 3D Turret & Laser Fence rules
+/// in plain, everyday language with animated dioramas.
 class BaoCodexDialog extends StatelessWidget {
   const BaoCodexDialog({super.key, this.onLaunchAcademy});
 
@@ -85,7 +86,7 @@ class BaoCodexDialog extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'ACADEMY DIRECTIVE // CODEX',
+                        'VISUAL COMBAT GUIDE',
                         style: TextStyle(
                           color: Color(0xFFF59E0B),
                           fontSize: 9.0,
@@ -117,7 +118,6 @@ class BaoCodexDialog extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12.0),
-            // 4px neon track
             Container(
               height: 3.0,
               decoration: BoxDecoration(
@@ -130,33 +130,33 @@ class BaoCodexDialog extends StatelessWidget {
             ),
             const SizedBox(height: 14.0),
 
-            // Scrollable Content
+            // Scrollable Visual Guide Cards
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildSectionCard(
-                      title: 'ANCIENT MATHEMATICAL ROOTS',
+                      title: 'AFRICAN STRATEGY MEETS 3D SHOOTER',
                       body:
-                          '16-bay orbital dreadnought defense system adapted from Bao count-and-capture rules.',
+                          'Every shot drops seeds into 8 3D Turrets inspired by Bao & Morabaraba.',
                       chips: const [
-                        '16 CAPACITOR BAYS',
-                        'COUNT & CAPTURE',
-                        'CHARGED LASERS',
+                        '🎯 SHOOT = +SEEDS',
+                        '🗼 8 3D TURRETS',
+                        '⚡ LASER FENCE',
                       ],
                       icon: Icons.history_edu,
                       color: VoidTheme.solarGold,
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
-                      title: '1. NAMUA (CORE INJECTION)',
+                      title: '1. SHOOT & SPREAD SEEDS',
                       body:
-                          'Spend 1 core from 28 reactor reserves to prime capacitor bays.',
+                          'Shoot enemies to harvest seeds, or tap ‹ SOW / SOW › to spread seeds to neighbor turrets.',
                       chips: const [
-                        '⚡ 28 RESERVE CORES',
-                        'PRIME BAY',
-                        'SOWING TRAVERSAL',
+                        '🎯 AUTO-HARVEST',
+                        '‹ SOW / SOW ›',
+                        'GROW TURRETS',
                       ],
                       icon: Icons.bolt,
                       color: VoidTheme.plasmaCyan,
@@ -164,13 +164,13 @@ class BaoCodexDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
-                      title: '2. CHARGED LASERS (STACKING POWER)',
+                      title: '2. TURRET LEVELS & SUPER BEAMS',
                       body:
-                          'Frontline bays fire laser beams. Stacking cores multiplies damage: 4 cores = 16x power!',
+                          '1 seed = Shield Dome. 2–3 seeds = Auto-Gun. 4+ seeds = 16x Super Beam!',
                       chips: const [
-                        '⚡ 100x BASE',
-                        '4 CORES = 16x POWER',
-                        'LASER BEAM',
+                        '●○○○ SHIELD',
+                        '●●○○ AUTO-GUN',
+                        '●●●● 16x SUPER BEAM',
                       ],
                       icon: Icons.flash_on,
                       color: VoidTheme.crimsonFlare,
@@ -178,13 +178,13 @@ class BaoCodexDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
-                      title: '3. NYUMBA (SUPER-CAPACITOR BAYS 3 & 4)',
+                      title: '3. 3 IN A ROW = LASER FENCE',
                       body:
-                          'Nyumba bays retain sanctuary energy and amplify subsequent cascades.',
+                          '3 adjacent Auto-Guns link a golden Laser Fence that zaps falling bombs mid-air!',
                       chips: const [
-                        '🛡️ SANCTUARY BAYS',
-                        '+15% CASCADE BOOST',
-                        'REVERSE VECTORS',
+                        '🗼—🗼—🗼 3 IN A ROW',
+                        '🛡️ ZAPS BOMBS',
+                        '⚡ 1.5x BARRAGE',
                       ],
                       icon: Icons.shield,
                       color: VoidTheme.solarGold,
@@ -192,30 +192,16 @@ class BaoCodexDialog extends StatelessWidget {
                     ),
                     const SizedBox(height: 12.0),
                     _buildSectionCard(
-                      title: '4. KICHWA (HEAD VECTORS 8 & 15)',
+                      title: '4. FLY FORWARD FOR +60% POWER',
                       body:
-                          'Advance along the altitude rail for a +60% Vanguard proximity devastation bonus.',
+                          'Slide your ship up into the green Boost Zone for +60% laser damage.',
                       chips: const [
-                        '▲ DEEP SPACE ASCENT',
-                        '+60% PROXIMITY BONUS',
-                        'CORRIDOR AIM',
+                        '◄ ► SLIDE TO AIM',
+                        '▲ FLY UP = +60% POWER',
                       ],
                       icon: Icons.compare_arrows,
-                      color: VoidTheme.nebulaAmethyst,
-                      dioramaType: DioramaType.vanguardAltitude,
-                    ),
-                    const SizedBox(height: 12.0),
-                    _buildSectionCard(
-                      title: '5. KIMBI (FLANK DEFLECTION BAYS 9 & 14)',
-                      body:
-                          'Charged flank chambers focus secondary flak shockwaves outward.',
-                      chips: const [
-                        '🛡️ DEFLECTION BAYS',
-                        'FLAK SHOCKWAVE',
-                        '+50 PTS',
-                      ],
-                      icon: Icons.call_split,
                       color: VoidTheme.emeraldShield,
+                      dioramaType: DioramaType.vanguardAltitude,
                     ),
                   ],
                 ),
@@ -223,7 +209,6 @@ class BaoCodexDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16.0),
 
-            // Interactive Flight Academy Onboarding Launch Button
             if (onLaunchAcademy != null) ...[
               TactileButton(
                 label: 'ACADEMY',
@@ -239,7 +224,6 @@ class BaoCodexDialog extends StatelessWidget {
               const SizedBox(height: 8.0),
             ],
 
-            // Close Button
             TactileButton(
               label: 'DISMISS',
               onPressed: () => Navigator.of(context).pop(),
@@ -335,8 +319,8 @@ class BaoCodexDialog extends StatelessWidget {
             body,
             style: const TextStyle(
               color: VoidTheme.textSecondary,
-              fontSize: 11.5,
-              height: 1.35,
+              fontSize: 11.0,
+              height: 1.3,
             ),
           ),
         ],
