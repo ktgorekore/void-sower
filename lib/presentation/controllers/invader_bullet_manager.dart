@@ -78,6 +78,7 @@ class InvaderBulletManager {
     required List<LanceBeam> lances,
     required List<FlakBurst> flaks,
     List<BayState> bays = const [],
+    Set<int> millTriadBays = const <int>{},
   }) {
     final corridorWidth = viewportSize.width / 8.0;
     final topMargin = viewportSize.height * 0.06;
@@ -208,6 +209,33 @@ class InvaderBulletManager {
         }
       }
 
+      // B2. Intercepted by Active 3D Morabaraba Laser Fence (3 adjacent Tier 2+ Totems)
+      final bulletBayIndex = 8 + bullet.assignedCorridor.clamp(0, 7);
+      final fenceY = boundaryY - 18.0;
+      if (millTriadBays.contains(bulletBayIndex) &&
+          prevY < fenceY &&
+          bullet.y >= fenceY) {
+        particleService.spawnFlakBurst(
+          bullet.x,
+          fenceY,
+          VoidTheme.solarGold,
+          count: 18,
+        );
+        onBulletDeflected(bullet.x, fenceY, VoidTheme.solarGold);
+        if (damageNumbers.length < 8) {
+          damageNumbers.add(
+            FloatingDamageNumber(
+              text: 'MORABARABA FENCE +75',
+              x: bullet.x,
+              y: fenceY - 20,
+              color: VoidTheme.solarGold,
+              isCritical: true,
+            ),
+          );
+        }
+        return true;
+      }
+
       // C. Intercepted by Dreadnought Flagship in Mid-Space (Forward Deployment)
       final isDreadForward = dreadYPos < boundaryY - 38.0;
       final inCanopySweep =
@@ -317,8 +345,35 @@ class InvaderBulletManager {
         return true;
       }
 
-      // E. Reached Atmospheric Boundary without intercepting Dreadnought
+      // E. Reached Atmospheric Boundary without intercepting Dreadnought:
+      // Check if the corridor's Totem Turret (bay 8 + corridor) has Tier 1+ Shield Dome
       if (bullet.y >= boundaryY) {
+        final corridor = bullet.assignedCorridor.clamp(0, 7);
+        final bayIndex = 8 + corridor;
+        final hasTotemShield =
+            bayIndex < bays.length && bays[bayIndex].chargeUnits >= 1;
+        if (hasTotemShield) {
+          particleService.spawnFlakBurst(
+            bullet.x,
+            boundaryY,
+            VoidTheme.plasmaCyan,
+            count: 14,
+          );
+          if (damageNumbers.length < 8) {
+            damageNumbers.add(
+              FloatingDamageNumber(
+                text: 'TOTEM SHIELD +50',
+                x: bullet.x,
+                y: boundaryY - 20,
+                color: VoidTheme.plasmaCyan,
+                isCritical: true,
+              ),
+            );
+          }
+          onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
+          return true;
+        }
+
         particleService.spawnLanceSparks(
           bullet.x,
           boundaryY,

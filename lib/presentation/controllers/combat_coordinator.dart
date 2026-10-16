@@ -922,7 +922,12 @@ class CombatCoordinator extends ChangeNotifier {
           : ((_remainingReinforcements == 0) ? 2 : 0);
       final shields = (vType == 2) ? 150.0 : (vType == 1 ? 60.0 : 0.0);
       final hull = (vType == 2) ? 250.0 : (vType == 1 ? 100.0 : 40.0);
-      final velY = 0.02 + (_currentDifficulty * 0.006);
+      final phaseSpeedMult = switch (_checkpointPhase) {
+        SectorCheckpointPhase.vanguardRecon => 0.78,
+        SectorCheckpointPhase.tacticalSiege => 1.00,
+        SectorCheckpointPhase.apexBoss => 1.18,
+      };
+      final velY = (0.02 + (_currentDifficulty * 0.006)) * phaseSpeedMult;
 
       engine.spawnEnemy(
         corridor: respawnCorridor,
@@ -1214,6 +1219,7 @@ class CombatCoordinator extends ChangeNotifier {
       lances: lances,
       flaks: flaks,
       bays: bays,
+      millTriadBays: activeMillTriadBays,
     );
 
     // 6. Reactive audio triggers and particle burst effects on active lances and flaks
@@ -1403,6 +1409,17 @@ class CombatCoordinator extends ChangeNotifier {
   void sowDirectional(int direction) {
     if (direction != 1 && direction != -1) return;
     final bay = _state.selectedBay ?? 8;
+    final resolvedDir = BayRole.resolveSowDirection(bay, direction);
+    _sowDirection = resolvedDir;
+    sow(bay, resolvedDir);
+  }
+
+  /// Sows seeds from the Totem Turret currently aligned with the Flagship
+  /// across the 8-bay Totem line (`direction = 1` right, `-1` left).
+  void sowTotemLine(int direction) {
+    if (direction != 1 && direction != -1) return;
+    final corridor = (dreadnought.orbitalPositionX * 8.0).floor().clamp(0, 7);
+    final bay = 8 + corridor;
     final resolvedDir = BayRole.resolveSowDirection(bay, direction);
     _sowDirection = resolvedDir;
     sow(bay, resolvedDir);
@@ -1634,8 +1651,9 @@ class CombatCoordinator extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Discharges an immediate quadratic ($M^2$) axial particle lance from the
-  /// Dreadnought's prow into the current corridor when explicitly triggered.
+  /// Fires the Flagship Harvester Blaster into the active corridor and sows
+  /// harvested seeds across the 8 Totem Turrets without wiping out Tier 1/2
+  /// Totem Turret charges (or unleashes $M^2$ Totem Overdrive at Tier 3 `M >= 4`).
   void quickFireActiveCorridor() {
     _finalizePendingSow();
     if (!_state.canReceiveInput) {
@@ -1690,9 +1708,12 @@ class CombatCoordinator extends ChangeNotifier {
     audio.onCoreInjected();
     audio.onLanceFired();
     final quadDmg = effectiveQuadMass * effectiveQuadMass * 100;
+    final isTier3Overdrive = priorMass >= 4;
     damageNumbers.add(
       FloatingDamageNumber(
-        text: 'M² = $effectiveQuadMass² AXIAL LANCE ($quadDmg DMG)',
+        text: isTier3Overdrive
+            ? 'TOTEM OVERDRIVE M² = $effectiveQuadMass² AXIAL LANCE ($quadDmg DMG)'
+            : 'M² = $effectiveQuadMass² AXIAL LANCE ($quadDmg DMG)',
         x: dreadnought.orbitalPositionX,
         y: (dreadnought.boundaryLineY + 0.05).clamp(0.0, 1.0),
         color: effectiveQuadMass >= 3

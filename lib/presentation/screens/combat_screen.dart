@@ -1512,6 +1512,12 @@ class _CombatScreenState extends State<CombatScreen>
                                                               particles: _coordinator
                                                                   .particleService
                                                                   .activeParticles,
+                                                              bays: _coordinator
+                                                                  .bays,
+                                                              activeSowBay:
+                                                                  matchState
+                                                                      .activeSowBay ??
+                                                                  -1,
                                                               anomalies:
                                                                   _coordinator
                                                                       .anomalies,

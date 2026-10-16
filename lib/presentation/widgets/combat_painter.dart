@@ -17,6 +17,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
+import '../../domain/models/bay_state.dart';
 import '../../domain/models/dreadnought_state.dart';
 import '../../domain/models/enemy_bullet.dart';
 import '../../domain/models/enemy_craft.dart';
@@ -280,6 +281,8 @@ class CombatPainter extends CustomPainter {
     required this.lances,
     required this.flaks,
     required this.particles,
+    this.bays = const [],
+    this.activeSowBay = -1,
     this.anomalies = const [],
     this.damageNumbers = const [],
     this.enemyBullets = const [],
@@ -296,6 +299,8 @@ class CombatPainter extends CustomPainter {
   final List<LanceBeam> lances;
   final List<FlakBurst> flaks;
   final List<VisualParticle> particles;
+  final List<BayState> bays;
+  final int activeSowBay;
   final List<SpaceAnomaly> anomalies;
   final List<FloatingDamageNumber> damageNumbers;
   final List<EnemyBullet> enemyBullets;
@@ -307,13 +312,27 @@ class CombatPainter extends CustomPainter {
 
   static final Dreadnought3DMesh _dreadMesh = Dreadnought3DMesh();
   static final Invader3DMesh _invaderMesh = Invader3DMesh();
-  static final Paint _millCorridorPaint = Paint()
-    ..color = VoidTheme.solarGold.withValues(alpha: 0.10)
-    ..style = PaintingStyle.fill;
-  static final Paint _millBorderPaint = Paint()
-    ..color = VoidTheme.solarGold.withValues(alpha: 0.55)
-    ..strokeWidth = 1.4
-    ..style = PaintingStyle.stroke;
+
+  static final List<TextPainter> _totemSeedPainters = List.generate(10, (i) {
+    final label = i == 9 ? '9+' : '$i';
+    final color = i >= 4
+        ? VoidTheme.solarGold
+        : (i >= 2
+              ? VoidTheme.plasmaCyan
+              : (i == 1 ? VoidTheme.emeraldShield : Colors.white38));
+    return TextPainter(
+      text: TextSpan(
+        text: label,
+        style: TextStyle(
+          color: color,
+          fontSize: 8.5,
+          fontWeight: FontWeight.w900,
+          fontFamily: 'monospace',
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+  });
 
   // ---------------------------------------------------------------------------
   // Reusable Path Scratchpads & Pre-compiled Static Geometry
@@ -809,6 +828,171 @@ class CombatPainter extends CustomPainter {
     }
   }
 
+  /// Renders the 8 On-Battlefield 3D Ancestral Totem Turrets (`bays[8..15]`)
+  /// and active 3D Morabaraba Laser Fence beams along the defense perimeter.
+  void _drawAncestralTotemTurrets3D(
+    Canvas canvas,
+    Size size,
+    CombatCamera3D cam,
+    int activeCorridor,
+  ) {
+    // 1. Draw Active 3D Morabaraba Laser Fence beams connecting adjacent Triad Totems
+    if (millTriadBays.length >= 3) {
+      final pulse = 0.65 + 0.35 * math.sin(animationTime * 9.0);
+      for (var c = 0; c < 7; c++) {
+        if (millTriadBays.contains(8 + c) &&
+            millTriadBays.contains(8 + c + 1)) {
+          final pA = cam.project(
+            size,
+            normX: (c + 0.5) / 8.0,
+            normZ: 0.042,
+            elevationY: 0.052,
+          );
+          final pB = cam.project(
+            size,
+            normX: (c + 1.5) / 8.0,
+            normZ: 0.042,
+            elevationY: 0.052,
+          );
+          _scrollPylonPaint
+            ..color = VoidTheme.solarGold.withValues(alpha: 0.38 * pulse)
+            ..strokeWidth = 5.0;
+          canvas.drawLine(pA.screenOffset, pB.screenOffset, _scrollPylonPaint);
+          _scrollPylonPaint
+            ..color = Colors.white.withValues(alpha: 0.90 * pulse)
+            ..strokeWidth = 1.8;
+          canvas.drawLine(pA.screenOffset, pB.screenOffset, _scrollPylonPaint);
+        }
+      }
+    }
+
+    // 2. Render each of the 8 3D Ancestral Totem Turrets along the perimeter
+    for (var c = 0; c < 8; c++) {
+      final bayIdx = 8 + c;
+      final mass = bayIdx < bays.length ? bays[bayIdx].chargeUnits : 0;
+      final isTriad = millTriadBays.contains(bayIdx);
+      final isSowHop = activeSowBay == bayIdx;
+      final isAligned = c == activeCorridor;
+      final centerX = (c + 0.5) / 8.0;
+
+      final baseProj = cam.project(
+        size,
+        normX: centerX,
+        normZ: 0.032,
+        elevationY: 0.024,
+      );
+      final pScale = baseProj.perspectiveScale;
+      final bx = baseProj.screenOffset.dx;
+      final by = baseProj.screenOffset.dy;
+
+      // Base pedestal halo
+      final haloW = (isSowHop ? 38.0 : 30.0) * pScale;
+      final haloH = (isSowHop ? 14.0 : 11.0) * pScale;
+      final haloRect = Rect.fromCenter(
+        center: Offset(bx, by),
+        width: haloW,
+        height: haloH,
+      );
+      final Color tierColor = mass >= 4
+          ? VoidTheme.solarGold
+          : (mass >= 2
+                ? VoidTheme.plasmaCyan
+                : (mass == 1
+                      ? VoidTheme.emeraldShield
+                      : VoidTheme.crimsonFlare));
+      _scrollSleeperPaint.color = tierColor.withValues(
+        alpha: mass == 0 ? 0.10 : (isSowHop ? 0.36 : 0.18),
+      );
+      canvas.drawOval(haloRect, _scrollSleeperPaint);
+
+      _scrollPylonPaint
+        ..color = (isSowHop || isTriad ? VoidTheme.solarGold : tierColor)
+            .withValues(alpha: mass == 0 ? 0.32 : 0.82)
+        ..strokeWidth = (isSowHop || isAligned) ? 1.8 : 1.2;
+      canvas.drawOval(haloRect, _scrollPylonPaint);
+
+      if (mass == 1) {
+        // Tier 1 (M = 1): Kimbi Shield Dome
+        final domeRect = Rect.fromCenter(
+          center: Offset(bx, by - 2.0 * pScale),
+          width: 26.0 * pScale,
+          height: 18.0 * pScale,
+        );
+        _scrollPylonPaint
+          ..color = VoidTheme.plasmaCyan.withValues(alpha: 0.72)
+          ..strokeWidth = 1.8;
+        canvas.drawArc(domeRect, math.pi, math.pi, false, _scrollPylonPaint);
+      } else if (mass == 2 || mass == 3) {
+        // Tier 2 (M = 2..3): Kichwa Autonomous Pulse Turret spire + barrel
+        final spireTop = cam.project(
+          size,
+          normX: centerX,
+          normZ: 0.048,
+          elevationY: 0.072,
+        );
+        _scrollPylonPaint
+          ..color = (isTriad ? VoidTheme.solarGold : VoidTheme.plasmaCyan)
+              .withValues(alpha: 0.90)
+          ..strokeWidth = 2.4;
+        canvas.drawLine(
+          Offset(bx, by),
+          spireTop.screenOffset,
+          _scrollPylonPaint,
+        );
+        _scrollSleeperPaint.color = Colors.white;
+        canvas.drawCircle(
+          spireTop.screenOffset,
+          2.6 * pScale,
+          _scrollSleeperPaint,
+        );
+      } else if (mass >= 4) {
+        // Tier 3 (M >= 4): Nyumba Sovereign Super-Prism crystal
+        final prismProj = cam.project(
+          size,
+          normX: centerX,
+          normZ: 0.046,
+          elevationY: 0.088 + 0.012 * math.sin(animationTime * 5.0 + c),
+        );
+        final px = prismProj.screenOffset.dx;
+        final py = prismProj.screenOffset.dy;
+        final r = 8.5 * pScale;
+        _scratchReticlePath
+          ..reset()
+          ..moveTo(px, py - r)
+          ..lineTo(px + r * 0.75, py)
+          ..lineTo(px, py + r)
+          ..lineTo(px - r * 0.75, py)
+          ..close();
+        _scrollSleeperPaint.color = VoidTheme.solarGold.withValues(alpha: 0.55);
+        canvas.drawPath(_scratchReticlePath, _scrollSleeperPaint);
+        _scrollPylonPaint
+          ..color = Colors.white
+          ..strokeWidth = 1.5;
+        canvas.drawPath(_scratchReticlePath, _scrollPylonPaint);
+      }
+
+      // Orbiting Ancestral Seed pearls (up to 4 visible pearls)
+      final visibleSeeds = math.min(mass, 4);
+      for (var s = 0; s < visibleSeeds; s++) {
+        final angle =
+            animationTime * 2.8 + (s * 2.0 * math.pi / visibleSeeds) + c;
+        final sx = bx + math.cos(angle) * (9.5 * pScale);
+        final sy = by - 3.0 * pScale + math.sin(angle) * (3.5 * pScale);
+        _scrollSleeperPaint.color = mass >= 4
+            ? VoidTheme.solarGoldLight
+            : VoidTheme.plasmaCyan;
+        canvas.drawCircle(Offset(sx, sy), 2.1 * pScale, _scrollSleeperPaint);
+      }
+
+      // Compact pre-laid-out seed count badge at turret base
+      final seedPainter = _totemSeedPainters[mass.clamp(0, 9)];
+      seedPainter.paint(
+        canvas,
+        Offset(bx - seedPainter.width * 0.5, by + 3.0 * pScale),
+      );
+    }
+  }
+
   /// Converts simulation `worldPosY` (`1.0` = far horizon spawn, `0.15` = near threshold)
   /// or pixel Y into normalized 3D trench depth `normZ` (`1.0` = top Warp Gate, `0.0` = bottom Defense Line).
   static double _worldYToTrenchNormZ(
@@ -874,25 +1058,8 @@ class CombatPainter extends CustomPainter {
       shipProj.screenOffset.dy - 36.0 * shipScale,
     );
 
-    // 0. Draw Morabaraba 3-Bay Mill Triad 3D Emitter Dock Resonance Halos
-    if (millTriadBays.isNotEmpty) {
-      for (final bay in millTriadBays) {
-        final c = (bay - 8).clamp(0, 7);
-        final dockCenter = cam.project(
-          size,
-          normX: (c + 0.5) / 8.0,
-          normZ: 0.028,
-          elevationY: 0.028,
-        );
-        final haloRect = Rect.fromCenter(
-          center: dockCenter.screenOffset,
-          width: 38.0,
-          height: 15.0,
-        );
-        canvas.drawOval(haloRect, _millCorridorPaint);
-        canvas.drawOval(haloRect, _millBorderPaint);
-      }
-    }
+    // 0. Draw 8 On-Battlefield 3D Ancestral Totem Turrets & Morabaraba Laser Fences
+    _drawAncestralTotemTurrets3D(canvas, size, cam, activeCorridor);
 
     // 1. Draw Active Particle Lances in 3D Perspective Space (Muzzle-to-Target!)
     final isMultiBeamBarrage = lances.length > 1;

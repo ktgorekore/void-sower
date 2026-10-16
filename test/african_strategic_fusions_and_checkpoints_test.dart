@@ -430,6 +430,72 @@ void main() {
         await tester.tap(find.byKey(const Key('camera_yaw_stbd_button')));
         await tester.pump();
         expect(find.textContaining('ORBIT 3D'), findsOneWidget);
+
+        // Verify Martial Flight & Totem Command Bar renders
+        expect(find.textContaining('TOTEM #'), findsOneWidget);
+        expect(find.text('‹ SOW'), findsOneWidget);
+        expect(find.text('SOW ›'), findsOneWidget);
+      },
+    );
+
+    test(
+      'Autonomous Totem Turret fires without consuming charge and Shoot-to-Harvest sows seeds on kill',
+      () {
+        engine.initialize(startingCores: 20, boundaryY: 0.15);
+        engine.spawnEnemy(
+          corridor: 2,
+          worldPosY: 0.75,
+          velocityY: 0.0,
+          shields: 0.0,
+          hull: 500.0,
+          vesselType: 1,
+        );
+        engine.spawnEnemy(
+          corridor: 5,
+          worldPosY: 0.85,
+          velocityY: 0.0,
+          shields: 0.0,
+          hull: 500.0,
+          vesselType: 1,
+        );
+        final charges = List<int>.filled(16, 0);
+        charges[10] = 2; // Tier 2 Auto-Turret in Corridor 2 (Bay 10)
+        engine.restoreSnapshot(
+          bayCharges: charges,
+          reserveCores: 20,
+          totalScore: 0,
+        );
+
+        // Step 1.6s so the Tier 2 Autonomous Totem Turret fires
+        for (var i = 0; i < 32; i++) {
+          engine.stepSimulation(0.05);
+        }
+
+        // Charge is preserved at 2 while enemy in Corridor 2 took damage
+        expect(engine.getBays()[10].chargeUnits, equals(2));
+        final c2Enemy = engine.getEnemies().firstWhere(
+          (e) => e.assignedCorridor == 2,
+        );
+        expect(c2Enemy.currentHull, lessThan(500.0));
+
+        // Finish a fresh invader via DischargeBay and verify Shoot-to-Harvest sows +1 seed into Bay 11
+        engine.spawnEnemy(
+          corridor: 2,
+          worldPosY: 0.65,
+          velocityY: 0.0,
+          shields: 0.0,
+          hull: 80.0,
+          vesselType: 0,
+        );
+        charges[10] = 1;
+        engine.restoreSnapshot(
+          bayCharges: charges,
+          reserveCores: 20,
+          totalScore: 0,
+        );
+        expect(engine.dischargeBay(10), equals(1));
+        engine.stepSimulation(0.05);
+        expect(engine.getBays()[11].chargeUnits, equals(1));
       },
     );
   });

@@ -44,6 +44,10 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   bool _isCascading = false;
 
   final List<int> _bayCharges = List<int>.filled(16, 2);
+  final List<double> _totemCooldowns = List<double>.filled(8, 1.5);
+  int _pendingHarvestBay = 0;
+  int _pendingHarvestDir = 1;
+  int _pendingHarvestSeeds = 0;
   final List<EnemyCraft> _enemies = <EnemyCraft>[];
   final List<LanceBeam> _lances = <LanceBeam>[];
   final List<FlakBurst> _flaks = <FlakBurst>[];
@@ -54,6 +58,10 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     for (var i = 0; i < 16; i++) {
       _bayCharges[i] = 2;
     }
+    for (var c = 0; c < 8; c++) {
+      _totemCooldowns[c] = 1.5;
+    }
+    _pendingHarvestSeeds = 0;
   }
 
   @override
@@ -232,6 +240,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
 
     // Apply direct damage to living enemies in corridor
     var rem = damage;
+    var killedEnemy = false;
     for (var i = 0; i < _enemies.length; i++) {
       final e = _enemies[i];
       if (e.isDestroyed || e.assignedCorridor != corridor) continue;
@@ -251,6 +260,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         if (rem >= hull) {
           hull = 0;
           destroyed = true;
+          killedEnemy = true;
           _score += 100 * (e.vesselType + 1);
         } else {
           hull -= rem;
@@ -263,6 +273,14 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
         isDestroyed: destroyed,
       );
       if (rem <= 0) break;
+    }
+
+    if ((killedEnemy || priorMass >= 2) &&
+        _enemies.any((e) => !e.isDestroyed)) {
+      _pendingHarvestBay = bayIndex;
+      _pendingHarvestDir = BayRole.resolveSowDirection(bayIndex, 1);
+      _pendingHarvestSeeds = (killedEnemy && priorMass >= 2) ? 2 : 1;
+      _isCascading = true;
     }
 
     _score += (mass * mass * 10 * safeMult).round();
@@ -514,6 +532,59 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       _elapsedDriftTime += deltaTime;
     }
 
+    // Step pending Shoot-to-Harvest seeds (matching C++ SowingStateComponent)
+    if (_pendingHarvestSeeds > 0) {
+      _pendingHarvestBay =
+          (_pendingHarvestBay + _pendingHarvestDir + 16) & 0x0F;
+      _bayCharges[_pendingHarvestBay]++;
+      _pendingHarvestSeeds--;
+      if (_pendingHarvestSeeds == 0) {
+        _isCascading = false;
+        if (_simState == 1) {
+          _simState = 0; // OrbitalIdle
+        }
+      }
+    }
+
+    // Autonomous Ancestral Totem Turrets (Concept D)
+    if (_simState == 0) {
+      for (var c = 0; c < 8; c++) {
+        final bayIdx = 8 + c;
+        final mass = _bayCharges[bayIdx];
+        final hasEnemy = _enemies.any(
+          (e) => !e.isDestroyed && e.assignedCorridor == c,
+        );
+        if (mass < 2 || !hasEnemy) {
+          _totemCooldowns[c] = 1.5;
+          continue;
+        }
+        _totemCooldowns[c] -= deltaTime;
+        if (_totemCooldowns[c] <= 0.0) {
+          var isTriad = false;
+          for (var start = c - 2; start <= c; start++) {
+            if (start >= 0 && start + 2 < 8) {
+              if (_bayCharges[8 + start] >= 2 &&
+                  _bayCharges[8 + start + 1] >= 2 &&
+                  _bayCharges[8 + start + 2] >= 2) {
+                isTriad = true;
+                break;
+              }
+            }
+          }
+          final savedMass = _bayCharges[bayIdx];
+          final savedPendingSeeds = _pendingHarvestSeeds;
+          final savedCascading = _isCascading;
+          final savedSimState = _simState;
+          dischargeBay(bayIdx, damageMultiplier: isTriad ? 1.5 : 1.0);
+          _bayCharges[bayIdx] = savedMass;
+          _pendingHarvestSeeds = savedPendingSeeds;
+          _isCascading = savedCascading;
+          _simState = savedSimState;
+          _totemCooldowns[c] = isTriad ? 1.1 : 1.5;
+        }
+      }
+    }
+
     // Update enemies
     for (var i = 0; i < _enemies.length; i++) {
       final e = _enemies[i];
@@ -739,6 +810,10 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
     for (var i = 0; i < chargesLength && i < 16 && i < bayCharges.length; i++) {
       _bayCharges[i] = bayCharges[i];
     }
+    for (var c = 0; c < 8; c++) {
+      _totemCooldowns[c] = 1.5;
+    }
+    _pendingHarvestSeeds = 0;
     _reserveCores = reserveCores;
     _score = totalScore;
     _isCascading = false;
