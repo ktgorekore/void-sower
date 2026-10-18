@@ -180,7 +180,7 @@ jobs:
             * **Automatic Reactive 3D Flight Camera (`CombatScreen`, `CombatCamera3D`):** Removed the manual 5-button camera gimbal dock; the 3D perspective camera now automatically pitches and banks in real time with the Dreadnought's forward depth and lateral velocity.
             * **Progressively Intelligent Enemy AI (`MovementSystem::AdvanceEnemies`, `InvaderBulletManager`):** Lateral-maneuvering enemies actively scan frontline bay charges to evade `M >= 2` corridors toward lower-charge lanes, flank exposed (`M == 0`) conduits, and screen damaged capital vessels.
             * **How to Play & Master Strategy Guide:** [`docs/how_to_play_and_strategy_guide.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/how_to_play_and_strategy_guide.md)
-            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`docs/releases/release_notes_v0.5.0.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_v0.5.0.md)
+            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`store_listing/release_notes_v0.5.0.md`](https://github.com/ktgorekore/void-sower/blob/main/store_listing/release_notes_v0.5.0.md) · [`docs/releases/release_notes_v0.5.0.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_v0.5.0.md)
 
             #### 📦 Release Artifacts:
             * **Android App Bundle (.aab):** `void-sower-${{ steps.vars.outputs.tag }}.aab` (${{ steps.artifacts.outputs.aab_size_mb }} MB)
