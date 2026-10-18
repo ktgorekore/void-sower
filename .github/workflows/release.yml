@@ -167,19 +167,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: "Release ${{ steps.vars.outputs.tag }} — 3D Totem Turrets, Morabaraba Laser Fence & Visual Guide"
+          name: "Release ${{ steps.vars.outputs.tag }} — 3-Act Story Missions, Active Super Beams & Adaptive AI"
           draft: ${{ github.event.inputs.draft || false }}
           prerelease: ${{ github.event.inputs.prerelease || false }}
           generate_release_notes: true
           body: |
-            ### 🚀 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }} (Build 44)
+            ### 🚀 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }} (Build 45)
 
             #### ✨ Release Highlights
-            * **3D Ancestral Totem Turrets & Shoot-to-Harvest Seed Loop (`DischargeSystem`, `CombatSystem`, `CombatPainter`):** Replaced the 2D 16-box footer with 8 3D Ancestral Totem Turrets rendered directly in the 3D orbital arena (`normZ = 0.032`) and a streamlined 3-control Martial Command Bar (`[ ‹ SOW ]`, `[ TOTEM STATUS / SUPER BEAM ]`, `[ SOW › ]`, `[ BLASTER FIRE ]`). Every 2 blaster hits or any enemy kill harvests a glowing seed directly into the active corridor's 3D Totem Turret (`HarvestSeedToBay`).
-            * **Autonomous Totem Sentry Fire (`StepTotemTurrets`):** Totem Turrets with `2+` seeds (`AUTO-GUN`) automatically fire plasma bolts up their corridor every `1.5s`, dealing `25 × M` damage and stripping enemy shields.
-            * **Morabaraba 3-in-a-Row Laser Fence (`CombatCoordinator`, `InvaderBulletManager`, `CombatPainter`):** Aligning 3 adjacent Auto-Gun Turrets (`2+` seeds each) projects a golden 3D Morabaraba Laser Fence across their corridors that automatically intercepts and vaporizes descending enemy plasma bombs (`LASER FENCE ZAP! +50`) and grants a `1.5x` beam multiplier.
-            * **Plain-English Visual UI, Seed Pips & Updated 60 FPS Animated Tutorials (`MancalaBatteryDockWidget`, `KineticRuleDiorama`, `TutorialOverlay`, `TacticalDirectivesModal`, `BaoCodexDialog`):** Removed all mathematical/technical jargon (`M²`, `M=0`, `T0 DORMANT`, `T3 SUPER-PRISM`, `NAMUA`, `SIPHON`, `CCW`), added 4 glowing visual seed pips (`● ● ○ ○`), ultra-short directive nuggets (`🎯 SHOOT = +SEEDS  •  ⚡ 2+ SEEDS = AUTO-GUN  •  🛡️ 3 IN A ROW = LASER FENCE`), and updated all 60 FPS animated visual dioramas and Flight Academy steps.
-            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`docs/releases/release_notes_${{ steps.vars.outputs.tag }}.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_${{ steps.vars.outputs.tag }}.md)
+            * **100% Player-Triggered Offensive Firing (`WaveGenerator`, `CombatSystem`, `MancalaBatteryDockWidget`):** Eliminated passive auto-firing victories. Frontline Totems with `2+` seeds (`SUPER BEAM`) and `4+` seeds (`MEGA GUN`) shield your corridor from bombs and store quadratic $M^2$ capacitor energy until **you** command a Super Beam tap, `‹ SOW` / `SOW ›` cascade, or `FENCE BLAST` barrage.
+            * **3-Act Story Missions Across All 27 Sectors (`CampaignService`, `SectorNarrativeRegistry`, `CombatScreen`):** Every sector across Kilwa Nebula Basin, Phantom Drift, and Void Swarm now progresses through **Act I (`PHASE I · VANGUARD RECON`)**, **Act II (`PHASE II · TACTICAL SIEGE` + Mid-Sector Ancestral Relic Draft)**, and **Act III (`PHASE III · APEX COMMAND` Boss)** with live holographic comms (`narrative_comms_banner`).
+            * **Automatic Reactive 3D Flight Camera (`CombatScreen`, `CombatCamera3D`):** Removed the manual 5-button camera gimbal dock; the 3D perspective camera now automatically pitches and banks in real time with the Dreadnought's forward depth and lateral velocity.
+            * **Progressively Intelligent Enemy AI (`MovementSystem::AdvanceEnemies`, `InvaderBulletManager`):** Lateral-maneuvering enemies actively scan frontline bay charges to evade `M >= 2` corridors toward lower-charge lanes, flank exposed (`M == 0`) conduits, and screen damaged capital vessels.
+            * **How to Play & Master Strategy Guide:** [`docs/how_to_play_and_strategy_guide.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/how_to_play_and_strategy_guide.md)
+            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`docs/releases/release_notes_v0.5.0.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_v0.5.0.md)
 
             #### 📦 Release Artifacts:
             * **Android App Bundle (.aab):** `void-sower-${{ steps.vars.outputs.tag }}.aab` (${{ steps.artifacts.outputs.aab_size_mb }} MB)
