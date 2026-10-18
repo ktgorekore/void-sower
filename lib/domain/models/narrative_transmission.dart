@@ -87,6 +87,37 @@ class NarrativeTransmission {
 class SectorNarrativeRegistry {
   SectorNarrativeRegistry._();
 
+  /// Sector-specific story lore anchors across the 27 sectors.
+  static const Map<int, String> _sectorLoreTarget = <int, String>{
+    1: 'Zanzibar Reef Gate beacon',
+    2: 'Pemba Channel quantum relay',
+    3: 'Mafia Trench orbital bastion',
+    4: 'Kaskazi ion stream conduits',
+    5: 'Kusi monsoon vortex array',
+    6: 'Lindi Ridge defense spire',
+    7: 'Kilwa Kisiwani royal foundry',
+    8: 'Songo Mnara flagship drydock',
+    9: 'Great Siphon Singularity core',
+    10: 'Aldabra shimmer rift threshold',
+    11: 'Cosmoledo phase-mirage shoals',
+    12: 'Astove phase bastion',
+    13: 'Assumption vector vortex',
+    14: 'Farquhar quantum surge gate',
+    15: 'St. Pierre phantom spire',
+    16: 'Providence rift citadel',
+    17: 'Coëtivy warp bastion',
+    18: 'Agalega singularity zenith',
+    19: 'Comoros hive ingress gate',
+    20: 'Mohéli brood bastion',
+    21: 'Anjouan larval conduit',
+    22: 'Mayotte swarm corridor',
+    23: 'Glorioso nest spire',
+    24: 'Geyser hive fortress',
+    25: 'Bassas da India apex crucible',
+    26: 'Europa swarm sovereign',
+    27: 'Mozambique singularity hive',
+  };
+
   /// Resolves the narrative transmission for a given [operationId], [sectorNumber],
   /// and [phase].
   static NarrativeTransmission resolve({
@@ -94,6 +125,10 @@ class SectorNarrativeRegistry {
     required int sectorNumber,
     required SectorCheckpointPhase phase,
   }) {
+    final loreTarget =
+        _sectorLoreTarget[sectorNumber] ?? 'Sector $sectorNumber beacon';
+    final questTitle = questTitleForType(questTypeForSector(sectorNumber));
+
     if (operationId <= 1) {
       switch (phase) {
         case SectorCheckpointPhase.vanguardRecon:
@@ -102,9 +137,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'KILWA ORBITAL FLOTILLA',
             culturalHeritage: 'SWAHILI COAST · BAO LA KISWAHILI',
             message:
-                'Sector $sectorNumber beacon online. Hegemony scouts are '
-                'converging on the Coral Kiln foundries—align your prow and '
-                'weave the capacitor ring.',
+                'Act I: Hegemony scouts are converging on the $loreTarget. '
+                'Bays only fire on your command—weave the capacitor ring and '
+                'pilot the Dreadnought to intercept!',
             tacticalDirective:
                 'MTAJI RELAY: Land a multi-seed sow on an enemy lane to fire '
                 'AND harvest +2 plasma seeds into your hand.',
@@ -116,9 +151,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'ASTROMETRIC AI CORE',
             culturalHeritage: 'KILWA BASIN · NYUMBA SANCTUARY',
             message:
-                'Checkpoint 1 secured! Orbital telemetry detects an active '
-                'tactical objective in the central lanes. Hold the line while '
-                'we reclaim the relay.',
+                'Act II ($questTitle): Vanguard broken! Hostile strike wings '
+                'are now evading charged corridors around the $loreTarget. '
+                'Draft an Ancestral Relic and hold the siege line.',
             tacticalDirective:
                 'DIRECT FIRE vs SOW: Tap FIRE to unleash stored M² mass '
                 'immediately, or swipe CW/CCW to sow a chain cascade.',
@@ -130,12 +165,12 @@ class SectorNarrativeRegistry {
             roleTitle: 'KILWA ORBITAL FLOTILLA',
             culturalHeritage: 'MORABARABA · THREE-BAY MILL',
             message:
-                'Warning—Hegemony Command Dreadnought dropping out of slipstream '
-                'across three corridors! Single-core shots will not breach its '
+                'Act III: Hegemony Command Dreadnought dropping out of slipstream '
+                'over the $loreTarget! Single-core shots will not breach its '
                 'tri-lane barrier.',
             tacticalDirective:
                 'MORABARABA MILL: Charge 3 adjacent frontline bays (M ≥ 2) '
-                'to link a 1.5x 3-Corridor Rail-Lance Barrage!',
+                'to link a 1.5x 3-Corridor Super-Beam Barrage!',
             phase: phase,
           );
       }
@@ -147,8 +182,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'IMERINA VANGUARD COMMAND',
             culturalHeritage: 'MALAGASY HIGHLANDS · FANORONA VECTORS',
             message:
-                'Welcome to the Imerina Star Reach. High-velocity interceptors '
-                'ride the ion currents here—static defense will fail.',
+                'Act I: Entering $loreTarget. Phase-drift interceptors '
+                'actively read your bay charges and flank unshielded lanes—'
+                'static defense will fail.',
             tacticalDirective:
                 'FANORONA VECTOR: Thrust forward into an enemy lane for an '
                 'Approach Piercing Strike, or pull back for a Withdrawal Pulse!',
@@ -160,8 +196,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'IMERINA VANGUARD COMMAND',
             culturalHeritage: 'WEST AFRICAN · YOTÉ SURGICAL CULL',
             message:
-                'Checkpoint 1 cleared. Armored Cruisers are escorting the siege '
-                'line—shatter a Cruiser to unlock an orbital Yoté Cull!',
+                'Act II ($questTitle): Armored Cruisers are screening the '
+                '$loreTarget siege line—shatter a Cruiser to unlock an '
+                'orbital Yoté Cull!',
             tacticalDirective:
                 'YOTÉ CULL: Destroying an Armored Cruiser grants a free '
                 '800 DMG orbital kinetic strike—tap any enemy or CULL button!',
@@ -173,8 +210,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'ASTROMETRIC AI CORE',
             culturalHeritage: 'IMERINA CITADEL · APEX INTERCEPT',
             message:
-                'Apex Carrier detected! Combine Fanorona forward surges with '
-                'Morabaraba 3-Bay Mills to shatter its multi-corridor plating.',
+                'Act III: Phantom Apex Carrier locking onto the $loreTarget! '
+                'Combine Fanorona forward surges with Morabaraba 3-Bay Mills '
+                'to shatter its multi-corridor plating.',
             tacticalDirective:
                 'APEX PROTOCOL: Use Yoté Culls and 3-Bay Mill barrages to '
                 'collapse all three boss shield corridors.',
@@ -189,8 +227,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'SIGI TOLO SANCTUARY KEEPER',
             culturalHeritage: 'DOGON SIRIUS LORE · PO TOLO CORE',
             message:
-                'You fly beneath the twin suns of Sigi Tolo. The white dwarf '
-                'gravity well amplifies every quadratic resonance you sow.',
+                'Act I: You fly beneath the twin suns at the $loreTarget. '
+                'The white dwarf gravity well amplifies every quadratic '
+                'resonance you sow.',
             tacticalDirective:
                 'GRANDMASTERY: Chain Bao Mtaji captures into 3-Bay Mills '
                 'while weaving Fanorona depth thrusts.',
@@ -202,8 +241,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'SIGI TOLO SANCTUARY KEEPER',
             culturalHeritage: 'GREAT ZIMBABWE · MONOLITH BASTION',
             message:
-                'Checkpoint 1 locked. Collapse the Hegemony warp rift before '
-                'their heavy fleet overwhelms the sanctuary perimeter!',
+                'Act II ($questTitle): Collapse the Hegemony warp rift at '
+                'the $loreTarget before their adaptive fleet overwhelms the '
+                'sanctuary perimeter!',
             tacticalDirective:
                 'TACTICAL SIEGE: Complete the active corridor quest while '
                 'harvesting Yoté Cull charges from Cruisers.',
@@ -215,8 +255,9 @@ class SectorNarrativeRegistry {
             roleTitle: 'SOVEREIGN COALITION COMMAND',
             culturalHeritage: 'PAN-AFRICAN TACTICAL SYNTHESIS',
             message:
-                'The Sovereign Executioner Flagship is before you! Unleash '
-                'every ancestral doctrine—Bao, Fanorona, Morabaraba, and Yoté!',
+                'Act III: The Sovereign Executioner Flagship commands the '
+                '$loreTarget! Unleash every ancestral doctrine—Bao, Fanorona, '
+                'Morabaraba, and Yoté!',
             tacticalDirective:
                 'FINAL ASCENSION: Link 3-Bay Mills (1.5x) and trigger Yoté '
                 'Surgical Culls to annihilate the Apex Flagship!',

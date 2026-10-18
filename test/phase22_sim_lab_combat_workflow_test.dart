@@ -303,6 +303,18 @@ void main() {
       (tester) async {
         await PersistenceService.instance.setProUnlocked(false);
         final mockEngine = MockVoidSowerEngine();
+        const sector10NoReinforcements = CampaignSector(
+          sectorId: 10,
+          name: 'Aldabra Shimmer Rift',
+          region: 'Drift Perimeter',
+          difficultyTier: 0,
+          starsEarned: 0,
+          bestScore: 1800,
+          campaignId: 'phantom_drift',
+          doctrine: SectorCombatDoctrine.phantomDrift,
+          reinforcementQuota: 0,
+          coreSiphonPerKill: 2,
+        );
 
         await tester.pumpWidget(
           MaterialApp(
@@ -310,6 +322,7 @@ void main() {
               engine: mockEngine,
               difficultyTier: 1,
               sectorId: 10,
+              sector: sector10NoReinforcements,
             ),
           ),
         );
@@ -367,6 +380,18 @@ void main() {
       (tester) async {
         await PersistenceService.instance.setProUnlocked(false);
         final mockEngine = MockVoidSowerEngine();
+        const sector10NoReinforcements = CampaignSector(
+          sectorId: 10,
+          name: 'Aldabra Shimmer Rift',
+          region: 'Drift Perimeter',
+          difficultyTier: 0,
+          starsEarned: 0,
+          bestScore: 1800,
+          campaignId: 'phantom_drift',
+          doctrine: SectorCombatDoctrine.phantomDrift,
+          reinforcementQuota: 0,
+          coreSiphonPerKill: 2,
+        );
 
         await tester.pumpWidget(
           MaterialApp(
@@ -374,6 +399,7 @@ void main() {
               engine: mockEngine,
               difficultyTier: 1,
               sectorId: 10,
+              sector: sector10NoReinforcements,
             ),
           ),
         );
@@ -417,6 +443,18 @@ void main() {
       (tester) async {
         await PersistenceService.instance.setProUnlocked(false);
         final mockEngine = MockVoidSowerEngine();
+        const sector10NoReinforcements = CampaignSector(
+          sectorId: 10,
+          name: 'Aldabra Shimmer Rift',
+          region: 'Drift Perimeter',
+          difficultyTier: 0,
+          starsEarned: 0,
+          bestScore: 1800,
+          campaignId: 'phantom_drift',
+          doctrine: SectorCombatDoctrine.phantomDrift,
+          reinforcementQuota: 0,
+          coreSiphonPerKill: 2,
+        );
 
         await tester.pumpWidget(
           MaterialApp(
@@ -424,6 +462,7 @@ void main() {
               engine: mockEngine,
               difficultyTier: 1,
               sectorId: 10,
+              sector: sector10NoReinforcements,
             ),
           ),
         );

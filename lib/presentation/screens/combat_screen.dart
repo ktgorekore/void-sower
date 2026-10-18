@@ -18,6 +18,7 @@ import 'package:flutter/scheduler.dart';
 
 import '../../core/logging.dart';
 import '../../domain/models/campaign_sector.dart';
+import '../../domain/models/narrative_transmission.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/ad_service.dart';
 import '../../domain/services/campaign_service.dart';
@@ -140,19 +141,6 @@ class _CombatScreenState extends State<CombatScreen>
 
   @visibleForTesting
   CombatCamera3D get camera3D => _camera3D;
-
-  void _cycleCameraMode() {
-    HapticService.instance.injectionClick();
-    setState(() {
-      _camera3D = _camera3D.nextMode();
-    });
-  }
-
-  void _adjustCameraAngles({double dPitch = 0.0, double dYaw = 0.0}) {
-    setState(() {
-      _camera3D = _camera3D.withAdjustedAngles(dPitch: dPitch, dYaw: dYaw);
-    });
-  }
 
   @override
   void initState() {
@@ -336,7 +324,14 @@ class _CombatScreenState extends State<CombatScreen>
         -1.0,
         1.0,
       );
+      final dynamicPitch = (25.0 + normForward * 7.0).clamp(12.0, 58.0);
+      final targetYaw = (velocityDx * -18.0).clamp(-14.0, 14.0);
+      final smoothedYaw =
+          _camera3D.yawDeg +
+          (targetYaw - _camera3D.yawDeg) * (clampedDt * 8.0).clamp(0.0, 1.0);
       _camera3D = _camera3D.copyWith(
+        pitchDeg: dynamicPitch,
+        yawDeg: smoothedYaw,
         followX: dread.orbitalPositionX.clamp(0.0, 1.0),
         followZ: normForward.clamp(0.0, 1.0),
       );
@@ -1553,119 +1548,336 @@ class _CombatScreenState extends State<CombatScreen>
                                             },
                                           ),
                                         ),
-                                        // Checkpoint Relic Draft Bar (shown only when a Relic Draft is active)
-                                        Positioned(
-                                          top: 6.0,
-                                          left: 14.0,
-                                          right: 14.0,
-                                          child: ListenableBuilder(
-                                            listenable: _directiveNotifier,
-                                            builder: (context, _) {
-                                              final draftChoices = _coordinator
-                                                  .checkpointMutationChoices;
-                                              if (draftChoices.isEmpty) {
-                                                return const SizedBox.shrink();
-                                              }
-                                              return Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6.0,
-                                                      vertical: 4.0,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(
-                                                    0xFF0E1729,
-                                                  ).withValues(alpha: 0.94),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        8.0,
-                                                      ),
-                                                  border: Border.all(
-                                                    color: VoidTheme.plasmaCyan
-                                                        .withValues(
-                                                          alpha: 0.75,
-                                                        ),
-                                                    width: 1.0,
-                                                  ),
-                                                ),
-                                                child: Row(
+                                        // 3-Act Story & Comms HUD Overlay + Checkpoint Relic Draft Bar
+                                        if (!isSecured &&
+                                            matchState.status !=
+                                                CombatMatchStatus.paused)
+                                          Positioned(
+                                            top: 6.0,
+                                            left: 12.0,
+                                            right: 12.0,
+                                            child: ListenableBuilder(
+                                              listenable: _directiveNotifier,
+                                              builder: (context, _) {
+                                                final transmission =
+                                                    _coordinator
+                                                        .activeTransmission;
+                                                final draftChoices = _coordinator
+                                                    .checkpointMutationChoices;
+                                                final phase = _coordinator
+                                                    .checkpointPhase;
+                                                final dread =
+                                                    _coordinator.dreadnought;
+                                                return Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment
+                                                          .stretch,
                                                   children: [
-                                                    const Text(
-                                                      'RELIC:',
-                                                      style: TextStyle(
-                                                        color: VoidTheme
-                                                            .plasmaCyan,
-                                                        fontSize: 7.5,
-                                                        fontWeight:
-                                                            FontWeight.w900,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(width: 4.0),
-                                                    for (final mutation
-                                                        in draftChoices)
-                                                      Expanded(
-                                                        child: Padding(
+                                                    if (transmission != null)
+                                                      GestureDetector(
+                                                        key: const Key(
+                                                          'narrative_comms_banner',
+                                                        ),
+                                                        behavior:
+                                                            HitTestBehavior
+                                                                .opaque,
+                                                        onTap: _coordinator
+                                                            .dismissNarrativeTransmission,
+                                                        child: Container(
                                                           padding:
                                                               const EdgeInsets.symmetric(
-                                                                horizontal: 2.0,
+                                                                horizontal: 9.0,
+                                                                vertical: 6.0,
                                                               ),
-                                                          child: GestureDetector(
-                                                            onTap: () =>
-                                                                _coordinator
-                                                                    .selectCheckpointMutation(
-                                                                      mutation,
-                                                                    ),
-                                                            child: Container(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    horizontal:
-                                                                        4.0,
-                                                                    vertical:
-                                                                        3.5,
-                                                                  ),
-                                                              decoration: BoxDecoration(
-                                                                color:
-                                                                    const Color(
-                                                                      0xFF1E293B,
-                                                                    ),
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      4.0,
-                                                                    ),
-                                                                border: Border.all(
-                                                                  color: mutation
-                                                                      .accentColor,
-                                                                  width: 0.9,
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                const Color(
+                                                                  0xFF0A1222,
+                                                                ).withValues(
+                                                                  alpha: 0.94,
                                                                 ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  9.0,
+                                                                ),
+                                                            border: Border.all(
+                                                              color: VoidTheme
+                                                                  .solarGold
+                                                                  .withValues(
+                                                                    alpha: 0.78,
+                                                                  ),
+                                                              width: 1.0,
+                                                            ),
+                                                          ),
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            children: [
+                                                              Row(
+                                                                children: [
+                                                                  Container(
+                                                                    padding: const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          5.0,
+                                                                      vertical:
+                                                                          1.5,
+                                                                    ),
+                                                                    decoration: BoxDecoration(
+                                                                      color: VoidTheme
+                                                                          .solarGold
+                                                                          .withValues(
+                                                                            alpha:
+                                                                                0.2,
+                                                                          ),
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                            4.0,
+                                                                          ),
+                                                                    ),
+                                                                    child: Text(
+                                                                      transmission
+                                                                          .phase
+                                                                          .shortLabel,
+                                                                      style: const TextStyle(
+                                                                        color: VoidTheme
+                                                                            .solarGold,
+                                                                        fontSize:
+                                                                            7.2,
+                                                                        fontWeight:
+                                                                            FontWeight.w900,
+                                                                        letterSpacing:
+                                                                            0.4,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    width: 6.0,
+                                                                  ),
+                                                                  Expanded(
+                                                                    child: Text(
+                                                                      '${transmission.speaker} · ${transmission.culturalHeritage}',
+                                                                      maxLines:
+                                                                          1,
+                                                                      overflow:
+                                                                          TextOverflow
+                                                                              .ellipsis,
+                                                                      style: const TextStyle(
+                                                                        color: VoidTheme
+                                                                            .plasmaCyan,
+                                                                        fontSize:
+                                                                            7.6,
+                                                                        fontWeight:
+                                                                            FontWeight.w900,
+                                                                        letterSpacing:
+                                                                            0.3,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  const Icon(
+                                                                    Icons
+                                                                        .close_rounded,
+                                                                    size: 12.0,
+                                                                    color: Colors
+                                                                        .white54,
+                                                                  ),
+                                                                ],
                                                               ),
-                                                              child: Text(
-                                                                mutation.title,
-                                                                maxLines: 1,
+                                                              const SizedBox(
+                                                                height: 3.0,
+                                                              ),
+                                                              Text(
+                                                                transmission
+                                                                    .message,
+                                                                maxLines: 2,
                                                                 overflow:
                                                                     TextOverflow
                                                                         .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .center,
-                                                                style: TextStyle(
-                                                                  color: mutation
-                                                                      .accentColor,
-                                                                  fontSize: 7.0,
+                                                                style: const TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 8.0,
+                                                                  height: 1.2,
                                                                   fontWeight:
                                                                       FontWeight
-                                                                          .w800,
+                                                                          .w600,
                                                                 ),
                                                               ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      )
+                                                    else
+                                                      Align(
+                                                        alignment:
+                                                            Alignment.topLeft,
+                                                        child: Container(
+                                                          key: const Key(
+                                                            'story_act_status_pill',
+                                                          ),
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 7.0,
+                                                                vertical: 3.0,
+                                                              ),
+                                                          decoration: BoxDecoration(
+                                                            color:
+                                                                const Color(
+                                                                  0xFF0A1222,
+                                                                ).withValues(
+                                                                  alpha: 0.85,
+                                                                ),
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  6.0,
+                                                                ),
+                                                            border: Border.all(
+                                                              color: VoidTheme
+                                                                  .plasmaCyan
+                                                                  .withValues(
+                                                                    alpha: 0.45,
+                                                                  ),
+                                                              width: 0.8,
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                            phase ==
+                                                                    SectorCheckpointPhase
+                                                                        .tacticalSiege
+                                                                ? '${phase.shortLabel} · ${SectorNarrativeRegistry.questTitleForType(dread.quest.id)} ${(dread.questProgress * 100).round()}%'
+                                                                : '${phase.label} · ${_activeSector.name.toUpperCase()}',
+                                                            style: const TextStyle(
+                                                              color: VoidTheme
+                                                                  .plasmaCyan,
+                                                              fontSize: 7.2,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w800,
+                                                              letterSpacing:
+                                                                  0.4,
                                                             ),
                                                           ),
                                                         ),
                                                       ),
+                                                    if (draftChoices
+                                                        .isNotEmpty) ...[
+                                                      const SizedBox(
+                                                        height: 4.0,
+                                                      ),
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 6.0,
+                                                              vertical: 4.0,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color:
+                                                              const Color(
+                                                                0xFF0E1729,
+                                                              ).withValues(
+                                                                alpha: 0.94,
+                                                              ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                8.0,
+                                                              ),
+                                                          border: Border.all(
+                                                            color: VoidTheme
+                                                                .plasmaCyan
+                                                                .withValues(
+                                                                  alpha: 0.75,
+                                                                ),
+                                                            width: 1.0,
+                                                          ),
+                                                        ),
+                                                        child: Row(
+                                                          children: [
+                                                            const Text(
+                                                              'RELIC:',
+                                                              style: TextStyle(
+                                                                color: VoidTheme
+                                                                    .plasmaCyan,
+                                                                fontSize: 7.5,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w900,
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 4.0,
+                                                            ),
+                                                            for (final mutation
+                                                                in draftChoices)
+                                                              Expanded(
+                                                                child: Padding(
+                                                                  padding:
+                                                                      const EdgeInsets.symmetric(
+                                                                        horizontal:
+                                                                            2.0,
+                                                                      ),
+                                                                  child: GestureDetector(
+                                                                    onTap: () =>
+                                                                        _coordinator.selectCheckpointMutation(
+                                                                          mutation,
+                                                                        ),
+                                                                    child: Container(
+                                                                      padding: const EdgeInsets.symmetric(
+                                                                        horizontal:
+                                                                            4.0,
+                                                                        vertical:
+                                                                            3.5,
+                                                                      ),
+                                                                      decoration: BoxDecoration(
+                                                                        color: const Color(
+                                                                          0xFF1E293B,
+                                                                        ),
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                              4.0,
+                                                                            ),
+                                                                        border: Border.all(
+                                                                          color:
+                                                                              mutation.accentColor,
+                                                                          width:
+                                                                              0.9,
+                                                                        ),
+                                                                      ),
+                                                                      child: Text(
+                                                                        mutation
+                                                                            .title,
+                                                                        maxLines:
+                                                                            1,
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        textAlign:
+                                                                            TextAlign.center,
+                                                                        style: TextStyle(
+                                                                          color:
+                                                                              mutation.accentColor,
+                                                                          fontSize:
+                                                                              7.0,
+                                                                          fontWeight:
+                                                                              FontWeight.w800,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ],
-                                                ),
-                                              );
-                                            },
+                                                );
+                                              },
+                                            ),
                                           ),
-                                        ),
                                         if (matchState.status ==
                                                 CombatMatchStatus.paused &&
                                             !_overlayState.isModalOpen)
@@ -2046,177 +2258,6 @@ class _CombatScreenState extends State<CombatScreen>
                                                     ],
                                                   ),
                                                 ),
-                                              ),
-                                            ),
-                                          ),
-                                        // Interactive 3D Camera Gimbal Dock (Chase 3D / Bridge 3D / Orbit 3D / Top-Down + Yaw/Pitch Tilt)
-                                        if (!isSecured)
-                                          Positioned(
-                                            bottom: 8.0,
-                                            left: 12.0,
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6.0,
-                                                    vertical: 3.5,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: VoidTheme.obsidianBlack
-                                                    .withValues(alpha: 0.92),
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                                border: Border.all(
-                                                  color: VoidTheme.plasmaCyan
-                                                      .withValues(alpha: 0.65),
-                                                  width: 1.0,
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  GestureDetector(
-                                                    key: const Key(
-                                                      'camera_mode_button',
-                                                    ),
-                                                    behavior:
-                                                        HitTestBehavior.opaque,
-                                                    onTap: _cycleCameraMode,
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 4.0,
-                                                            vertical: 2.0,
-                                                          ),
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          const Icon(
-                                                            Icons
-                                                                .threed_rotation,
-                                                            size: 12.0,
-                                                            color: VoidTheme
-                                                                .plasmaCyan,
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 4.0,
-                                                          ),
-                                                          Text(
-                                                            '${_camera3D.mode.label} ${_camera3D.pitchDeg.round()}°/${_camera3D.yawDeg.round()}°',
-                                                            style: const TextStyle(
-                                                              color: VoidTheme
-                                                                  .plasmaCyan,
-                                                              fontSize: 7.5,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w900,
-                                                              letterSpacing:
-                                                                  0.4,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 4.0),
-                                                  GestureDetector(
-                                                    key: const Key(
-                                                      'camera_yaw_port_button',
-                                                    ),
-                                                    behavior:
-                                                        HitTestBehavior.opaque,
-                                                    onTap: () =>
-                                                        _adjustCameraAngles(
-                                                          dYaw: -9.0,
-                                                        ),
-                                                    child: const Padding(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                            horizontal: 3.0,
-                                                            vertical: 2.0,
-                                                          ),
-                                                      child: Icon(
-                                                        Icons.chevron_left,
-                                                        size: 13.0,
-                                                        color:
-                                                            VoidTheme.solarGold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  GestureDetector(
-                                                    key: const Key(
-                                                      'camera_yaw_stbd_button',
-                                                    ),
-                                                    behavior:
-                                                        HitTestBehavior.opaque,
-                                                    onTap: () =>
-                                                        _adjustCameraAngles(
-                                                          dYaw: 9.0,
-                                                        ),
-                                                    child: const Padding(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                            horizontal: 3.0,
-                                                            vertical: 2.0,
-                                                          ),
-                                                      child: Icon(
-                                                        Icons.chevron_right,
-                                                        size: 13.0,
-                                                        color:
-                                                            VoidTheme.solarGold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  GestureDetector(
-                                                    key: const Key(
-                                                      'camera_pitch_down_button',
-                                                    ),
-                                                    behavior:
-                                                        HitTestBehavior.opaque,
-                                                    onTap: () =>
-                                                        _adjustCameraAngles(
-                                                          dPitch: -6.0,
-                                                        ),
-                                                    child: const Padding(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                            horizontal: 3.0,
-                                                            vertical: 2.0,
-                                                          ),
-                                                      child: Icon(
-                                                        Icons
-                                                            .keyboard_arrow_down,
-                                                        size: 13.0,
-                                                        color:
-                                                            VoidTheme.solarGold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  GestureDetector(
-                                                    key: const Key(
-                                                      'camera_pitch_up_button',
-                                                    ),
-                                                    behavior:
-                                                        HitTestBehavior.opaque,
-                                                    onTap: () =>
-                                                        _adjustCameraAngles(
-                                                          dPitch: 6.0,
-                                                        ),
-                                                    child: const Padding(
-                                                      padding:
-                                                          EdgeInsets.symmetric(
-                                                            horizontal: 3.0,
-                                                            vertical: 2.0,
-                                                          ),
-                                                      child: Icon(
-                                                        Icons.keyboard_arrow_up,
-                                                        size: 13.0,
-                                                        color:
-                                                            VoidTheme.solarGold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
                                               ),
                                             ),
                                           ),

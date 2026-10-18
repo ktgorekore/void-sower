@@ -76,7 +76,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
       tierColor = VoidTheme.solarGold;
       tierIcon = Icons.auto_awesome;
     } else if (alignedMass >= 2) {
-      tierLabel = 'AUTO-GUN';
+      tierLabel = 'SUPER BEAM';
       tierColor = VoidTheme.plasmaCyan;
       tierIcon = Icons.bolt;
     } else if (alignedMass == 1) {
@@ -416,7 +416,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
               Icon(Icons.bolt, size: 10.0, color: VoidTheme.plasmaCyan),
               SizedBox(width: 2.0),
               Text(
-                '2+ SEEDS = AUTO-GUN',
+                '2+ SEEDS = SUPER BEAM',
                 style: TextStyle(
                   color: Color(0xFF94A3B8),
                   fontSize: 7.8,

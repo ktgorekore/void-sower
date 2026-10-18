@@ -399,7 +399,7 @@ void main() {
     );
 
     testWidgets(
-      'CombatScreen removes top clutter banners and renders interactive 3D Camera Gimbal',
+      'CombatScreen renders 3-Act Story Comms HUD, removes manual camera gimbal buttons, and banks 3D camera automatically',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(1080, 2400));
         addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -416,20 +416,26 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 50));
 
-        // Verify top viewport clutter banners (checkpoint & narrative comms) are removed.
-        expect(find.textContaining('P1: RECON'), findsNothing);
-        expect(find.textContaining('ADMIRAL ZAWADI'), findsNothing);
+        // Verify 3-Act Story Comms Banner renders at the start of Act I
+        expect(find.byKey(const Key('narrative_comms_banner')), findsOneWidget);
+        expect(find.textContaining('P1: RECON'), findsOneWidget);
+        expect(find.textContaining('ADMIRAL ZAWADI'), findsOneWidget);
 
-        // Verify 3D Camera Gimbal Dock starts in CHASE 3D mode and cycles on tap.
-        expect(find.textContaining('CHASE 3D'), findsOneWidget);
-        await tester.tap(find.byKey(const Key('camera_mode_button')));
-        await tester.pump();
-        expect(find.textContaining('BRIDGE 3D'), findsOneWidget);
+        // Tapping the comms banner dismisses it into the compact story act status pill
+        await tester.tap(find.byKey(const Key('narrative_comms_banner')));
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(find.byKey(const Key('narrative_comms_banner')), findsNothing);
+        expect(find.byKey(const Key('story_act_status_pill')), findsOneWidget);
 
-        // Verify yaw orbit button adjusts 3D camera into ORBIT 3D mode.
-        await tester.tap(find.byKey(const Key('camera_yaw_stbd_button')));
-        await tester.pump();
-        expect(find.textContaining('ORBIT 3D'), findsOneWidget);
+        // Verify manual 2D/3D camera gimbal buttons are removed
+        expect(find.byKey(const Key('camera_mode_button')), findsNothing);
+        expect(find.byKey(const Key('camera_yaw_stbd_button')), findsNothing);
+
+        // Verify automatic 3D camera banks and pitches dynamically when Dreadnought moves
+        mockEngine.setDreadnoughtTarget(0.85, 0.45);
+        await tester.pump(const Duration(milliseconds: 50));
+        final dynamic screenState = tester.state(find.byType(CombatScreen));
+        expect(screenState.camera3D.pitchDeg, greaterThan(25.0));
 
         // Verify Martial Flight & Totem Command Bar renders
         expect(find.textContaining('TOTEM #'), findsOneWidget);
@@ -439,7 +445,7 @@ void main() {
     );
 
     test(
-      'Autonomous Totem Turret fires without consuming charge and Shoot-to-Harvest sows seeds on kill',
+      'Frontline bays never auto-fire without player command, Shoot-to-Harvest sows seeds on kill, and enemies evade charged lanes',
       () {
         engine.initialize(startingCores: 20, boundaryY: 0.15);
         engine.spawnEnemy(
@@ -459,26 +465,34 @@ void main() {
           vesselType: 1,
         );
         final charges = List<int>.filled(16, 0);
-        charges[10] = 2; // Tier 2 Auto-Turret in Corridor 2 (Bay 10)
+        charges[10] = 3; // Charged frontline Bay 10 (Corridor 2)
         engine.restoreSnapshot(
           bayCharges: charges,
           reserveCores: 20,
           totalScore: 0,
         );
 
-        // Step 1.6s so the Tier 2 Autonomous Totem Turret fires
-        for (var i = 0; i < 32; i++) {
+        // Step 2.0s without player firing: bay must NOT auto-fire passively
+        for (var i = 0; i < 40; i++) {
           engine.stepSimulation(0.05);
         }
 
-        // Charge is preserved at 2 while enemy in Corridor 2 took damage
-        expect(engine.getBays()[10].chargeUnits, equals(2));
+        expect(engine.getBays()[10].chargeUnits, equals(3));
         final c2Enemy = engine.getEnemies().firstWhere(
           (e) => e.assignedCorridor == 2,
         );
-        expect(c2Enemy.currentHull, lessThan(500.0));
+        expect(c2Enemy.currentHull, equals(500.0));
 
-        // Finish a fresh invader via DischargeBay and verify Shoot-to-Harvest sows +1 seed into Bay 11
+        // Enable lateral drift: enemy in charged Corridor 2 actively evades toward uncharged Corridor 1
+        engine.setLateralDrift(true);
+        for (var i = 0; i < 20; i++) {
+          engine.stepSimulation(0.05);
+        }
+        final driftedEnemy = engine.getEnemies().first;
+        expect(driftedEnemy.worldPosX, lessThan(2.5 / 8.0));
+
+        // Finish a fresh invader via player-triggered dischargeBay and verify Shoot-to-Harvest sows +1 seed into Bay 11
+        engine.setLateralDrift(false);
         engine.spawnEnemy(
           corridor: 2,
           worldPosY: 0.65,
