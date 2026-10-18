@@ -937,7 +937,7 @@ TEST(CombatSimulationTest, SmoothInvaderSeparationNoStuttering) {
 }
 
 TEST(CombatSimulationTest,
-     AutonomousTotemTurretFiresWithoutConsumingChargeAndKillHarvestsSeeds) {
+     FrontlineBaysNeverAutoFireWithoutPlayerCommandAndKillHarvestsSeeds) {
   Engine engine;
   engine.Initialize(10, 0.2f);
 
@@ -946,31 +946,39 @@ TEST(CombatSimulationTest,
   ASSERT_TRUE(engine.SpawnEnemy(2, 0.75f, 0.0f, 0.0f, 500.0f, 1));
   ASSERT_TRUE(engine.SpawnEnemy(5, 0.85f, 0.0f, 0.0f, 500.0f, 1));
 
-  // Set Totem Bay 10 to Tier 2 (M = 2)
+  // Set Totem Bay 10 to M = 2
   std::array<uint32_t, kTotalBays> charges{};
   charges[10] = 2;
   engine.RestoreSnapshot(charges, 10, 0);
 
-  // Step 1.55 seconds (95 ticks of 0.0166s) so autonomous Totem Turret fires
-  for (int i = 0; i < 95; ++i) {
+  // Step 3.0 seconds (180 ticks of 0.0166s): frontline bays must NEVER
+  // auto-fire without an explicit player discharge command!
+  for (int i = 0; i < 180; ++i) {
     engine.Update(kFixedTimeStep);
   }
 
-  // Verify Totem Bay 10 preserved its 2 charge_units while damaging Enemy 0
   std::array<BatteryComponent, kTotalBays> bays{};
   engine.GetBays(absl::MakeSpan(bays));
   EXPECT_EQ(bays[10].charge_units, 2u);
 
   std::array<EnemyVesselComponent, 8> enemies{};
   ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(enemies)), 2u);
-  float corridor2_hull = 500.0f;
+  float corridor2_hull = 0.0f;
   for (const auto &e : enemies) {
     if (e.assigned_corridor == 2) corridor2_hull = e.current_hull;
   }
-  EXPECT_LT(corridor2_hull, 500.0f);
+  EXPECT_FLOAT_EQ(corridor2_hull, 500.0f);
 
-  // Now finish off the weakened enemy in Corridor 2 via Flagship Harvester
-  // (M = 1 in Bay 10) and verify killing the enemy harvests +1 seed into Bay 11
+  // Now explicitly fire Bay 10 (M = 2 -> 400 DMG) via player command
+  ASSERT_TRUE(engine.DischargeBay(10, 1.0f));
+  ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(enemies)), 2u);
+  for (const auto &e : enemies) {
+    if (e.assigned_corridor == 2) corridor2_hull = e.current_hull;
+  }
+  EXPECT_FLOAT_EQ(corridor2_hull, 100.0f);
+
+  // Finish off the weakened enemy in Corridor 2 (100 hull left) and verify
+  // killing the enemy harvests seeds into Bay 11
   charges[10] = 1;
   engine.RestoreSnapshot(charges, 10, 0);
   ASSERT_TRUE(engine.DischargeBay(10, 1.0f));
@@ -978,6 +986,35 @@ TEST(CombatSimulationTest,
   engine.Update(kFixedTimeStep);
   engine.GetBays(absl::MakeSpan(bays));
   EXPECT_EQ(bays[11].charge_units, 1u);
+}
+
+TEST(CombatSimulationTest, IntelligentEnemyEvadesChargedCorridor) {
+  Engine engine;
+  engine.Initialize(12, 0.2f);
+  engine.SetLateralDrift(true);
+
+  // Spawn a Flagship (vessel_type = 2, behavior_mode = 0) in Corridor 3
+  ASSERT_TRUE(engine.SpawnEnemy(3, 0.80f, 0.01f, 100.0f, 300.0f, 2));
+
+  // Charge Bay 11 (Corridor 3) with M = 4 and Bay 10 (Corridor 2) with M = 3,
+  // leaving Bay 12 (Corridor 4, right side) at M = 0 (unshielded/safe).
+  std::array<uint32_t, kTotalBays> charges{};
+  charges[10] = 3;
+  charges[11] = 4;
+  charges[12] = 0;
+  engine.RestoreSnapshot(charges, 12, 0);
+
+  std::array<EnemyVesselComponent, 8> enemies{};
+  ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(enemies)), 1u);
+  const float start_x = enemies[0].world_pos_x;
+
+  // Step simulation: intelligent flagship should steer right (+X) toward the
+  // uncharged Corridor 4
+  for (int i = 0; i < 45; ++i) {
+    engine.Update(kFixedTimeStep);
+  }
+  ASSERT_EQ(engine.GetEnemies(absl::MakeSpan(enemies)), 1u);
+  EXPECT_GT(enemies[0].world_pos_x, start_x);
 }
 
 }  // namespace void_sower::ecs

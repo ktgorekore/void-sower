@@ -101,7 +101,22 @@ class InvaderBulletManager {
       }
       if (frontEnemiesByCorridor.isNotEmpty) {
         final candidates = frontEnemiesByCorridor.values.toList();
-        candidates.shuffle(_random);
+        final dreadCorridor = (dreadX / corridorWidth).floor().clamp(0, 7);
+        candidates.sort((a, b) {
+          var scoreA = (1.0 - a.worldPosY) * 2.0 + a.vesselType * 1.5;
+          var scoreB = (1.0 - b.worldPosY) * 2.0 + b.vesselType * 1.5;
+          if ((a.assignedCorridor - dreadCorridor).abs() <= 1) scoreA += 2.0;
+          if ((b.assignedCorridor - dreadCorridor).abs() <= 1) scoreB += 2.0;
+          final bayA = 8 + a.assignedCorridor.clamp(0, 7);
+          final bayB = 8 + b.assignedCorridor.clamp(0, 7);
+          if (bayA < bays.length && bays[bayA].chargeUnits > 0) {
+            scoreA += bays[bayA].chargeUnits * 0.6;
+          }
+          if (bayB < bays.length && bays[bayB].chargeUnits > 0) {
+            scoreB += bays[bayB].chargeUnits * 0.6;
+          }
+          return scoreB.compareTo(scoreA);
+        });
         final shooters = candidates.take(math.min(2, candidates.length));
 
         for (final shooter in shooters) {

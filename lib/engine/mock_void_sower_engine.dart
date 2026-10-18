@@ -44,7 +44,6 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   bool _isCascading = false;
 
   final List<int> _bayCharges = List<int>.filled(16, 2);
-  final List<double> _totemCooldowns = List<double>.filled(8, 1.5);
   int _pendingHarvestBay = 0;
   int _pendingHarvestDir = 1;
   int _pendingHarvestSeeds = 0;
@@ -57,9 +56,6 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   void _initBays() {
     for (var i = 0; i < 16; i++) {
       _bayCharges[i] = 2;
-    }
-    for (var c = 0; c < 8; c++) {
-      _totemCooldowns[c] = 1.5;
     }
     _pendingHarvestSeeds = 0;
   }
@@ -546,46 +542,7 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       }
     }
 
-    // Autonomous Ancestral Totem Turrets (Concept D)
-    if (_simState == 0) {
-      for (var c = 0; c < 8; c++) {
-        final bayIdx = 8 + c;
-        final mass = _bayCharges[bayIdx];
-        final hasEnemy = _enemies.any(
-          (e) => !e.isDestroyed && e.assignedCorridor == c,
-        );
-        if (mass < 2 || !hasEnemy) {
-          _totemCooldowns[c] = 1.5;
-          continue;
-        }
-        _totemCooldowns[c] -= deltaTime;
-        if (_totemCooldowns[c] <= 0.0) {
-          var isTriad = false;
-          for (var start = c - 2; start <= c; start++) {
-            if (start >= 0 && start + 2 < 8) {
-              if (_bayCharges[8 + start] >= 2 &&
-                  _bayCharges[8 + start + 1] >= 2 &&
-                  _bayCharges[8 + start + 2] >= 2) {
-                isTriad = true;
-                break;
-              }
-            }
-          }
-          final savedMass = _bayCharges[bayIdx];
-          final savedPendingSeeds = _pendingHarvestSeeds;
-          final savedCascading = _isCascading;
-          final savedSimState = _simState;
-          dischargeBay(bayIdx, damageMultiplier: isTriad ? 1.5 : 1.0);
-          _bayCharges[bayIdx] = savedMass;
-          _pendingHarvestSeeds = savedPendingSeeds;
-          _isCascading = savedCascading;
-          _simState = savedSimState;
-          _totemCooldowns[c] = isTriad ? 1.1 : 1.5;
-        }
-      }
-    }
-
-    // Update enemies
+    // Update enemies with progressive tactical evasion & flanking when lateral drift is enabled
     for (var i = 0; i < _enemies.length; i++) {
       final e = _enemies[i];
       if (e.isDestroyed) continue;
@@ -600,7 +557,28 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
       var bankRad = e.bankAngleRad;
       if (_lateralDrift) {
         final phase = e.entityId * 1.57;
-        final lateralVel = math.sin(_elapsedDriftTime * 1.65 + phase) * 0.24;
+        final baseOsc = math.sin(_elapsedDriftTime * 1.65 + phase) * 0.20;
+        var tacticalVel = 0.0;
+        final curCharge = _bayCharges[8 + corridor];
+        final leftCharge = corridor > 0 ? _bayCharges[8 + corridor - 1] : 99;
+        final rightCharge = corridor < 7 ? _bayCharges[8 + corridor + 1] : 99;
+
+        if (curCharge >= 2 &&
+            (leftCharge < curCharge || rightCharge < curCharge)) {
+          if (leftCharge <= rightCharge) {
+            tacticalVel = -0.22;
+          } else {
+            tacticalVel = 0.22;
+          }
+        } else if (curCharge > 0) {
+          if (leftCharge == 0 && rightCharge > 0) {
+            tacticalVel = -0.16;
+          } else if (rightCharge == 0 && leftCharge > 0) {
+            tacticalVel = 0.16;
+          }
+        }
+
+        final lateralVel = (baseOsc + tacticalVel).clamp(-0.32, 0.32);
         posX = (posX + lateralVel * deltaTime).clamp(0.0625, 0.9375);
         corridor = (posX * 8.0).floor().clamp(0, 7);
         final targetBank = (lateralVel * 1.9).clamp(-0.55, 0.55);
@@ -809,9 +787,6 @@ class MockVoidSowerEngine implements IVoidSowerEngine {
   }) {
     for (var i = 0; i < chargesLength && i < 16 && i < bayCharges.length; i++) {
       _bayCharges[i] = bayCharges[i];
-    }
-    for (var c = 0; c < 8; c++) {
-      _totemCooldowns[c] = 1.5;
     }
     _pendingHarvestSeeds = 0;
     _reserveCores = reserveCores;

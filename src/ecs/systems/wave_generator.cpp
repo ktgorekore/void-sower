@@ -109,8 +109,10 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
         .type = type,
     });
 
-    // Firing bay charge is restored from zero to terminal_mass
-    simulated_bays[frontline_bay] = terminal_mass;
+    // Inverse cross-discharge:
+    // The frontline bay was emptied on discharge after accumulating
+    // terminal_mass via forward sowing from current_bay.
+    simulated_bays[frontline_bay] = 0;
 
     // Inverse sowing (gathering):
     // Choose angular direction
@@ -134,7 +136,7 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
     // The origin bay was injected with +1 core
     injected_cores += 1;
     simulated_bays[current_bay] +=
-        (gathered_units > 1 ? gathered_units - 1 : 0);
+        (gathered_units > 1 ? gathered_units - 1 : 1);
   }
 
   // 3. Apply simulated initial charges back to registry batteries
