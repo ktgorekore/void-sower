@@ -13,28 +13,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Automates high-resolution tablet screenshot capture for Google Play Store listing.
+"""Automates high-resolution tablet screenshot capture for Google Play Console.
 
-Configures the Android display to 1600x2560 @ 320dpi (10-inch portrait tablet layout),
-captures all 6 tablet screenshots showcasing the UX 3.0 interface and 3D depth,
-and cleanly restores the display resolution.
+Configures the Android display to 1600x2560 @ 320dpi (10-inch portrait tablet),
+captures all tablet screenshots showcasing active 3D combat, fire lances,
+quadratic exaggerated Mega Gun super beams, and 3-beam Morabaraba Fence Blasts,
+and cleanly restores native phone display resolution.
 """
 
 import os
 import shutil
 import subprocess
-import sys
 import time
 import numpy as np
 from PIL import Image
 
 DEVICE = "emulator-5554"
-SCREENSHOTS_DIR = "/home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet"
+SCREENSHOTS_DIR = (
+    "/home/kelvingorekore/projects/void-sower/store_listing/screenshots/tablet"
+)
 
 
 def adb_cmd(args):
   cmd = ["adb", "-s", DEVICE] + args
-  return subprocess.run(cmd, capture_output=True, text=True)
+  return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
 def tap(x, y):
@@ -42,7 +44,16 @@ def tap(x, y):
 
 
 def swipe(x1, y1, x2, y2, duration_ms=250):
-  adb_cmd(["shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
+  adb_cmd([
+      "shell",
+      "input",
+      "swipe",
+      str(x1),
+      str(y1),
+      str(x2),
+      str(y2),
+      str(duration_ms),
+  ])
 
 
 def keyevent(code):
@@ -54,6 +65,7 @@ def ensure_app_focused():
       ["adb", "-s", DEVICE, "shell", "dumpsys", "window"],
       capture_output=True,
       text=True,
+      check=False,
   )
   if "com.voidsower.app" not in res.stdout:
     print("[Focus] Restoring com.voidsower.app to foreground...")
@@ -61,15 +73,7 @@ def ensure_app_focused():
     time.sleep(1.5)
 
 
-def capture(dest_name, mirror_name=None):
-  ensure_app_focused()
-  dest_path = os.path.join(SCREENSHOTS_DIR, dest_name)
-  temp_path = os.path.join("/tmp", f"cap_tablet_{dest_name}")
-  print(f"[Capture Tablet] Grabbing {dest_name}...")
-
-  with open(temp_path, "wb") as f:
-    subprocess.run(["adb", "-s", DEVICE, "exec-out", "screencap", "-p"], stdout=f, check=True)
-
+def verify_and_save(temp_path, dest_name, mirror_name=None):
   if not os.path.exists(temp_path) or os.path.getsize(temp_path) < 10000:
     raise RuntimeError(f"Failed to capture valid screenshot for {dest_name}")
 
@@ -78,12 +82,17 @@ def capture(dest_name, mirror_name=None):
   white_pct = (arr > 240).all(axis=-1).mean() * 100
   mean_rgb = arr.mean(axis=(0, 1))[:3].astype(int)
 
-  print(f"[Verify Tablet] {dest_name}: mean_rgb={mean_rgb}, white={white_pct:.2f}%")
+  print(
+      f"[Verify Tablet] {dest_name}: mean_rgb={mean_rgb},"
+      f" white={white_pct:.2f}%"
+  )
   if white_pct > 5.0:
     raise RuntimeError(
-        f"ABORT: Tablet screenshot {dest_name} contains white screen or ad ({white_pct:.1f}% white pixels)!"
+        f"ABORT: Tablet screenshot {dest_name} contains white screen or ad"
+        f" ({white_pct:.1f}% white pixels)!"
     )
 
+  dest_path = os.path.join(SCREENSHOTS_DIR, dest_name)
   shutil.copyfile(temp_path, dest_path)
   print(f"[Saved] -> {dest_path} ({os.path.getsize(dest_path)} bytes)")
 
@@ -95,8 +104,52 @@ def capture(dest_name, mirror_name=None):
   return dest_path
 
 
-def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6):
-  adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
+def capture(dest_name, mirror_name=None):
+  ensure_app_focused()
+  temp_path = os.path.join("/tmp", f"cap_tablet_{dest_name}")
+  print(f"[Capture Tablet] Grabbing {dest_name}...")
+  with open(temp_path, "wb") as f:
+    subprocess.run(
+        ["adb", "-s", DEVICE, "exec-out", "screencap", "-p"],
+        stdout=f,
+        check=True,
+    )
+  return verify_and_save(temp_path, dest_name, mirror_name)
+
+
+def tap_and_capture_beam(tap_x, tap_y, delay_s, dest_name, mirror_name=None):
+  """Fires a dock button and captures the lance beam in a single shell call."""
+  ensure_app_focused()
+  temp_path = os.path.join("/tmp", f"cap_tablet_{dest_name}")
+  print(
+      f"[Beam Capture Tablet] Tapping ({tap_x}, {tap_y}) + {delay_s}s ->"
+      f" {dest_name}"
+  )
+  shell_cmd = f"input tap {tap_x} {tap_y}; sleep {delay_s}; screencap -p"
+  with open(temp_path, "wb") as f:
+    subprocess.run(
+        ["adb", "-s", DEVICE, "exec-out", shell_cmd],
+        stdout=f,
+        check=True,
+    )
+  return verify_and_save(temp_path, dest_name, mirror_name)
+
+
+def seed_prefs(
+    pro_unlocked=True,
+    completed_tutorial=True,
+    high_score=48950,
+    liberated_sectors=9,
+    selected_chassis="mk4_golden_sovereign",
+):
+  adb_cmd([
+      "shell",
+      "settings",
+      "put",
+      "secure",
+      "immersive_mode_confirmations",
+      "confirmed",
+  ])
   adb_cmd(["shell", "input", "keyevent", "3"])
   time.sleep(0.5)
   adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
@@ -104,41 +157,97 @@ def seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, li
 
   profile_json = (
       '{"id":"pilot_default","callsign":"Vanguard-01","insignia":"shonaStar",'
-      '"lifetimeScore":34820,"enemiesDestroyed":142,"lancesFired":86,"maxCascadeLaps":4,'
-      '"missionsPlayed":28,"victories":22,"defeats":6,"flawlessVictories":14,"totalSeedsSown":340,'
-      '"flakBurstsTriggered":24,"totalCoresSaved":184,"currentStreak":5,"longestStreak":12,'
-      '"lastPlayedDate":"2026-09-19","totalFlightTimeSeconds":4820,'
-      '"chassisSorties":{"mk1_bastion":16,"mk2_monsoon":12},'
-      '"campaignSorties":{"kilwa_basin":18,"phantom_drift":10},'
-      '"unlockedAchievements":["first_sortie","flawless_defense","cascade_master","iron_hull"],'
+      f'"lifetimeScore":{high_score},"enemiesDestroyed":248,"lancesFired":164,'
+      '"maxCascadeLaps":6,"missionsPlayed":42,"victories":36,"defeats":6,'
+      '"flawlessVictories":24,"totalSeedsSown":680,"flakBurstsTriggered":48,'
+      '"totalCoresSaved":390,"currentStreak":9,"longestStreak":16,'
+      '"lastPlayedDate":"2026-10-18","totalFlightTimeSeconds":8420,'
+      '"chassisSorties":{"mk1_bastion":14,"mk2_monsoon":12,'
+      '"mk3_zimbabwe_spire":8,"mk4_golden_sovereign":8},'
+      '"campaignSorties":{"kilwa_basin":28,"phantom_drift":14},'
+      '"unlockedAchievements":["first_sortie","flawless_defense",'
+      '"cascade_master","iron_hull"],'
       '"isGoogleLinked":false}'
   )
-  escaped_profile = profile_json.replace('"', '&quot;')
+  escaped_profile = profile_json.replace('"', "&quot;")
 
   pref_xml = (
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
-      '<map>\n'
-      f'    <boolean name="flutter.void_sower_pro_unlocked" value="{"true" if pro_unlocked else "false"}" />\n'
+      "<map>\n"
+      '    <boolean name="flutter.void_sower_pro_unlocked"'
+      f' value="{"true" if pro_unlocked else "false"}" />\n'
       '    <boolean name="flutter.void_sower_ads_disabled" value="true" />\n'
-      f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
+      '    <boolean name="flutter.void_sower_completed_tutorial"'
+      f' value="{"true" if completed_tutorial else "false"}" />\n'
       f'    <int name="flutter.void_sower_high_score" value="{high_score}" />\n'
-      f'    <int name="flutter.void_sower_liberated_sectors" value="{liberated_sectors}" />\n'
+      '    <int name="flutter.void_sower_liberated_sectors"'
+      f' value="{liberated_sectors}" />\n'
+      '    <string'
+      f' name="flutter.void_sower_selected_chassis">{selected_chassis}</string>\n'
       '    <int name="flutter.void_sower_sector_stars_1" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_2" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_3" value="3" />\n'
-      '    <int name="flutter.void_sower_sector_stars_4" value="2" />\n'
-      '    <int name="flutter.void_sower_sector_stars_5" value="2" />\n'
-      f'    <string name="flutter.void_sower_user_profile">{escaped_profile}</string>\n'
-      '    <string name="flutter.void_sower_active_profile_id">pilot_default</string>\n'
-      '</map>\n'
+      '    <int name="flutter.void_sower_sector_stars_4" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_5" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_6" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_7" value="2" />\n'
+      '    <int name="flutter.void_sower_sector_stars_8" value="2" />\n'
+      '    <string'
+      f' name="flutter.void_sower_user_profile">{escaped_profile}</string>\n'
+      '    <string'
+      ' name="flutter.void_sower_active_profile_id">pilot_default</string>\n'
+      "</map>\n"
   )
-  with open("/tmp/prefs_tablet.xml", "w") as f:
+  with open("/tmp/prefs_tablet.xml", "w", encoding="utf-8") as f:
     f.write(pref_xml)
-  subprocess.run(["adb", "-s", DEVICE, "push", "/tmp/prefs_tablet.xml", "/data/local/tmp/prefs_tablet.xml"], check=True)
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "mkdir", "-p", "shared_prefs"])
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "cp", "/data/local/tmp/prefs_tablet.xml", "shared_prefs/FlutterSharedPreferences.xml"])
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"])
+  subprocess.run(
+      [
+          "adb",
+          "-s",
+          DEVICE,
+          "push",
+          "/tmp/prefs_tablet.xml",
+          "/data/local/tmp/prefs_tablet.xml",
+      ],
+      check=True,
+  )
+  adb_cmd([
+      "shell",
+      "run-as",
+      "com.voidsower.app",
+      "mkdir",
+      "-p",
+      "shared_prefs",
+  ])
+  adb_cmd([
+      "shell",
+      "run-as",
+      "com.voidsower.app",
+      "cp",
+      "/data/local/tmp/prefs_tablet.xml",
+      "shared_prefs/FlutterSharedPreferences.xml",
+  ])
+  adb_cmd([
+      "shell",
+      "run-as",
+      "com.voidsower.app",
+      "chmod",
+      "660",
+      "shared_prefs/FlutterSharedPreferences.xml",
+  ])
   time.sleep(0.5)
+
+
+def launch_tablet_sector_9():
+  """Launches app, opens Star Map, and engages Sector 9 on 1600x2560 tablet."""
+  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
+  time.sleep(2.4)
+  # Tap '<' Map button in top-left HUD (x=48, y=180 on 1600x2560)
+  tap(48, 180)
+  time.sleep(1.5)
+  # Tap ENGAGE on Sector 9 (x=1254, y=1497 on 1600x2560)
+  tap(1254, 1497)
+  time.sleep(1.6)
 
 
 def main():
@@ -148,96 +257,155 @@ def main():
     print("[Display] Setting tablet resolution (1600x2560 @ 320dpi)...")
     adb_cmd(["shell", "wm", "size", "1600x2560"])
     adb_cmd(["shell", "wm", "density", "320"])
-    time.sleep(2.0)
+    time.sleep(1.8)
 
     # =========================================================================
-    # Phase 1: Tablet Flight Academy Onboarding
+    # Phase 1: Tablet Flight Academy Onboarding (05)
     # =========================================================================
-    print("\n[Tablet Phase 1] Capturing Flight Academy Onboarding...")
-    seed_prefs(pro_unlocked=True, completed_tutorial=False, high_score=34820, liberated_sectors=6)
+    print("\n[Tablet Phase 1] Capturing Flight Academy Onboarding (05)...")
+    seed_prefs(
+        pro_unlocked=True,
+        completed_tutorial=False,
+        high_score=48950,
+        liberated_sectors=8,
+        selected_chassis="mk4_golden_sovereign",
+    )
     adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
     time.sleep(3.0)
     capture("05_tablet_flight_academy.png")
 
     # =========================================================================
-    # Phase 2: Tablet Active Tactical Combat (Baseline Z: 0km)
+    # Phase 2: Tablet Campaign Star Map (03) & Orbital Fleet Hangar (04)
     # =========================================================================
-    print("\n[Tablet Phase 2] Capturing Tactical Combat Grid (Z: 0km)...")
-    seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
-    adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-    time.sleep(2.5)
-    capture("01_tablet_tactical_combat.png")
-
-    # =========================================================================
-    # Phase 3: Tablet Axial Particle Lance (Mid-Combat Depth Z: +20km)
-    # =========================================================================
-    print("\n[Tablet Phase 3] Advancing Defender & Discharging Axial Particle Lance...")
-    # Swipe ship forward in 3D perspective space (from center 800, 2000 up to 800, 1400)
-    swipe(800, 2000, 800, 1400, 250)
-    time.sleep(0.3)
-
-    # Fire Axial Particle Lance via BLASTER FIRE trigger and 3D viewport tap repeatedly
-    fire_proc = subprocess.Popen([
-        "adb", "-s", DEVICE, "shell",
-        "for i in $(seq 1 4); do input tap 1280 2370; input tap 800 1400; sleep 0.08; done"
-    ])
-    time.sleep(0.22)
-    capture("02_tablet_axial_particle_lance.png", mirror_name="02_tablet_sowing_trajectory.png")
-    fire_proc.wait()
-    time.sleep(0.5)
-
-    # =========================================================================
-    # Phase 4: Tablet Tactical Directives (Bao Codex)
-    # =========================================================================
-    print("\n[Tablet Phase 4] Capturing Tactical Directives (Bao Codex)...")
-    # Open pause menu via back keyevent
-    keyevent(4)
-    time.sleep(1.0)
-    # Tap Directives button in pause menu (x=950, y=1420)
-    tap(950, 1420)
-    time.sleep(1.2)
-    capture("06_tablet_bao_codex.png")
-
-    # Dismiss Directives modal cleanly via back keyevent
-    keyevent(4)
-    time.sleep(0.8)
-
-    # =========================================================================
-    # Phase 5: Tablet Multi-Theater Campaign Star Map
-    # =========================================================================
-    print("\n[Tablet Phase 5] Capturing Campaign Map...")
+    print(
+        "\n[Tablet Phase 2] Capturing Campaign Map (03) & Fleet Hangar (04)..."
+    )
     seed_prefs(
         pro_unlocked=True,
         completed_tutorial=True,
-        high_score=34820,
-        liberated_sectors=6,
+        high_score=48950,
+        liberated_sectors=9,
+        selected_chassis="mk4_golden_sovereign",
     )
     adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-    time.sleep(2.5)
-    tap(35, 175)
-    time.sleep(1.8)
+    time.sleep(2.4)
+    tap(48, 180)
+    time.sleep(1.5)
     capture("03_tablet_campaign_map.png")
 
-    # =========================================================================
-    # Phase 6: Tablet Orbital Fleet Hangar
-    # =========================================================================
-    print("\n[Tablet Phase 6] Capturing Orbital Fleet Hangar...")
-    # Tap FLEET tab in tablet bottom nav (x=544, y=2460)
-    tap(544, 2460)
+    # Tap FLEET tab in tablet bottom nav (x=544, y=2420)
+    tap(544, 2420)
     time.sleep(1.2)
     capture("04_tablet_fleet_hangar.png")
-    # Dismiss Hangar cleanly via back keyevent
     keyevent(4)
     time.sleep(0.8)
 
-    print("\n[Complete] All 6 tablet screenshots captured and verified!")
+    # =========================================================================
+    # Phase 3: Tablet 3D Tactical Combat with Mega Gun Ready (01)
+    #          + Quadratic Exaggerated MEGA GUN Super Beam (02)
+    # =========================================================================
+    print(
+        "\n[Tablet Phase 3] Engaging Sector 9 for Mega Gun Ready (01) &"
+        " Quadratic Exaggerated Super Beam (02)..."
+    )
+    tap(1254, 1497)
+    time.sleep(1.6)
+
+    # On 1600x2560 tablet, viewport spans x=240..1360:
+    # c=1 (Totem #2): x=450, c=2 (Totem #3): x=590, c=3 (Totem #4): x=730,
+    # c=7 (Totem #8): x=1290
+    # Dock buttons at y=2410: ‹ SOW (310), SOW › (415), Center (800),
+    # BLASTER FIRE / FENCE BLAST (1268)
+    swipe(730, 2150, 450, 2050, 140)
+    time.sleep(0.25)
+    tap(415, 2410)
+    time.sleep(0.35)
+    tap(415, 2410)
+    time.sleep(0.35)
+
+    # Slide to Corridor 2 (Totem #3, x=590) -> "✨ TOTEM #3 • MEGA GUN ••••"
+    swipe(450, 2050, 590, 1850, 160)
+    time.sleep(0.30)
+
+    # Screenshot 01: Tablet 3D Tactical Combat with Mega Gun Ready & 6 Enemies
+    capture("01_tablet_tactical_combat.png")
+
+    # Screenshot 02: Tablet Quadratic Exaggerated MEGA GUN Super Beam!
+    tap_and_capture_beam(
+        800,
+        2410,
+        0.08,
+        "02_tablet_axial_particle_lance.png",
+    )
+    time.sleep(0.45)
+
+    # =========================================================================
+    # Phase 4: Tablet Active Bao Sowing & Golden Morabaraba Laser Fence (06)
+    #          + 3-Beam Golden Morabaraba FENCE BLAST Barrage (02_sowing)
+    # =========================================================================
+    print(
+        "\n[Tablet Phase 4] Building 4-Totem Morabaraba Laser Fence (06) &"
+        " Firing 3-Beam Golden FENCE BLAST Barrage (02_sowing)..."
+    )
+    seed_prefs(
+        pro_unlocked=True,
+        completed_tutorial=True,
+        high_score=48950,
+        liberated_sectors=9,
+        selected_chassis="mk4_golden_sovereign",
+    )
+    launch_tablet_sector_9()
+
+    # 1. Slide to Totem #3 (x=590) and tap SOW › (415, 2410) -> sows 4 seeds
+    #    into Totems #4, #5, #6, #7 (each has 1 seed).
+    swipe(730, 2180, 590, 2180, 220)
+    time.sleep(0.35)
+    tap(415, 2410)
+    time.sleep(0.55)
+
+    # 2. Slide to Totem #8 (x=1290) and tap ‹ SOW (310, 2410) -> sows 4 seeds
+    #    leftward into Totems #7, #6, #5, #4 (each now has 2 seeds: 2, 2, 2, 2!).
+    swipe(1010, 2180, 1290, 2180, 220)
+    time.sleep(0.35)
+    tap(310, 2410)
+    time.sleep(0.55)
+
+    # 3. Slide back to Totem #3 (x=590, which has 3 seeds) and fire its 9x Super
+    #    Beam while the Golden Morabaraba Laser Fence ("MILL 1.5x" + "FENCE
+    #    BLAST") is active across Totems #4-#7!
+    swipe(1010, 2180, 590, 2000, 180)
+    time.sleep(0.30)
+    tap_and_capture_beam(
+        1268,
+        2410,
+        0.08,
+        "06_tablet_bao_codex.png",
+    )
+    time.sleep(0.45)
+
+    # 4. Now fire the 3-Beam Golden Morabaraba FENCE BLAST Barrage!
+    tap_and_capture_beam(
+        1268,
+        2410,
+        0.08,
+        "02_tablet_sowing_trajectory.png",
+    )
+    time.sleep(0.45)
+
+    print("\n[Complete] All tablet screenshots captured and verified!")
 
   finally:
     print("\n[Display] Resetting display size and density to device native...")
     adb_cmd(["shell", "wm", "size", "reset"])
     adb_cmd(["shell", "wm", "density", "reset"])
     time.sleep(1.5)
-    seed_prefs(pro_unlocked=True, completed_tutorial=True, high_score=34820, liberated_sectors=6)
+    seed_prefs(
+        pro_unlocked=True,
+        completed_tutorial=True,
+        high_score=48950,
+        liberated_sectors=9,
+        selected_chassis="mk4_golden_sovereign",
+    )
 
 
 if __name__ == "__main__":
