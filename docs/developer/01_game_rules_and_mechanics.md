@@ -279,7 +279,33 @@ where $\text{optimal\_moves}$ is mathematically proven by the native C++ Monte C
 
 ---
 
+## 7. v0.5.0+ Tactical Fusions, 3-Act Story Missions & Adaptive Enemy AI
+
+### 7.1 Strictly Player-Triggered Offensive Firing & Shoot-to-Harvest
+- **No Passive Auto-Fire**: Frontline Totem bays (`8..15`) never discharge offensive beams autonomously. Even when charged to $M \ge 2$ (`SUPER BEAM`) or $M \ge 4$ (`MEGA GUN`), bays hold their stored $M^2$ capacitor energy until the player explicitly commands a shot (via tapping the center Totem pill, tapping `FENCE BLAST`, or terminating a `‹ SOW` / `SOW ›` cascade on that corridor).
+- **Shoot-to-Harvest Seed Loop**: Every 2 direct `BLASTER FIRE` hits on an enemy or any enemy kill harvests a glowing plasma seed into the active frontline bay and adjacent ring bays (`HarvestSeedToBay`), enabling an active loop of **Shoot $\to$ Harvest Seeds $\to$ Sow Cascade $\to$ Unleash $M^2$ Super Beam**.
+
+### 7.2 Four Pan-African Strategic Fusions
+1. **Swahili Coast (*Bao la Kiswahili* Mtaji Relay)**: Landing the final seed of a multi-seed sow on a frontline bay with an enemy in its corridor immediately fires that bay's quadratic $M^2$ lance and harvests $+2$ bonus plasma seeds into your hand.
+2. **Southern Africa (*Morabaraba* 3-in-a-Row Laser Fence & Triad Barrage)**: Charging 3 adjacent frontline bays to $M \ge 2$ projects a golden 3D Laser Fence across those 3 corridors that automatically vaporizes enemy plasma bombs (`+50 PTS`) and unlocks **`FENCE BLAST`**—firing all 3 bays simultaneously with a **`1.5x` Triad Damage Multiplier**.
+3. **Malagasy Highlands (*Fanorona* Approach & Withdrawal Vectors)**: Surging the Dreadnought forward (`+Y`) into an occupied corridor triggers an **Approach Piercing Strike**, while pulling backward (`-Y`) away from an enemy formation triggers a **Withdrawal Shockwave Pulse**.
+4. **West Africa (*Yoté* Surgical Cull)**: Destroying an Armored Cruiser or intercepting an Ion Nebula Anomaly awards a free **`800 DMG` Yoté Surgical Cull** charge (up to 3 banked charges) that can be triggered with a single tap against any target or Boss shield lane.
+
+### 7.3 3-Act Story Mission Structure & Automatic 3D Flight Camera
+Every sector across all 3 Campaign Operations (`Kilwa Nebula Basin`, `Phantom Drift`, `Void Swarm`) progresses through three ascending story acts with live holographic transmissions (`SectorNarrativeRegistry`):
+- **Act I (`PHASE I · VANGUARD RECON`)**: Initial reconnaissance wave and Totem seed harvesting.
+- **Act II (`PHASE II · TACTICAL SIEGE` + Ancestral Relic Draft)**: Upon clearing Act I, the player drafts 1 of 3 Ancestral Relics (`SowingMutation`) and completes a live corridor objective (`Outpost Reclamation`, `Warp Rift Collapse`, `Convoy Escort`, `Asteroid Prospecting`).
+- **Act III (`PHASE III · APEX COMMAND`)**: Multi-corridor Apex Flagship encounter requiring Morabaraba Triad Barrages, high-mass $M^2$ cascades, and banked Yoté Surgical Culls.
+- **Automatic Reactive 3D Camera**: The 3D perspective camera (`CombatCamera3D`) automatically pitches ($25^\circ \to 32^\circ$) with forward depth and banks ($\pm 14^\circ$) with lateral velocity, eliminating manual camera gimbal buttons.
+
+### 7.4 Progressively Intelligent Enemy AI (`MovementSystem::AdvanceEnemies`)
+- **Charged-Corridor Evasion**: When lateral maneuvering is active, enemies inspect frontline bay charges (`corridor_charges[0..7]`) and actively steer out of corridors with $M \ge 2$ whenever an adjacent corridor has strictly lower charge.
+- **Weak-Conduit Flanking**: Swoopers and Lane Weavers steer toward unshielded ($M = 0$) adjacent corridors to drop EMP bombs on exposed conduits.
+- **Escort Screening**: Escort drones gravitate toward damaged Armored Cruisers and Flagships to screen them from single-target fire.
+
+---
+
 ## 🧭 Navigation
 
-| [🏠 Developer Hub](README.md) | [Next: 02 Native C++17 ECS Engine Architecture ►](02_cpp_ecs_engine_architecture.md) |
-|:---:|:---:|
+| [🏠 Developer Hub](README.md) | [📖 Player & Strategy Guide](../how_to_play_and_strategy_guide.md) | [Next: 02 Native C++17 ECS Engine Architecture ►](02_cpp_ecs_engine_architecture.md) |
+|:---:|:---:|:---:|

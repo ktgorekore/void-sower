@@ -29,26 +29,23 @@
 
 ---
 
-## 🎮 Redesigned Combat Mechanics & Visual Clarity
+## 📖 How to Play & Master Strategy Guide
 
-- **Slimline 5-Capsule HUD Header:** The top viewport organizes critical telemetry into 5 ultra-clean floating capsules:
-  - **Capsule 1 (Sector & Score):** Sector designation (e.g. `S1 • ZANZIBAR`) and formatted score (`034,820`).
-  - **Capsule 2 (Commander Status):** Golden `PRO` badge with active pulse or lock icon.
-  - **Capsule 3 (Core Reserve):** Live capacitor fuel gauge (`36 CORES`) with low-fuel crimson alerts.
-  - **Capsule 4 (Deflector Shields):** Current shield integrity count (`2/2`).
-  - **Capsule 5 (Tactical Pause):** Instant tactical pause trigger (`||`).
-- **The Finite Reactor Economy & Namua Rule:** In adherence to traditional Bao la Kiswahili count-and-capture rules, sowing introduces energy from reserves (*Namua*). Sowing from any bay draws $1$ core from stored reserves. When reserves hit $0$, empty bays cannot be sown—players must redistribute existing ring energy.
-- **Two Complementary Combat Control Paradigms:**
-  - *Method 1: Rapid-Fire Combat Flow (Quick Action):* Slide flagship & tap glowing `FIRE` trigger on the active conduit for rapid single shots ($100\text{ DMG}$) to eliminate low-HP drones.
-  - *Method 2: Tactical Sowing Cascade (High-Damage Mancala):* Swipe capacitor bays left/right to execute circular sowing cascades, concentrating mass for Axial Particle Lances ($D = 100 \cdot M^2$, dealing $3,600 \dots 14,400+\text{ DMG}$) to vaporize heavy cruisers and boss dreadnoughts.
-- **Player Flagship Identification & Conduit Aiming:** You command the **Olympus Dreadnought Flagship** stationed at the bottom defense line. As you glide horizontally or tap corridors C1–C8, your ship automatically docks with and arms that corridor's frontline battery, projecting a vertical cyan targeting laser with lock-on reticles over descending enemies.
-- **Mancala Battery Dock:** Tap `FIRE` directly on the primed conduit to instantly unleash an Axial Particle Lance, or swipe left/right to sow energy along the 16-bay circular manifold. Subtle 14px Tactical Advisory bar at the base guides tactical play without clutter.
-- **Defensive Conduit Shielding & Bomb Deflection:** Frontline batteries with stored charges magnetically deflect falling enemy plasma bombs (`DEFLECT +50`). Uncharged conduits suffer EMP breaches that drain reactor cores.
-- **Dropping Invader Ordnance:** Void Swarm assault craft descend 8 tactical corridors and drop plasma bombs directly from their cannons. Maneuver to evade or vaporize them mid-air with particle lances.
-- **16-Bay Bao Mancala Sowing:**
-  - **Frontline Batteries (Bays 8–15):** Directly aligned with tactical attack corridors C1–C8. Discharging a frontline terminal bay fires a massive **UPWARD Particle Lance** ($D = \alpha \cdot M^2$) that obliterates alien formations and deflects incoming bombs.
-  - **Inner Reservoir (Bays 0–7):** Energy storage bank. Accumulate mass ($M \ge 4$) to prime devastating multi-lap cascade relays that loop across the ring.
-  - **Hop-by-Hop Visual Cadence:** Sowing traversal visibly animates energy seeds hopping pit-to-pit at 65ms per bay with harmonic audio pitches before terminal discharge.
+👉 **[Read the Complete How to Play, What to Expect & Master Strategy Guide (`docs/how_to_play_and_strategy_guide.md`)](docs/how_to_play_and_strategy_guide.md)**
+
+---
+
+## 🎮 Redesigned Combat Mechanics & 3-Act Story Missions (v0.5.0)
+
+- **3-Act Story Missions Across All 27 Sectors:** Every sector progresses through **Act I (`PHASE I · VANGUARD RECON`)**, **Act II (`PHASE II · TACTICAL SIEGE` + Mid-Sector Ancestral Relic Draft)**, and **Act III (`PHASE III · APEX COMMAND` Multi-Corridor Boss)** with live Afrofuturist holographic comms at the top of the 3D viewport.
+- **100% Player-Triggered Offensive Firing (No Passive Auto-Fire):** Charged frontline Totems (`2+` seeds = `SUPER BEAM`, `4+` seeds = `MEGA GUN`) never auto-fire on their own. They shield your lane from bombs and store quadratic $M^2$ capacitor power until **you** command a Super Beam tap, a `‹ SOW` / `SOW ›` cascade, or a `FENCE BLAST` barrage.
+- **Automatic Reactive 3D Flight Camera:** The 3D perspective camera automatically pitches and banks in real time as you pilot the Olympus Dreadnought across Corridors 1–8 and surge forward into Vanguard range (`up to 1.6x damage`), with zero manual camera gimbal clutter.
+- **Four Pan-African Strategic Fusions:**
+  - **Bao la Kiswahili (*Mtaji* Relay & Shoot-to-Harvest):** Every 2 blaster hits or any enemy kill harvests a glowing plasma seed into your Totems; landing the last seed of a sow on an enemy lane fires an $M^2$ Super Beam and harvests `+2` bonus seeds.
+  - **Morabaraba (*3-in-a-Row Laser Fence*):** Charging 3 adjacent Totems to `2+` seeds forms a golden 3D Laser Fence that zaps enemy bombs (`+50 PTS`) and unlocks a **`1.5x` 3-Corridor `FENCE BLAST`**.
+  - **Fanorona (*Approach & Withdrawal Vectors*):** Thrust forward into an occupied lane for an Approach Piercing Strike or pull back for a Withdrawal Pulse.
+  - **Yoté (*Surgical Cull*):** Destroying an Armored Cruiser banks a free **`800 DMG` Orbital Kinetic Strike** against high-value targets or Boss shields.
+- **Progressively Intelligent Enemy AI:** Lateral-maneuvering enemies actively scan your frontline bay charges, steering away from `2+` seed Totems toward lower-charge corridors, flanking empty (`0`-seed) conduits, and screening damaged capital vessels.
 
 ---
 

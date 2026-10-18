@@ -20,26 +20,32 @@
 
 ---
 
-## 1. Campaign Progression & World Map Architecture
+## 1. Campaign Progression & 3-Operation World Map Architecture
 
-The campaign is set across the planetary orbit of the **Kilwa Nebula Basin**. Players progress through a linear sequence of 6 tactical defense sectors divided into 3 threat tiers:
+The campaign spans **27 sectors across 3 distinct orbital operations** (`9` sectors per operation), with every sector structured as a **3-Act Story Mission** (`Act I: Vanguard Recon` $\to$ `Act II: Tactical Siege + Relic Draft` $\to$ `Act III: Apex Command Boss`):
 
 ```
-[ Tier 1: Outer Bastions ] ──► [ Tier 2: Monsoon Straits ] ──► [ Tier 3: Citadel Core ]
- • Zanzibar Reef Gate           • Kaskazi Ion Stream            • Kilwa Apex Citadel
- • Pemba Channel Relay          • Kusi Vortex Outpost           • Singularity Rift
- • Mafia Trench Fortress        • Lindi Ridge Bastion
+Operation 1: KILWA NEBULA BASIN (Sectors 1–9 · Standard Orbital Doctrine)
+  [ Tier 1: Outer Bastions ] ──► [ Tier 2: Monsoon Straits ] ──► [ Tier 3: Core Siphon ]
+   • S1 Zanzibar Reef Gate        • S4 Kaskazi Ion Stream         • S7 Kilwa Kisiwani Citadel
+   • S2 Pemba Channel Relay       • S5 Kusi Vortex Outpost        • S8 Songo Mnara Flagship Berth
+   • S3 Mafia Trench Fortress     • S6 Lindi Ridge Bastion        • S9 Great Siphon Singularity
+
+Operation 2: PHANTOM DRIFT (Sectors 10–18 · Lateral Evasive Corridors)
+   • S10 Aldabra Shimmer Rift .. S18 Agalega Singularity Zenith (Adaptive lateral-evading wings)
+
+Operation 3: VOID SWARM (Sectors 19–27 · Horde Crucible & Core Siphon)
+   • S19 Comoros Hive Gate .. S27 Mozambique Singularity Hive (Multi-wave hordes + Core Siphon)
 ```
 
 ### Sector Node Properties ([`lib/domain/models/campaign_sector.dart`](file:///home/kelvingorekore/projects/void-sower/lib/domain/models/campaign_sector.dart))
-Each sector defines specific combat constraints:
-- **`sectorId`**: Unique identifier string.
-- **`name`**: Swahili coastal inspired designation (e.g. "Zanzibar Reef Gate").
-- **`region`**: Theater of operations (Outer Bastions, Monsoon Straits, Citadel Core).
-- **`difficultyTier`**: Integer $0$, $1$, or $2$ determining wave generator parameters.
-- **`isUnlocked`**: Boolean progression flag.
-- **`starsEarned`**: High-water mark star performance ($0$ to $3$).
-- **`highScore`**: Best recorded score in this sector.
+Each sector defines specific combat and narrative parameters:
+- **`sectorId`**: 1-based sector identifier (`1..27`).
+- **`name`** & **`region`**: Swahili Coast, Indian Ocean Atoll, or Mozambique Channel designation.
+- **`difficultyTier`**: Integer $0$, $1$, or $2$ determining wave generator budgets and enemy vessel mix.
+- **`doctrine`**: `standardOrbital`, `phantomDrift`, or `voidSwarm`.
+- **`reinforcementQuota`**: Progressive reinforcement budget (`4..20`) driving the transition from **Act I (`vanguardRecon`)** $\to$ **Act II (`tacticalSiege` + 3-choice Relic Draft)** $\to$ **Act III (`apexBoss`)**.
+- **`starsEarned`** & **`bestScore`**: High-water mark star performance ($0$ to $3$) and best recorded score.
 
 ### Star Performance Formula
 ```dart
