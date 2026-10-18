@@ -43,6 +43,8 @@ dev_dependencies:
 
 dependency_overrides:
   objective_c: 9.5.0
+  path_provider_foundation: 2.6.0
+  shared_preferences_foundation: 2.5.7
 
 flutter:
   uses-material-design: true
