@@ -211,5 +211,34 @@ void main() {
         expect(find.byType(CustomPaint), findsOneWidget);
       },
     );
+
+    testWidgets(
+      'LandscapeOrientationShield does not animate pulse controller in portrait orientation',
+      (tester) async {
+        tester.view.physicalSize = const Size(1080, 2400); // Portrait
+        tester.view.devicePixelRatio = 2.5;
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetDevicePixelRatio);
+
+        await tester.pumpWidget(
+          const MaterialApp(home: Scaffold(body: LandscapeOrientationShield())),
+        );
+        await tester.pump();
+
+        final shieldState =
+            tester.state(find.byType(LandscapeOrientationShield)) as dynamic;
+        expect(shieldState.isPulseAnimating, isFalse);
+
+        // Rotate to landscape: pulse animation starts
+        tester.view.physicalSize = const Size(2400, 1080);
+        await tester.pump();
+        expect(shieldState.isPulseAnimating, isTrue);
+
+        // Rotate back to portrait: pulse animation stops
+        tester.view.physicalSize = const Size(1080, 2400);
+        await tester.pump();
+        expect(shieldState.isPulseAnimating, isFalse);
+      },
+    );
   });
 }

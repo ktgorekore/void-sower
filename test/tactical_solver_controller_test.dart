@@ -15,8 +15,19 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:void_sower/domain/models/dreadnought_state.dart';
 import 'package:void_sower/domain/models/enemy_craft.dart';
+import 'package:void_sower/domain/services/game_engine_interface.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/presentation/controllers/tactical_solver_controller.dart';
+
+class _CountingMockEngine extends MockVoidSowerEngine {
+  int solveCalls = 0;
+
+  @override
+  TacticalStepResult? solveTacticalStep() {
+    solveCalls++;
+    return super.solveTacticalStep();
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -247,6 +258,59 @@ void main() {
         expect(targetY, isNotNull);
         // Drop back close to boundaryLineY (0.15 + 0.04 = 0.19)
         expect(targetY!, closeTo(0.19, 0.01));
+      },
+    );
+
+    test(
+      'Advisor Mode Throttling: Throttles MCTS solveTacticalStep across rapid 0.016s frames',
+      () {
+        final countingEngine = _CountingMockEngine();
+        countingEngine.initialize(startingCores: 28, boundaryY: 0.15);
+
+        bool moveTriggered = false;
+        final controller = TacticalSolverController(
+          engine: countingEngine,
+          mode: TacticalSolverMode.advisor,
+          onMoveSelected: (_, _, _, _) {
+            moveTriggered = true;
+          },
+        );
+
+        final dread = createDreadnought();
+        final bays = countingEngine.getBays();
+        final enemies = [createEnemy(corridor: 3, posY: 0.65)];
+
+        // Frame 1: evaluates immediately and sets 0.15s advisor cooldown
+        controller.update(
+          dt: 0.016,
+          dreadnought: dread,
+          bays: bays,
+          enemies: enemies,
+        );
+        expect(countingEngine.solveCalls, equals(1));
+        expect(controller.currentAdvice, isNotNull);
+        expect(moveTriggered, isFalse);
+
+        // Next 8 rapid frames (8 * 0.016 = 0.128s < 0.15s): throttled!
+        for (var i = 0; i < 8; i++) {
+          controller.update(
+            dt: 0.016,
+            dreadnought: dread,
+            bays: bays,
+            enemies: enemies,
+          );
+        }
+        expect(countingEngine.solveCalls, equals(1));
+
+        // 10th frame pushes elapsed time past 0.15s (9 * 0.016 + 0.016 = 0.160s): re-evaluates!
+        controller.update(
+          dt: 0.032,
+          dreadnought: dread,
+          bays: bays,
+          enemies: enemies,
+        );
+        expect(countingEngine.solveCalls, equals(2));
+        expect(moveTriggered, isFalse);
       },
     );
   });

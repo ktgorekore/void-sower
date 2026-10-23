@@ -22,6 +22,7 @@ import 'package:void_sower/domain/models/pro_feature.dart';
 import 'package:void_sower/domain/services/ad_service.dart';
 import 'package:void_sower/domain/services/entitlement_service.dart';
 import 'package:void_sower/domain/services/persistence_service.dart';
+import 'package:void_sower/engine/ffi_void_sower_engine.dart';
 import 'package:void_sower/engine/mock_void_sower_engine.dart';
 import 'package:void_sower/main.dart';
 import 'package:void_sower/presentation/controllers/combat_overlay_state.dart';
@@ -74,6 +75,65 @@ void main() {
           ),
           returnsNormally,
         );
+      },
+    );
+
+    test(
+      'FfiVoidSowerEngine throws StateError after dispose on all endpoints and clamps chargesLength',
+      () {
+        final engine = FfiVoidSowerEngine();
+        engine.initialize(startingCores: 20, boundaryY: 0.15);
+
+        // Verify chargesLength > kMaxBays is safely clamped without crashing
+        expect(
+          () => engine.restoreSnapshot(
+            bayCharges: List<int>.filled(32, 7),
+            reserveCores: 18,
+            totalScore: 1200,
+            chargesLength: 999,
+          ),
+          returnsNormally,
+        );
+        expect(engine.getDreadnoughtState().reserveCores, equals(18));
+
+        engine.dispose();
+
+        expect(
+          () => engine.setLanceAlphaMultiplier(1.5),
+          throwsA(isA<StateError>()),
+        );
+        expect(
+          () => engine.restoreSnapshot(
+            bayCharges: const [1, 2, 3],
+            reserveCores: 10,
+            totalScore: 500,
+          ),
+          throwsA(isA<StateError>()),
+        );
+        expect(
+          () => engine.cachedSnapshotChargesPtr,
+          throwsA(isA<StateError>()),
+        );
+        expect(() => engine.solveTacticalStep(), throwsA(isA<StateError>()));
+      },
+    );
+
+    test(
+      'Overlapping FfiVoidSowerEngine instances remain valid when secondary instance is disposed',
+      () {
+        final primary = FfiVoidSowerEngine();
+        primary.initialize(startingCores: 36, boundaryY: 0.20);
+
+        final secondary = FfiVoidSowerEngine();
+        // Disposing secondary must only release its own client lease
+        secondary.dispose();
+
+        // Primary instance and native singleton state must remain intact
+        final dread = primary.getDreadnoughtState();
+        expect(dread.reserveCores, equals(36));
+        expect(dread.boundaryLineY, closeTo(0.20, 1e-4));
+
+        primary.dispose();
       },
     );
   });

@@ -262,4 +262,183 @@ TEST(FfiBoundaryTest, AfricanStrategicFfiEndpoints) {
   void_sower_free();
 }
 
+TEST(FfiBoundaryTest, InitBoundaryYSanitizationAndStepDeltaClamping) {
+  VoidSowerDreadnoughtFFI dread{};
+
+  // NaN boundary_y falls back to 0.15f
+  void_sower_init(16, NAN);
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_FLOAT_EQ(dread.boundary_line_y, 0.15f);
+  void_sower_free();
+
+  // +Infinity boundary_y falls back to 0.15f
+  void_sower_init(16, INFINITY);
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_FLOAT_EQ(dread.boundary_line_y, 0.15f);
+  void_sower_free();
+
+  // Negative boundary_y falls back to 0.15f
+  void_sower_init(16, -5.0f);
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_FLOAT_EQ(dread.boundary_line_y, 0.15f);
+  void_sower_free();
+
+  // Zero boundary_y falls back to 0.15f
+  void_sower_init(16, 0.0f);
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_FLOAT_EQ(dread.boundary_line_y, 0.15f);
+  void_sower_free();
+
+  // Normalized > 0.55f clamps to 0.55f
+  void_sower_init(16, 0.95f);
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_FLOAT_EQ(dread.boundary_line_y, 0.55f);
+  void_sower_free();
+
+  // Legacy pixel scale (> 1.0f, e.g. 220.0f) normalizes to 0.22f
+  void_sower_init(16, 220.0f);
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_NEAR(dread.boundary_line_y, 0.22f, 1e-4f);
+
+  // Spawn an enemy at Y = 0.80 with velocity_y = 0.10
+  EXPECT_EQ(void_sower_spawn_enemy(3, 0.80f, 0.10f, 50.0f, 100.0f, 0), 1);
+  std::array<VoidSowerEnemyFFI, 8> enemies{};
+  ASSERT_EQ(void_sower_get_enemies(enemies.data(), enemies.size()), 1u);
+  const float initial_y = enemies[0].world_pos_y;
+
+  // NaN, Infinity, and negative delta_time are rejected without mutating state
+  void_sower_step_simulation(NAN);
+  void_sower_step_simulation(INFINITY);
+  void_sower_step_simulation(-1.0f);
+  ASSERT_EQ(void_sower_get_enemies(enemies.data(), enemies.size()), 1u);
+  EXPECT_FLOAT_EQ(enemies[0].world_pos_y, initial_y);
+
+  // Huge delta_time (10.0f) is clamped to 0.25f max step
+  void_sower_step_simulation(10.0f);
+  ASSERT_EQ(void_sower_get_enemies(enemies.data(), enemies.size()), 1u);
+  EXPECT_TRUE(std::isfinite(enemies[0].world_pos_y));
+  EXPECT_GT(enemies[0].world_pos_y, 0.50f);
+
+  void_sower_free();
+}
+
+TEST(FfiBoundaryTest, InputSanitizationAndEnumBoundsValidation) {
+  void_sower_init(20, 0.20f);
+
+  // Invalid wave difficulty (> 2) and non-finite velocity rejected
+  VoidSowerWaveConfigFFI bad_diff{
+      .difficulty = 99,
+      .reserved = {0, 0, 0},
+      .random_seed = 42,
+      .core_budget = 12,
+      .initial_velocity_y = 0.02f,
+  };
+  EXPECT_EQ(void_sower_generate_wave(&bad_diff), 0);
+
+  VoidSowerWaveConfigFFI nan_vel{
+      .difficulty = 1,
+      .reserved = {0, 0, 0},
+      .random_seed = 42,
+      .core_budget = 12,
+      .initial_velocity_y = NAN,
+  };
+  EXPECT_EQ(void_sower_generate_wave(&nan_vel), 0);
+
+  // Discharge bay rejects non-finite or non-positive damage_multiplier
+  EXPECT_EQ(void_sower_discharge_bay(10, NAN), 0);
+  EXPECT_EQ(void_sower_discharge_bay(10, INFINITY), 0);
+  EXPECT_EQ(void_sower_discharge_bay(10, 0.0f), 0);
+  EXPECT_EQ(void_sower_discharge_bay(10, -2.0f), 0);
+
+  // Dreadnought slide & 2D target ignore non-finite coordinates
+  void_sower_set_dreadnought_target(0.4f, 0.3f);
+  void_sower_slide_dreadnought(NAN);
+  void_sower_slide_dreadnought(INFINITY);
+  void_sower_set_dreadnought_target(NAN, 0.4f);
+  void_sower_set_dreadnought_target(0.4f, -INFINITY);
+  VoidSowerDreadnoughtFFI dread{};
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_FLOAT_EQ(dread.target_position_x, 0.4f);
+  EXPECT_FLOAT_EQ(dread.target_position_y, 0.3f);
+
+  // Quest update ignores non-finite progress and status > 3
+  void_sower_set_active_quest(1);
+  void_sower_update_quest(0.5f, 1);
+  void_sower_update_quest(NAN, 1);
+  void_sower_update_quest(0.9f, 99);
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_FLOAT_EQ(dread.quest_progress, 0.5f);
+  EXPECT_EQ(dread.quest_status, 1);
+
+  // Spawn enemy rejects invalid vessel_type (> 2) and non-finite parameters
+  EXPECT_EQ(void_sower_spawn_enemy(0, 0.8f, 0.02f, 20.0f, 100.0f, 5), 0);
+  EXPECT_EQ(void_sower_spawn_enemy(0, NAN, 0.02f, 20.0f, 100.0f, 0), 0);
+  EXPECT_EQ(void_sower_spawn_enemy(0, 0.8f, INFINITY, 20.0f, 100.0f, 0), 0);
+  EXPECT_EQ(void_sower_spawn_enemy(0, 0.8f, 0.02f, -10.0f, 100.0f, 0), 0);
+  EXPECT_EQ(void_sower_spawn_enemy(0, 0.8f, 0.02f, 20.0f, 0.0f, 0), 0);
+
+  // Lance alpha handles +Inf and -Inf safely
+  void_sower_set_lance_alpha(INFINITY);
+  void_sower_set_lance_alpha(-INFINITY);
+
+  void_sower_free();
+}
+
+TEST(FfiBoundaryTest, SolveTacticalStepAllowsNullOptionalPointers) {
+  void_sower_init(24, 0.15f);
+  EXPECT_EQ(void_sower_spawn_enemy(3, 0.65f, 0.02f, 25.0f, 100.0f, 0), 1);
+
+  uint8_t bay = 255;
+  int8_t dir = 0;
+  float conf = -1.0f;
+  float dmg = -1.0f;
+
+  // Both optional pointers nullptr
+  EXPECT_EQ(void_sower_solve_tactical_step(&bay, &dir, nullptr, nullptr), 1);
+  EXPECT_LT(bay, 16u);
+  EXPECT_TRUE(dir == 1 || dir == -1);
+
+  // Only out_confidence provided
+  EXPECT_EQ(void_sower_solve_tactical_step(&bay, &dir, &conf, nullptr), 1);
+  EXPECT_GE(conf, 0.0f);
+  EXPECT_LE(conf, 1.0f);
+
+  // Only out_predicted_damage provided
+  EXPECT_EQ(void_sower_solve_tactical_step(&bay, &dir, nullptr, &dmg), 1);
+  EXPECT_GE(dmg, 0.0f);
+
+  // Required pointers nullptr must return 0
+  EXPECT_EQ(void_sower_solve_tactical_step(nullptr, &dir, nullptr, nullptr), 0);
+  EXPECT_EQ(void_sower_solve_tactical_step(&bay, nullptr, nullptr, nullptr), 0);
+
+  void_sower_free();
+}
+
+TEST(FfiBoundaryTest, RetainAndReleaseMultiClientLeaseSafety) {
+  // Ensure clean state
+  void_sower_free();
+
+  // Client 1 retains and initializes
+  void_sower_retain();
+  void_sower_init(42, 0.20f);
+
+  // Client 2 retains (e.g. secondary FfiVoidSowerEngine instance)
+  void_sower_retain();
+
+  // Client 2 releases its lease; Client 1 must remain intact
+  void_sower_release();
+
+  VoidSowerDreadnoughtFFI dread{};
+  void_sower_get_dreadnought_state(&dread);
+  EXPECT_EQ(dread.reserve_cores, 42u);
+  EXPECT_FLOAT_EQ(dread.boundary_line_y, 0.20f);
+
+  // Client 1 releases final lease; engine is destroyed
+  void_sower_release();
+
+  VoidSowerDreadnoughtFFI after_release{};
+  void_sower_get_dreadnought_state(&after_release);
+  EXPECT_EQ(after_release.reserve_cores, 0u);
+}
+
 }  // namespace void_sower::tests
