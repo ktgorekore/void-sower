@@ -240,6 +240,7 @@ class CombatBackgroundPainter extends CustomPainter {
       indices: _deckIndices,
     );
     canvas.drawVertices(vertices, BlendMode.dst, _deckVerticesPaint);
+    vertices.dispose();
   }
 
   @override
@@ -626,7 +627,11 @@ class CombatPainter extends CustomPainter {
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.6;
 
-  static final Int32List _enemySortOrder = Int32List(64);
+  static final Int32List _enemySortOrder = Int32List(128);
+
+  /// Pre-allocated enemy sort index buffer exposed for unit testing.
+  @visibleForTesting
+  static Int32List get sortedEnemyIndices => _enemySortOrder;
 
   /// Renders floating 3D astral lane buoys and active-corridor chevrons
   /// streaming through 3D space without cluttering the viewport with wing-pylons
@@ -1210,58 +1215,63 @@ class CombatPainter extends CustomPainter {
       }
 
       // 1e. Twin Counter-Wound Quadratic (M²) Helical Plasma Ribbons
-      final dx = impactBeam.screenOffset.dx - muzzleOrigin.dx;
-      final dy = impactBeam.screenOffset.dy - muzzleOrigin.dy;
-      final beamLen = math.sqrt(dx * dx + dy * dy);
-      if (beamLen > 8.0) {
-        final nx = -dy / beamLen;
-        final ny = dx / beamLen;
-        const segments = 16;
-        final freq = math.pi * (3.0 + quadM * 0.75);
-        final phaseShift = animationTime * 22.0;
-        _scratchHelixPathA.reset();
-        _scratchHelixPathB.reset();
-        for (var s = 0; s <= segments; s++) {
-          final t = s / segments;
-          final bx = muzzleOrigin.dx + dx * t;
-          final by = muzzleOrigin.dy + dy * t;
-          final env = (outerProwW * (1.0 - t) + outerFarW * t) * 0.46;
-          final waveA = math.sin(t * freq - phaseShift) * env;
-          final waveB = math.sin(t * freq - phaseShift + math.pi) * env;
-          final ax = bx + nx * waveA;
-          final ay = by + ny * waveA;
-          final bbx = bx + nx * waveB;
-          final bby = by + ny * waveB;
-          if (s == 0) {
-            _scratchHelixPathA.moveTo(ax, ay);
-            _scratchHelixPathB.moveTo(bbx, bby);
-          } else {
-            _scratchHelixPathA.lineTo(ax, ay);
-            _scratchHelixPathB.lineTo(bbx, bby);
+      if (!isLowBattery) {
+        final dx = impactBeam.screenOffset.dx - muzzleOrigin.dx;
+        final dy = impactBeam.screenOffset.dy - muzzleOrigin.dy;
+        final beamLen = math.sqrt(dx * dx + dy * dy);
+        if (beamLen > 8.0) {
+          final nx = -dy / beamLen;
+          final ny = dx / beamLen;
+          const segments = 16;
+          final freq = math.pi * (3.0 + quadM * 0.75);
+          final phaseShift = animationTime * 22.0;
+          _scratchHelixPathA.reset();
+          _scratchHelixPathB.reset();
+          for (var s = 0; s <= segments; s++) {
+            final t = s / segments;
+            final bx = muzzleOrigin.dx + dx * t;
+            final by = muzzleOrigin.dy + dy * t;
+            final env = (outerProwW * (1.0 - t) + outerFarW * t) * 0.46;
+            final waveA = math.sin(t * freq - phaseShift) * env;
+            final waveB = math.sin(t * freq - phaseShift + math.pi) * env;
+            final ax = bx + nx * waveA;
+            final ay = by + ny * waveA;
+            final bbx = bx + nx * waveB;
+            final bby = by + ny * waveB;
+            if (s == 0) {
+              _scratchHelixPathA.moveTo(ax, ay);
+              _scratchHelixPathB.moveTo(bbx, bby);
+            } else {
+              _scratchHelixPathA.lineTo(ax, ay);
+              _scratchHelixPathB.lineTo(bbx, bby);
+            }
           }
+          _lanceHelixPaintA.strokeWidth = (2.4 + quadM * 0.35).clamp(2.4, 4.5);
+          _lanceHelixPaintB.strokeWidth = (2.0 + quadM * 0.28).clamp(2.0, 3.8);
+          canvas.drawPath(_scratchHelixPathA, _lanceHelixPaintA);
+          canvas.drawPath(_scratchHelixPathB, _lanceHelixPaintB);
         }
-        _lanceHelixPaintA.strokeWidth = (2.4 + quadM * 0.35).clamp(2.4, 4.5);
-        _lanceHelixPaintB.strokeWidth = (2.0 + quadM * 0.28).clamp(2.0, 3.8);
-        canvas.drawPath(_scratchHelixPathA, _lanceHelixPaintA);
-        canvas.drawPath(_scratchHelixPathB, _lanceHelixPaintB);
-      }
 
-      // 1f. Concentric 3D Quadratic (M²) Shockwave Rings Pulsing Up the Beam
-      final ringCount = quadM.round().clamp(2, 6);
-      for (var r = 0; r < ringCount; r++) {
-        final t = ((animationTime * 3.8) + (r / ringCount)) % 1.0;
-        final rx = muzzleOrigin.dx + dx * t;
-        final ry = muzzleOrigin.dy + dy * t;
-        final ringW = (outerProwW * (1.0 - t) + outerFarW * t) * 1.15;
-        final ringH = (ringW * 0.36).clamp(5.0, 28.0);
-        _lanceShockRingPaint.color =
-            (r.isEven ? VoidTheme.solarGold : VoidTheme.plasmaCyan).withValues(
-              alpha: (0.90 - t * 0.35).clamp(0.35, 0.90),
-            );
-        canvas.drawOval(
-          Rect.fromCenter(center: Offset(rx, ry), width: ringW, height: ringH),
-          _lanceShockRingPaint,
-        );
+        // 1f. Concentric 3D Quadratic (M²) Shockwave Rings Pulsing Up the Beam
+        final ringCount = quadM.round().clamp(2, 6);
+        for (var r = 0; r < ringCount; r++) {
+          final t = ((animationTime * 3.8) + (r / ringCount)) % 1.0;
+          final rx = muzzleOrigin.dx + dx * t;
+          final ry = muzzleOrigin.dy + dy * t;
+          final ringW = (outerProwW * (1.0 - t) + outerFarW * t) * 1.15;
+          final ringH = (ringW * 0.36).clamp(5.0, 28.0);
+          _lanceShockRingPaint.color =
+              (r.isEven ? VoidTheme.solarGold : VoidTheme.plasmaCyan)
+                  .withValues(alpha: (0.90 - t * 0.35).clamp(0.35, 0.90));
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: Offset(rx, ry),
+              width: ringW,
+              height: ringH,
+            ),
+            _lanceShockRingPaint,
+          );
+        }
       }
 
       // 1g. Pronounced 8-Point Muzzle Blast Nova at Defender Nose Cannon Origin
@@ -1365,7 +1375,7 @@ class CombatPainter extends CustomPainter {
 
     // 3. Draw Solid 3D Enemy Assault Craft in strict Far-to-Near Painter's Order
     var activeEnemyCount = 0;
-    for (var i = 0; i < enemies.length && activeEnemyCount < 64; i++) {
+    for (var i = 0; i < enemies.length && activeEnemyCount < 128; i++) {
       if (!enemies[i].isDestroyed) {
         _enemySortOrder[activeEnemyCount++] = i;
       }

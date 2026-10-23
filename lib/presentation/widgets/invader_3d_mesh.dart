@@ -77,6 +77,21 @@ class Invader3DMesh {
   final Float32List _interleavedPositions = Float32List(maxVertices * 2);
   final Int32List _gouraudColors = Int32List(maxVertices);
   final Uint16List _sortedIndices = Uint16List(_maxTriangles * 3);
+  late final List<Float32List> _vertexPositionsViews = <Float32List>[
+    Float32List.sublistView(_interleavedPositions, 0, 10 * 2),
+    Float32List.sublistView(_interleavedPositions, 0, 16 * 2),
+    Float32List.sublistView(_interleavedPositions, 0, 20 * 2),
+  ];
+  late final List<Int32List> _vertexColorsViews = <Int32List>[
+    Int32List.sublistView(_gouraudColors, 0, 10),
+    Int32List.sublistView(_gouraudColors, 0, 16),
+    Int32List.sublistView(_gouraudColors, 0, 20),
+  ];
+  late final List<Uint16List> _indexBufferViews = <Uint16List>[
+    Uint16List.sublistView(_sortedIndices, 0, 14 * 3),
+    Uint16List.sublistView(_sortedIndices, 0, 20 * 3),
+    Uint16List.sublistView(_sortedIndices, 0, 28 * 3),
+  ];
   final Float32List _triDepth = Float32List(_maxTriangles);
   final Int32List _triOrder = Int32List(_maxTriangles);
   final vm.Matrix3 _rotMatrix = vm.Matrix3.identity();
@@ -665,29 +680,32 @@ class Invader3DMesh {
 
     final vertices = ui.Vertices.raw(
       ui.VertexMode.triangles,
-      Float32List.sublistView(_interleavedPositions, 0, count * 2),
-      colors: Int32List.sublistView(_gouraudColors, 0, count),
-      indices: Uint16List.sublistView(_sortedIndices, 0, triCount * 3),
+      _vertexPositionsViews[typeIndex],
+      colors: _vertexColorsViews[typeIndex],
+      indices: _indexBufferViews[typeIndex],
     );
     canvas.drawVertices(vertices, BlendMode.dst, _verticesPaint);
+    vertices.dispose();
 
     // Solid Blinn-Phong bevelled armor plates with dark panel seams
-    _panelSeamPaint.color = const Color(
-      0xFF060913,
-    ).withValues(alpha: visibilityAlpha * 0.48);
-    for (var s = 0; s < triCount; s++) {
-      final t = _triOrder[s];
-      final src = t * 3;
-      _paintSolidArmorPlate(
-        canvas,
-        tris[src],
-        tris[src + 1],
-        tris[src + 2],
-        baseColor: hullPrimary,
-        specColor: hullAccent,
-        alpha: visibilityAlpha,
-        isLowBattery: isLowBattery,
-      );
+    if (!isLowBattery) {
+      _panelSeamPaint.color = const Color(
+        0xFF060913,
+      ).withValues(alpha: visibilityAlpha * 0.48);
+      for (var s = 0; s < triCount; s++) {
+        final t = _triOrder[s];
+        final src = t * 3;
+        _paintSolidArmorPlate(
+          canvas,
+          tris[src],
+          tris[src + 1],
+          tris[src + 2],
+          baseColor: hullPrimary,
+          specColor: hullAccent,
+          alpha: visibilityAlpha,
+          isLowBattery: isLowBattery,
+        );
+      }
     }
 
     // -------------------------------------------------------------------------

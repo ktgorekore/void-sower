@@ -52,6 +52,11 @@ class InvaderBulletManager {
 
   final List<EnemyBullet> _bullets = <EnemyBullet>[];
   final Set<int> _lanceCorridors = <int>{};
+  final List<EnemyCraft?> _frontEnemiesByCorridor = List<EnemyCraft?>.filled(
+    8,
+    null,
+  );
+  final List<EnemyCraft> _candidateShooters = <EnemyCraft>[];
   final math.Random _random = math.Random();
 
   double _enemyFireCooldown = 1.0;
@@ -88,21 +93,31 @@ class InvaderBulletManager {
     _enemyFireCooldown -= dt;
     if (_enemyFireCooldown <= 0.0 && enemies.isNotEmpty) {
       _enemyFireCooldown = 1.0 + _random.nextDouble() * 0.8;
-      final frontEnemiesByCorridor = <int, EnemyCraft>{};
+      for (var c = 0; c < 8; c++) {
+        _frontEnemiesByCorridor[c] = null;
+      }
       for (var i = 0; i < enemies.length; i++) {
         final e = enemies[i];
         if (!e.isDestroyed && e.worldPosY > 0.15 && e.worldPosY <= 1.0) {
           final c = e.assignedCorridor;
-          if (!frontEnemiesByCorridor.containsKey(c) ||
-              e.worldPosY < frontEnemiesByCorridor[c]!.worldPosY) {
-            frontEnemiesByCorridor[c] = e;
+          if (c >= 0 && c < 8) {
+            final currentFront = _frontEnemiesByCorridor[c];
+            if (currentFront == null || e.worldPosY < currentFront.worldPosY) {
+              _frontEnemiesByCorridor[c] = e;
+            }
           }
         }
       }
-      if (frontEnemiesByCorridor.isNotEmpty) {
-        final candidates = frontEnemiesByCorridor.values.toList();
+      _candidateShooters.clear();
+      for (var c = 0; c < 8; c++) {
+        final front = _frontEnemiesByCorridor[c];
+        if (front != null) {
+          _candidateShooters.add(front);
+        }
+      }
+      if (_candidateShooters.isNotEmpty) {
         final dreadCorridor = (dreadX / corridorWidth).floor().clamp(0, 7);
-        candidates.sort((a, b) {
+        _candidateShooters.sort((a, b) {
           var scoreA = (1.0 - a.worldPosY) * 2.0 + a.vesselType * 1.5;
           var scoreB = (1.0 - b.worldPosY) * 2.0 + b.vesselType * 1.5;
           if ((a.assignedCorridor - dreadCorridor).abs() <= 1) scoreA += 2.0;
@@ -117,9 +132,10 @@ class InvaderBulletManager {
           }
           return scoreB.compareTo(scoreA);
         });
-        final shooters = candidates.take(math.min(2, candidates.length));
+        final shooterLimit = math.min(2, _candidateShooters.length);
 
-        for (final shooter in shooters) {
+        for (var sIdx = 0; sIdx < shooterLimit; sIdx++) {
+          final shooter = _candidateShooters[sIdx];
           final enemyX = (shooter.assignedCorridor + 0.5) * corridorWidth;
           final normY = shooter.worldPosY.clamp(0.0, 1.0);
           final enemyY =
@@ -164,252 +180,283 @@ class InvaderBulletManager {
       }
     }
 
-    // 3. Update active bullets and test collisions
-    _bullets.removeWhere((bullet) {
-      final prevY = bullet.y;
-      bullet.update(dt);
+    // 3. Update active bullets and test collisions (backward index loop, zero closure allocation)
+    for (var i = _bullets.length - 1; i >= 0; i--) {
+      final bullet = _bullets[i];
+      if (_updateAndCheckBulletCollision(
+        bullet: bullet,
+        dt: dt,
+        viewportSize: viewportSize,
+        boundaryY: boundaryY,
+        topMargin: topMargin,
+        corridorWidth: corridorWidth,
+        dreadX: dreadX,
+        dreadYPos: dreadYPos,
+        flaks: flaks,
+        bays: bays,
+        millTriadBays: millTriadBays,
+      )) {
+        _bullets.removeAt(i);
+      }
+    }
+  }
 
-      // A. Intercepted by active Particle Lance beam
-      if (_lanceCorridors.contains(bullet.assignedCorridor)) {
+  bool _updateAndCheckBulletCollision({
+    required EnemyBullet bullet,
+    required double dt,
+    required Size viewportSize,
+    required double boundaryY,
+    required double topMargin,
+    required double corridorWidth,
+    required double dreadX,
+    required double dreadYPos,
+    required List<FlakBurst> flaks,
+    required List<BayState> bays,
+    required Set<int> millTriadBays,
+  }) {
+    final prevY = bullet.y;
+    bullet.update(dt);
+
+    // A. Intercepted by active Particle Lance beam
+    if (_lanceCorridors.contains(bullet.assignedCorridor)) {
+      particleService.spawnFlakBurst(
+        bullet.x,
+        bullet.y,
+        VoidTheme.plasmaCyan,
+        count: 14,
+      );
+      onBulletDeflected(bullet.x, bullet.y, VoidTheme.plasmaCyan);
+      if (damageNumbers.length < 8) {
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: 'DEFLECT +50',
+            x: bullet.x,
+            y: bullet.y,
+            color: VoidTheme.plasmaCyan,
+            isCritical: true,
+          ),
+        );
+      }
+      return true;
+    }
+
+    // B. Intercepted by active Flak Bursts
+    for (final flak in flaks) {
+      if (!flak.active) continue;
+      final flakX = flak.worldPosX * viewportSize.width;
+      final rawRadius = flak.blastRadius * viewportSize.width;
+      final normFlakY = flak.worldPosY.clamp(0.0, 1.0);
+      final flakY =
+          topMargin + ((1.0 - normFlakY) / 0.85) * (boundaryY - topMargin);
+
+      if ((bullet.x - flakX).abs() < rawRadius &&
+          (bullet.y - flakY).abs() < rawRadius) {
+        particleService.spawnFlakBurst(
+          bullet.x,
+          bullet.y,
+          VoidTheme.solarGold,
+          count: 10,
+        );
+        onBulletDeflected(bullet.x, bullet.y, VoidTheme.solarGold);
+        if (damageNumbers.length < 8) {
+          damageNumbers.add(
+            FloatingDamageNumber(
+              text: 'FLAK VAPOR +25',
+              x: bullet.x,
+              y: bullet.y,
+              color: VoidTheme.solarGold,
+            ),
+          );
+        }
+        return true;
+      }
+    }
+
+    // B2. Intercepted by Active 3D Morabaraba Laser Fence (3 adjacent Tier 2+ Totems)
+    final bulletBayIndex = 8 + bullet.assignedCorridor.clamp(0, 7);
+    final fenceY = boundaryY - 18.0;
+    if (millTriadBays.contains(bulletBayIndex) &&
+        prevY < fenceY &&
+        bullet.y >= fenceY) {
+      particleService.spawnFlakBurst(
+        bullet.x,
+        fenceY,
+        VoidTheme.solarGold,
+        count: 18,
+      );
+      onBulletDeflected(bullet.x, fenceY, VoidTheme.solarGold);
+      if (damageNumbers.length < 8) {
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: 'MORABARABA FENCE +75',
+            x: bullet.x,
+            y: fenceY - 20,
+            color: VoidTheme.solarGold,
+            isCritical: true,
+          ),
+        );
+      }
+      return true;
+    }
+
+    // C. Intercepted by Dreadnought Flagship in Mid-Space (Forward Deployment)
+    final isDreadForward = dreadYPos < boundaryY - 38.0;
+    final inCanopySweep =
+        (bullet.x - dreadX).abs() < 46.0 &&
+        ((bullet.y - dreadYPos).abs() < 30.0 ||
+            (prevY <= dreadYPos && bullet.y >= dreadYPos));
+    if (isDreadForward && inCanopySweep) {
+      final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
+      final bayIndex = 8 + activeCorridor;
+      final isCharged =
+          bayIndex < bays.length && bays[bayIndex].chargeUnits > 0;
+
+      if (isCharged) {
         particleService.spawnFlakBurst(
           bullet.x,
           bullet.y,
           VoidTheme.plasmaCyan,
-          count: 14,
+          count: 20,
         );
-        onBulletDeflected(bullet.x, bullet.y, VoidTheme.plasmaCyan);
         if (damageNumbers.length < 8) {
           damageNumbers.add(
             FloatingDamageNumber(
-              text: 'DEFLECT +50',
+              text: 'CANOPY RAM! +75',
               x: bullet.x,
-              y: bullet.y,
+              y: bullet.y - 20,
               color: VoidTheme.plasmaCyan,
               isCritical: true,
             ),
           );
         }
-        return true;
-      }
-
-      // B. Intercepted by active Flak Bursts
-      for (final flak in flaks) {
-        if (!flak.active) continue;
-        final flakX = flak.worldPosX * viewportSize.width;
-        final rawRadius = flak.blastRadius * viewportSize.width;
-        final normFlakY = flak.worldPosY.clamp(0.0, 1.0);
-        final flakY =
-            topMargin + ((1.0 - normFlakY) / 0.85) * (boundaryY - topMargin);
-
-        if ((bullet.x - flakX).abs() < rawRadius &&
-            (bullet.y - flakY).abs() < rawRadius) {
-          particleService.spawnFlakBurst(
-            bullet.x,
-            bullet.y,
-            VoidTheme.solarGold,
-            count: 10,
-          );
-          onBulletDeflected(bullet.x, bullet.y, VoidTheme.solarGold);
-          if (damageNumbers.length < 8) {
-            damageNumbers.add(
-              FloatingDamageNumber(
-                text: 'FLAK VAPOR +25',
-                x: bullet.x,
-                y: bullet.y,
-                color: VoidTheme.solarGold,
-              ),
-            );
-          }
-          return true;
-        }
-      }
-
-      // B2. Intercepted by Active 3D Morabaraba Laser Fence (3 adjacent Tier 2+ Totems)
-      final bulletBayIndex = 8 + bullet.assignedCorridor.clamp(0, 7);
-      final fenceY = boundaryY - 18.0;
-      if (millTriadBays.contains(bulletBayIndex) &&
-          prevY < fenceY &&
-          bullet.y >= fenceY) {
+        onBulletDeflected(bullet.x, bullet.y, VoidTheme.plasmaCyan);
+      } else {
         particleService.spawnFlakBurst(
           bullet.x,
-          fenceY,
-          VoidTheme.solarGold,
+          bullet.y,
+          VoidTheme.crimsonFlare,
           count: 18,
         );
-        onBulletDeflected(bullet.x, fenceY, VoidTheme.solarGold);
         if (damageNumbers.length < 8) {
           damageNumbers.add(
             FloatingDamageNumber(
-              text: 'MORABARABA FENCE +75',
+              text: 'CONDUIT BREACH! -1 CORE & DRAINED',
               x: bullet.x,
-              y: fenceY - 20,
-              color: VoidTheme.solarGold,
+              y: bullet.y - 20,
+              color: VoidTheme.crimsonFlare,
               isCritical: true,
             ),
           );
         }
-        return true;
+        onConduitBreached(activeCorridor, bullet.x, bullet.y);
       }
+      return true;
+    }
 
-      // C. Intercepted by Dreadnought Flagship in Mid-Space (Forward Deployment)
-      final isDreadForward = dreadYPos < boundaryY - 38.0;
-      final inCanopySweep =
-          (bullet.x - dreadX).abs() < 46.0 &&
-          ((bullet.y - dreadYPos).abs() < 30.0 ||
-              (prevY <= dreadYPos && bullet.y >= dreadYPos));
-      if (isDreadForward && inCanopySweep) {
-        final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
-        final bayIndex = 8 + activeCorridor;
-        final isCharged =
-            bayIndex < bays.length && bays[bayIndex].chargeUnits > 0;
+    // D. Reached Atmospheric Boundary / Dreadnought Flagship at Baseline
+    final inBaselineSweep =
+        !isDreadForward &&
+        (bullet.x - dreadX).abs() < 46.0 &&
+        ((bullet.y - dreadYPos).abs() < 30.0 ||
+            (prevY <= dreadYPos && bullet.y >= dreadYPos) ||
+            bullet.y >= boundaryY);
+    if (inBaselineSweep) {
+      final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
+      final bayIndex = 8 + activeCorridor;
+      final isCharged =
+          bayIndex < bays.length && bays[bayIndex].chargeUnits > 0;
 
-        if (isCharged) {
-          particleService.spawnFlakBurst(
-            bullet.x,
-            bullet.y,
-            VoidTheme.plasmaCyan,
-            count: 20,
-          );
-          if (damageNumbers.length < 8) {
-            damageNumbers.add(
-              FloatingDamageNumber(
-                text: 'CANOPY RAM! +75',
-                x: bullet.x,
-                y: bullet.y - 20,
-                color: VoidTheme.plasmaCyan,
-                isCritical: true,
-              ),
-            );
-          }
-          onBulletDeflected(bullet.x, bullet.y, VoidTheme.plasmaCyan);
-        } else {
-          particleService.spawnFlakBurst(
-            bullet.x,
-            bullet.y,
-            VoidTheme.crimsonFlare,
-            count: 18,
-          );
-          if (damageNumbers.length < 8) {
-            damageNumbers.add(
-              FloatingDamageNumber(
-                text: 'CONDUIT BREACH! -1 CORE & DRAINED',
-                x: bullet.x,
-                y: bullet.y - 20,
-                color: VoidTheme.crimsonFlare,
-                isCritical: true,
-              ),
-            );
-          }
-          onConduitBreached(activeCorridor, bullet.x, bullet.y);
-        }
-        return true;
-      }
-
-      // D. Reached Atmospheric Boundary / Dreadnought Flagship at Baseline
-      final inBaselineSweep =
-          !isDreadForward &&
-          (bullet.x - dreadX).abs() < 46.0 &&
-          ((bullet.y - dreadYPos).abs() < 30.0 ||
-              (prevY <= dreadYPos && bullet.y >= dreadYPos) ||
-              bullet.y >= boundaryY);
-      if (inBaselineSweep) {
-        final activeCorridor = (bullet.x / corridorWidth).floor().clamp(0, 7);
-        final bayIndex = 8 + activeCorridor;
-        final isCharged =
-            bayIndex < bays.length && bays[bayIndex].chargeUnits > 0;
-
-        if (isCharged) {
-          particleService.spawnFlakBurst(
-            bullet.x,
-            boundaryY,
-            VoidTheme.plasmaCyan,
-            count: 18,
-          );
-          if (damageNumbers.length < 8) {
-            damageNumbers.add(
-              FloatingDamageNumber(
-                text: 'CANOPY DEFLECT! +50',
-                x: bullet.x,
-                y: boundaryY - 24,
-                color: VoidTheme.plasmaCyan,
-                isCritical: true,
-              ),
-            );
-          }
-          onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
-        } else {
-          particleService.spawnFlakBurst(
-            bullet.x,
-            boundaryY,
-            VoidTheme.crimsonFlare,
-            count: 18,
-          );
-          if (damageNumbers.length < 8) {
-            damageNumbers.add(
-              FloatingDamageNumber(
-                text: 'CONDUIT BREACH! -1 CORE & DRAINED',
-                x: bullet.x,
-                y: boundaryY - 24,
-                color: VoidTheme.crimsonFlare,
-                isCritical: true,
-              ),
-            );
-          }
-          onConduitBreached(activeCorridor, bullet.x, boundaryY);
-        }
-        return true;
-      }
-
-      // E. Reached Atmospheric Boundary without intercepting Dreadnought:
-      // Check if the corridor's Totem Turret (bay 8 + corridor) has Tier 1+ Shield Dome
-      if (bullet.y >= boundaryY) {
-        final corridor = bullet.assignedCorridor.clamp(0, 7);
-        final bayIndex = 8 + corridor;
-        final hasTotemShield =
-            bayIndex < bays.length && bays[bayIndex].chargeUnits >= 1;
-        if (hasTotemShield) {
-          particleService.spawnFlakBurst(
-            bullet.x,
-            boundaryY,
-            VoidTheme.plasmaCyan,
-            count: 14,
-          );
-          if (damageNumbers.length < 8) {
-            damageNumbers.add(
-              FloatingDamageNumber(
-                text: 'TOTEM SHIELD +50',
-                x: bullet.x,
-                y: boundaryY - 20,
-                color: VoidTheme.plasmaCyan,
-                isCritical: true,
-              ),
-            );
-          }
-          onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
-          return true;
-        }
-
-        particleService.spawnLanceSparks(
+      if (isCharged) {
+        particleService.spawnFlakBurst(
           bullet.x,
           boundaryY,
-          VoidTheme.solarGold,
-          count: 8,
+          VoidTheme.plasmaCyan,
+          count: 18,
         );
         if (damageNumbers.length < 8) {
           damageNumbers.add(
             FloatingDamageNumber(
-              text: '-5 ATMOS PASS',
+              text: 'CANOPY DEFLECT! +50',
               x: bullet.x,
-              y: boundaryY - 15,
-              color: VoidTheme.solarGold,
+              y: boundaryY - 24,
+              color: VoidTheme.plasmaCyan,
+              isCritical: true,
             ),
           );
         }
-        onAtmosphereBreached(bullet.x, boundaryY);
+        onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
+      } else {
+        particleService.spawnFlakBurst(
+          bullet.x,
+          boundaryY,
+          VoidTheme.crimsonFlare,
+          count: 18,
+        );
+        if (damageNumbers.length < 8) {
+          damageNumbers.add(
+            FloatingDamageNumber(
+              text: 'CONDUIT BREACH! -1 CORE & DRAINED',
+              x: bullet.x,
+              y: boundaryY - 24,
+              color: VoidTheme.crimsonFlare,
+              isCritical: true,
+            ),
+          );
+        }
+        onConduitBreached(activeCorridor, bullet.x, boundaryY);
+      }
+      return true;
+    }
+
+    // E. Reached Atmospheric Boundary without intercepting Dreadnought:
+    // Check if the corridor's Totem Turret (bay 8 + corridor) has Tier 1+ Shield Dome
+    if (bullet.y >= boundaryY) {
+      final corridor = bullet.assignedCorridor.clamp(0, 7);
+      final bayIndex = 8 + corridor;
+      final hasTotemShield =
+          bayIndex < bays.length && bays[bayIndex].chargeUnits >= 1;
+      if (hasTotemShield) {
+        particleService.spawnFlakBurst(
+          bullet.x,
+          boundaryY,
+          VoidTheme.plasmaCyan,
+          count: 14,
+        );
+        if (damageNumbers.length < 8) {
+          damageNumbers.add(
+            FloatingDamageNumber(
+              text: 'TOTEM SHIELD +50',
+              x: bullet.x,
+              y: boundaryY - 20,
+              color: VoidTheme.plasmaCyan,
+              isCritical: true,
+            ),
+          );
+        }
+        onBulletDeflected(bullet.x, boundaryY, VoidTheme.plasmaCyan);
         return true;
       }
 
-      return bullet.y > viewportSize.height;
-    });
+      particleService.spawnLanceSparks(
+        bullet.x,
+        boundaryY,
+        VoidTheme.solarGold,
+        count: 8,
+      );
+      if (damageNumbers.length < 8) {
+        damageNumbers.add(
+          FloatingDamageNumber(
+            text: '-5 ATMOS PASS',
+            x: bullet.x,
+            y: boundaryY - 15,
+            color: VoidTheme.solarGold,
+          ),
+        );
+      }
+      onAtmosphereBreached(bullet.x, boundaryY);
+      return true;
+    }
+
+    return bullet.y > viewportSize.height;
   }
 }

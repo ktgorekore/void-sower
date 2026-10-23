@@ -64,19 +64,21 @@ class KineticRuleDiorama extends StatefulWidget {
 }
 
 class _KineticRuleDioramaState extends State<KineticRuleDiorama>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _controller;
+  bool _shouldRepeat = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3200),
     );
     final inTest = WidgetsBinding.instance is! WidgetsFlutterBinding;
-    final shouldRepeat = widget.autoRepeat ?? !inTest;
-    if (shouldRepeat) {
+    _shouldRepeat = widget.autoRepeat ?? !inTest;
+    if (_shouldRepeat) {
       _controller.repeat();
     } else {
       _controller.value = 0.35;
@@ -84,7 +86,22 @@ class _KineticRuleDioramaState extends State<KineticRuleDiorama>
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_shouldRepeat) return;
+    if (state == AppLifecycleState.resumed) {
+      if (!_controller.isAnimating) {
+        _controller.repeat();
+      }
+    } else {
+      if (_controller.isAnimating) {
+        _controller.stop();
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _controller.dispose();
     super.dispose();
   }

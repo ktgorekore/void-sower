@@ -77,6 +77,7 @@ class TacticalSolverController {
   TacticalAdvice? get currentAdvice => _currentAdvice;
 
   double _cooldown = 0.0;
+  double _advisorCooldown = 0.0;
 
   /// Current remaining cooldown in seconds.
   double get cooldown => _cooldown;
@@ -84,6 +85,7 @@ class TacticalSolverController {
   /// Resets cooldown timer and clears active advice.
   void reset() {
     _cooldown = 0.0;
+    _advisorCooldown = 0.0;
     _currentAdvice = null;
   }
 
@@ -106,7 +108,9 @@ class TacticalSolverController {
     }
 
     _cooldown -= dt;
+    _advisorCooldown -= dt;
     if (_cooldown > 0.0 && mode == TacticalSolverMode.autopilot) return;
+    if (_advisorCooldown > 0.0 && mode == TacticalSolverMode.advisor) return;
 
     // Zero-allocation active enemy scan & threat proximity evaluation.
     int activeCorridorsMask = 0;
@@ -217,6 +221,9 @@ class TacticalSolverController {
           ? 'BREACH ALERT • DEFEND CORRIDOR ${targetCorridor + 1}'
           : 'TACTICAL SOW: BAY $bestBay ${bestDir > 0 ? "CW" : "CCW"}',
     );
+    if (mode == TacticalSolverMode.advisor) {
+      _advisorCooldown = 0.15;
+    }
 
     if (mode == TacticalSolverMode.autopilot) {
       final targetX = ((targetCorridor + 0.5) / 8.0).clamp(0.0, 1.0);

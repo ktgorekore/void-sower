@@ -548,7 +548,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 HapticService.instance.injectionClick();
                 setState(() {
                   _demoCores--;
-                  _demoBayCharge = (_demoBayCharge % 4) + 1;
+                  _demoBayCharge = (_demoBayCharge & 3) + 1;
                 });
               }
             },

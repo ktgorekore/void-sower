@@ -263,6 +263,10 @@ class CombatCoordinator extends ChangeNotifier {
 
   final List<SowingMutation> _sectorMutations = <SowingMutation>[];
   List<SowingMutation> _checkpointMutationChoices = const [];
+  List<SowingMutation> _cachedActiveMutations = const [];
+  List<SowingMutation>? _lastIncursionMutationsRef;
+  int _lastSectorMutationsCount = -1;
+  final Set<int> _cachedMillTriadBays = <int>{};
 
   /// Pending 3-choice Relic / SowingMutation draft offered at Checkpoint 1.
   List<SowingMutation> get checkpointMutationChoices =>
@@ -271,12 +275,26 @@ class CombatCoordinator extends ChangeNotifier {
   /// Combined active SowingMutations from Void Incursion + mid-sector Checkpoint drafts.
   List<SowingMutation> get activeMutations {
     if (_isIncursionRun) {
-      return <SowingMutation>[
-        ...VoidIncursionService.instance.activeMutations,
-        ..._sectorMutations,
-      ];
+      final incursionMutations = VoidIncursionService.instance.activeMutations;
+      if (!identical(_lastIncursionMutationsRef, incursionMutations) ||
+          _lastSectorMutationsCount != _sectorMutations.length) {
+        _lastIncursionMutationsRef = incursionMutations;
+        _lastSectorMutationsCount = _sectorMutations.length;
+        _cachedActiveMutations = List<SowingMutation>.unmodifiable(
+          <SowingMutation>[...incursionMutations, ..._sectorMutations],
+        );
+      }
+      return _cachedActiveMutations;
     }
-    return List<SowingMutation>.unmodifiable(_sectorMutations);
+    if (_lastIncursionMutationsRef != null ||
+        _lastSectorMutationsCount != _sectorMutations.length) {
+      _lastIncursionMutationsRef = null;
+      _lastSectorMutationsCount = _sectorMutations.length;
+      _cachedActiveMutations = List<SowingMutation>.unmodifiable(
+        _sectorMutations,
+      );
+    }
+    return _cachedActiveMutations;
   }
 
   /// Effective lance damage multiplier from drafted SowingMutations.
@@ -487,18 +505,18 @@ class CombatCoordinator extends ChangeNotifier {
   /// Returns all frontline bay indices (8..15) currently linked in a
   /// Morabaraba 3-Bay Mill Triad (3 adjacent frontline bays each with M >= 2).
   Set<int> get activeMillTriadBays {
-    final linked = <int>{};
-    if (bays.length < 16) return linked;
+    _cachedMillTriadBays.clear();
+    if (bays.length < 16) return _cachedMillTriadBays;
     for (var b = 8; b <= 13; b++) {
       if (bays[b].chargeUnits >= 2 &&
           bays[b + 1].chargeUnits >= 2 &&
           bays[b + 2].chargeUnits >= 2) {
-        linked.add(b);
-        linked.add(b + 1);
-        linked.add(b + 2);
+        _cachedMillTriadBays.add(b);
+        _cachedMillTriadBays.add(b + 1);
+        _cachedMillTriadBays.add(b + 2);
       }
     }
-    return linked;
+    return _cachedMillTriadBays;
   }
 
   /// Whether at least one Morabaraba 3-Bay Mill Triad is ready on the frontline ring.
@@ -1185,7 +1203,11 @@ class CombatCoordinator extends ChangeNotifier {
     }
 
     // 3. Update floating damage numbers
-    damageNumbers.removeWhere((damage) => !damage.update(clampedDt));
+    for (var i = damageNumbers.length - 1; i >= 0; i--) {
+      if (!damageNumbers[i].update(clampedDt)) {
+        damageNumbers.removeAt(i);
+      }
+    }
 
     // 4. Update particles
     particleService.update(clampedDt);
@@ -1504,6 +1526,10 @@ class CombatCoordinator extends ChangeNotifier {
 
     void step() {
       if (_isDisposed || generation != _sowAnimationGeneration) {
+        return;
+      }
+      if (_state.status == CombatMatchStatus.paused) {
+        _finalizePendingSow();
         return;
       }
 

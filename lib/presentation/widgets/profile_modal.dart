@@ -383,198 +383,202 @@ class _ProfileModalState extends State<ProfileModal> {
     );
   }
 
-  void _importSave() {
+  Future<void> _importSave() async {
     HapticService.instance.sowTick();
     final importController = TextEditingController();
 
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 24.0,
-          ),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 440.0),
-            padding: const EdgeInsets.all(20.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F172A),
-              borderRadius: BorderRadius.circular(18.0),
-              border: Border.all(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.8),
-                width: 1.5,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x66000000),
-                  blurRadius: 20.0,
-                  offset: Offset(0, 6),
-                ),
-                BoxShadow(
-                  color: Color(0x33F59E0B),
-                  blurRadius: 16.0,
-                  spreadRadius: -2,
-                ),
-              ],
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (context) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 24.0,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 36.0,
-                      height: 36.0,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0x22F59E0B),
-                        border: Border.all(
-                          color: const Color(0xFFF59E0B),
-                          width: 1.5,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 440.0),
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(18.0),
+                border: Border.all(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.8),
+                  width: 1.5,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x66000000),
+                    blurRadius: 20.0,
+                    offset: Offset(0, 6),
+                  ),
+                  BoxShadow(
+                    color: Color(0x33F59E0B),
+                    blurRadius: 16.0,
+                    spreadRadius: -2,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 36.0,
+                        height: 36.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0x22F59E0B),
+                          border: Border.all(
+                            color: const Color(0xFFF59E0B),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.settings_backup_restore,
+                          color: Color(0xFFF59E0B),
+                          size: 20.0,
                         ),
                       ),
-                      child: const Icon(
-                        Icons.settings_backup_restore,
-                        color: Color(0xFFF59E0B),
-                        size: 20.0,
-                      ),
-                    ),
-                    const SizedBox(width: 12.0),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'PROFILE RESTORATION',
-                            style: TextStyle(
-                              color: Color(0xFFF59E0B),
-                              fontSize: 9.0,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.2,
+                      const SizedBox(width: 12.0),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PROFILE RESTORATION',
+                              style: TextStyle(
+                                color: Color(0xFFF59E0B),
+                                fontSize: 9.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 1.2,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 2.0),
-                          Text(
-                            'IMPORT SAVE TELEMETRY',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.8,
+                            SizedBox(height: 2.0),
+                            Text(
+                              'IMPORT SAVE TELEMETRY',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12.0),
-                // 4px neon track
-                Container(
-                  height: 3.0,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF59E0B),
-                    borderRadius: BorderRadius.circular(1.5),
-                    boxShadow: const [
-                      BoxShadow(color: Color(0x80F59E0B), blurRadius: 6.0),
                     ],
                   ),
-                ),
-                const SizedBox(height: 14.0),
-                const Text(
-                  'Paste your base64 save telemetry string below. This will overwrite local sector progress and settings.',
-                  style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.0),
-                ),
-                const SizedBox(height: 12.0),
-                TextField(
-                  controller: importController,
-                  maxLines: 4,
-                  style: const TextStyle(
-                    color: Color(0xFF00F0FF),
-                    fontSize: 11.0,
-                    fontFamily: 'monospace',
-                  ),
-                  decoration: InputDecoration(
-                    hintText: 'Paste void_sower_save_v1 payload...',
-                    hintStyle: const TextStyle(color: Color(0xFF475569)),
-                    filled: true,
-                    fillColor: const Color(0xFF070C18),
-                    contentPadding: const EdgeInsets.all(12.0),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: const BorderSide(color: Color(0xFF1E293B)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                      borderSide: const BorderSide(color: Color(0xFFF59E0B)),
+                  const SizedBox(height: 12.0),
+                  // 4px neon track
+                  Container(
+                    height: 3.0,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF59E0B),
+                      borderRadius: BorderRadius.circular(1.5),
+                      boxShadow: const [
+                        BoxShadow(color: Color(0x80F59E0B), blurRadius: 6.0),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 18.0),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TactileButton(
-                        label: 'CANCEL',
-                        onPressed: () => Navigator.of(context).pop(),
-                        accentColor: const Color(0xFF64748B),
-                        height: 42.0,
-                        isPrimary: false,
+                  const SizedBox(height: 14.0),
+                  const Text(
+                    'Paste your base64 save telemetry string below. This will overwrite local sector progress and settings.',
+                    style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.0),
+                  ),
+                  const SizedBox(height: 12.0),
+                  TextField(
+                    controller: importController,
+                    maxLines: 4,
+                    style: const TextStyle(
+                      color: Color(0xFF00F0FF),
+                      fontSize: 11.0,
+                      fontFamily: 'monospace',
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Paste void_sower_save_v1 payload...',
+                      hintStyle: const TextStyle(color: Color(0xFF475569)),
+                      filled: true,
+                      fillColor: const Color(0xFF070C18),
+                      contentPadding: const EdgeInsets.all(12.0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: const BorderSide(color: Color(0xFF1E293B)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                        borderSide: const BorderSide(color: Color(0xFFF59E0B)),
                       ),
                     ),
-                    const SizedBox(width: 10.0),
-                    Expanded(
-                      flex: 2,
-                      child: TactileButton(
-                        label: 'RESTORE DATA',
-                        icon: Icons.upload,
-                        accentColor: const Color(0xFFF59E0B),
-                        height: 42.0,
-                        onPressed: () async {
-                          final success = await PersistenceService.instance
-                              .importSaveJson(importController.text);
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-                            if (success) {
-                              setState(() {
-                                _profile =
-                                    PersistenceService.instance.userProfile;
-                                _callsignController.text = _profile.callsign;
-                              });
-                              widget.onProfileUpdated?.call();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Save telemetry successfully restored!',
+                  ),
+                  const SizedBox(height: 18.0),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TactileButton(
+                          label: 'CANCEL',
+                          onPressed: () => Navigator.of(context).pop(),
+                          accentColor: const Color(0xFF64748B),
+                          height: 42.0,
+                          isPrimary: false,
+                        ),
+                      ),
+                      const SizedBox(width: 10.0),
+                      Expanded(
+                        flex: 2,
+                        child: TactileButton(
+                          label: 'RESTORE DATA',
+                          icon: Icons.upload,
+                          accentColor: const Color(0xFFF59E0B),
+                          height: 42.0,
+                          onPressed: () async {
+                            final success = await PersistenceService.instance
+                                .importSaveJson(importController.text);
+                            if (context.mounted) {
+                              Navigator.of(context).pop();
+                              if (success) {
+                                setState(() {
+                                  _profile =
+                                      PersistenceService.instance.userProfile;
+                                  _callsignController.text = _profile.callsign;
+                                });
+                                widget.onProfileUpdated?.call();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Save telemetry successfully restored!',
+                                    ),
+                                    backgroundColor: VoidTheme.solarGold,
                                   ),
-                                  backgroundColor: VoidTheme.solarGold,
-                                ),
-                              );
-                            } else {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Failed to restore: Invalid or corrupted payload.',
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Failed to restore: Invalid or corrupted payload.',
+                                    ),
+                                    backgroundColor: VoidTheme.crimsonFlare,
                                   ),
-                                  backgroundColor: VoidTheme.crimsonFlare,
-                                ),
-                              );
+                                );
+                              }
                             }
-                          }
-                        },
+                          },
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    } finally {
+      importController.dispose();
+    }
   }
 
   @override

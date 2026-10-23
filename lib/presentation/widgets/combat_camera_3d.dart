@@ -260,8 +260,8 @@ class CombatCamera3D {
 
   /// Cycles to the next [CombatCameraMode] preset and applies its default pitch and yaw.
   CombatCamera3D nextMode() {
-    final values = CombatCameraMode.values;
-    final nextIndex = (mode.index + 1) % values.length;
+    const values = CombatCameraMode.values;
+    final nextIndex = (mode.index + 1) & 3;
     final next = values[nextIndex];
     return CombatCamera3D(
       mode: next,

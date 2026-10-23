@@ -457,21 +457,24 @@ class Dreadnought3DMesh {
       indices: _sortedIndices,
     );
     canvas.drawVertices(hullVertices, BlendMode.dst, _verticesPaint);
+    hullVertices.dispose();
 
     // -------------------------------------------------------------------------
     // 4. Sculpted 3D Bevelled Armor Plates (Flat-normal specular + dark seams)
     // -------------------------------------------------------------------------
-    for (var s = 0; s < _triangleCount; s++) {
-      final t = _triOrder[s];
-      final src = t * 3;
-      _paintSolidArmorTriangle(
-        canvas,
-        _hullTriangles[src],
-        _hullTriangles[src + 1],
-        _hullTriangles[src + 2],
-        colorIdx: _hullTriColorIdx[t],
-        isLowBattery: isLowBattery,
-      );
+    if (!isLowBattery) {
+      for (var s = 0; s < _triangleCount; s++) {
+        final t = _triOrder[s];
+        final src = t * 3;
+        _paintSolidArmorTriangle(
+          canvas,
+          _hullTriangles[src],
+          _hullTriangles[src + 1],
+          _hullTriangles[src + 2],
+          colorIdx: _hullTriColorIdx[t],
+          isLowBattery: isLowBattery,
+        );
+      }
     }
 
     // -------------------------------------------------------------------------

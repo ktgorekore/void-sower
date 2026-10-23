@@ -31,20 +31,66 @@ class LandscapeOrientationShield extends StatefulWidget {
 }
 
 class _LandscapeOrientationShieldState extends State<LandscapeOrientationShield>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _pulseController;
+  bool _isAppResumed = true;
+  bool _isLandscape = false;
+
+  /// Exposes whether the pulse animation controller is actively ticking.
+  @visibleForTesting
+  bool get isPulseAnimating => _pulseController.isAnimating;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
-    )..repeat(reverse: true);
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final size = MediaQuery.sizeOf(context);
+    _isLandscape = size.width > size.height;
+    _syncAnimation();
+  }
+
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    if (!mounted) return;
+    final view = View.maybeOf(context);
+    if (view != null) {
+      final size = view.physicalSize / view.devicePixelRatio;
+      _isLandscape = size.width > size.height;
+      _syncAnimation();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppResumed = state == AppLifecycleState.resumed;
+    _syncAnimation();
+  }
+
+  void _syncAnimation() {
+    if (_isLandscape && _isAppResumed) {
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      }
+    } else {
+      if (_pulseController.isAnimating) {
+        _pulseController.stop();
+      }
+    }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _pulseController.dispose();
     super.dispose();
   }
@@ -202,13 +248,16 @@ class _LandscapeOrientationShieldState extends State<LandscapeOrientationShield>
                             ),
                           ),
                           const SizedBox(width: 8.0),
-                          const Text(
-                            'AWAITING SENSOR REALIGNMENT...',
-                            style: TextStyle(
-                              color: VoidTheme.emeraldShield,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.8,
+                          const Flexible(
+                            child: Text(
+                              'AWAITING SENSOR REALIGNMENT...',
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: VoidTheme.emeraldShield,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.8,
+                              ),
                             ),
                           ),
                         ],

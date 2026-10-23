@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../core/logging.dart';
+import '../../main.dart' show routeObserver;
 import '../../domain/models/campaign_sector.dart';
 import '../../domain/models/pro_feature.dart';
 import '../../domain/services/ad_service.dart';
@@ -86,7 +87,7 @@ class CombatScreen extends StatefulWidget {
 }
 
 class _CombatScreenState extends State<CombatScreen>
-    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
   late final CombatCoordinator _coordinator;
   late final Ticker _ticker;
   late final ValueNotifier<double> _renderNotifier;
@@ -132,6 +133,8 @@ class _CombatScreenState extends State<CombatScreen>
   int? _lastSelectedBay;
   int? _lastActiveSowBay;
   bool _lastAutoSolving = false;
+  int _lastHudStateHash = 0;
+  bool _pausedByRoutePush = false;
   int _targetFps = 60;
   int _lastTickMicros = 0;
   double _viewportDragDx = 0.0;
@@ -185,6 +188,45 @@ class _CombatScreenState extends State<CombatScreen>
     _ticker = createTicker(_onTick);
     _resumeTicker();
     unawaited(AudioService.instance.updateAudioFocus());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is ModalRoute<void>) {
+      routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPushNext() {
+    if (_overlayState == CombatOverlayState.none) {
+      _pausedByRoutePush =
+          _coordinator.state.status == CombatMatchStatus.activeCombat;
+      if (_pausedByRoutePush) {
+        _coordinator.pauseCombat();
+      }
+    }
+    if (_ticker.isActive) {
+      _ticker.stop();
+    }
+  }
+
+  @override
+  void didPopNext() {
+    if (_overlayState == CombatOverlayState.none) {
+      if (_pausedByRoutePush) {
+        _pausedByRoutePush = false;
+        _coordinator.resumeCombat();
+      }
+      if (_coordinator.state.status != CombatMatchStatus.paused) {
+        _resumeTicker();
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   @override
@@ -350,6 +392,53 @@ class _CombatScreenState extends State<CombatScreen>
     }
   }
 
+  int _computeHudStateHash() {
+    final s = _coordinator.state;
+    final d = _coordinator.dreadnought;
+    final enemies = _coordinator.enemies;
+    var aliveEnemies = 0;
+    for (var i = 0; i < enemies.length; i++) {
+      if (!enemies[i].isDestroyed) aliveEnemies++;
+    }
+    final bays = _coordinator.bays;
+    var baysHash = 0;
+    for (var i = 0; i < bays.length; i++) {
+      baysHash = (baysHash * 31 + bays[i].chargeUnits) & 0x3FFFFFFF;
+    }
+    final activeCorridor = (d.orbitalPositionX * 8.0).floor().clamp(0, 7);
+    final advice = _coordinator.tacticalAdvice;
+    return Object.hash(
+      s.status,
+      s.selectedBay,
+      s.activeSowBay,
+      s.isAutoSolving,
+      s.canReceiveInput,
+      _coordinator.checkpointPhase,
+      d.reserveCores,
+      d.totalScore,
+      d.isCascading,
+      activeCorridor,
+      _coordinator.competitiveScore,
+      _coordinator.highScore,
+      _coordinator.hasUsedAiSolver,
+      _coordinator.isUnlimitedCores,
+      _coordinator.remainingReinforcements,
+      enemies.length,
+      aliveEnemies,
+      _coordinator.surgicalCullCharges,
+      _coordinator.hasActiveMillTriad,
+      Object.hash(
+        _coordinator.sowDirection,
+        baysHash,
+        advice?.recommendedBay,
+        advice?.recommendedDirection,
+        _coordinator.activeTransmission,
+        _coordinator.checkpointMutationChoices.length,
+        _overlayState,
+      ),
+    );
+  }
+
   void _onCoordinatorStateChanged() {
     if (!mounted) return;
     final matchStatus = _coordinator.state.status;
@@ -362,7 +451,11 @@ class _CombatScreenState extends State<CombatScreen>
       }
     }
 
-    setState(() {});
+    final currentHash = _computeHudStateHash();
+    if (currentHash != _lastHudStateHash) {
+      _lastHudStateHash = currentHash;
+      setState(() {});
+    }
   }
 
   Future<void> _awaitGracePeriod(Duration duration) {
@@ -954,6 +1047,7 @@ class _CombatScreenState extends State<CombatScreen>
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     WidgetsBinding.instance.removeObserver(this);
     _gracePeriodTimer?.cancel();
     _gracePeriodTimer = null;
@@ -1478,14 +1572,20 @@ class _CombatScreenState extends State<CombatScreen>
                                                         listenable:
                                                             _renderNotifier,
                                                         builder: (context, _) {
+                                                          final lowBat =
+                                                              PersistenceService
+                                                                  .instance
+                                                                  .lowBatteryMode;
                                                           return CustomPaint(
-                                                            painter: CombatBackgroundPainter(
-                                                              isLowBattery:
-                                                                  PersistenceService
-                                                                      .instance
-                                                                      .lowBatteryMode,
-                                                              camera: _camera3D,
-                                                            ),
+                                                            isComplex: true,
+                                                            willChange: !lowBat,
+                                                            painter:
+                                                                CombatBackgroundPainter(
+                                                                  isLowBattery:
+                                                                      lowBat,
+                                                                  camera:
+                                                                      _camera3D,
+                                                                ),
                                                           );
                                                         },
                                                       ),
@@ -1497,6 +1597,8 @@ class _CombatScreenState extends State<CombatScreen>
                                                             _renderNotifier,
                                                         builder: (context, _) {
                                                           return CustomPaint(
+                                                            isComplex: true,
+                                                            willChange: true,
                                                             size:
                                                                 _combatViewportSize!,
                                                             painter: CombatPainter(

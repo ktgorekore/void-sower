@@ -271,7 +271,7 @@ class SectorNarrativeRegistry {
   static int questTypeForSector(int sectorNumber) {
     // 1: OutpostReclamation, 2: ConvoyEscort, 4: WarpRiftCollapse, 5: AsteroidProspecting
     const questCycle = <int>[1, 4, 2, 5];
-    return questCycle[(sectorNumber - 1).abs() % questCycle.length];
+    return questCycle[(sectorNumber - 1).abs() & 3];
   }
 
   /// Human-readable objective title for Phase 2 tactical quests.

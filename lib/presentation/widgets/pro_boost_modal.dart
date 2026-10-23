@@ -32,19 +32,29 @@ class ProBoostModal extends StatefulWidget {
   State<ProBoostModal> createState() => _ProBoostModalState();
 }
 
-class _ProBoostModalState extends State<ProBoostModal> {
+class _ProBoostModalState extends State<ProBoostModal>
+    with WidgetsBindingObserver {
   Timer? _countdownTimer;
   bool _isLoading = false;
+  bool _isAppResumed = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _startTimer();
     EntitlementService.instance.addListener(_onEntitlementChanged);
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppResumed = state == AppLifecycleState.resumed;
+    _startTimer();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
     EntitlementService.instance.removeListener(_onEntitlementChanged);
     super.dispose();
@@ -58,10 +68,10 @@ class _ProBoostModalState extends State<ProBoostModal> {
   }
 
   void _startTimer() {
-    if (EntitlementService.instance.isBoostActive) {
+    if (EntitlementService.instance.isBoostActive && _isAppResumed) {
       _countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (_) {
         if (!mounted) return;
-        if (!EntitlementService.instance.isBoostActive) {
+        if (!EntitlementService.instance.isBoostActive || !_isAppResumed) {
           _countdownTimer?.cancel();
           _countdownTimer = null;
         }

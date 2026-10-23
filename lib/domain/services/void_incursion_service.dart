@@ -29,6 +29,7 @@ class VoidIncursionService extends ChangeNotifier {
   int _runScore = 0;
   bool _isInRun = false;
   final List<SowingMutation> _activeMutations = [];
+  List<SowingMutation> _cachedActiveMutations = const [];
   final math.Random _random = math.Random();
 
   /// Whether an incursion run is currently active.
@@ -41,8 +42,7 @@ class VoidIncursionService extends ChangeNotifier {
   int get runScore => _runScore;
 
   /// Active mutations/relics collected during this run.
-  List<SowingMutation> get activeMutations =>
-      List.unmodifiable(_activeMutations);
+  List<SowingMutation> get activeMutations => _cachedActiveMutations;
 
   /// Threat tier based on wave progression (0: Patrol, 1: Monsoon, 2: Singularity).
   int get currentDifficultyTier {
@@ -88,6 +88,7 @@ class VoidIncursionService extends ChangeNotifier {
     _runScore = 0;
     _isInRun = true;
     _activeMutations.clear();
+    _cachedActiveMutations = const [];
     notifyListeners();
   }
 
@@ -160,6 +161,9 @@ class VoidIncursionService extends ChangeNotifier {
   /// Selects a mutation to equip for the current run.
   void selectMutation(SowingMutation mutation) {
     _activeMutations.add(mutation);
+    _cachedActiveMutations = List<SowingMutation>.unmodifiable(
+      _activeMutations,
+    );
     notifyListeners();
   }
 
@@ -177,6 +181,7 @@ class VoidIncursionService extends ChangeNotifier {
     _runScore = 0;
     _isInRun = false;
     _activeMutations.clear();
+    _cachedActiveMutations = const [];
     notifyListeners();
   }
 }

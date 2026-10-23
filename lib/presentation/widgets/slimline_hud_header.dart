@@ -380,6 +380,7 @@ class SlimlineHudHeader extends StatelessWidget {
     return _ProSlimlinePill(
       isPro: isPro,
       isAutoSolving: isAutoSolving,
+      isPaused: isPaused,
       onTap: isAutoSolving ? (onToggleAutoSolve ?? onProTap) : onProTap,
     );
   }
@@ -475,23 +476,28 @@ class _ProSlimlinePill extends StatefulWidget {
   const _ProSlimlinePill({
     required this.isPro,
     this.isAutoSolving = false,
+    this.isPaused = false,
     required this.onTap,
   });
 
   final bool isPro;
   final bool isAutoSolving;
+  final bool isPaused;
   final VoidCallback? onTap;
 
   @override
   State<_ProSlimlinePill> createState() => _ProSlimlinePillState();
 }
 
-class _ProSlimlinePillState extends State<_ProSlimlinePill> {
+class _ProSlimlinePillState extends State<_ProSlimlinePill>
+    with WidgetsBindingObserver {
   Timer? _countdownTimer;
+  bool _isAppResumed = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _syncTimer();
     EntitlementService.instance.addListener(_handleEntitlementChanged);
   }
@@ -503,7 +509,14 @@ class _ProSlimlinePillState extends State<_ProSlimlinePill> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _isAppResumed = state == AppLifecycleState.resumed;
+    _syncTimer();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _countdownTimer?.cancel();
     EntitlementService.instance.removeListener(_handleEntitlementChanged);
     super.dispose();
@@ -518,10 +531,12 @@ class _ProSlimlinePillState extends State<_ProSlimlinePill> {
 
   void _syncTimer() {
     final isBoost = EntitlementService.instance.isBoostActive;
-    if (isBoost) {
+    if (isBoost && !widget.isPaused && _isAppResumed) {
       _countdownTimer ??= Timer.periodic(const Duration(seconds: 1), (_) {
         if (!mounted) return;
-        if (!EntitlementService.instance.isBoostActive) {
+        if (!EntitlementService.instance.isBoostActive ||
+            widget.isPaused ||
+            !_isAppResumed) {
           _countdownTimer?.cancel();
           _countdownTimer = null;
         }
