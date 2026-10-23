@@ -282,7 +282,12 @@ BaoCascadeSystem::PredictionResult BaoCascadeSystem::PredictSow(
 
   std::array<uint32_t, kTotalBays> temp_bays{};
   for (uint8_t i = 0; i < kTotalBays; ++i) {
-    temp_bays[i] = registry.get<BatteryComponent>(bay_entities[i]).charge_units;
+    const entt::entity entity = bay_entities[i];
+    if (entity == entt::null || !registry.valid(entity) ||
+        !registry.all_of<BatteryComponent>(entity)) {
+      return result;
+    }
+    temp_bays[i] = registry.get<BatteryComponent>(entity).charge_units;
   }
 
   uint32_t hand = temp_bays[start_bay] + 1;

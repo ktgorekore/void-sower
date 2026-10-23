@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef VOID_SOWER_H_
-#define VOID_SOWER_H_
+#ifndef VOID_SOWER_VOID_SOWER_H_
+#define VOID_SOWER_VOID_SOWER_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -51,25 +51,25 @@ typedef struct {
  * Naturally aligned to 4-byte boundaries (60 bytes total).
  */
 typedef struct {
-  uint32_t entity_id;
-  uint16_t assigned_corridor;
-  uint16_t reserved1;
-  float world_pos_x;
-  float world_pos_y;
-  float velocity_y;
-  float current_shields;
-  float max_shields;
-  float current_hull;
-  float max_hull;
-  uint8_t vessel_type;
-  uint8_t is_destroyed;
-  uint16_t reserved2;
-  float world_pos_z;
-  float bank_angle_rad;
-  float pitch_angle_rad;
-  float warp_in_progress;
-  uint8_t behavior_mode;
-  uint8_t reserved3[3];
+  uint32_t entity_id;          ///< Unique entity identifier
+  uint16_t assigned_corridor;  ///< Tactical approach corridor (0 to 7)
+  uint16_t reserved1;          ///< Explicit alignment padding
+  float world_pos_x;           ///< Normalized horizontal coordinate [0.0, 1.0]
+  float world_pos_y;           ///< Normalized vertical coordinate [0.0, 1.0]
+  float velocity_y;            ///< Vertical descent speed per second
+  float current_shields;       ///< Active kinetic shield hitpoints
+  float max_shields;           ///< Maximum shield capacity
+  float current_hull;          ///< Active structural hull hitpoints
+  float max_hull;              ///< Maximum structural hull capacity
+  uint8_t vessel_type;         ///< 0: Escort, 1: Cruiser, 2: Flagship
+  uint8_t is_destroyed;        ///< 1 if destroyed, 0 if active
+  uint16_t reserved2;          ///< Explicit alignment padding
+  float world_pos_z;           ///< Normalized 3D depth coordinate [0.0, 1.0]
+  float bank_angle_rad;        ///< Roll bank attitude in radians
+  float pitch_angle_rad;       ///< Pitch dive attitude in radians
+  float warp_in_progress;      ///< Warp-in materialization progress [0.0, 1.0]
+  uint8_t behavior_mode;       ///< AI flight pattern classification
+  uint8_t reserved3[3];        ///< Explicit trailing alignment padding
 } VoidSowerEnemyFFI;
 
 /**
@@ -77,16 +77,16 @@ typedef struct {
  * Naturally aligned to 4-byte / 8-byte boundaries (32 bytes total).
  */
 typedef struct {
-  uint8_t firing_bay_index;
-  uint8_t reserved1[3];
-  float origin_x;
-  float origin_y;
-  float beam_width;
-  float sustained_duration;
-  float remaining_duration;
-  float total_damage;
-  uint8_t active;
-  uint8_t reserved2[3];
+  uint8_t firing_bay_index;  ///< Originating frontline bay index (8 to 15)
+  uint8_t reserved1[3];      ///< Explicit alignment padding
+  float origin_x;            ///< Normalized beam origin X coordinate
+  float origin_y;            ///< Normalized beam origin Y coordinate
+  float beam_width;          ///< Normalized beam width
+  float sustained_duration;  ///< Total beam duration in seconds
+  float remaining_duration;  ///< Remaining active duration in seconds
+  float total_damage;        ///< Total quadratic plasma damage output
+  uint8_t active;            ///< 1 if beam is currently active, 0 otherwise
+  uint8_t reserved2[3];      ///< Explicit trailing alignment padding
 } VoidSowerLanceFFI;
 
 /**
@@ -94,14 +94,14 @@ typedef struct {
  * Naturally aligned to 4-byte boundaries (28 bytes total).
  */
 typedef struct {
-  float world_pos_x;
-  float world_pos_y;
-  float blast_radius;
-  float area_damage;
-  float lifetime;
-  float remaining_lifetime;
-  uint8_t active;
-  uint8_t reserved[3];
+  float world_pos_x;         ///< Normalized blast center X coordinate
+  float world_pos_y;         ///< Normalized blast center Y coordinate
+  float blast_radius;        ///< Normalized radial area-of-effect radius
+  float area_damage;         ///< Peak area damage at blast epicenter
+  float lifetime;            ///< Total flak detonation lifetime in seconds
+  float remaining_lifetime;  ///< Remaining active lifetime in seconds
+  uint8_t active;            ///< 1 if flak burst is active, 0 otherwise
+  uint8_t reserved[3];       ///< Explicit trailing alignment padding
 } VoidSowerFlakFFI;
 
 /**
@@ -109,20 +109,20 @@ typedef struct {
  * Naturally aligned to 4-byte boundaries (44 bytes total).
  */
 typedef struct {
-  float orbital_position_x;
-  float target_position_x;
-  float orbital_position_y;
-  float target_position_y;
-  float boundary_line_y;
-  float proximity_multiplier;
-  uint32_t reserve_cores;
-  uint32_t total_score;
-  uint32_t cores_used;
-  float quest_progress;
-  uint8_t is_cascading;
-  uint8_t current_sim_state;
-  uint8_t active_quest_type;
-  uint8_t quest_status;
+  float orbital_position_x;    ///< Current smoothed X position [0.0, 1.0]
+  float target_position_x;     ///< Target X position [0.0, 1.0]
+  float orbital_position_y;    ///< Current smoothed Y position [0.05, 0.65]
+  float target_position_y;     ///< Target Y position [0.05, 0.65]
+  float boundary_line_y;       ///< Atmospheric defense perimeter Y coordinate
+  float proximity_multiplier;  ///< Forward vanguard damage multiplier
+  uint32_t reserve_cores;      ///< Available reactor cores for injection
+  uint32_t total_score;        ///< Accumulated combat score
+  uint32_t cores_used;         ///< Total cores injected during match
+  float quest_progress;       ///< Normalized tactical quest progress [0.0, 1.0]
+  uint8_t is_cascading;       ///< 1 if sowing cascade is active, 0 otherwise
+  uint8_t current_sim_state;  ///< Active SimulationState enum value
+  uint8_t active_quest_type;  ///< Active tactical quest identifier
+  uint8_t quest_status;       ///< Active QuestStatus enum value
 } VoidSowerDreadnoughtFFI;
 
 /**
@@ -130,14 +130,14 @@ typedef struct {
  * Naturally aligned to 4-byte / 8-byte boundaries (16 bytes total).
  */
 typedef struct {
-  uint8_t terminal_bay;
-  int8_t terminal_corridor;
-  uint8_t triggers_lance;
-  uint8_t triggers_relay;
-  uint32_t final_mass;
-  float predicted_damage;
-  uint16_t total_cascade_laps;
-  uint8_t reserved[2];
+  uint8_t terminal_bay;         ///< Predicted final bay index (0 to 15)
+  int8_t terminal_corridor;     ///< Predicted firing corridor (0 to 7, or -1)
+  uint8_t triggers_lance;       ///< 1 if move triggers frontline lance
+  uint8_t triggers_relay;       ///< 1 if move triggers multi-lap relay
+  uint32_t final_mass;          ///< Predicted terminal bay charge mass
+  float predicted_damage;       ///< Estimated quadratic lance damage output
+  uint16_t total_cascade_laps;  ///< Number of relay overload laps triggered
+  uint8_t reserved[2];          ///< Explicit trailing alignment padding
 } VoidSowerPredictionFFI;
 
 /**
@@ -147,10 +147,10 @@ typedef struct {
 typedef struct {
   uint8_t
       difficulty;  ///< 0: SectorPatrol, 1: PlanetarySiege, 2: FlagshipBastion
-  uint8_t reserved[3];
-  uint32_t random_seed;
-  uint32_t core_budget;
-  float initial_velocity_y;
+  uint8_t reserved[3];       ///< Explicit alignment padding
+  uint32_t random_seed;      ///< Deterministic PRNG seed
+  uint32_t core_budget;      ///< Target core budget for backward inversion
+  float initial_velocity_y;  ///< Baseline vertical descent velocity
 } VoidSowerWaveConfigFFI;
 
 #ifdef __cplusplus
@@ -402,8 +402,20 @@ FFI_PLUGIN_EXPORT int32_t void_sower_solve_tactical_step(
 FFI_PLUGIN_EXPORT void void_sower_reset(void) VOID_SOWER_NOEXCEPT;
 
 /**
+ * @brief Acquires a reference-counted client lease on the global native
+ * simulation engine instance.
+ */
+FFI_PLUGIN_EXPORT void void_sower_retain(void) VOID_SOWER_NOEXCEPT;
+
+/**
+ * @brief Releases a reference-counted client lease and destroys the engine
+ * instance when the lease count reaches zero.
+ */
+FFI_PLUGIN_EXPORT void void_sower_release(void) VOID_SOWER_NOEXCEPT;
+
+/**
  * @brief Releases the global native simulation engine instance and frees
- * memory.
+ * memory when no active client leases remain.
  */
 FFI_PLUGIN_EXPORT void void_sower_free(void) VOID_SOWER_NOEXCEPT;
 
@@ -411,4 +423,4 @@ FFI_PLUGIN_EXPORT void void_sower_free(void) VOID_SOWER_NOEXCEPT;
 }
 #endif
 
-#endif  // VOID_SOWER_H_
+#endif  // VOID_SOWER_VOID_SOWER_H_

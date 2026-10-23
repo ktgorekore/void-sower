@@ -438,6 +438,24 @@ class VoidSowerBindings {
   late final _void_sower_reset = _void_sower_resetPtr
       .asFunction<void Function()>();
 
+  void void_sower_retain() {
+    return _void_sower_retain();
+  }
+
+  late final _void_sower_retainPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('void_sower_retain');
+  late final _void_sower_retain = _void_sower_retainPtr
+      .asFunction<void Function()>();
+
+  void void_sower_release() {
+    return _void_sower_release();
+  }
+
+  late final _void_sower_releasePtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function()>>('void_sower_release');
+  late final _void_sower_release = _void_sower_releasePtr
+      .asFunction<void Function()>();
+
   void void_sower_free() {
     return _void_sower_free();
   }

@@ -34,6 +34,18 @@ namespace {
 
 std::unique_ptr<void_sower::ecs::Engine> g_engine = nullptr;
 std::shared_mutex g_engine_mutex;
+int32_t g_client_leases = 0;
+int32_t g_init_leases = 0;
+
+float SanitizeBoundaryY(float boundary_y) noexcept {
+  if (!std::isfinite(boundary_y) || boundary_y <= 0.0f) {
+    return 0.15f;
+  }
+  if (boundary_y > 1.0f) {
+    boundary_y = boundary_y / 1000.0f;
+  }
+  return std::clamp(boundary_y, 0.05f, 0.55f);
+}
 
 // Must be called with a unique_lock holding g_engine_mutex.
 void_sower::ecs::Engine &GetOrCreateEngineLocked() {
@@ -60,9 +72,13 @@ void void_sower_set_vlog_level(int32_t level) noexcept {
 }
 
 void void_sower_init(uint32_t starting_cores, float boundary_y) noexcept {
+  const float safe_boundary_y = SanitizeBoundaryY(boundary_y);
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    GetOrCreateEngineLocked().Initialize(starting_cores, boundary_y);
+    if (g_client_leases == 0) {
+      ++g_init_leases;
+    }
+    GetOrCreateEngineLocked().Initialize(starting_cores, safe_boundary_y);
   } catch (const std::exception &e) {
     LOG(ERROR) << "Exception in void_sower_init: " << e.what();
   } catch (...) {
@@ -73,6 +89,9 @@ void void_sower_init(uint32_t starting_cores, float boundary_y) noexcept {
 int32_t void_sower_generate_wave(
     const VoidSowerWaveConfigFFI *config) noexcept {
   if (!config) return 0;
+  if (config->difficulty > 2 || !std::isfinite(config->initial_velocity_y)) {
+    return 0;
+  }
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
     void_sower::ecs::WaveGeneratorConfig cfg{
@@ -80,7 +99,8 @@ int32_t void_sower_generate_wave(
             config->difficulty),
         .random_seed = config->random_seed,
         .core_budget = config->core_budget,
-        .initial_velocity_y = config->initial_velocity_y,
+        .initial_velocity_y =
+            std::clamp(std::abs(config->initial_velocity_y), 0.0f, 100.0f),
         .target_corridors_mask = 0xFF,
     };
     return GetOrCreateEngineLocked().GenerateWave(cfg) ? 1 : 0;
@@ -108,6 +128,10 @@ int32_t void_sower_inject_core(uint8_t bay_index, int8_t direction) noexcept {
 
 int32_t void_sower_discharge_bay(uint8_t bay_index,
                                  float damage_multiplier) noexcept {
+  if (!std::isfinite(damage_multiplier) || damage_multiplier <= 0.0f) {
+    return 0;
+  }
+  damage_multiplier = std::clamp(damage_multiplier, 0.01f, 100.0f);
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
     return GetOrCreateEngineLocked().DischargeBay(bay_index, damage_multiplier)
@@ -152,6 +176,8 @@ int32_t void_sower_cull_enemy(uint32_t entity_id) noexcept {
 }
 
 void void_sower_slide_dreadnought(float target_x) noexcept {
+  if (!std::isfinite(target_x)) return;
+  target_x = std::clamp(target_x, 0.0f, 1.0f);
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
     GetOrCreateEngineLocked().SetTargetPositionX(target_x);
@@ -164,6 +190,9 @@ void void_sower_slide_dreadnought(float target_x) noexcept {
 
 void void_sower_set_dreadnought_target(float target_x,
                                        float target_y) noexcept {
+  if (!std::isfinite(target_x) || !std::isfinite(target_y)) return;
+  target_x = std::clamp(target_x, 0.0f, 1.0f);
+  target_y = std::clamp(target_y, 0.05f, 0.65f);
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
     GetOrCreateEngineLocked().SetTargetPosition(target_x, target_y);
@@ -187,6 +216,8 @@ void void_sower_set_active_quest(uint8_t quest_type) noexcept {
 }
 
 void void_sower_update_quest(float progress, uint8_t status) noexcept {
+  if (!std::isfinite(progress) || status > 3) return;
+  progress = std::clamp(progress, 0.0f, 1.0f);
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
     GetOrCreateEngineLocked().UpdateQuest(progress, status);
@@ -198,6 +229,8 @@ void void_sower_update_quest(float progress, uint8_t status) noexcept {
 }
 
 void void_sower_step_simulation(float delta_time) noexcept {
+  if (!std::isfinite(delta_time) || delta_time < 0.0f) return;
+  delta_time = std::clamp(delta_time, 0.0f, 0.25f);
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
     GetOrCreateEngineLocked().Update(delta_time);
@@ -255,6 +288,11 @@ void void_sower_set_lateral_drift(uint8_t enabled) noexcept {
 int32_t void_sower_spawn_enemy(uint16_t corridor, float world_pos_y,
                                float velocity_y, float shields, float hull,
                                uint8_t vessel_type) noexcept {
+  if (vessel_type > 2 || !std::isfinite(world_pos_y) ||
+      !std::isfinite(velocity_y) || !std::isfinite(shields) ||
+      !std::isfinite(hull) || shields < 0.0f || hull <= 0.0f) {
+    return 0;
+  }
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
     return GetOrCreateEngineLocked().SpawnEnemy(
@@ -509,7 +547,7 @@ void void_sower_get_dreadnought_state(
 }
 
 void void_sower_set_lance_alpha(float alpha_multiplier) noexcept {
-  if (std::isnan(alpha_multiplier) || alpha_multiplier < 0.0f) {
+  if (!std::isfinite(alpha_multiplier) || alpha_multiplier < 0.0f) {
     alpha_multiplier = 1.0f;
   }
   alpha_multiplier = std::clamp(alpha_multiplier, 0.0f, 10.0f);
@@ -550,8 +588,7 @@ void void_sower_restore_snapshot(const uint32_t *bay_charges,
 int32_t void_sower_solve_tactical_step(uint8_t *out_bay, int8_t *out_direction,
                                        float *out_confidence,
                                        float *out_predicted_damage) noexcept {
-  if (!out_bay || !out_direction || !out_confidence || !out_predicted_damage)
-    return 0;
+  if (!out_bay || !out_direction) return 0;
   try {
     std::shared_lock<std::shared_mutex> lock(g_engine_mutex);
     if (!g_engine) return 0;
@@ -581,10 +618,47 @@ void void_sower_reset(void) noexcept {
   }
 }
 
+void void_sower_retain(void) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    ++g_client_leases;
+    (void)GetOrCreateEngineLocked();
+  } catch (const std::exception &e) {
+    LOG(ERROR) << "Exception in void_sower_retain: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_retain";
+  }
+}
+
+void void_sower_release(void) noexcept {
+  try {
+    std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
+    if (g_client_leases > 0) {
+      --g_client_leases;
+    } else if (g_init_leases > 0) {
+      --g_init_leases;
+    }
+    if (g_client_leases == 0 && g_init_leases == 0) {
+      g_engine.reset();
+    }
+  } catch (const std::exception &e) {
+    LOG(ERROR) << "Exception in void_sower_release: " << e.what();
+  } catch (...) {
+    LOG(ERROR) << "Unknown exception in void_sower_release";
+  }
+}
+
 void void_sower_free(void) noexcept {
   try {
     std::unique_lock<std::shared_mutex> lock(g_engine_mutex);
-    g_engine.reset();
+    if (g_init_leases > 0) {
+      --g_init_leases;
+    } else if (g_client_leases > 0) {
+      --g_client_leases;
+    }
+    if (g_client_leases == 0 && g_init_leases == 0) {
+      g_engine.reset();
+    }
   } catch (const std::exception &e) {
     LOG(ERROR) << "Exception in void_sower_free: " << e.what();
   } catch (...) {

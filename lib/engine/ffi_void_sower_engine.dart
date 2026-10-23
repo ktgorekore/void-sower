@@ -32,8 +32,10 @@ import 'void_sower_bindings_generated.dart';
 /// Pre-allocates native struct memory pointers via [calloc] once upon initialization
 /// to eliminate per-frame garbage collection pressure on the 60 Hz simulation hot path.
 class FfiVoidSowerEngine implements IVoidSowerEngine {
+  /// Constructs a native FFI engine wrapper and pre-allocates native polling buffers.
   FfiVoidSowerEngine({VoidSowerBindings? bindings})
     : _bindings = bindings ?? VoidSowerBindings(_loadNativeLibrary()) {
+    _bindings.void_sower_retain();
     const vlogLevel = int.fromEnvironment('VLOG_LEVEL', defaultValue: 0);
     if (vlogLevel > 0) {
       _bindings.void_sower_set_vlog_level(vlogLevel);
@@ -52,9 +54,16 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     _cachedSolveDmgPtr = calloc<ffi.Float>();
   }
 
+  /// Total capacity of the power-of-two dreadnought capacitor ring.
   static const int kMaxBays = 16;
+
+  /// Maximum number of active enemy assault craft polled per frame.
   static const int kMaxEnemies = 128;
+
+  /// Maximum number of concurrent particle lance beams polled per frame.
   static const int kMaxLances = 16;
+
+  /// Maximum number of concurrent flak burst detonations polled per frame.
   static const int kMaxFlaks = 32;
 
   final VoidSowerBindings _bindings;
@@ -128,12 +137,14 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return ffi.DynamicLibrary.process();
   }
 
+  /// Initializes the native simulation engine with [startingCores] and [boundaryY].
   @override
   void initialize({int startingCores = 32, double boundaryY = 0.15}) {
     _checkDisposed();
     _bindings.void_sower_init(startingCores, boundaryY);
   }
 
+  /// Generates a procedurally solvable assault wave via backward-play inversion.
   @override
   int generateWave({
     int difficulty = 0,
@@ -150,84 +161,98 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return _bindings.void_sower_generate_wave(_cachedWaveConfigPtr);
   }
 
+  /// Injects a reactor core into [bayIndex] and initiates a cascade in [direction].
   @override
   int injectCore(int bayIndex, int direction) {
     _checkDisposed();
     return _bindings.void_sower_inject_core(bayIndex, direction);
   }
 
+  /// Fires stored plasma mass from frontline [bayIndex] down its assigned corridor.
   @override
   int dischargeBay(int bayIndex, {double damageMultiplier = 1.0}) {
     _checkDisposed();
     return _bindings.void_sower_discharge_bay(bayIndex, damageMultiplier);
   }
 
+  /// Executes a Fanorona vector strike (approach lance or withdrawal pulse).
   @override
   int triggerFanoronaStrike({required bool isApproach}) {
     _checkDisposed();
     return _bindings.void_sower_trigger_fanorona_strike(isApproach ? 1 : 0);
   }
 
+  /// Executes a Yoté surgical orbital cull strike against [entityId].
   @override
   int cullEnemy(int entityId) {
     _checkDisposed();
     return _bindings.void_sower_cull_enemy(entityId);
   }
 
+  /// Slides the dreadnought horizontally toward normalized [targetX].
   @override
   void slideDreadnought(double targetX) {
     _checkDisposed();
     _bindings.void_sower_slide_dreadnought(targetX);
   }
 
+  /// Sets the 2D target position of the dreadnought to ([targetX], [targetY]).
   @override
   void setDreadnoughtTarget(double targetX, double targetY) {
     _checkDisposed();
     _bindings.void_sower_set_dreadnought_target(targetX, targetY);
   }
 
+  /// Configures the active tactical quest type for the current sector.
   @override
   void setActiveQuest(int questType) {
     _checkDisposed();
     _bindings.void_sower_set_active_quest(questType);
   }
 
+  /// Updates tactical quest [progress] and [status] in native state.
   @override
   void updateQuest(double progress, int status) {
     _checkDisposed();
     _bindings.void_sower_update_quest(progress, status);
   }
 
+  /// Advances the native deterministic physics and ECS simulation by [deltaTime].
   @override
   void stepSimulation(double deltaTime) {
     _checkDisposed();
     _bindings.void_sower_step_simulation(deltaTime);
   }
 
+  /// Applies a direct enemy ordnance hit against capacitor [bayIndex].
   @override
   void damageConduit(int bayIndex) {
     _checkDisposed();
     _bindings.void_sower_damage_conduit(bayIndex);
   }
 
+  /// Applies an atmospheric perimeter breach [penalty] to the reactor.
   @override
   void damageAtmosphere(int penalty) {
     _checkDisposed();
     _bindings.void_sower_damage_atmosphere(penalty);
   }
 
+  /// Grants [count] bonus reserve plasma cores to the dreadnought reactor.
   @override
   void grantCores(int count) {
     _checkDisposed();
     _bindings.void_sower_grant_cores(count);
   }
 
+  /// Enables or disables lateral evasive drift for descending enemy craft.
   @override
   void setLateralDrift(bool enabled) {
     _checkDisposed();
     _bindings.void_sower_set_lateral_drift(enabled ? 1 : 0);
   }
 
+  /// Spawns a reinforcement enemy vessel into [corridor].
   @override
   bool spawnEnemy({
     required int corridor,
@@ -249,6 +274,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
         0;
   }
 
+  /// Performs a dry-run trajectory projection from [startBay] in [direction].
   @override
   PredictionResult predictSow(int startBay, int direction) {
     _checkDisposed();
@@ -266,6 +292,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     );
   }
 
+  /// Polls and returns the current state of all 16 capacitor bays.
   @override
   List<BayState> getBays() {
     _checkDisposed();
@@ -303,6 +330,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return _cachedBaysList;
   }
 
+  /// Polls and returns the current list of active and recently destroyed enemy craft.
   @override
   List<EnemyCraft> getEnemies() {
     _checkDisposed();
@@ -329,7 +357,12 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
             current.currentHull == e.current_hull &&
             current.maxHull == e.max_hull &&
             current.vesselType == e.vessel_type &&
-            current.isDestroyed == isDestroyed) {
+            current.isDestroyed == isDestroyed &&
+            current.worldPosZ == e.world_pos_z &&
+            current.bankAngleRad == e.bank_angle_rad &&
+            current.pitchAngleRad == e.pitch_angle_rad &&
+            current.behaviorMode == e.behavior_mode &&
+            current.warpInProgress == e.warp_in_progress) {
           continue;
         }
         _cachedEnemiesList[i] = EnemyCraft(
@@ -376,6 +409,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return _cachedEnemiesList;
   }
 
+  /// Polls and returns active particle lance beams.
   @override
   List<LanceBeam> getLances() {
     _checkDisposed();
@@ -427,6 +461,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return _cachedLancesList;
   }
 
+  /// Polls and returns active secondary radial flak bursts.
   @override
   List<FlakBurst> getFlaks() {
     _checkDisposed();
@@ -475,6 +510,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return _cachedFlaksList;
   }
 
+  /// Polls and returns the current dreadnought flagship state.
   @override
   DreadnoughtState getDreadnoughtState() {
     _checkDisposed();
@@ -521,12 +557,14 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return newState;
   }
 
+  /// Configures the chassis particle lance damage [multiplier].
   @override
   void setLanceAlphaMultiplier(double multiplier) {
-    if (_isDisposed) return;
+    _checkDisposed();
     _bindings.void_sower_set_lance_alpha(multiplier);
   }
 
+  /// Restores native simulation state from an archived turn snapshot.
   @override
   void restoreSnapshot({
     required List<int> bayCharges,
@@ -534,7 +572,8 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     required int totalScore,
     int chargesLength = kMaxBays,
   }) {
-    if (_isDisposed) return;
+    _checkDisposed();
+    final clampedLength = chargesLength.clamp(0, kMaxBays);
     // Zero-fill all 16 slots to guarantee trailing slots do not retain stale memory
     for (var i = 0; i < kMaxBays; i++) {
       _cachedSnapshotChargesPtr[i] = (i < bayCharges.length)
@@ -543,7 +582,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     }
     _bindings.void_sower_restore_snapshot(
       _cachedSnapshotChargesPtr,
-      chargesLength,
+      clampedLength,
       reserveCores,
       totalScore,
     );
@@ -552,12 +591,15 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
 
   /// Read-only inspection of native snapshot charges pointer for testing.
   @visibleForTesting
-  ffi.Pointer<ffi.Uint32> get cachedSnapshotChargesPtr =>
-      _cachedSnapshotChargesPtr;
+  ffi.Pointer<ffi.Uint32> get cachedSnapshotChargesPtr {
+    _checkDisposed();
+    return _cachedSnapshotChargesPtr;
+  }
 
+  /// Computes the optimal tactical move via native Monte Carlo Tree Search.
   @override
   TacticalStepResult? solveTacticalStep() {
-    if (_isDisposed) return null;
+    _checkDisposed();
     final res = _bindings.void_sower_solve_tactical_step(
       _cachedSolveBayPtr,
       _cachedSolveDirPtr,
@@ -575,6 +617,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     return null;
   }
 
+  /// Resets the native simulation engine to default baseline state.
   @override
   void reset() {
     _checkDisposed();
@@ -585,6 +628,7 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     _cachedDreadnoughtState = null;
   }
 
+  /// Frees all pre-allocated native FFI buffers and releases native engine leases.
   @override
   void dispose() {
     if (_isDisposed) return;
@@ -608,6 +652,6 @@ class FfiVoidSowerEngine implements IVoidSowerEngine {
     calloc.free(_cachedSolveConfPtr);
     calloc.free(_cachedSolveDmgPtr);
 
-    _bindings.void_sower_free();
+    _bindings.void_sower_release();
   }
 }

@@ -158,6 +158,9 @@ DischargeSystem::DischargeResult DischargeSystem::ExecuteDirectBayDischarge(
     const SpatialGrid& spatial_grid, uint8_t firing_bay,
     float damage_multiplier) {
   DischargeResult result{};
+  if (!std::isfinite(damage_multiplier) || damage_multiplier <= 0.0f) {
+    return result;
+  }
   if (!IsFrontlineBay(firing_bay) || bay_entities[firing_bay] == entt::null ||
       !registry.valid(bay_entities[firing_bay]) ||
       dreadnought_entity == entt::null || !registry.valid(dreadnought_entity)) {
@@ -192,7 +195,7 @@ DischargeSystem::DischargeResult DischargeSystem::ExecuteDirectBayDischarge(
           : (static_cast<float>(target_corridor) + 0.5f) /
                 static_cast<float>(kCorridorCount);
   const float lance_origin_y = dread.orbital_position_y;
-  const float safe_mult = (damage_multiplier > 0.0f) ? damage_multiplier : 1.0f;
+  const float safe_mult = std::clamp(damage_multiplier, 0.01f, 100.0f);
   const float damage =
       ComputeLanceDamage(mass, kAlphaLanceDamage * lance_alpha_multiplier_) *
       dread.proximity_multiplier * safe_mult;

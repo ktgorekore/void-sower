@@ -16,6 +16,9 @@
 
 #include "match_lifecycle_system.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include "../components.h"
 
 namespace void_sower::ecs {
@@ -37,11 +40,16 @@ void MatchLifecycleSystem::CheckVictoryLossConditions(
   // 1. Defeat check: Enemy breached atmospheric boundary
   auto view = registry.view<EnemyVesselComponent>();
   bool any_alive = false;
+  const float safe_boundary_y =
+      (std::isfinite(dread.boundary_line_y) && dread.boundary_line_y > 0.0f)
+          ? std::clamp(dread.boundary_line_y, 0.05f, 0.55f)
+          : 0.15f;
   for (auto entity : view) {
     const auto& enemy = view.get<EnemyVesselComponent>(entity);
     if (enemy.is_destroyed == 0) {
       any_alive = true;
-      if (enemy.world_pos_y <= dread.boundary_line_y) {
+      if (std::isfinite(enemy.world_pos_y) &&
+          enemy.world_pos_y <= safe_boundary_y) {
         dread.current_sim_state =
             static_cast<uint8_t>(SimulationState::GameOver);
         return;

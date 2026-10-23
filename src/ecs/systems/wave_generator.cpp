@@ -28,6 +28,13 @@ namespace void_sower::ecs {
 WaveGenerator::WaveGenerator(entt::registry &registry) : registry_(registry) {}
 
 bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
+  if (static_cast<uint8_t>(config.difficulty) > 2 ||
+      !std::isfinite(config.initial_velocity_y)) {
+    return false;
+  }
+  const float safe_velocity_y =
+      std::clamp(std::abs(config.initial_velocity_y), 0.0f, 100.0f);
+
   // Clear any existing enemy entities
   auto view = registry_.view<EnemyVesselComponent>();
   registry_.destroy(view.begin(), view.end());
@@ -180,7 +187,7 @@ bool WaveGenerator::GenerateWave(const WaveGeneratorConfig &config) {
             .assigned_corridor = corr,
             .world_pos_x = corridor_x,
             .world_pos_y = spawn_y,
-            .velocity_y = config.initial_velocity_y,
+            .velocity_y = safe_velocity_y,
             .current_shields =
                 (enemy_info.type != VesselType::Escort) ? half_health : 0.0f,
             .max_shields =

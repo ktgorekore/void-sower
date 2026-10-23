@@ -29,6 +29,13 @@ CombatSystem::CombatSystem(entt::registry &registry) : registry_(registry) {
 
 void CombatSystem::InitializeDreadnought(uint32_t starting_cores,
                                          float boundary_y) {
+  if (!std::isfinite(boundary_y) || boundary_y <= 0.0f) {
+    boundary_y = 0.15f;
+  } else if (boundary_y > 1.0f) {
+    boundary_y = std::clamp(boundary_y / 1000.0f, 0.05f, 0.55f);
+  } else {
+    boundary_y = std::clamp(boundary_y, 0.05f, 0.55f);
+  }
   VLOG(6) << "CombatSystem::InitializeDreadnought: starting_cores="
           << starting_cores << ", boundary_y=" << boundary_y;
   reinforcement_id_ = 10000;
@@ -95,6 +102,10 @@ bool CombatSystem::InjectCore(uint8_t target_bay, int8_t direction) {
 }
 
 bool CombatSystem::DischargeBay(uint8_t bay_index, float damage_multiplier) {
+  if (!std::isfinite(damage_multiplier) || damage_multiplier <= 0.0f) {
+    return false;
+  }
+  damage_multiplier = std::clamp(damage_multiplier, 0.01f, 100.0f);
   if (!IsFrontlineBay(bay_index) || dreadnought_entity_ == entt::null ||
       !registry_.valid(dreadnought_entity_)) {
     return false;
@@ -263,6 +274,7 @@ bool CombatSystem::CullEnemy(uint32_t entity_id) {
 }
 
 void CombatSystem::SetTargetPositionX(float target_x) {
+  if (!std::isfinite(target_x)) return;
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
     auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
@@ -271,12 +283,13 @@ void CombatSystem::SetTargetPositionX(float target_x) {
 }
 
 void CombatSystem::SetTargetPosition(float target_x, float target_y) {
+  if (!std::isfinite(target_x) || !std::isfinite(target_y)) return;
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
     auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
     dread.target_position_x = std::clamp(target_x, 0.0f, 1.0f);
-    dread.target_position_y =
-        std::clamp(target_y, dread.boundary_line_y, 0.65f);
+    const float min_y = std::clamp(dread.boundary_line_y, 0.05f, 0.65f);
+    dread.target_position_y = std::clamp(target_y, min_y, 0.65f);
     if (dread.current_sim_state ==
         static_cast<uint8_t>(SimulationState::OrbitalIdle)) {
       dread.orbital_position_x = dread.target_position_x;
@@ -304,6 +317,7 @@ void CombatSystem::SetActiveQuest(uint8_t quest_type) {
 }
 
 void CombatSystem::UpdateQuest(float progress, uint8_t status) {
+  if (!std::isfinite(progress) || status > 3) return;
   if (dreadnought_entity_ != entt::null &&
       registry_.valid(dreadnought_entity_)) {
     auto &dread = registry_.get<DreadnoughtStateComponent>(dreadnought_entity_);
@@ -323,6 +337,10 @@ SimulationState CombatSystem::GetSimulationState() const {
 }
 
 void CombatSystem::Update(float delta_time) {
+  if (!std::isfinite(delta_time) || delta_time < 0.0f) {
+    return;
+  }
+  delta_time = std::clamp(delta_time, 0.0f, 0.25f);
   if (dreadnought_entity_ == entt::null ||
       !registry_.valid(dreadnought_entity_)) {
     return;
@@ -441,8 +459,13 @@ CombatSystem::PredictionResult CombatSystem::PredictSow(
 bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
                               float velocity_y, float shields, float hull,
                               uint8_t vessel_type) {
-  if (corridor >= kCorridorCount) return false;
-  float spawn_y = world_pos_y;
+  if (corridor >= kCorridorCount || vessel_type > 2 ||
+      !std::isfinite(world_pos_y) || !std::isfinite(velocity_y) ||
+      !std::isfinite(shields) || !std::isfinite(hull) || shields < 0.0f ||
+      hull <= 0.0f) {
+    return false;
+  }
+  float spawn_y = std::clamp(world_pos_y, 0.05f, 0.99f);
   auto existing_view = registry_.view<EnemyVesselComponent>();
   for (auto existing_ent : existing_view) {
     const auto &existing =
@@ -492,7 +515,9 @@ bool CombatSystem::SpawnEnemy(uint16_t corridor, float world_pos_y,
 }
 
 void CombatSystem::SetLanceAlphaMultiplier(float multiplier) {
-  const float clamped = (multiplier > 0.0f) ? multiplier : 1.0f;
+  const float clamped = (std::isfinite(multiplier) && multiplier > 0.0f)
+                            ? std::clamp(multiplier, 0.0f, 10.0f)
+                            : 1.0f;
   discharge_system_.SetLanceAlphaMultiplier(clamped);
   bao_cascade_system_.SetLanceAlphaMultiplier(clamped);
 }
