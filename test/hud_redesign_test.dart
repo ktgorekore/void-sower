@@ -18,6 +18,7 @@ import 'package:void_sower/domain/models/user_profile.dart';
 import 'package:void_sower/presentation/widgets/game_over_dialog.dart';
 import 'package:void_sower/presentation/widgets/hud_header.dart';
 import 'package:void_sower/presentation/widgets/pause_menu_dialog.dart';
+import 'package:void_sower/presentation/widgets/slimline_hud_header.dart';
 import 'package:void_sower/presentation/widgets/victory_dialog.dart';
 
 void main() {
@@ -751,6 +752,80 @@ void main() {
 
         await tester.tap(pauseFinder);
         await tester.pumpAndSettle();
+        expect(pauseTapped, isTrue);
+      },
+    );
+
+    testWidgets(
+      'SlimlineHudHeader renders unified top bar with leftmost Gmail-style profile avatar and no verbose tile labels',
+      (tester) async {
+        bool profileTapped = false;
+        bool mapTapped = false;
+        bool pauseTapped = false;
+        bool proTapped = false;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: SlimlineHudHeader(
+                reserveCores: 16,
+                score: 1420,
+                difficultyTier: 1,
+                sectorId: 3,
+                userProfile: const UserProfile(
+                  callsign: 'KILIMA_ONE',
+                  isGoogleLinked: true,
+                  googleDisplayName: 'Amara',
+                ),
+                totalInvaders: 6,
+                invadersRemaining: 4,
+                onProfileTap: () => profileTapped = true,
+                onMapTap: () => mapTapped = true,
+                onProTap: () => proTapped = true,
+                onTogglePause: () => pauseTapped = true,
+              ),
+            ),
+          ),
+        );
+
+        expect(find.byKey(const Key('unified_top_hud_bar')), findsOneWidget);
+        final avatarFinder = find.byKey(const Key('hud_profile_avatar'));
+        final backFinder = find.byKey(const Key('hud_back_button'));
+        expect(avatarFinder, findsOneWidget);
+        expect(backFinder, findsOneWidget);
+
+        // Verify Gmail-style avatar displays Google display name initial ('A') and is leftmost
+        expect(find.text('A'), findsOneWidget);
+        expect(
+          tester.getTopLeft(avatarFinder).dx,
+          lessThan(tester.getTopLeft(backFinder).dx),
+        );
+
+        // Verify compact values without verbose multi-line tile labels
+        expect(find.text('S3'), findsOneWidget);
+        expect(find.text('001,420'), findsOneWidget);
+        expect(find.text('PRO'), findsOneWidget);
+        expect(find.text('16'), findsOneWidget);
+        expect(find.text('4/6'), findsOneWidget);
+        expect(find.text('CORES'), findsNothing);
+        expect(find.text('SHIELDS'), findsNothing);
+        expect(find.text('PRO PILOT'), findsNothing);
+        expect(find.text('UNLOCK ⚡'), findsNothing);
+
+        await tester.tap(avatarFinder);
+        await tester.pump();
+        expect(profileTapped, isTrue);
+
+        await tester.tap(backFinder);
+        await tester.pump();
+        expect(mapTapped, isTrue);
+
+        await tester.tap(find.text('PRO'));
+        await tester.pump();
+        expect(proTapped, isTrue);
+
+        await tester.tap(find.byIcon(Icons.pause));
+        await tester.pump();
         expect(pauseTapped, isTrue);
       },
     );

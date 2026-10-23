@@ -399,7 +399,7 @@ void main() {
     );
 
     testWidgets(
-      'CombatScreen renders 3-Act Story Comms HUD, removes manual camera gimbal buttons, and banks 3D camera automatically',
+      'CombatScreen renders unified single-bar top HUD without secondary comms/story overlays, removes manual camera gimbal buttons, and banks 3D camera automatically',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(1080, 2400));
         addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -416,16 +416,14 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 50));
 
-        // Verify 3-Act Story Comms Banner renders at the start of Act I
-        expect(find.byKey(const Key('narrative_comms_banner')), findsOneWidget);
-        expect(find.textContaining('P1: RECON'), findsOneWidget);
-        expect(find.textContaining('ADMIRAL ZAWADI'), findsOneWidget);
+        // Verify unified single top HUD bar and Gmail-style profile avatar icon render
+        expect(find.byKey(const Key('unified_top_hud_bar')), findsOneWidget);
+        expect(find.byKey(const Key('hud_profile_avatar')), findsOneWidget);
 
-        // Tapping the comms banner dismisses it into the compact story act status pill
-        await tester.tap(find.byKey(const Key('narrative_comms_banner')));
-        await tester.pump(const Duration(milliseconds: 50));
+        // Verify secondary top HUD overlays (comms banner, story act pill, relic bar) are omitted
         expect(find.byKey(const Key('narrative_comms_banner')), findsNothing);
-        expect(find.byKey(const Key('story_act_status_pill')), findsOneWidget);
+        expect(find.byKey(const Key('story_act_status_pill')), findsNothing);
+        expect(find.text('RELIC:'), findsNothing);
 
         // Verify manual 2D/3D camera gimbal buttons are removed
         expect(find.byKey(const Key('camera_mode_button')), findsNothing);

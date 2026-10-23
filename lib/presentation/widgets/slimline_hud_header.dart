@@ -20,15 +20,17 @@ import '../../domain/models/user_profile.dart';
 import '../../domain/services/entitlement_service.dart';
 import '../theme/void_theme.dart';
 
-/// Ultra-compact 38px Slimline HUD Header matching the UX 3.0 specification.
+/// Unified single-bar 38px Slimline HUD Header.
 ///
-/// Lays out five self-contained glassmorphic telemetry capsules in a single
-/// horizontal row:
-/// 1. Sector Badge & Score capsule (e.g. "S1 • ZANZIBAR", "034,820").
-/// 2. Pro Status / Boost Countdown capsule (e.g. "PRO BOOST 14:28", "★ PRO", "🔒 PRO").
-/// 3. Reactor Cores stored gauge (e.g. "⚡ 36 CORES").
-/// 4. Canopy Shield / Hostiles counter (e.g. "🛡️ 2/2").
-/// 5. Single-tap tactical pause toggle button.
+/// Consolidates all essential combat telemetry and controls into a single
+/// glassmorphic top bar without separate floating tiles or verbose multi-line
+/// sub-labels:
+/// 1. Gmail-style circular Pilot Profile avatar button (`hud_profile_avatar`).
+/// 2. Back / Star Map navigation button (`hud_back_button`).
+/// 3. Compact Sector ID & 6-digit Score display (or `AI SIM` when AI-assisted).
+/// 4. Compact Pro / Boost / AI Auto status badge.
+/// 5. Reactor Cores & Hostiles/Shields inline counters.
+/// 6. Single-tap tactical pause toggle button.
 class SlimlineHudHeader extends StatelessWidget {
   const SlimlineHudHeader({
     super.key,
@@ -90,6 +92,7 @@ class SlimlineHudHeader extends StatelessWidget {
   final VoidCallback? onEmergencyFlareTap;
   final VoidCallback? onProTap;
 
+  /// Human-readable tier label for the current difficulty.
   String get tierName {
     switch (difficultyTier) {
       case 0:
@@ -103,11 +106,29 @@ class SlimlineHudHeader extends StatelessWidget {
     }
   }
 
+  /// Compact sector identifier badge displayed in the unified top bar.
   String get sectorBadgeText {
     if (sectorId >= 19) return 'SWARM • S$sectorId';
     if (sectorId >= 10) return 'DRIFT • S$sectorId';
-    if (sectorId == 1) return 'S1 • ZANZIBAR';
-    return 'S$sectorId • $tierName';
+    return 'S$sectorId';
+  }
+
+  /// Extracts the uppercase initial for the Gmail-style pilot avatar badge.
+  String get pilotInitial {
+    final profile = userProfile;
+    if (profile != null) {
+      final googleName = profile.googleDisplayName?.trim();
+      if (profile.isGoogleLinked &&
+          googleName != null &&
+          googleName.isNotEmpty) {
+        return googleName.substring(0, 1).toUpperCase();
+      }
+      final callsign = profile.callsign.trim();
+      if (callsign.isNotEmpty) {
+        return callsign.substring(0, 1).toUpperCase();
+      }
+    }
+    return 'V';
   }
 
   /// Formats raw score into 6-digit grouped typography (e.g. 034,820).
@@ -120,111 +141,166 @@ class SlimlineHudHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      key: const Key('unified_top_hud_bar'),
       height: 38.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 3.0),
+      padding: const EdgeInsets.symmetric(horizontal: 6.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F172A).withValues(alpha: 0.90),
+        borderRadius: BorderRadius.circular(12.0),
+        border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          if (onMapTap != null) ...[
-            _buildBackButton(),
-            const SizedBox(width: 5.0),
-          ],
+          // 1. Gmail-style Pilot Profile Avatar Icon (leftmost control)
+          _buildProfileAvatarButton(),
+          _buildDivider(),
 
-          // 1. Sector Badge & Score Pill (flex: 28)
-          Expanded(flex: 28, child: _buildSectorScorePill()),
-          const SizedBox(width: 5.0),
+          // 2. Back / Star Map Button
+          if (onMapTap != null) ...[_buildBackButton(), _buildDivider()],
 
-          // 2. Pro Status / Countdown Timer Badge (flex: 24)
-          Expanded(flex: 24, child: _buildProPill()),
-          const SizedBox(width: 5.0),
+          // 3. Compact Sector & Score Display
+          Expanded(flex: 32, child: _buildSectorScoreSection()),
+          _buildDivider(),
 
-          // 3. Reactor Cores Stored (flex: 20)
-          Expanded(flex: 20, child: _buildCoresPill()),
-          const SizedBox(width: 5.0),
+          // 4. Compact Pro / Boost / AI Auto Status Badge
+          Flexible(flex: 22, child: _buildProPill()),
+          _buildDivider(),
 
-          // 4. Canopy Shield / Hostiles (flex: 15)
-          Expanded(flex: 15, child: _buildShieldPill()),
-          const SizedBox(width: 5.0),
+          // 5. Cores & Shields Inline Telemetry
+          Expanded(flex: 30, child: _buildCoresAndShieldsSection()),
+          _buildDivider(),
 
-          // 5. Pause Button (flex: 13)
-          Expanded(flex: 13, child: _buildPauseButton()),
+          // 6. Tactical Pause / Resume Button
+          _buildPauseButton(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      width: 1.0,
+      height: 18.0,
+      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+      color: const Color(0xFF1E293B),
+    );
+  }
+
+  Widget _buildProfileAvatarButton() {
+    final isLinked = userProfile?.isGoogleLinked ?? false;
+    return GestureDetector(
+      key: const Key('hud_profile_avatar'),
+      behavior: HitTestBehavior.opaque,
+      onTap: onProfileTap,
+      child: Tooltip(
+        message: 'Pilot Profile',
+        child: SizedBox(
+          width: 28.0,
+          height: 36.0,
+          child: Center(
+            child: Container(
+              width: 24.0,
+              height: 24.0,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isLinked
+                      ? const [Color(0xFF0284C7), Color(0xFF1D4ED8)]
+                      : const [Color(0xFF0E7490), Color(0xFF1E293B)],
+                ),
+                border: Border.all(
+                  color: isLinked
+                      ? VoidTheme.solarGold
+                      : const Color(0xFF38BDF8).withValues(alpha: 0.85),
+                  width: 1.2,
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                pilotInitial,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 11.0,
+                  fontWeight: FontWeight.w900,
+                  height: 1.0,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildBackButton() {
     return GestureDetector(
+      key: const Key('hud_back_button'),
       behavior: HitTestBehavior.opaque,
       onTap: onMapTap,
-      child: Container(
-        width: 34.0,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(color: const Color(0xFF1E293B), width: 1.0),
-        ),
-        alignment: Alignment.center,
-        child: const Icon(
-          Icons.arrow_back_ios_new,
-          color: Color(0xFF38BDF8),
-          size: 13.0,
+      child: const SizedBox(
+        width: 26.0,
+        height: 36.0,
+        child: Center(
+          child: Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF38BDF8),
+            size: 13.0,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSectorScorePill() {
+  Widget _buildSectorScoreSection() {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onProfileTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(
-            color: isAutoSolving
-                ? VoidTheme.crimsonFlare.withValues(alpha: 0.75)
-                : const Color(0xFF1E293B),
-            width: 1.0,
-          ),
-        ),
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.center,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5.0,
+                  vertical: 2.0,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B),
+                  borderRadius: BorderRadius.circular(5.0),
+                ),
+                child: Text(
                   sectorBadgeText,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: isAutoSolving
                         ? VoidTheme.crimsonFlare
                         : const Color(0xFF38BDF8),
-                    fontSize: 7.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 1.0),
-                Text(
-                  formatScore(score),
-                  maxLines: 1,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 11.0,
+                    fontSize: 9.0,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.3,
-                    fontFamily: 'monospace',
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 6.0),
+              Text(
+                isAiAssisted ? 'AI SIM' : formatScore(score),
+                maxLines: 1,
+                style: TextStyle(
+                  color: isAiAssisted ? VoidTheme.crimsonFlare : Colors.white,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.3,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -239,139 +315,65 @@ class SlimlineHudHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildCoresPill() {
+  Widget _buildCoresAndShieldsSection() {
     final bool unlimited = isUnlimitedCores || reserveCores >= 9000;
     final bool isCritical = reserveCores <= 3 && !unlimited;
     final coreColor = unlimited
         ? VoidTheme.solarGold
         : (isCritical ? VoidTheme.crimsonFlare : const Color(0xFFFBBF24));
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: isCritical ? onEmergencyFlareTap : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(
-            color: const Color(0xFFD97706).withValues(alpha: 0.45),
-            width: 1.0,
-          ),
-        ),
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 6.0,
-                      height: 6.0,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const RadialGradient(
-                          colors: [Color(0xFFFDE68A), Color(0xFFD97706)],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(
-                              0xFFF59E0B,
-                            ).withValues(alpha: 0.8),
-                            blurRadius: 3.0,
-                            spreadRadius: 0.5,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 4.0),
-                    Text(
-                      unlimited ? '∞' : '$reserveCores',
-                      style: TextStyle(
-                        color: coreColor,
-                        fontSize: 11.0,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 1.0),
-                const Text(
-                  'CORES',
-                  style: TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 7.0,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildShieldPill() {
     final remaining = invadersRemaining ?? 0;
     final total = totalInvaders ?? 0;
-    final label = total > 0
+    final shieldLabel = total > 0
         ? '$remaining/$total'
         : (invadersRemaining != null ? '$remaining' : '2/2');
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(10.0),
-        border: Border.all(
-          color: const Color(0xFF0284C7).withValues(alpha: 0.45),
-          width: 1.0,
-        ),
-      ),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: isCritical ? onEmergencyFlareTap : null,
       child: Center(
         child: FittedBox(
           fit: BoxFit.scaleDown,
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.shield,
-                    size: 10.0,
-                    color: Color(0xFF38BDF8),
+              // Cores indicator (dot + value)
+              Container(
+                width: 6.5,
+                height: 6.5,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const RadialGradient(
+                    colors: [Color(0xFFFDE68A), Color(0xFFD97706)],
                   ),
-                  const SizedBox(width: 3.0),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Color(0xFFE0F2FE),
-                      fontSize: 10.0,
-                      fontWeight: FontWeight.w900,
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.8),
+                      blurRadius: 3.0,
+                      spreadRadius: 0.5,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 1.0),
-              const Text(
-                'SHIELDS',
+              const SizedBox(width: 4.0),
+              Text(
+                unlimited ? '∞' : '$reserveCores',
                 style: TextStyle(
-                  color: Color(0xFF38BDF8),
-                  fontSize: 7.0,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
+                  color: coreColor,
+                  fontSize: 11.0,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              // Hostiles / Shields indicator (icon + value)
+              const Icon(Icons.shield, size: 11.0, color: Color(0xFF38BDF8)),
+              const SizedBox(width: 3.0),
+              Text(
+                shieldLabel,
+                style: const TextStyle(
+                  color: Color(0xFFE0F2FE),
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ],
@@ -385,20 +387,15 @@ class SlimlineHudHeader extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTogglePause,
-      child: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(10.0),
-          border: Border.all(
-            color: isPaused ? VoidTheme.emeraldShield : const Color(0xFF1E293B),
-            width: 1.0,
+      child: SizedBox(
+        width: 28.0,
+        height: 36.0,
+        child: Center(
+          child: Icon(
+            isPaused ? Icons.play_arrow : Icons.pause,
+            size: 17.0,
+            color: isPaused ? VoidTheme.emeraldShield : const Color(0xFF94A3B8),
           ),
-        ),
-        child: Icon(
-          isPaused ? Icons.play_arrow : Icons.pause,
-          size: 16.0,
-          color: isPaused ? VoidTheme.emeraldShield : const Color(0xFF94A3B8),
         ),
       ),
     );
@@ -474,57 +471,33 @@ class _ProSlimlinePillState extends State<_ProSlimlinePill> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
           decoration: BoxDecoration(
             color: const Color(0xFF280A14).withValues(alpha: 0.90),
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(color: VoidTheme.crimsonFlare, width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: VoidTheme.crimsonFlare.withValues(alpha: 0.35),
-                blurRadius: 6.0,
-              ),
-            ],
+            borderRadius: BorderRadius.circular(7.0),
+            border: Border.all(color: VoidTheme.crimsonFlare, width: 1.0),
           ),
-          child: const Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.smart_toy,
-                    size: 12.0,
+          child: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.smart_toy,
+                  size: 11.0,
+                  color: VoidTheme.crimsonFlare,
+                ),
+                SizedBox(width: 3.0),
+                Text(
+                  'AI AUTO',
+                  style: TextStyle(
                     color: VoidTheme.crimsonFlare,
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.3,
                   ),
-                  SizedBox(width: 4.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'AI AUTO',
-                        style: TextStyle(
-                          color: VoidTheme.crimsonFlare,
-                          fontSize: 7.0,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                      Text(
-                        'ON ●',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 9.0,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -542,68 +515,29 @@ class _ProSlimlinePillState extends State<_ProSlimlinePill> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
           decoration: BoxDecoration(
             color: const Color(0xFF201503).withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(color: const Color(0xFFF59E0B), width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
-                blurRadius: 6.0,
-              ),
-            ],
+            borderRadius: BorderRadius.circular(7.0),
+            border: Border.all(color: const Color(0xFFF59E0B), width: 1.0),
           ),
-          child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 10.0,
-                    height: 10.0,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFF59E0B),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.bolt,
-                        size: 8.0,
-                        color: Color(0xFF05070F),
-                      ),
-                    ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.bolt, size: 11.0, color: Color(0xFFF59E0B)),
+                const SizedBox(width: 2.0),
+                Text(
+                  timerStr,
+                  style: const TextStyle(
+                    color: Color(0xFFFEF3C7),
+                    fontSize: 9.0,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: 'monospace',
                   ),
-                  const SizedBox(width: 4.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'PRO BOOST',
-                        style: TextStyle(
-                          color: Color(0xFFFBBF24),
-                          fontSize: 7.0,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      Text(
-                        timerStr,
-                        style: const TextStyle(
-                          color: Color(0xFFFEF3C7),
-                          fontSize: 9.0,
-                          fontWeight: FontWeight.w900,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -615,112 +549,70 @@ class _ProSlimlinePillState extends State<_ProSlimlinePill> {
         behavior: HitTestBehavior.opaque,
         onTap: widget.onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
           decoration: BoxDecoration(
             color: const Color(0xFF201503).withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(color: const Color(0xFFF59E0B), width: 1.2),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFF59E0B).withValues(alpha: 0.25),
-                blurRadius: 4.0,
-              ),
-            ],
+            borderRadius: BorderRadius.circular(7.0),
+            border: Border.all(color: const Color(0xFFF59E0B), width: 1.0),
           ),
-          child: const Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.workspace_premium,
-                    size: 12.0,
-                    color: Color(0xFFF59E0B),
+          child: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.workspace_premium,
+                  size: 11.0,
+                  color: Color(0xFFF59E0B),
+                ),
+                SizedBox(width: 3.0),
+                Text(
+                  'PRO',
+                  style: TextStyle(
+                    color: Color(0xFFFBBF24),
+                    fontSize: 8.5,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.4,
                   ),
-                  SizedBox(width: 4.0),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'PRO PILOT',
-                        style: TextStyle(
-                          color: Color(0xFFFBBF24),
-                          fontSize: 7.0,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                      Text(
-                        'ACTIVE ★',
-                        style: TextStyle(
-                          color: Color(0xFFFEF3C7),
-                          fontSize: 9.0,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       );
     }
 
-    // Non-pro user: compact subtle pill with lock icon
+    // Non-pro user: compact single-line badge with lock icon
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: widget.onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 3.0),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F172A).withValues(alpha: 0.85),
-          borderRadius: BorderRadius.circular(10.0),
+          color: const Color(0xFF1E293B).withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(7.0),
           border: Border.all(
             color: const Color(0xFFF59E0B).withValues(alpha: 0.5),
             width: 1.0,
           ),
         ),
-        child: const Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.center,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(Icons.lock_outline, size: 11.0, color: Color(0xFFF59E0B)),
-                SizedBox(width: 4.0),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'PRO',
-                      style: TextStyle(
-                        color: Color(0xFF94A3B8),
-                        fontSize: 7.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    Text(
-                      'UNLOCK ⚡',
-                      style: TextStyle(
-                        color: Color(0xFFF59E0B),
-                        fontSize: 9.0,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
+        child: const FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.lock_outline, size: 10.0, color: Color(0xFFF59E0B)),
+              SizedBox(width: 3.0),
+              Text(
+                'PRO',
+                style: TextStyle(
+                  color: Color(0xFFF59E0B),
+                  fontSize: 8.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.4,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
