@@ -35,9 +35,10 @@
 
 ---
 
-## 🎮 Redesigned Combat Mechanics & 3-Act Story Missions (v0.5.0)
+## 🎮 Redesigned Combat Mechanics, 3-Act Story Missions & Streamlined HUD (v0.5.1)
 
-- **3-Act Story Missions Across All 27 Sectors:** Every sector progresses through **Act I (`PHASE I · VANGUARD RECON`)**, **Act II (`PHASE II · TACTICAL SIEGE` + Mid-Sector Ancestral Relic Draft)**, and **Act III (`PHASE III · APEX COMMAND` Multi-Corridor Boss)** with live Afrofuturist holographic comms at the top of the 3D viewport.
+- **Streamlined Single-Bar Top HUD & 1-Tap Navigation (`v0.5.1`):** Unified top telemetry bar featuring a leftmost circular Pilot Profile Avatar (`hud_profile_avatar_button`), 1-tap **Star Map** (`hud_map_button`) and **Special Ops** (`hud_special_ops_button`) shortcuts, and a decluttered bottom Mancala dock with concise 1-word action buttons (`‹ SOW`, `SOW ›`, `FIRE`/`BLAST`).
+- **3-Act Story Missions Across All 27 Sectors:** Every sector progresses through **Act I (`PHASE I · VANGUARD RECON`)**, **Act II (`PHASE II · TACTICAL SIEGE` + Mid-Sector Ancestral Relic Draft)**, and **Act III (`PHASE III · APEX COMMAND` Multi-Corridor Boss)**.
 - **100% Player-Triggered Offensive Firing (No Passive Auto-Fire):** Charged frontline Totems (`2+` seeds = `SUPER BEAM`, `4+` seeds = `MEGA GUN`) never auto-fire on their own. They shield your lane from bombs and store quadratic $M^2$ capacitor power until **you** command a Super Beam tap, a `‹ SOW` / `SOW ›` cascade, or a `FENCE BLAST` barrage.
 - **Automatic Reactive 3D Flight Camera:** The 3D perspective camera automatically pitches and banks in real time as you pilot the Olympus Dreadnought across Corridors 1–8 and surge forward into Vanguard range (`up to 1.6x damage`), with zero manual camera gimbal clutter.
 - **Four Pan-African Strategic Fusions:**

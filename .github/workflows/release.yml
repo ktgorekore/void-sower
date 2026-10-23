@@ -167,20 +167,20 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: "Release ${{ steps.vars.outputs.tag }} — 3-Act Story Missions, Active Super Beams & Adaptive AI"
+          name: "Release ${{ steps.vars.outputs.tag }} — Streamlined HUD, 1-Tap Star Map & Special Ops, Plus Battery Boost"
           draft: ${{ github.event.inputs.draft || false }}
           prerelease: ${{ github.event.inputs.prerelease || false }}
           generate_release_notes: true
           body: |
-            ### 🚀 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }} (Build 45)
+            ### 🚀 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }} (Build 46)
 
             #### ✨ Release Highlights
-            * **100% Player-Triggered Offensive Firing (`WaveGenerator`, `CombatSystem`, `MancalaBatteryDockWidget`):** Eliminated passive auto-firing victories. Frontline Totems with `2+` seeds (`SUPER BEAM`) and `4+` seeds (`MEGA GUN`) shield your corridor from bombs and store quadratic $M^2$ capacitor energy until **you** command a Super Beam tap, `‹ SOW` / `SOW ›` cascade, or `FENCE BLAST` barrage.
-            * **3-Act Story Missions Across All 27 Sectors (`CampaignService`, `SectorNarrativeRegistry`, `CombatScreen`):** Every sector across Kilwa Nebula Basin, Phantom Drift, and Void Swarm now progresses through **Act I (`PHASE I · VANGUARD RECON`)**, **Act II (`PHASE II · TACTICAL SIEGE` + Mid-Sector Ancestral Relic Draft)**, and **Act III (`PHASE III · APEX COMMAND` Boss)** with live holographic comms (`narrative_comms_banner`).
-            * **Automatic Reactive 3D Flight Camera (`CombatScreen`, `CombatCamera3D`):** Removed the manual 5-button camera gimbal dock; the 3D perspective camera now automatically pitches and banks in real time with the Dreadnought's forward depth and lateral velocity.
-            * **Progressively Intelligent Enemy AI (`MovementSystem::AdvanceEnemies`, `InvaderBulletManager`):** Lateral-maneuvering enemies actively scan frontline bay charges to evade `M >= 2` corridors toward lower-charge lanes, flank exposed (`M == 0`) conduits, and screen damaged capital vessels.
+            * **Streamlined Single-Bar Top HUD & Decluttered Command Dock (`SlimlineHudHeader`, `MancalaBatteryDockWidget`, `CombatScreen`):** Consolidated the top HUD into a single telemetry bar with a circular Pilot Profile Avatar (`hud_profile_avatar_button`) on the far left and removed secondary stacked overlays and multi-line dock text, preserving crisp seed pips (`● ● ○ ○`), shield/fence icons, and concise 1-word buttons (`‹ SOW`, `SOW ›`, `FIRE`/`BLAST`).
+            * **1-Tap Star Map & Special Ops Discoverability (`SlimlineHudHeader`, `CampaignMapScreen`):** Added glowing **Star Map** (`hud_map_button`) and **Special Ops** (`hud_special_ops_button`) shortcuts directly in the top HUD bar, plus a dedicated glowing **OPS** tab (`bottom_nav_special_ops`) and high-contrast top switcher tab (`top_switcher_special_ops`) on the Campaign Map.
+            * **Battery Drain & Lifecycle Optimization (`CombatScreen`, `LandscapeOrientationShield`, `SlimlineHudHeader`, `ProBoostModal`):** Stopped the dormant root `LandscapeOrientationShield` animation controller in portrait mode, added `_computeHudStateHash()` diffing to eliminate redundant 60–120 Hz widget-tree rebuilds during 2D ship drag gestures, subscribed `CombatScreen` to `routeObserver` (`RouteAware`), and paused 1 Hz timers when backgrounded or paused.
+            * **Hot-Path Performance & Native C++17 FFI Hardening (`src/void_sower.cpp`, `FfiVoidSowerEngine`, `Invader3DMesh`, `TacticalSolverController`):** Added deterministic `ui.Vertices.dispose()` calls, pre-allocated per-class typed-data views in `Invader3DMesh`, throttled advisor MCTS evaluations (`0.15s` cooldown), implemented multi-client `void_sower_retain` / `void_sower_release` lease reference counting, and hardened `std::isfinite` float/enum boundary checks across all `extern "C"` FFI endpoints.
             * **How to Play & Master Strategy Guide:** [`docs/how_to_play_and_strategy_guide.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/how_to_play_and_strategy_guide.md)
-            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`store_listing/release_notes_v0.5.0.md`](https://github.com/ktgorekore/void-sower/blob/main/store_listing/release_notes_v0.5.0.md) · [`docs/releases/release_notes_v0.5.0.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_v0.5.0.md)
+            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`store_listing/release_notes_v0.5.1.md`](https://github.com/ktgorekore/void-sower/blob/main/store_listing/release_notes_v0.5.1.md) · [`docs/releases/release_notes_v0.5.1.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_v0.5.1.md)
 
             #### 📦 Release Artifacts:
             * **Android App Bundle (.aab):** `void-sower-${{ steps.vars.outputs.tag }}.aab` (${{ steps.artifacts.outputs.aab_size_mb }} MB)

@@ -1084,3 +1084,26 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Author release notes in `docs/releases/release_notes_v0.4.2.md` and `store_listing/release_notes_v0.4.2.md`.
   - [x] Tag git release `v0.4.2` and `v0.4.2+44` and push to GitHub.
 
+---
+
+## 🚀 Phase 32: Streamlined HUD, 1-Tap Star Map & Special Ops, Battery Remediation & FFI Hardening (`v0.5.1+46`)
+
+- [x] **Task 32.1: Unified Top HUD Bar, Decluttered Dock & Discoverable Workflows (`SlimlineHudHeader`, `MancalaBatteryDockWidget`, `CampaignMapScreen`, `CombatScreen`)**
+  - [x] Consolidate top HUD into a single telemetry bar with leftmost circular Pilot Profile Avatar (`hud_profile_avatar_button`), glowing Star Map (`hud_map_button`), and 1-tap Special Ops (`hud_special_ops_button`) shortcuts.
+  - [x] Declutter bottom Mancala dock text into concise 1-word buttons (`‹ SOW`, `SOW ›`, `FIRE`/`BLAST`) while preserving seed pips and shield/fence badges.
+  - [x] Promote Special Ops to a glowing bottom navigation tab (`OPS`, `bottom_nav_special_ops`) and high-contrast top switcher tab (`top_switcher_special_ops`) on `CampaignMapScreen`.
+
+- [x] **Task 32.2: Battery Drain, Lifecycle & Hot-Path Performance Remediation (`CombatScreen`, `LandscapeOrientationShield`, `Invader3DMesh`, `TacticalSolverController`)**
+  - [x] Stop root `LandscapeOrientationShield` `AnimationController` in portrait mode and background; add `RouteAware` and `WidgetsBindingObserver` timer suspension across HUD/modals.
+  - [x] Eliminate redundant 60–120 Hz widget-tree `setState()` rebuilds via `_computeHudStateHash()` diffing in `CombatScreen`.
+  - [x] Deterministically call `vertices.dispose()` after `canvas.drawVertices()`, pre-allocate per-class `Invader3DMesh` typed-data views, and throttle `TacticalSolverMode.advisor` MCTS evaluations (`0.15s` cooldown).
+
+- [x] **Task 32.3: Native C++17 FFI Boundary Hardening & Lease Counting (`src/void_sower.cpp`, `FfiVoidSowerEngine`)**
+  - [x] Implement `void_sower_retain` / `void_sower_release` reference-counted engine leases, `std::isfinite` float/enum boundary sanitization across all `extern "C"` FFI endpoints, and complete `_checkDisposed()` guards.
+
+- [x] **Task 32.4: Release Deployment & Documentation (`v0.5.1+46`)**
+  - [x] Bump version in `pubspec.yaml` to `0.5.1+46`.
+  - [x] Author release notes in `docs/releases/release_notes_v0.5.1.md` and `store_listing/release_notes_v0.5.1.md`.
+  - [x] Tag git release `v0.5.1` and `v0.5.1+46` and push to GitHub.
+
+
