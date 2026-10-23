@@ -416,9 +416,11 @@ void main() {
         );
         await tester.pump(const Duration(milliseconds: 50));
 
-        // Verify unified single top HUD bar and Gmail-style profile avatar icon render
+        // Verify unified single top HUD bar, Gmail-style profile avatar, Star Map button, and Special Ops shortcut render
         expect(find.byKey(const Key('unified_top_hud_bar')), findsOneWidget);
         expect(find.byKey(const Key('hud_profile_avatar')), findsOneWidget);
+        expect(find.byKey(const Key('hud_map_button')), findsOneWidget);
+        expect(find.byKey(const Key('hud_special_ops_button')), findsOneWidget);
 
         // Verify secondary top HUD overlays (comms banner, story act pill, relic bar) are omitted
         expect(find.byKey(const Key('narrative_comms_banner')), findsNothing);
@@ -435,10 +437,17 @@ void main() {
         final dynamic screenState = tester.state(find.byType(CombatScreen));
         expect(screenState.camera3D.pitchDeg, greaterThan(25.0));
 
-        // Verify Martial Flight & Totem Command Bar renders
-        expect(find.textContaining('TOTEM #'), findsOneWidget);
+        // Verify visual-first Bottom Command Dock renders short 1-word labels without multi-line text or advisory strip
+        expect(
+          find.byKey(const Key('dock_center_turret_pill')),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('dock_fire_button')), findsOneWidget);
         expect(find.text('‹ SOW'), findsOneWidget);
         expect(find.text('SOW ›'), findsOneWidget);
+        expect(find.text('BLAST'), findsOneWidget);
+        expect(find.textContaining('TOTEM #'), findsNothing);
+        expect(find.textContaining('SHOOT = +SEEDS'), findsNothing);
       },
     );
 

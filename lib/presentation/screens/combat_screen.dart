@@ -1048,7 +1048,10 @@ class _CombatScreenState extends State<CombatScreen>
     });
   }
 
-  void _openMap({String? campaignId}) {
+  void _openMap({
+    String? campaignId,
+    StarmapViewMode initialViewMode = StarmapViewMode.campaign,
+  }) {
     final targetCampaign = campaignId ?? 'kilwa_basin';
     PersistenceService.instance.setActiveCampaignId(targetCampaign);
     final wasTicking = _ticker.isTicking;
@@ -1059,6 +1062,7 @@ class _CombatScreenState extends State<CombatScreen>
             builder: (context) => CampaignMapScreen(
               engine: widget.engine,
               initialCampaignId: targetCampaign,
+              initialViewMode: initialViewMode,
             ),
           ),
         )
@@ -1067,6 +1071,10 @@ class _CombatScreenState extends State<CombatScreen>
             _resumeTicker();
           }
         });
+  }
+
+  void _openSpecialOps() {
+    _openMap(initialViewMode: StarmapViewMode.specialOps);
   }
 
   void _openPauseMenu() {
@@ -1256,6 +1264,7 @@ class _CombatScreenState extends State<CombatScreen>
                       onRestartTap: _restartCombat,
                       onStopTap: _openMap,
                       onMapTap: _openMap,
+                      onSpecialOpsTap: _openSpecialOps,
                       onNextSectorTap: () {
                         if (_overlayState == CombatOverlayState.victoryReview) {
                           _showVictoryModal(isReopen: true);

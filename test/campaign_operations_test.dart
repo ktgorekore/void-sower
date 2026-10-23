@@ -396,8 +396,8 @@ void main() {
         expect(find.text('KILWA BASIN'), findsOneWidget);
         expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
 
-        // 4. Test bottom navigation SECTORS tab resets to Campaign Sectors
-        await tester.tap(find.text('SPECIAL OPS'));
+        // 4. Test bottom navigation OPS and SECTORS tabs toggle Special Ops & Campaign Sectors
+        await tester.tap(find.byKey(const Key('bottom_nav_special_ops')));
         await tester.pumpAndSettle();
         expect(find.text('SPECIAL OPERATIONS'), findsOneWidget);
 
@@ -405,6 +405,25 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('KILWA BASIN'), findsOneWidget);
         expect(find.text('Zanzibar Reef Gate'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Tapping Special Ops shortcut in CombatScreen opens CampaignMapScreen directly on Special Ops deck',
+      (tester) async {
+        final mockEngine = MockVoidSowerEngine();
+        await tester.pumpWidget(
+          MaterialApp(home: CombatScreen(engine: mockEngine)),
+        );
+        await tester.pump(const Duration(milliseconds: 50));
+
+        await tester.tap(find.byKey(const Key('hud_special_ops_button')));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(CampaignMapScreen), findsOneWidget);
+        expect(find.text('SPECIAL OPERATIONS'), findsOneWidget);
+        expect(find.text('DAILY SORTIE'), findsOneWidget);
+        expect(find.text('VOID INCURSION'), findsOneWidget);
       },
     );
   });

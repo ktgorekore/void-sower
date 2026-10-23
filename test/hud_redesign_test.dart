@@ -757,10 +757,11 @@ void main() {
     );
 
     testWidgets(
-      'SlimlineHudHeader renders unified top bar with leftmost Gmail-style profile avatar and no verbose tile labels',
+      'SlimlineHudHeader renders unified top bar with leftmost Gmail-style profile avatar, Star Map button, Special Ops shortcut, and no verbose tile labels',
       (tester) async {
         bool profileTapped = false;
         bool mapTapped = false;
+        bool specialOpsTapped = false;
         bool pauseTapped = false;
         bool proTapped = false;
 
@@ -781,6 +782,7 @@ void main() {
                 invadersRemaining: 4,
                 onProfileTap: () => profileTapped = true,
                 onMapTap: () => mapTapped = true,
+                onSpecialOpsTap: () => specialOpsTapped = true,
                 onProTap: () => proTapped = true,
                 onTogglePause: () => pauseTapped = true,
               ),
@@ -790,15 +792,23 @@ void main() {
 
         expect(find.byKey(const Key('unified_top_hud_bar')), findsOneWidget);
         final avatarFinder = find.byKey(const Key('hud_profile_avatar'));
-        final backFinder = find.byKey(const Key('hud_back_button'));
+        final mapFinder = find.byKey(const Key('hud_map_button'));
+        final specialOpsFinder = find.byKey(
+          const Key('hud_special_ops_button'),
+        );
         expect(avatarFinder, findsOneWidget);
-        expect(backFinder, findsOneWidget);
+        expect(mapFinder, findsOneWidget);
+        expect(specialOpsFinder, findsOneWidget);
 
-        // Verify Gmail-style avatar displays Google display name initial ('A') and is leftmost
+        // Verify Gmail-style avatar displays Google display name initial ('A') and is leftmost, followed by Star Map and Special Ops
         expect(find.text('A'), findsOneWidget);
         expect(
           tester.getTopLeft(avatarFinder).dx,
-          lessThan(tester.getTopLeft(backFinder).dx),
+          lessThan(tester.getTopLeft(mapFinder).dx),
+        );
+        expect(
+          tester.getTopLeft(mapFinder).dx,
+          lessThan(tester.getTopLeft(specialOpsFinder).dx),
         );
 
         // Verify compact values without verbose multi-line tile labels
@@ -816,9 +826,13 @@ void main() {
         await tester.pump();
         expect(profileTapped, isTrue);
 
-        await tester.tap(backFinder);
+        await tester.tap(mapFinder);
         await tester.pump();
         expect(mapTapped, isTrue);
+
+        await tester.tap(specialOpsFinder);
+        await tester.pump();
+        expect(specialOpsTapped, isTrue);
 
         await tester.tap(find.text('PRO'));
         await tester.pump();

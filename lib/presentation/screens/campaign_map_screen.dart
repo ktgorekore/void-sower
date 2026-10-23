@@ -53,10 +53,12 @@ class CampaignMapScreen extends StatefulWidget {
     super.key,
     required this.engine,
     this.initialCampaignId,
+    this.initialViewMode = StarmapViewMode.campaign,
   });
 
   final IVoidSowerEngine engine;
   final String? initialCampaignId;
+  final StarmapViewMode initialViewMode;
 
   @override
   State<CampaignMapScreen> createState() => _CampaignMapScreenState();
@@ -79,6 +81,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _activeViewMode = widget.initialViewMode;
     if (widget.initialCampaignId != null &&
         widget.initialCampaignId!.isNotEmpty) {
       _activeCampaignId = widget.initialCampaignId!;
@@ -898,9 +901,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 ),
               );
             }),
-            // 4. Special Ops tab
+            // 4. High-contrast Special Ops tab with icon & permanent accent glow
             Expanded(
               child: GestureDetector(
+                key: const Key('top_switcher_special_ops'),
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   HapticService.instance.sowTick();
@@ -910,43 +914,60 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 },
                 child: Container(
                   height: 28.0,
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSpecialOps
-                        ? const Color(0xFF7C3AED)
-                        : Colors.transparent,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: isSpecialOps
+                          ? const [Color(0xFF7C3AED), Color(0xFFB45309)]
+                          : const [Color(0xFF3B0764), Color(0xFF1E1B4B)],
+                    ),
                     borderRadius: BorderRadius.circular(14.0),
                     border: Border.all(
                       color: isSpecialOps
-                          ? const Color(0xFFA78BFA)
-                          : Colors.transparent,
-                      width: 1.0,
+                          ? VoidTheme.solarGold
+                          : const Color(0xFFA78BFA).withValues(alpha: 0.75),
+                      width: isSpecialOps ? 1.2 : 1.0,
                     ),
-                    boxShadow: isSpecialOps
-                        ? [
-                            BoxShadow(
-                              color: const Color(
-                                0xFF7C3AED,
-                              ).withValues(alpha: 0.4),
-                              blurRadius: 6.0,
-                            ),
-                          ]
-                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color:
+                            (isSpecialOps
+                                    ? VoidTheme.solarGold
+                                    : const Color(0xFF7C3AED))
+                                .withValues(alpha: isSpecialOps ? 0.45 : 0.25),
+                        blurRadius: isSpecialOps ? 8.0 : 5.0,
+                      ),
+                    ],
                   ),
-                  child: Text(
-                    'SPECIAL OPS',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: isSpecialOps
-                          ? Colors.white
-                          : const Color(0xFF94A3B8),
-                      fontSize: 9.0,
-                      fontWeight: isSpecialOps
-                          ? FontWeight.w900
-                          : FontWeight.w700,
-                      letterSpacing: 0.3,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.bolt,
+                        size: 11.0,
+                        color: VoidTheme.solarGold,
+                      ),
+                      const SizedBox(width: 2.0),
+                      Flexible(
+                        child: Text(
+                          'SPECIAL OPS',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: isSpecialOps
+                                ? Colors.white
+                                : const Color(0xFFEDE9FE),
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1764,8 +1785,11 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
   }
 
   /// Builds the UX 3.0 floating cybernetic bottom command dock:
-  /// [ SECTORS ] [ FLEET ] [ PILOT ] [ DIRECTIVES ] [ SETTINGS ]
+  /// [ SECTORS ] [ OPS ] [ FLEET ] [ PILOT ] [ DIRECTIVES ] [ SETTINGS ]
   Widget _buildBottomNavBar() {
+    final isCampaignMode = _activeViewMode == StarmapViewMode.campaign;
+    final isSpecialOpsMode = _activeViewMode == StarmapViewMode.specialOps;
+
     return Container(
       padding: const EdgeInsets.fromLTRB(10.0, 4.0, 10.0, 8.0),
       color: Colors.transparent,
@@ -1794,13 +1818,29 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
               child: _buildNavTab(
                 icon: Icons.map_outlined,
                 label: 'SECTORS',
-                isActive: true,
+                isActive: isCampaignMode,
                 tooltip: 'Campaign Sectors',
                 onTap: () {
                   if (_activeViewMode != StarmapViewMode.campaign) {
-                    HapticService.instance.sowTick();
                     setState(() {
                       _activeViewMode = StarmapViewMode.campaign;
+                    });
+                  }
+                },
+              ),
+            ),
+            Expanded(
+              child: _buildNavTab(
+                tabKey: const Key('bottom_nav_special_ops'),
+                icon: Icons.bolt,
+                label: 'OPS',
+                isActive: isSpecialOpsMode,
+                isSpecialOpsAccent: true,
+                tooltip: 'Special Ops',
+                onTap: () {
+                  if (_activeViewMode != StarmapViewMode.specialOps) {
+                    setState(() {
+                      _activeViewMode = StarmapViewMode.specialOps;
                     });
                   }
                 },
@@ -1849,16 +1889,23 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
   }
 
   Widget _buildNavTab({
+    Key? tabKey,
     required IconData icon,
     required String label,
     required bool isActive,
+    bool isSpecialOpsAccent = false,
     required String tooltip,
     required VoidCallback onTap,
   }) {
-    const activeColor = Color(0xFF00F0FF);
-    const inactiveColor = Color(0xFF64748B);
+    final activeColor = isSpecialOpsAccent
+        ? VoidTheme.solarGold
+        : const Color(0xFF00F0FF);
+    final inactiveColor = isSpecialOpsAccent
+        ? const Color(0xFFC4B5FD)
+        : const Color(0xFF64748B);
 
     return Tooltip(
+      key: tabKey,
       message: tooltip,
       child: Material(
         color: Colors.transparent,
@@ -1870,24 +1917,41 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
           borderRadius: BorderRadius.circular(12.0),
           child: Container(
             constraints: const BoxConstraints(minHeight: 48.0),
-            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 5.0),
+            padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 5.0),
             decoration: isActive
                 ? BoxDecoration(
-                    color: const Color(0x1F00F0FF),
+                    color: isSpecialOpsAccent
+                        ? const Color(0x337C3AED)
+                        : const Color(0x1F00F0FF),
                     borderRadius: BorderRadius.circular(12.0),
                     border: Border.all(
-                      color: const Color(0x5500F0FF),
+                      color: isSpecialOpsAccent
+                          ? VoidTheme.solarGold.withValues(alpha: 0.75)
+                          : const Color(0x5500F0FF),
                       width: 1.0,
                     ),
                   )
-                : null,
+                : (isSpecialOpsAccent
+                      ? BoxDecoration(
+                          color: const Color(0x1F4C1D95),
+                          borderRadius: BorderRadius.circular(12.0),
+                          border: Border.all(
+                            color: const Color(0x557C3AED),
+                            width: 0.8,
+                          ),
+                        )
+                      : null),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   icon,
-                  color: isActive ? activeColor : inactiveColor,
+                  color: isActive
+                      ? activeColor
+                      : (isSpecialOpsAccent
+                            ? VoidTheme.solarGold
+                            : inactiveColor),
                   size: isActive ? 20.0 : 19.0,
                 ),
                 const SizedBox(height: 3.0),
@@ -1897,22 +1961,28 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: isActive ? Colors.white : inactiveColor,
-                    fontSize: 8.5,
-                    fontWeight: isActive ? FontWeight.w900 : FontWeight.w700,
-                    letterSpacing: 0.8,
+                    fontSize: 8.0,
+                    fontWeight: (isActive || isSpecialOpsAccent)
+                        ? FontWeight.w900
+                        : FontWeight.w700,
+                    letterSpacing: 0.6,
                   ),
                 ),
                 const SizedBox(height: 3.0),
                 Container(
                   height: 3.0,
-                  width: isActive ? 22.0 : 6.0,
+                  width: isActive ? 22.0 : (isSpecialOpsAccent ? 12.0 : 6.0),
                   decoration: BoxDecoration(
-                    color: isActive ? activeColor : const Color(0xFF1E293B),
+                    color: isActive
+                        ? activeColor
+                        : (isSpecialOpsAccent
+                              ? const Color(0xFF7C3AED)
+                              : const Color(0xFF1E293B)),
                     borderRadius: BorderRadius.circular(1.5),
                     boxShadow: isActive
-                        ? const [
+                        ? [
                             BoxShadow(
-                              color: Color(0x9900F0FF),
+                              color: activeColor.withValues(alpha: 0.6),
                               blurRadius: 6.0,
                               spreadRadius: 0.5,
                             ),

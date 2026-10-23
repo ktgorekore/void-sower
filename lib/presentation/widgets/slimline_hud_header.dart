@@ -26,11 +26,12 @@ import '../theme/void_theme.dart';
 /// glassmorphic top bar without separate floating tiles or verbose multi-line
 /// sub-labels:
 /// 1. Gmail-style circular Pilot Profile avatar button (`hud_profile_avatar`).
-/// 2. Back / Star Map navigation button (`hud_back_button`).
-/// 3. Compact Sector ID & 6-digit Score display (or `AI SIM` when AI-assisted).
-/// 4. Compact Pro / Boost / AI Auto status badge.
-/// 5. Reactor Cores & Hostiles/Shields inline counters.
-/// 6. Single-tap tactical pause toggle button.
+/// 2. Prominent glowing Star Map navigation button (`hud_map_button` / `hud_back_button`).
+/// 3. Direct Special Ops shortcut button (`hud_special_ops_button`).
+/// 4. Compact Sector ID & 6-digit Score display (or `AI SIM` when AI-assisted).
+/// 5. Compact Pro / Boost / AI Auto status badge.
+/// 6. Reactor Cores & Hostiles/Shields inline counters.
+/// 7. Single-tap tactical pause toggle button.
 class SlimlineHudHeader extends StatelessWidget {
   const SlimlineHudHeader({
     super.key,
@@ -55,6 +56,7 @@ class SlimlineHudHeader extends StatelessWidget {
     this.onNextSectorTap,
     this.onSettingsTap,
     this.onMapTap,
+    this.onSpecialOpsTap,
     this.onRestartTap,
     this.onStopTap,
     this.onCodexTap,
@@ -85,6 +87,7 @@ class SlimlineHudHeader extends StatelessWidget {
 
   final VoidCallback? onSettingsTap;
   final VoidCallback? onMapTap;
+  final VoidCallback? onSpecialOpsTap;
   final VoidCallback? onRestartTap;
   final VoidCallback? onStopTap;
   final VoidCallback? onCodexTap;
@@ -157,19 +160,26 @@ class SlimlineHudHeader extends StatelessWidget {
           _buildProfileAvatarButton(),
           _buildDivider(),
 
-          // 2. Back / Star Map Button
-          if (onMapTap != null) ...[_buildBackButton(), _buildDivider()],
+          // 2. Prominent Glowing Star Map Button & Direct Special Ops Shortcut
+          if (onMapTap != null) ...[
+            _buildStarMapButton(),
+            const SizedBox(width: 4.0),
+          ],
+          if (onSpecialOpsTap != null || onMapTap != null) ...[
+            _buildSpecialOpsButton(),
+            _buildDivider(),
+          ],
 
           // 3. Compact Sector & Score Display
           Expanded(flex: 32, child: _buildSectorScoreSection()),
           _buildDivider(),
 
           // 4. Compact Pro / Boost / AI Auto Status Badge
-          Flexible(flex: 22, child: _buildProPill()),
+          Flexible(flex: 20, child: _buildProPill()),
           _buildDivider(),
 
           // 5. Cores & Shields Inline Telemetry
-          Expanded(flex: 30, child: _buildCoresAndShieldsSection()),
+          Expanded(flex: 28, child: _buildCoresAndShieldsSection()),
           _buildDivider(),
 
           // 6. Tactical Pause / Resume Button
@@ -236,19 +246,78 @@ class SlimlineHudHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildBackButton() {
+  Widget _buildStarMapButton() {
     return GestureDetector(
-      key: const Key('hud_back_button'),
+      key: const Key('hud_map_button'),
       behavior: HitTestBehavior.opaque,
       onTap: onMapTap,
-      child: const SizedBox(
-        width: 26.0,
-        height: 36.0,
-        child: Center(
-          child: Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xFF38BDF8),
-            size: 13.0,
+      child: Tooltip(
+        message: 'Star Map',
+        child: SizedBox(
+          key: const Key('hud_back_button'),
+          width: 28.0,
+          height: 36.0,
+          child: Center(
+            child: Container(
+              width: 24.0,
+              height: 24.0,
+              decoration: BoxDecoration(
+                color: const Color(0xFF032541),
+                borderRadius: BorderRadius.circular(7.0),
+                border: Border.all(color: const Color(0xFF00F0FF), width: 1.1),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x4400F0FF), blurRadius: 5.0),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.public,
+                color: Color(0xFF00F0FF),
+                size: 14.0,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSpecialOpsButton() {
+    return GestureDetector(
+      key: const Key('hud_special_ops_button'),
+      behavior: HitTestBehavior.opaque,
+      onTap: onSpecialOpsTap ?? onMapTap,
+      child: Tooltip(
+        message: 'Special Ops',
+        child: SizedBox(
+          width: 28.0,
+          height: 36.0,
+          child: Center(
+            child: Container(
+              width: 24.0,
+              height: 24.0,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF4C1D95), Color(0xFF7C3AED)],
+                ),
+                borderRadius: BorderRadius.circular(7.0),
+                border: Border.all(
+                  color: VoidTheme.solarGold.withValues(alpha: 0.85),
+                  width: 1.1,
+                ),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x557C3AED), blurRadius: 5.0),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: const Icon(
+                Icons.bolt,
+                color: VoidTheme.solarGold,
+                size: 14.0,
+              ),
+            ),
           ),
         ),
       ),

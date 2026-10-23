@@ -20,12 +20,11 @@ import '../controllers/tactical_solver_controller.dart';
 import '../services/haptic_service.dart';
 import '../theme/void_theme.dart';
 
-/// Compact 56px Martial Flight & Totem Command Bar replacing the legacy 142px
-/// 16-box spreadsheet dock.
+/// Compact 52px Martial Flight & Totem Command Bar.
 ///
-/// Uses visual seed pips and ultra-short plain-English nuggets so players
-/// immediately understand turret growth, seed spreading, and the 3-in-a-row
-/// Laser Fence without mathematical jargon.
+/// Uses visual seed pips, turret tier icons, and concise single-word action
+/// buttons (`‹ SOW`, `SOW ›`, `FIRE` / `BLAST`) without multi-line text
+/// descriptions or bottom advisory text strips.
 class MancalaBatteryDockWidget extends StatelessWidget {
   const MancalaBatteryDockWidget({
     super.key,
@@ -68,263 +67,264 @@ class MancalaBatteryDockWidget extends StatelessWidget {
         : 0;
     final hasMill = millTriadBays.isNotEmpty;
 
-    final String tierLabel;
     final Color tierColor;
     final IconData tierIcon;
     if (alignedMass >= 4) {
-      tierLabel = 'MEGA GUN';
       tierColor = VoidTheme.solarGold;
       tierIcon = Icons.auto_awesome;
     } else if (alignedMass >= 2) {
-      tierLabel = 'SUPER BEAM';
       tierColor = VoidTheme.plasmaCyan;
       tierIcon = Icons.bolt;
     } else if (alignedMass == 1) {
-      tierLabel = 'SHIELD';
       tierColor = VoidTheme.emeraldShield;
       tierIcon = Icons.shield;
     } else {
-      tierLabel = 'EMPTY';
       tierColor = VoidTheme.crimsonFlare;
       tierIcon = Icons.radio_button_unchecked;
     }
 
-    final String subActionText;
-    if (alignedMass >= 2) {
-      subActionText = '⚡ TAP FOR ${alignedMass * alignedMass}x SUPER BEAM';
-    } else if (alignedMass == 1) {
-      subActionText = '🛡️ BLOCKS BOMBS • SHOOT TO GROW';
-    } else {
-      subActionText = '🎯 SHOOT ENEMIES TO GROW';
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onHorizontalDragEnd: (details) {
-            final vx = details.primaryVelocity ?? 0.0;
-            if (vx.abs() > 80.0) {
-              final dir = vx > 0 ? 1 : -1;
-              final resolved = BayRole.resolveSowDirection(
-                alignedBayIndex,
-                dir,
-              );
-              HapticService.instance.sowTick();
-              onDirectionChanged?.call(resolved);
-              onSowAction(alignedBayIndex, resolved);
-            }
-          },
-          child: Container(
-            height: 56.0,
-            margin: const EdgeInsets.symmetric(horizontal: 10.0),
-            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xE60E1726), Color(0xF2070B14)],
-              ),
-              borderRadius: BorderRadius.circular(14.0),
-              border: Border.all(
-                color: hasMill
-                    ? VoidTheme.solarGold.withValues(alpha: 0.80)
-                    : const Color(0xFF1E293B),
-                width: 1.2,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  blurRadius: 12.0,
-                  offset: const Offset(0, 4),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onHorizontalDragEnd: (details) {
+        final vx = details.primaryVelocity ?? 0.0;
+        if (vx.abs() > 80.0) {
+          final dir = vx > 0 ? 1 : -1;
+          final resolved = BayRole.resolveSowDirection(alignedBayIndex, dir);
+          HapticService.instance.sowTick();
+          onDirectionChanged?.call(resolved);
+          onSowAction(alignedBayIndex, resolved);
+        }
+      },
+      child: Container(
+        height: 52.0,
+        margin: const EdgeInsets.fromLTRB(10.0, 0.0, 10.0, 4.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xE60E1726), Color(0xF2070B14)],
+          ),
+          borderRadius: BorderRadius.circular(14.0),
+          border: Border.all(
+            color: hasMill
+                ? VoidTheme.solarGold.withValues(alpha: 0.80)
+                : const Color(0xFF1E293B),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.55),
+              blurRadius: 12.0,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // 1. Left Controls: ‹ SOW and SOW ›
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSowButton(
+                  label: '‹ SOW',
+                  onTap: () {
+                    final resolved = BayRole.resolveSowDirection(
+                      alignedBayIndex,
+                      -1,
+                    );
+                    HapticService.instance.sowTick();
+                    onDirectionChanged?.call(resolved);
+                    onSowAction(alignedBayIndex, resolved);
+                  },
+                ),
+                const SizedBox(width: 4.0),
+                _buildSowButton(
+                  label: 'SOW ›',
+                  onTap: () {
+                    final resolved = BayRole.resolveSowDirection(
+                      alignedBayIndex,
+                      1,
+                    );
+                    HapticService.instance.sowTick();
+                    onDirectionChanged?.call(resolved);
+                    onSowAction(alignedBayIndex, resolved);
+                  },
                 ),
               ],
             ),
-            child: Row(
-              children: [
-                // 1. Left Pill: SOW / SPREAD SEEDS ‹ ›
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildSowButton(
-                      label: '‹ SOW',
-                      onTap: () {
-                        final resolved = BayRole.resolveSowDirection(
-                          alignedBayIndex,
-                          -1,
-                        );
-                        HapticService.instance.sowTick();
-                        onDirectionChanged?.call(resolved);
-                        onSowAction(alignedBayIndex, resolved);
-                      },
-                    ),
-                    const SizedBox(width: 4.0),
-                    _buildSowButton(
-                      label: 'SOW ›',
-                      onTap: () {
-                        final resolved = BayRole.resolveSowDirection(
-                          alignedBayIndex,
-                          1,
-                        );
-                        HapticService.instance.sowTick();
-                        onDirectionChanged?.call(resolved);
-                        onSowAction(alignedBayIndex, resolved);
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(width: 6.0),
+            const SizedBox(width: 6.0),
 
-                // 2. Center Visual Turret Meter & One-Tap Super Beam Pill
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      HapticService.instance.injectionClick();
-                      if (onDirectDischargeBay != null && alignedMass >= 2) {
-                        onDirectDischargeBay!(alignedBayIndex);
-                      } else {
-                        onQuickFire();
-                      }
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8.0,
-                        vertical: 4.0,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(
-                          color: tierColor.withValues(alpha: 0.75),
-                          width: 1.1,
-                        ),
-                      ),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(tierIcon, size: 11.0, color: tierColor),
-                                const SizedBox(width: 4.0),
-                                Text(
-                                  'TOTEM #${activeCorridor + 1} • $tierLabel',
-                                  style: TextStyle(
-                                    color: tierColor,
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                                const SizedBox(width: 6.0),
-                                // 4 visual glowing seed pips instead of "M=..."
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: List.generate(4, (pipIdx) {
-                                    final filled = pipIdx < alignedMass;
-                                    return Container(
-                                      width: 6.5,
-                                      height: 6.5,
-                                      margin: const EdgeInsets.symmetric(
-                                        horizontal: 1.2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: filled
-                                            ? tierColor
-                                            : Colors.transparent,
-                                        border: Border.all(
-                                          color: filled
-                                              ? tierColor
-                                              : Colors.white30,
-                                          width: 1.0,
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                                ),
-                              ],
+            // 2. Center Visual Turret Charge Meter (Icon + 4 Glowing Pips)
+            Expanded(
+              child: GestureDetector(
+                key: const Key('dock_center_turret_pill'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticService.instance.injectionClick();
+                  if (onDirectDischargeBay != null && alignedMass >= 2) {
+                    onDirectDischargeBay!(alignedBayIndex);
+                  } else {
+                    onQuickFire();
+                  }
+                },
+                child: Container(
+                  height: 40.0,
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F172A),
+                    borderRadius: BorderRadius.circular(10.0),
+                    border: Border.all(
+                      color: tierColor.withValues(alpha: 0.75),
+                      width: 1.1,
+                    ),
+                  ),
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(tierIcon, size: 14.0, color: tierColor),
+                          const SizedBox(width: 4.0),
+                          Text(
+                            '#${activeCorridor + 1}',
+                            style: TextStyle(
+                              color: tierColor,
+                              fontSize: 10.0,
+                              fontWeight: FontWeight.w900,
                             ),
-                            const SizedBox(height: 2.5),
-                            Text(
-                              subActionText,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontSize: 7.4,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.4,
+                          ),
+                          const SizedBox(width: 8.0),
+                          // 4 visual glowing seed pips
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(4, (pipIdx) {
+                              final filled = pipIdx < alignedMass;
+                              return Container(
+                                width: 8.0,
+                                height: 8.0,
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 1.8,
+                                ),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: filled
+                                      ? tierColor
+                                      : Colors.transparent,
+                                  border: Border.all(
+                                    color: filled ? tierColor : Colors.white30,
+                                    width: 1.2,
+                                  ),
+                                  boxShadow: filled
+                                      ? [
+                                          BoxShadow(
+                                            color: tierColor.withValues(
+                                              alpha: 0.65,
+                                            ),
+                                            blurRadius: 4.0,
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              );
+                            }),
+                          ),
+                          if (alignedMass >= 2) ...[
+                            const SizedBox(width: 6.0),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4.0,
+                                vertical: 1.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: tierColor.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(4.0),
+                              ),
+                              child: Text(
+                                '${alignedMass * alignedMass}x',
+                                style: TextStyle(
+                                  color: tierColor,
+                                  fontSize: 9.0,
+                                  fontWeight: FontWeight.w900,
+                                ),
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 6.0),
+              ),
+            ),
+            const SizedBox(width: 6.0),
 
-                // 3. Right Pill: FENCE BLAST or BLASTER FIRE
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    HapticService.instance.injectionClick();
-                    if (hasMill && onDirectDischargeBay != null) {
-                      onDirectDischargeBay!(millTriadBays.first);
-                    } else {
-                      onQuickFire();
-                    }
-                  },
-                  child: Container(
-                    constraints: const BoxConstraints(
-                      minWidth: 68.0,
-                      minHeight: 42.0,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 9.0,
-                      vertical: 5.0,
-                    ),
-                    decoration: BoxDecoration(
-                      color: hasMill
-                          ? VoidTheme.solarGold.withValues(alpha: 0.20)
-                          : VoidTheme.plasmaCyan.withValues(alpha: 0.16),
-                      borderRadius: BorderRadius.circular(10.0),
-                      border: Border.all(
-                        color: hasMill
-                            ? VoidTheme.solarGold
-                            : VoidTheme.plasmaCyan,
-                        width: 1.2,
-                      ),
-                    ),
-                    child: Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          hasMill ? 'FENCE\nBLAST' : 'BLASTER\nFIRE',
-                          textAlign: TextAlign.center,
+            // 3. Right Action Button: Single-word FIRE or BLAST
+            GestureDetector(
+              key: const Key('dock_fire_button'),
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticService.instance.injectionClick();
+                if (hasMill && onDirectDischargeBay != null) {
+                  onDirectDischargeBay!(millTriadBays.first);
+                } else {
+                  onQuickFire();
+                }
+              },
+              child: Container(
+                constraints: const BoxConstraints(
+                  minWidth: 64.0,
+                  minHeight: 40.0,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 9.0,
+                  vertical: 5.0,
+                ),
+                decoration: BoxDecoration(
+                  color: hasMill
+                      ? VoidTheme.solarGold.withValues(alpha: 0.20)
+                      : VoidTheme.plasmaCyan.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(10.0),
+                  border: Border.all(
+                    color: hasMill ? VoidTheme.solarGold : VoidTheme.plasmaCyan,
+                    width: 1.2,
+                  ),
+                ),
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          hasMill ? Icons.auto_awesome_motion : Icons.flash_on,
+                          size: 13.0,
+                          color: hasMill
+                              ? VoidTheme.solarGold
+                              : VoidTheme.plasmaCyan,
+                        ),
+                        const SizedBox(width: 3.0),
+                        Text(
+                          hasMill ? 'BLAST' : 'FIRE',
                           style: TextStyle(
                             color: hasMill
                                 ? VoidTheme.solarGold
                                 : VoidTheme.plasmaCyan,
-                            fontSize: 8.0,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 0.5,
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 3.0),
-        _buildSubtleAdvisoryBar(),
-      ],
+      ),
     );
   }
 
@@ -333,7 +333,7 @@ class MancalaBatteryDockWidget extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        constraints: const BoxConstraints(minWidth: 48.0, minHeight: 42.0),
+        constraints: const BoxConstraints(minWidth: 48.0, minHeight: 40.0),
         padding: const EdgeInsets.symmetric(horizontal: 7.0, vertical: 5.0),
         decoration: BoxDecoration(
           color: const Color(0xFF0F172A),
@@ -348,95 +348,10 @@ class MancalaBatteryDockWidget extends StatelessWidget {
             label,
             style: const TextStyle(
               color: VoidTheme.plasmaCyan,
-              fontSize: 8.0,
+              fontSize: 8.5,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.4,
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Builds a crisp, visual-first, human-readable directive nugget row.
-  Widget _buildSubtleAdvisoryBar() {
-    final advice = tacticalAdvice;
-    if (advice != null) {
-      final dirStr = advice.recommendedDirection > 0 ? 'SOW ›' : '‹ SOW';
-      return SizedBox(
-        height: 15.0,
-        child: Center(
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.lightbulb,
-                  size: 10.0,
-                  color: VoidTheme.solarGold,
-                ),
-                const SizedBox(width: 4.0),
-                Text(
-                  'TIP: TAP $dirStr TO POWER UP TOTEM #${(advice.recommendedBay & 7) + 1}',
-                  style: const TextStyle(
-                    color: Color(0xFF38BDF8),
-                    fontSize: 8.0,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    return const SizedBox(
-      height: 15.0,
-      child: Center(
-        child: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.gps_fixed, size: 9.5, color: VoidTheme.plasmaCyan),
-              SizedBox(width: 3.0),
-              Text(
-                'SHOOT = +SEEDS',
-                style: TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 7.8,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              SizedBox(width: 8.0),
-              Icon(Icons.bolt, size: 10.0, color: VoidTheme.plasmaCyan),
-              SizedBox(width: 2.0),
-              Text(
-                '2+ SEEDS = SUPER BEAM',
-                style: TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 7.8,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
-                ),
-              ),
-              SizedBox(width: 8.0),
-              Icon(Icons.shield, size: 9.5, color: VoidTheme.solarGold),
-              SizedBox(width: 3.0),
-              Text(
-                '3 IN A ROW = LASER FENCE',
-                style: TextStyle(
-                  color: VoidTheme.solarGold,
-                  fontSize: 7.8,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.4,
-                ),
-              ),
-            ],
           ),
         ),
       ),
