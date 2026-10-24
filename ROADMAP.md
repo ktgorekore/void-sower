@@ -1106,4 +1106,21 @@ This document serves as the master execution roadmap for **Void Sower: Bao Orbit
   - [x] Author release notes in `docs/releases/release_notes_v0.5.1.md` and `store_listing/release_notes_v0.5.1.md`.
   - [x] Tag git release `v0.5.1` and `v0.5.1+46` and push to GitHub.
 
+---
+
+## 👑 Phase 33: Profile-Linked PRO Badge, Game-Wide Label String Audit & Storefront Refresh (`v0.5.2+47`)
+
+- [x] **Task 33.1: Pair PRO Status Badge with User Profile Icon (`SlimlineHudHeader`, `ProfileModal`, `StatsDashboardScreen`, `CampaignMapScreen`)**
+  - [x] Move `_buildProPill()` (`Key('hud_pro_pill')`) immediately adjacent to `_buildProfileAvatarButton()` (`Key('hud_profile_avatar')`) in `SlimlineHudHeader` before the first vertical divider.
+  - [x] Add gold `Icons.workspace_premium` badge overlay onto the user profile avatar in `ProfileModal` and `StatsDashboardScreen`, and pair the PRO badge next to the `PILOT` bottom nav icon on `CampaignMapScreen`.
+
+- [x] **Task 33.2: Game-Wide UI Label String Audit & Shortening (18 Presentation Files)**
+  - [x] Shorten verbose multi-word phrases used as labels across buttons, badges, section headers, and stat cards into crisp 1–2 word phrases to prevent wrapping or truncation on compact mobile screens.
+  - [x] Update all 15 widget test suites (356/356 tests passing, 0 analyzer warnings).
+
+- [x] **Task 33.3: Storefront Media Refresh & Release Deployment (`v0.5.2+47`)**
+  - [x] Recapture all 10 phone (`1344x2992`) and 7 tablet (`1600x2560`) Play Store screenshots on Android 15 (`emulator-5554`) with host NVIDIA GPU acceleration.
+  - [x] Bump version in `pubspec.yaml` to `0.5.2+47`, author release notes in `docs/releases/release_notes_v0.5.2.md` and `store_listing/release_notes_v0.5.2.md`, tag `v0.5.2` and `v0.5.2+47`, and publish GitHub release.
+
+
 

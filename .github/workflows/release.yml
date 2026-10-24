@@ -167,20 +167,19 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.vars.outputs.tag }}
-          name: "Release ${{ steps.vars.outputs.tag }} — Streamlined HUD, 1-Tap Star Map & Special Ops, Plus Battery Boost"
+          name: "Release ${{ steps.vars.outputs.tag }} — Profile-Linked PRO Badge & Crisp 1–2 Word UI Labels"
           draft: ${{ github.event.inputs.draft || false }}
           prerelease: ${{ github.event.inputs.prerelease || false }}
           generate_release_notes: true
           body: |
-            ### 🚀 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }} (Build 46)
+            ### 🚀 Void Sower: Bao Orbital Batteries Release ${{ steps.vars.outputs.tag }} (Build 47)
 
             #### ✨ Release Highlights
-            * **Streamlined Single-Bar Top HUD & Decluttered Command Dock (`SlimlineHudHeader`, `MancalaBatteryDockWidget`, `CombatScreen`):** Consolidated the top HUD into a single telemetry bar with a circular Pilot Profile Avatar (`hud_profile_avatar_button`) on the far left and removed secondary stacked overlays and multi-line dock text, preserving crisp seed pips (`● ● ○ ○`), shield/fence icons, and concise 1-word buttons (`‹ SOW`, `SOW ›`, `FIRE`/`BLAST`).
-            * **1-Tap Star Map & Special Ops Discoverability (`SlimlineHudHeader`, `CampaignMapScreen`):** Added glowing **Star Map** (`hud_map_button`) and **Special Ops** (`hud_special_ops_button`) shortcuts directly in the top HUD bar, plus a dedicated glowing **OPS** tab (`bottom_nav_special_ops`) and high-contrast top switcher tab (`top_switcher_special_ops`) on the Campaign Map.
-            * **Battery Drain & Lifecycle Optimization (`CombatScreen`, `LandscapeOrientationShield`, `SlimlineHudHeader`, `ProBoostModal`):** Stopped the dormant root `LandscapeOrientationShield` animation controller in portrait mode, added `_computeHudStateHash()` diffing to eliminate redundant 60–120 Hz widget-tree rebuilds during 2D ship drag gestures, subscribed `CombatScreen` to `routeObserver` (`RouteAware`), and paused 1 Hz timers when backgrounded or paused.
-            * **Hot-Path Performance & Native C++17 FFI Hardening (`src/void_sower.cpp`, `FfiVoidSowerEngine`, `Invader3DMesh`, `TacticalSolverController`):** Added deterministic `ui.Vertices.dispose()` calls, pre-allocated per-class typed-data views in `Invader3DMesh`, throttled advisor MCTS evaluations (`0.15s` cooldown), implemented multi-client `void_sower_retain` / `void_sower_release` lease reference counting, and hardened `std::isfinite` float/enum boundary checks across all `extern "C"` FFI endpoints.
+            * **Profile-Linked PRO Status Badge (`SlimlineHudHeader`, `ProfileModal`, `StatsDashboardScreen`, `CampaignMapScreen`):** Repositioned the PRO status pill (`hud_pro_pill`) directly next to the circular Pilot Profile Avatar (`hud_profile_avatar`) in the top HUD bar, added a gold `workspace_premium` PRO badge onto the user profile avatar in the Pilot Dossier and Telemetry screens, and paired the PRO badge with the `PILOT` bottom nav icon on the Campaign Map.
+            * **Game-Wide UI Label Audit & Shortening (18 Presentation Screens & Modals):** Audited and shortened verbose multi-word phrases used as labels across buttons, badges, section headers, and stat cards into crisp 1–2 word labels (e.g., `SCORE`, `BEST SCORE`, `SECTOR LOCKED`, `PRO COMMANDER`, `PILOT TELEMETRY`, `COMBAT STATS`, `CLOUD SYNC`, `SIMULATION LAB`, `MCTS BENCHMARK`, `LAUNCH`, `INCURSION`, `AI SCANNING`) to prevent wrapping or truncation across all mobile viewports.
+            * **Refreshed Google Play Store Screenshots:** Recaptured all 10 phone (`1344x2992`) and 7 tablet (`1600x2560`) Play Store screenshots on hardware-accelerated Android 15 (`emulator-5554`).
             * **How to Play & Master Strategy Guide:** [`docs/how_to_play_and_strategy_guide.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/how_to_play_and_strategy_guide.md)
-            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`store_listing/release_notes_v0.5.1.md`](https://github.com/ktgorekore/void-sower/blob/main/store_listing/release_notes_v0.5.1.md) · [`docs/releases/release_notes_v0.5.1.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_v0.5.1.md)
+            * **Play Console Release Notes (`en-US`, `sw`, `fr-FR`, `es-ES`):** [`store_listing/release_notes_v0.5.2.md`](https://github.com/ktgorekore/void-sower/blob/main/store_listing/release_notes_v0.5.2.md) · [`docs/releases/release_notes_v0.5.2.md`](https://github.com/ktgorekore/void-sower/blob/main/docs/releases/release_notes_v0.5.2.md)
 
             #### 📦 Release Artifacts:
             * **Android App Bundle (.aab):** `void-sower-${{ steps.vars.outputs.tag }}.aab` (${{ steps.artifacts.outputs.aab_size_mb }} MB)
