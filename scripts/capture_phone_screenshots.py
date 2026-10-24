@@ -259,8 +259,8 @@ def launch_sector_9():
   """Launches app, navigates to Star Map, and engages Sector 9 (Bastion)."""
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(2.4)
-  # Tap '<' Map button in top-left HUD
-  tap(85, 224)
+  # Tap Star Map button in top-left HUD
+  tap(343, 224)
   time.sleep(1.5)
   # Tap ENGAGE on Sector 9 (Great Siphon Singularity)
   tap(1100, 2235)
@@ -309,8 +309,8 @@ def main():
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(2.4)
 
-  # Open Campaign Star Map via top-left '<' button
-  tap(85, 224)
+  # Open Campaign Star Map via top-left Star Map button
+  tap(343, 224)
   time.sleep(1.5)
   capture(
       "05_kilwa_basin_campaign_map.png",
@@ -318,7 +318,7 @@ def main():
   )
 
   # Open Orbital Fleet Hangar via bottom nav FLEET tab
-  tap(392, 2815)
+  tap(560, 2815)
   time.sleep(1.2)
   capture(
       "04_orbital_fleet_hangar.png",
