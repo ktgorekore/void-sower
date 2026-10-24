@@ -64,7 +64,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Verify the dialog is presented with input field
-        expect(find.text('RESTORE TELEMETRY SAVE'), findsOneWidget);
+        expect(find.text('RESTORE SAVE'), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
 
         // Cancel dialog - safely closes and disposes controller via finally block
@@ -74,7 +74,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Dialog should be dismissed
-        expect(find.text('RESTORE TELEMETRY SAVE'), findsNothing);
+        expect(find.text('RESTORE SAVE'), findsNothing);
       },
     );
 
@@ -94,7 +94,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Trigger benchmark
-        final runButtonFinder = find.text('RUN 100-STEP BENCHMARK');
+        final runButtonFinder = find.text('RUN BENCHMARK');
         expect(runButtonFinder, findsOneWidget);
         await tester.tap(runButtonFinder);
         await tester.pump(); // Start the 50ms timer

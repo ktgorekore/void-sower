@@ -134,8 +134,8 @@ void main() {
 
         expect(find.text('SECTOR 1 LIBERATED!'), findsOneWidget);
         expect(find.text('ZANZIBAR REEF GATE'), findsOneWidget);
-        expect(find.text('★★★ FLAWLESS DEFENSE'), findsOneWidget);
-        expect(find.text('NEW SECTOR UNLOCKED!'), findsOneWidget);
+        expect(find.text('★★★ FLAWLESS'), findsOneWidget);
+        expect(find.text('SECTOR UNLOCKED'), findsOneWidget);
         expect(find.text('Sector 2: PEMBA CHANNEL RELAY'), findsOneWidget);
         expect(find.text('4200'), findsNWidgets(2));
         expect(find.text('18'), findsOneWidget);
@@ -266,14 +266,14 @@ void main() {
       await tester.tap(find.text('Pemba Channel Relay'));
       await tester.pumpAndSettle();
 
-      expect(find.text('IMPERIAL ORBITAL BLOCKADE DETECTED'), findsOneWidget);
-      expect(find.text('CLEARANCE REQUIREMENT'), findsOneWidget);
+      expect(find.text('SECTOR LOCKED'), findsOneWidget);
+      expect(find.text('REQUIRED'), findsOneWidget);
       expect(find.text('DEPLOY • S1'), findsOneWidget);
 
       // Dismiss locked intel sheet
       await tester.tap(find.text('DISMISS'));
       await tester.pumpAndSettle();
-      expect(find.text('IMPERIAL ORBITAL BLOCKADE DETECTED'), findsNothing);
+      expect(find.text('SECTOR LOCKED'), findsNothing);
     });
 
     testWidgets(

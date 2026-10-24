@@ -61,7 +61,7 @@ void main() {
         expect(find.text('SWARM'), findsOneWidget);
 
         // 3. Verify streamlined launch button
-        expect(find.text('LAUNCH SORTIE'), findsOneWidget);
+        expect(find.text('LAUNCH'), findsOneWidget);
         expect(find.text('INITIALIZE CUSTOM SIMULATION SORTIE'), findsNothing);
       },
     );
@@ -90,7 +90,7 @@ void main() {
     });
 
     testWidgets(
-      'Tapping LAUNCH SORTIE navigates to CombatScreen with custom parameters',
+      'Tapping LAUNCH navigates to CombatScreen with custom parameters',
       (tester) async {
         final mockEngine = MockVoidSowerEngine();
 
@@ -99,8 +99,8 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        // Tap LAUNCH SORTIE
-        await tester.tap(find.text('LAUNCH SORTIE'));
+        // Tap LAUNCH
+        await tester.tap(find.text('LAUNCH'));
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
 

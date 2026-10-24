@@ -282,11 +282,8 @@ void main() {
       expect(find.byType(PauseMenuDialog), findsOneWidget);
 
       // Tap Pro Boost strip in pause menu
-      expect(
-        find.text('UNLOCK PRO BOOST • TAP TO STACK (+5m)'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('UNLOCK PRO BOOST • TAP TO STACK (+5m)'));
+      expect(find.text('PRO BOOST (+5m)'), findsOneWidget);
+      await tester.tap(find.text('PRO BOOST (+5m)'));
       await tester.pump(const Duration(milliseconds: 200));
 
       // ProBoostModal is open
@@ -325,12 +322,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('PRO TEMPORAL OVERCHARGE'), findsOneWidget);
-        expect(find.text('WATCH AD (+5m BOOST)'), findsOneWidget);
+        expect(find.text('PRO BOOST'), findsOneWidget);
+        expect(find.text('AD (+5m BOOST)'), findsOneWidget);
         expect(find.text('0 / 60 MIN'), findsOneWidget);
 
         // Tap Watch Ad
-        await tester.tap(find.text('WATCH AD (+5m BOOST)'));
+        await tester.tap(find.text('AD (+5m BOOST)'));
         await tester.pumpAndSettle();
 
         expect(boostUpdated, isTrue);

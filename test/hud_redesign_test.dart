@@ -119,9 +119,9 @@ void main() {
 
         expect(find.text('TACTICAL PAUSE'), findsOneWidget);
         expect(find.text('SECTOR 3 • Kipumbwi Trench • SIEGE'), findsOneWidget);
-        expect(find.text('CURRENT SORTIE SCORE'), findsOneWidget);
+        expect(find.text('SCORE'), findsOneWidget);
         expect(find.text('1420'), findsOneWidget);
-        expect(find.text('ALL-TIME HIGH SCORE'), findsOneWidget);
+        expect(find.text('BEST SCORE'), findsOneWidget);
         expect(find.text('5000'), findsOneWidget);
 
         expect(find.byIcon(Icons.play_arrow), findsOneWidget);
@@ -337,13 +337,13 @@ void main() {
           ),
         );
 
-        expect(find.text('MISSION SCORE'), findsOneWidget);
+        expect(find.text('SCORE'), findsOneWidget);
         expect(
           find.text('5200'),
           findsNWidgets(2),
         ); // Mission score & new high score
-        expect(find.text('★ NEW RECORD'), findsOneWidget);
-        expect(find.text('CORES SAVED'), findsOneWidget);
+        expect(find.text('★ NEW BEST'), findsOneWidget);
+        expect(find.text('CORES'), findsOneWidget);
         expect(find.text('18'), findsOneWidget);
       },
     );
@@ -364,8 +364,8 @@ void main() {
         ),
       );
 
-      expect(find.text('FINAL SCORE: 1200'), findsOneWidget);
-      expect(find.text('ALL-TIME HIGH SCORE: 6000'), findsOneWidget);
+      expect(find.text('SCORE: 1200'), findsOneWidget);
+      expect(find.text('BEST: 6000'), findsOneWidget);
     });
 
     testWidgets(
@@ -792,18 +792,24 @@ void main() {
 
         expect(find.byKey(const Key('unified_top_hud_bar')), findsOneWidget);
         final avatarFinder = find.byKey(const Key('hud_profile_avatar'));
+        final proPillFinder = find.byKey(const Key('hud_pro_pill'));
         final mapFinder = find.byKey(const Key('hud_map_button'));
         final specialOpsFinder = find.byKey(
           const Key('hud_special_ops_button'),
         );
         expect(avatarFinder, findsOneWidget);
+        expect(proPillFinder, findsOneWidget);
         expect(mapFinder, findsOneWidget);
         expect(specialOpsFinder, findsOneWidget);
 
-        // Verify Gmail-style avatar displays Google display name initial ('A') and is leftmost, followed by Star Map and Special Ops
+        // Verify Gmail-style avatar displays Google display name initial ('A') and is leftmost, followed immediately by PRO pill, then Star Map and Special Ops
         expect(find.text('A'), findsOneWidget);
         expect(
           tester.getTopLeft(avatarFinder).dx,
+          lessThan(tester.getTopLeft(proPillFinder).dx),
+        );
+        expect(
+          tester.getTopLeft(proPillFinder).dx,
           lessThan(tester.getTopLeft(mapFinder).dx),
         );
         expect(

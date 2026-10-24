@@ -79,7 +79,7 @@ void main() {
 
         expect(find.byType(GameOverDialog), findsOneWidget);
         expect(find.text('CORES EXHAUSTED'), findsOneWidget);
-        expect(find.text('FINAL SCORE: 1500'), findsOneWidget);
+        expect(find.text('SCORE: 1500'), findsOneWidget);
 
         // Core refill and ad CTAs must NEVER appear
         expect(find.textContaining('SUMMON AUXILIARY CORES'), findsNothing);
@@ -282,7 +282,7 @@ void main() {
         await tester.pump();
 
         // Check standby bar exists
-        expect(find.text('TACTICAL AI SCANNING CORRIDORS...'), findsOneWidget);
+        expect(find.text('AI SCANNING'), findsOneWidget);
         expect(find.text('STANDBY'), findsOneWidget);
 
         final initialArcSize = tester.getSize(find.byType(CommandArcWidget));
@@ -408,7 +408,7 @@ void main() {
         await tester.pump();
 
         // Check standby bar exists for free user too
-        expect(find.text('TACTICAL AI SCANNING CORRIDORS...'), findsOneWidget);
+        expect(find.text('AI SCANNING'), findsOneWidget);
         expect(find.text('STANDBY'), findsOneWidget);
 
         final freeStandbySize = tester.getSize(find.byType(CommandArcWidget));

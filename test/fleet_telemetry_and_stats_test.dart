@@ -331,21 +331,21 @@ void main() {
       await tester.pumpAndSettle();
 
       // App Bar
-      expect(find.text('FLEET TELEMETRY'), findsOneWidget);
+      expect(find.text('PILOT TELEMETRY'), findsOneWidget);
 
       // Card 1: Pilot Dossier
       expect(find.text('VANGUARD-01'), findsOneWidget);
-      expect(find.text('RECRUIT PILOT'), findsOneWidget);
+      expect(find.text('RECRUIT'), findsOneWidget);
       expect(find.textContaining('RANK:'), findsOneWidget);
 
       // Card 2: Deployment Readiness & Habit
-      expect(find.text('DEPLOYMENT READINESS & HABIT'), findsOneWidget);
-      expect(find.text('1 DAYS ACTIVE'), findsOneWidget);
-      expect(find.text('LONGEST STREAK'), findsOneWidget);
+      expect(find.text('STREAKS'), findsOneWidget);
+      expect(find.text('1d STREAK'), findsOneWidget);
+      expect(find.text('BEST STREAK'), findsOneWidget);
       expect(find.text('FLIGHT TIME'), findsOneWidget);
 
       // Card 3: Mission Outcomes & Win Rate
-      expect(find.text('MISSION OUTCOMES & WIN RATE'), findsOneWidget);
+      expect(find.text('OUTCOMES'), findsOneWidget);
       expect(find.text('100%'), findsOneWidget); // 1 victory, 0 defeat
       expect(find.text('SORTIES'), findsOneWidget);
       expect(find.text('VICTORIES'), findsOneWidget);
@@ -353,32 +353,32 @@ void main() {
       expect(find.text('FLAWLESS'), findsOneWidget);
 
       // Card 4: Tactical Sensor Log & Metrics
-      expect(find.text('TACTICAL SENSOR LOG & COMBAT METRICS'), findsOneWidget);
-      expect(find.text('HIGHEST COMBAT SCORE'), findsOneWidget);
-      expect(find.text('ENEMIES DESTROYED'), findsOneWidget);
-      expect(find.text('LANCES DISCHARGED'), findsOneWidget);
-      expect(find.text('PLASMA CORES SOWN'), findsOneWidget);
-      expect(find.text('CORES PRESERVED'), findsOneWidget);
-      expect(find.text('MAX CASCADE COMBO'), findsOneWidget);
+      expect(find.text('COMBAT STATS'), findsOneWidget);
+      expect(find.text('BEST SCORE'), findsOneWidget);
+      expect(find.text('KILLS'), findsOneWidget);
+      expect(find.text('LANCES'), findsOneWidget);
+      expect(find.text('CORES SOWN'), findsOneWidget);
+      expect(find.text('CORES SAVED'), findsOneWidget);
+      expect(find.text('MAX COMBO'), findsOneWidget);
 
       // Card 5: Multi-Theater Campaign Mastery
       await tester.scrollUntilVisible(
-        find.text('CAMPAIGN THEATER MASTERY'),
+        find.text('CAMPAIGNS'),
         200.0,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('CAMPAIGN THEATER MASTERY'), findsOneWidget);
+      expect(find.text('CAMPAIGNS'), findsOneWidget);
       expect(find.text('KILWA BASIN'), findsOneWidget);
       expect(find.text('PHANTOM DRIFT'), findsOneWidget);
       expect(find.text('VOID SWARM'), findsOneWidget);
 
       // Card 6: Fleet Chassis Deployment
       await tester.scrollUntilVisible(
-        find.text('FLEET CHASSIS DEPLOYMENT'),
+        find.text('FLEET USAGE'),
         200.0,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('FLEET CHASSIS DEPLOYMENT'), findsOneWidget);
+      expect(find.text('FLEET USAGE'), findsOneWidget);
       expect(find.text('MK-I Bastion Standard'), findsOneWidget);
       expect(find.text('MK-II Monsoon Vanguard'), findsOneWidget);
 
@@ -390,7 +390,7 @@ void main() {
       );
       expect(find.text('EXPORT SAVE'), findsOneWidget);
       expect(find.text('IMPORT SAVE'), findsOneWidget);
-      expect(find.text('ERASE GUEST DATA (GDPR)'), findsOneWidget);
+      expect(find.text('ERASE DATA'), findsOneWidget);
     });
 
     testWidgets('GDPR confirmation modal cancels safely without erasing data', (
@@ -408,14 +408,14 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.scrollUntilVisible(
-        find.text('ERASE GUEST DATA (GDPR)'),
+        find.text('ERASE DATA'),
         200.0,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(find.text('ERASE GUEST DATA (GDPR)'));
+      await tester.tap(find.text('ERASE DATA'));
       await tester.pumpAndSettle();
 
-      expect(find.text('ERASE GUEST TELEMETRY?'), findsOneWidget);
+      expect(find.text('ERASE DATA?'), findsOneWidget);
       await tester.tap(find.text('CANCEL'));
       await tester.pumpAndSettle();
 
@@ -437,11 +437,11 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.scrollUntilVisible(
-        find.text('ERASE GUEST DATA (GDPR)'),
+        find.text('ERASE DATA'),
         200.0,
         scrollable: find.byType(Scrollable).first,
       );
-      await tester.tap(find.text('ERASE GUEST DATA (GDPR)'));
+      await tester.tap(find.text('ERASE DATA'));
       await tester.pumpAndSettle();
 
       expect(find.text('CONFIRM PURGE'), findsOneWidget);
@@ -466,11 +466,11 @@ void main() {
         await tester.pumpAndSettle();
 
         await tester.scrollUntilVisible(
-          find.text('LIFETIME COMBAT TELEMETRY'),
+          find.text('LIFETIME STATS'),
           150.0,
           scrollable: find.byType(Scrollable).first,
         );
-        expect(find.text('LIFETIME COMBAT TELEMETRY'), findsOneWidget);
+        expect(find.text('LIFETIME STATS'), findsOneWidget);
 
         await tester.scrollUntilVisible(
           find.text('Sorties / Win Rate'),
@@ -480,11 +480,11 @@ void main() {
         expect(find.text('Sorties / Win Rate'), findsOneWidget);
 
         await tester.scrollUntilVisible(
-          find.text('FLEET TELEMETRY'),
+          find.text('FULL STATS'),
           150.0,
           scrollable: find.byType(Scrollable).first,
         );
-        expect(find.text('FLEET TELEMETRY'), findsOneWidget);
+        expect(find.text('FULL STATS'), findsOneWidget);
       },
     );
   });
@@ -512,14 +512,14 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('AI SOLVER • UNRANKED'), findsOneWidget);
+        expect(find.text('AI UNRANKED'), findsOneWidget);
         expect(find.text('UNRANKED'), findsOneWidget);
         expect(find.text('4500 PTS'), findsNothing);
       },
     );
 
     testWidgets(
-      'GameOverDialog renders AI SIMULATION • UNRANKED when isAiAssisted is true',
+      'GameOverDialog renders AI UNRANKED when isAiAssisted is true',
       (tester) async {
         await tester.binding.setSurfaceSize(const Size(480, 800));
         addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -539,9 +539,9 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('AI SIMULATION • UNRANKED'), findsOneWidget);
-        expect(find.text('ALL-TIME HIGH SCORE: 12000'), findsOneWidget);
-        expect(find.text('FINAL SCORE: 2200'), findsNothing);
+        expect(find.text('AI UNRANKED'), findsOneWidget);
+        expect(find.text('BEST: 12000'), findsOneWidget);
+        expect(find.text('SCORE: 2200'), findsNothing);
       },
     );
   });

@@ -425,26 +425,23 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('SOUND EFFECTS (SFX)'), findsOneWidget);
-        expect(find.text('BACKGROUND MUSIC (BGM)'), findsOneWidget);
+        expect(find.text('SFX VOLUME'), findsOneWidget);
+        expect(find.text('BGM VOLUME'), findsOneWidget);
 
         // Toggle Sound Effects switch
-        await tester.tap(find.text('SOUND EFFECTS (SFX)'));
+        await tester.tap(find.text('SFX VOLUME'));
         await tester.pumpAndSettle();
         expect(p.isSoundEnabled, isFalse);
 
         // Toggle Background Music switch
-        await tester.tap(find.text('BACKGROUND MUSIC (BGM)'));
+        await tester.tap(find.text('BGM VOLUME'));
         await tester.pumpAndSettle();
         expect(p.isMusicEnabled, isFalse);
 
         // Scroll down to check haptics and the note
-        await tester.drag(
-          find.text('SOUND EFFECTS (SFX)'),
-          const Offset(0, -350),
-        );
+        await tester.drag(find.text('SFX VOLUME'), const Offset(0, -350));
         await tester.pumpAndSettle();
-        expect(find.text('Haptic Vibration Feedback'), findsOneWidget);
+        expect(find.text('Vibration Intensity'), findsOneWidget);
         expect(
           find.text(
             'Disabling sound/music or setting volume to 0% releases device audio focus so you can listen to external media (YouTube, Spotify, Podcasts) without interruption.',
@@ -495,27 +492,27 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('PILOT FLIGHT DOSSIER'), findsOneWidget);
-      expect(find.text('PILOT CLOUD ACCOUNT'), findsOneWidget);
+      expect(find.text('CLOUD SYNC'), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.text('SQUADRON ROSTER (PROFILES)'),
+        find.text('PILOT ROSTER'),
         150.0,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('SQUADRON ROSTER (PROFILES)'), findsOneWidget);
+      expect(find.text('PILOT ROSTER'), findsOneWidget);
 
       await tester.scrollUntilVisible(
-        find.text('SQUADRON CULTURAL INSIGNIA'),
+        find.text('INSIGNIA'),
         150.0,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('SQUADRON CULTURAL INSIGNIA'), findsOneWidget);
+      expect(find.text('INSIGNIA'), findsOneWidget);
 
       await tester.scrollUntilVisible(
-        find.text('LIFETIME COMBAT TELEMETRY'),
+        find.text('LIFETIME STATS'),
         150.0,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('LIFETIME COMBAT TELEMETRY'), findsOneWidget);
+      expect(find.text('LIFETIME STATS'), findsOneWidget);
 
       await tester.scrollUntilVisible(
         find.text('EXPORT SAVE'),
@@ -573,10 +570,10 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('CRITICAL REACTOR DEPLETION'), findsOneWidget);
-        expect(find.text('Emergency Orbital Flare Available'), findsOneWidget);
+        expect(find.text('REACTOR DEPLETED'), findsOneWidget);
+        expect(find.text('Emergency Flare'), findsOneWidget);
 
-        await tester.tap(find.text('WATCH AD (+56 CORES)'));
+        await tester.tap(find.text('AD (+56 CORES)'));
         await tester.pumpAndSettle();
 
         expect(awarded, 56);

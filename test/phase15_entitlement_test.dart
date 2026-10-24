@@ -154,8 +154,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('PRO COMMANDER FLEET'), findsOneWidget);
-      expect(find.text('Lifetime License • \$1.29 One-Time'), findsOneWidget);
+      expect(find.text('PRO COMMANDER'), findsOneWidget);
+      expect(find.text('Lifetime • \$1.29'), findsOneWidget);
       expect(find.text('UNLOCK PRO — \$1.29'), findsOneWidget);
       expect(find.text('WATCH AD (+5m PRO)'), findsOneWidget);
       expect(find.text('RESTORE PURCHASES'), findsOneWidget);

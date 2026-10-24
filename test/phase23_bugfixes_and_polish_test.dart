@@ -91,10 +91,10 @@ void main() {
         await tester.pumpAndSettle();
 
         // Standardized button verification
-        expect(find.text('WATCH AD (+56 CORES & +5m PRO)'), findsOneWidget);
+        expect(find.text('AD: +56 CORES'), findsOneWidget);
         expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
 
-        await tester.tap(find.text('WATCH AD (+56 CORES & +5m PRO)'));
+        await tester.tap(find.text('AD: +56 CORES'));
         await tester.pump();
         expect(adWatched, isTrue);
       },
@@ -186,7 +186,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('WATCH AD (+56 CORES)'), findsOneWidget);
+      expect(find.text('AD (+56 CORES)'), findsOneWidget);
       expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
     });
   });

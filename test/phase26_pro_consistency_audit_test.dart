@@ -65,7 +65,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Must display Pro auxiliary core label
-        expect(find.text('SUMMON AUXILIARY CORES (+56 CORES)'), findsOneWidget);
+        expect(find.text('CORES +56'), findsOneWidget);
         expect(find.byIcon(Icons.bolt), findsWidgets);
 
         // Must NEVER display ad terminology or play circle icon
@@ -73,7 +73,7 @@ void main() {
         expect(find.byIcon(Icons.play_circle_filled), findsNothing);
 
         // Tap executes immediately
-        await tester.tap(find.text('SUMMON AUXILIARY CORES (+56 CORES)'));
+        await tester.tap(find.text('CORES +56'));
         await tester.pump();
         expect(callbackFired, isTrue);
       },
@@ -102,10 +102,10 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('WATCH AD (+56 CORES & +5m PRO)'), findsOneWidget);
+        expect(find.text('AD: +56 CORES'), findsOneWidget);
         expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
 
-        await tester.tap(find.text('WATCH AD (+56 CORES & +5m PRO)'));
+        await tester.tap(find.text('AD: +56 CORES'));
         await tester.pump();
         expect(callbackFired, isTrue);
       },
@@ -177,8 +177,8 @@ void main() {
         await tester.pumpAndSettle();
 
         // Must show Pro tier and summon flare
-        expect(find.text('TIER: PRO COMMANDER'), findsOneWidget);
-        expect(find.text('+56 CORES • INSTANT'), findsOneWidget);
+        expect(find.text('PRO COMMANDER'), findsOneWidget);
+        expect(find.text('+56 CORES'), findsOneWidget);
         expect(find.text('SUMMON FLARE'), findsOneWidget);
         expect(find.byIcon(Icons.bolt), findsWidgets);
         expect(find.textContaining('WATCH AD'), findsNothing);
@@ -207,7 +207,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('WATCH AD (+56 CORES)'), findsOneWidget);
+      expect(find.text('AD (+56 CORES)'), findsOneWidget);
       expect(find.byIcon(Icons.play_circle_filled), findsOneWidget);
     });
   });
@@ -232,8 +232,8 @@ void main() {
           await tester.pumpAndSettle();
 
           // Must NOT show WATCH AD or UNLOCK PRO
-          expect(find.text('WATCH AD (+5m PRO)'), findsNothing);
-          expect(find.text('UNLOCK PRO — \$1.29'), findsNothing);
+          expect(find.text('AD (+5m PRO)'), findsNothing);
+          expect(find.text('PRO • \$1.29'), findsNothing);
         }
       },
     );
@@ -241,7 +241,7 @@ void main() {
 
   group('Phase 26: ProUpgradeModal Lifetime State Audit', () {
     testWidgets(
-      'Lifetime Pro user in ProUpgradeModal sees PRO COMMANDER LIFETIME ACTIVE and no purchase CTAs',
+      'Lifetime Pro user in ProUpgradeModal sees PRO ACTIVE and no purchase CTAs',
       (tester) async {
         await PersistenceService.instance.setProUnlocked(true);
         EntitlementService.instance.syncStateFromPersistence();
@@ -251,7 +251,7 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(find.text('PRO COMMANDER LIFETIME ACTIVE'), findsOneWidget);
+        expect(find.text('PRO ACTIVE'), findsOneWidget);
         expect(find.text('UNLOCK PRO — \$1.29'), findsNothing);
         expect(find.text('WATCH AD (+5m PRO)'), findsNothing);
         expect(find.text('CLOSE'), findsOneWidget);

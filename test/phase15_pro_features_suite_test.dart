@@ -284,8 +284,8 @@ void main() {
           MaterialApp(home: SimulationLabScreen(engine: engine)),
         );
 
-        expect(find.text('ORBITAL SIMULATION LAB'), findsOneWidget);
-        expect(find.text('PRO COMMANDER CLEARANCE REQUIRED'), findsOneWidget);
+        expect(find.text('SIMULATION LAB'), findsOneWidget);
+        expect(find.text('PRO REQUIRED'), findsOneWidget);
         expect(find.text('UNLOCK PRO'), findsOneWidget);
       },
     );
@@ -308,25 +308,19 @@ void main() {
         await tester.tap(find.text('MCTS ARENA'));
         await tester.pumpAndSettle();
 
-        expect(find.text('NATIVE C++ MCTS SOLVER STRESS-TEST'), findsOneWidget);
-        expect(find.text('RUN 100-STEP BENCHMARK'), findsOneWidget);
+        expect(find.text('MCTS BENCHMARK'), findsOneWidget);
+        expect(find.text('RUN BENCHMARK'), findsOneWidget);
 
         // Trigger Benchmark execution
-        await tester.tap(find.text('RUN 100-STEP BENCHMARK'));
+        await tester.tap(find.text('RUN BENCHMARK'));
         await tester.pump(); // Starts timer
 
         // Allow 50ms Timer and 100 iterations to run
         await tester.pump(const Duration(milliseconds: 100));
         await tester.pumpAndSettle();
 
-        expect(
-          find.text('BENCHMARK TELEMETRY RESULTS (100 ITERATIONS)'),
-          findsOneWidget,
-        );
-        expect(
-          find.text('FRAME TIME COMPLIANCE (16.6ms BUDGET)'),
-          findsOneWidget,
-        );
+        expect(find.text('BENCHMARK RESULTS'), findsOneWidget);
+        expect(find.text('FRAME BUDGET'), findsOneWidget);
       },
     );
   });

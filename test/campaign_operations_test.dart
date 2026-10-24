@@ -222,7 +222,7 @@ void main() {
 
         // Theater switches and displays Sector 10 unlocked
         expect(find.text('Aldabra Shimmer Rift'), findsOneWidget);
-        expect(find.text('PHANTOM DRIFT • LATERAL EVASION'), findsOneWidget);
+        expect(find.text('PHANTOM DRIFT'), findsNWidgets(3));
         expect(find.text('ENGAGE'), findsOneWidget);
 
         // Sector 11 is locked
@@ -231,22 +231,22 @@ void main() {
         await tester.pumpAndSettle();
 
         // Locked dialog opens with Pro upgrade option
-        expect(find.text('IMPERIAL ORBITAL BLOCKADE DETECTED'), findsOneWidget);
+        expect(find.text('SECTOR LOCKED'), findsOneWidget);
         expect(
           find.text(
             'Unlock Pro Commander clearance to deploy to Phantom Drift sectors.',
           ),
           findsOneWidget,
         );
-        expect(find.text('UNLOCK PRO — \$1.29'), findsOneWidget);
+        expect(find.text('PRO • \$1.29'), findsOneWidget);
 
         // Tap Pro upgrade button
-        await tester.tap(find.text('UNLOCK PRO — \$1.29'));
+        await tester.tap(find.text('PRO • \$1.29'));
         await tester.pumpAndSettle();
 
         // Modal should open
         expect(find.byType(ProUpgradeModal), findsOneWidget);
-        expect(find.text('PRO COMMANDER FLEET'), findsOneWidget);
+        expect(find.text('PRO COMMANDER'), findsOneWidget);
       },
     );
 
@@ -270,7 +270,7 @@ void main() {
 
         // Doctrine banner and Phantom Drift sector should now be displayed
         expect(find.text('Aldabra Shimmer Rift'), findsOneWidget);
-        expect(find.text('PHANTOM DRIFT • LATERAL EVASION'), findsOneWidget);
+        expect(find.text('PHANTOM DRIFT'), findsNWidgets(3));
 
         // Tap on VOID SWARM tab
         await tester.tap(find.text('VOID SWARM'));
@@ -278,10 +278,7 @@ void main() {
 
         // Void Swarm sector and doctrine banner should be displayed
         expect(find.text('Comoros Hive Gate'), findsOneWidget);
-        expect(
-          find.text('VOID SWARM • HORDE CRUCIBLE & CORE SIPHON'),
-          findsOneWidget,
-        );
+        expect(find.text('VOID SWARM'), findsNWidgets(3));
       },
     );
 
@@ -378,16 +375,16 @@ void main() {
         // Special Operations view is rendered
         expect(find.text('SPECIAL OPERATIONS'), findsOneWidget);
         expect(find.text('DAILY SORTIE'), findsOneWidget);
-        expect(find.text('LAUNCH SORTIE'), findsOneWidget);
+        expect(find.text('LAUNCH'), findsOneWidget);
         expect(find.text('VOID INCURSION'), findsOneWidget);
-        expect(find.text('START INCURSION'), findsOneWidget);
+        expect(find.text('INCURSION'), findsOneWidget);
 
         // Scroll down in Special Ops ListView to reveal Pro Overcharge card
         await tester.drag(find.byType(ListView), const Offset(0.0, -400.0));
         await tester.pumpAndSettle();
 
         expect(find.text('PRO OVERCHARGE'), findsOneWidget);
-        expect(find.text('WATCH AD (+5m PRO)'), findsOneWidget);
+        expect(find.text('AD (+5m PRO)'), findsOneWidget);
 
         // 3. Switch back to CAMPAIGN SECTORS via KILWA BASIN tab
         await tester.tap(find.text('KILWA BASIN'));

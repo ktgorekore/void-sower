@@ -242,7 +242,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Debug Emulator Sandbox popup is displayed
-        expect(find.text('DEBUG EMULATOR SANDBOX'), findsOneWidget);
+        expect(find.text('DEBUG SANDBOX'), findsOneWidget);
         expect(find.text('SIMULATE PURCHASE'), findsOneWidget);
 
         // Tap SIMULATE PURCHASE
