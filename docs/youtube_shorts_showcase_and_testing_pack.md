@@ -57,18 +57,18 @@ The gameplay showcase captures the real-time AI Tactical Solver autonomously cal
 
 > [!NOTE]
 > **Video & Preview Media Assets:**
-> - **Video Asset:** [`media/void_sower_solver_showcase_30s.mp4`](media/void_sower_solver_showcase_30s.mp4)
+> - **Video Asset:** [`media/void_sower_solver_showcase_30s.mp4`](media/void_sower_solver_showcase_30s.mp4) & [`media/void_sower_gameplay_showcase.mp4`](media/void_sower_gameplay_showcase.mp4)
 > - **Animated Preview GIF:** [`media/void_sower_solver_showcase.gif`](media/void_sower_solver_showcase.gif)
 > - **Store Promotional Copy:** [`../store_listing/assets/promo_gameplay.mp4`](../store_listing/assets/promo_gameplay.mp4)
 > - **Store Promotional GIF:** [`../store_listing/assets/promo_gameplay.gif`](../store_listing/assets/promo_gameplay.gif)
 > - **Aspect Ratio:** `9:16` Vertical Portrait (`1080 x 2400 px` / `360 x 800 px` GIF)
-> - **Duration:** Exactly `30.0 seconds` (12.0s loop for GIF)
-> - **Audio:** Ambient atmospheric sci-fi synth score with 1s fade-in and 1.5s fade-out.
+> - **Duration:** Exactly `30.0 seconds` (`44.1 kHz` Stereo AAC)
+> - **Audio Mix:** Ambient C-minor deep-space synth score layered with synchronized in-game combat sound effects (`lance_fire.wav`, `flak_burst.wav`, `sow_step.wav`, `inject_core.wav`, `overload.wav`, `bullet_deflect.wav`, `victory.wav`).
 > - **Pacing Breakdown:**
->   - **0:00 – 0:08:** **Tier 1 (Sector Patrol)** — Dreadnought aligns with corridor 2; AI injects into bay 7, sows to bay 10, unleashing a 2500 DMG upward Particle Lance vaporizing alien escort vessels and deflecting incoming plasma bombs (`DEFLECT +50`).
->   - **0:08 – 0:10:** **Sector Liberated** — 3-star fanfare with 300 score and 26 cores saved.
->   - **0:10 – 0:20:** **Tier 2 (Planetary Siege)** — 4 enemy vessels drop crimson ordnance. Dreadnought maneuvers laterally, accumulates inner reservoir charge, and fires an upward lance down corridor 6.
->   - **0:20 – 0:30:** **Tier 3 (Flagship Bastion)** — High-mass sowing ($M=6$) triggers an astronomical $3600\text{ DMG}$ Particle Lance, screen shake, and floating arcade damage numbers.
+>   - **0:00 – 0:08:** **3D Tactical Combat & Quadratic $M^2$ `MEGA GUN` Super Beam** — Dreadnought banks across Corridor 3 (`✨ #3 •••• 16x`), unleashes a full-height quadratic double-helix Particle Lance (`SUPER CRIT +17000`), and surges forward into Vanguard range.
+>   - **0:08 – 0:16:** **3-Beam Morabaraba `FENCE BLAST` & Bao Sowing Cascades** — Player triggers a simultaneous 3-corridor golden Morabaraba `FENCE BLAST` laser barrage across Corridors 5, 6, and 7 (`+4 CORES`, `DEFLECT +50`), followed by clockwise/counter-clockwise `‹ SOW` / `SOW ›` relays.
+>   - **0:16 – 0:24:** **Autonomous C++ MCTS `AI AUTO` Tactical Solver** — Activates the native C++ MCTS autopilot to orchestrate multi-lap Bao cascades and continuous Particle Lance barrages.
+>   - **0:24 – 0:30:** **Kilwa Nebula Basin Campaign & 3D Orbital Drydock Hangar** — Transitions seamlessly to the Star Map (`LIBERATED 8/9`) and the 3D Dreadnought Fleet Hangar (`3D MESH // 16V`).
 
 
 ---
@@ -78,7 +78,7 @@ The gameplay showcase captures the real-time AI Tactical Solver autonomously cal
 | Phone Layout (Pixel 10 Pro XL) | Tablet Layout (Pixel Tablet) |
 | :---: | :---: |
 | ![Phone Combat Grid](../store_listing/screenshots/phone/01_tactical_combat_grid.png) | ![Tablet Combat Grid](../store_listing/screenshots/tablet/01_tablet_tactical_combat.png) |
-| *1344 x 2992 Native Portrait* | *2560 x 1600 Native Landscape* |
+| *1344 x 2992 Native Portrait* | *1600 x 2560 Native Tablet* |
 
 ---
 
@@ -86,22 +86,22 @@ The gameplay showcase captures the real-time AI Tactical Solver autonomously cal
 
 ### 🏷️ Primary Video Title
 ```text
-Ancient Mancala Rules Turned Into a Space Dreadnought Weapon! 🚀 #shorts
+Ancient Mancala & Morabaraba Turned Into a 3D Space Dreadnought Weapon! 🚀 #shorts
 ```
 
 #### High-CTR Alternative Titles:
-- `AI Plays Ancient Mancala at 60 FPS in Space! 🌌 #shorts #gamedev`
-- `How We Reimagined Bao la Kiswahili as a Sci-Fi Laser Lance 🤯 #shorts`
-- `Void Sower: Orbital Dreadnought Tactical Solver Showcase #shorts #gaming`
-- `Defend the Kilwa Basin with Kinetic Mancala Sowing! 🔥 #shorts`
+- `C++ AI Plays Ancient African Mancala at 60 FPS in Space! 🌌 #shorts #gamedev`
+- `How We Fused Bao la Kiswahili & Morabaraba Into a Sci-Fi Laser Lance 🤯 #shorts`
+- `Void Sower: 3D Dreadnought & MCTS Tactical Solver Showcase #shorts #gaming`
+- `Defend the Kilwa Basin with Quadratic M² Particle Lances! 🔥 #shorts`
 
 ---
 
 ### 📝 Video Description (With Closed Testing Recruitment)
 ```text
-Watch the AI Tactical Solver calculate and execute optimal count-and-capture sowing trajectories in VOID SOWER: KINETIC MANCALA! 
+Watch live 3D gameplay and the native C++ MCTS AI Tactical Solver in VOID SOWER: KINETIC MANCALA!
 
-Defend the Kilwa Nebula Basin against swarming alien assault craft using an ancient East African mathematical board game reimagined as a 16-bay circular capacitor ring weapon. Inject plasma cores (Namua), sow charges around the ring, and unleash quadratic Particle Lances (D = α · M²) to obliterate descending enemy corridors.
+Defend the Kilwa Nebula Basin against descending alien armadas using four classic African strategy games (Bao la Kiswahili, Morabaraba, Fanorona, and Yoté) reimagined as an 8-corridor frontline battery and 16-bay circular capacitor ring. Harvest plasma seeds, erect 3-in-a-row Golden Morabaraba Laser Fences for simultaneous 3-Beam FENCE BLAST barrages, and unleash quadratic M² Particle Lances (D = α · M²) to vaporize hostile cruisers!
 
 🎮 JOIN OUR CLOSED BETA TESTING & BECOME AN EARLY FLEET ADMIRAL! 🎁
 We are actively recruiting testers for our Google Play Closed Beta! Help us battle-test the native C++17 EnTT engine, tactile haptics, and custom GLSL shaders across Android devices.

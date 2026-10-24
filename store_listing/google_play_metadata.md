@@ -30,46 +30,37 @@ This document defines the official production store listing copy, keywords, loca
 
 ### Full Description (Max 4,000 characters)
 ```text
-Command an interstellar dreadnought and liberate the galaxy in Void Sower: Kinetic Mancala—a high-octane tactical space combat game that transforms the ancient African board game Bao la Kiswahili into an energetic deep-space weapons system!
+Command an interstellar dreadnought and liberate the galaxy in Void Sower: Kinetic Mancala—a high-octane 3D space combat game that fuses four classic African strategy games (Bao la Kiswahili, Morabaraba, Fanorona, and Yoté) into an energetic deep-space weapons system!
 
-Defend orbital frontiers against descending armadas of hostile assault craft. Your flagship's primary weapon isn't a conventional turret—it is a 16-bay circular capacitor ring driven by kinetic count-and-capture mathematics. Inject plasma cores, sow energy along circular trajectories, and align your bow to unleash devastating axial Particle Lances!
+Defend orbital frontiers against descending armadas of hostile assault craft. Your flagship's primary weapon isn't a conventional turret—it is an 8-corridor frontline battery and 16-bay circular capacitor ring driven by kinetic count-and-capture mathematics. Shoot to harvest plasma seeds, sow energy cascades across the ring, form golden 3-in-a-row laser fences, and unleash quadratic M² Particle Lances!
 
 🚀 3D DEEP SPACE COMBAT ARENA
-• True Spatial Depth: Maneuver your flagship across Apogee (+40km), Mid-Combat (+20km), and Forward Engage (+10km) horizons with ground projection anchor telemetry.
-• 8 Tactical Corridors: Bank laterally across corridors C1–C8 to frame descending alien gunships directly in your forward firing axis.
-• Directional Thrusters & Fluid Flight: Full one-thumb flight controls engineered for portrait mobile play.
+• Reactive 3D Flight Camera: Pilot the Olympus Dreadnought across 8 tactical corridors (C1–C8) and thrust forward into Vanguard range (up to 1.6x damage) with automatic perspective pitch and banking.
+• 100% Player-Triggered Firepower: Charged frontline Totems (2+ seeds = SUPER BEAM, 4+ seeds = MEGA GUN) shield your lane from incoming ordnance and store capacitor energy until you command a strike.
+• Ergonomic One-Thumb Controls: Crisp, uncluttered HUD engineered for portrait mobile and 16:10 tablet play.
 
-⚔️ KINETIC COUNT-AND-CAPTURE COMBAT
-• Ancient Mathematical Weaponry: Inject plasma cores (Namua) and swipe to sow charges along the 16-bay ring in clockwise or counter-clockwise cadence.
-• Finite Reactor Economy: Balance your dreadnought's reserve cores—every tactical injection fuels multi-lap cascades and frontline overcharges.
-• Axial Particle Lances: When your sowing sequence finishes in an active frontline bay, stored mass discharges as a devastating axial laser beam with mass-squared scaling (D = α · M²)!
-• Deflector Shields: Block incoming enemy ordnance with charged frontline batteries, turning hostile fire into tactical energy reserves.
+⚔️ FOUR PAN-AFRICAN STRATEGIC WEAPON FUSIONS
+• Bao la Kiswahili (Mtaji Relay & M² Super Beams): Sow seeds clockwise or counter-clockwise around the ring. Finishing a sow on an occupied enemy corridor unleashes a Quadratic Double-Helix Particle Lance (D = α · M²) with +2 bonus seeds, while the 3D Golden Nyumba Crystal (Totem #4) boosts beam damage by 1.5x!
+• Morabaraba (3-in-a-Row Golden Laser Fence): Charge 3 adjacent Totems to 2+ seeds to erect a 3D Golden Laser Fence that zaps enemy bombs (+50 PTS) and unlocks a simultaneous 3-Beam FENCE BLAST barrage across all 3 corridors!
+• Fanorona (Approach & Withdrawal Vectors): Surge forward into an enemy corridor for an Approach Piercing Strike or pull back for a Withdrawal Pulse.
+• Yoté (Surgical Cull): Destroy an Armored Cruiser to bank a free 800 DMG Orbital Kinetic Strike against high-value targets or Boss shields.
 
-🌌 3 CAMPAIGN THEATERS • 27 SECTORS
-• Kilwa Nebula Basin: Master orbital siege combat across 9 contested sectors, from outer defense perimeters to the vital Core Siphon.
-• Phantom Drift Theater: Face 9 sectors of high-speed stealth fighters executing agile thruster evasions and lateral dodge maneuvers.
-• Void Swarm Theater: Endure 9 sectors of dense, respawning alien swarms demanding rapid cascade timing and relentless core cycling.
+🌌 3 CAMPAIGN THEATERS • 27 SECTORS • 3-ACT MISSIONS
+• Kilwa Nebula Basin, Phantom Drift & Void Swarm: 27 sectors progressing through Act I (Vanguard Recon), Act II (Tactical Siege + Mid-Sector Ancestral Relic Draft), and Act III (Apex Command Multi-Corridor Boss).
+• Special Operations Deck: Take on seeded Daily Sorties, Void Incursion survival waves, and Endless Sector Sieges.
 
-🎮 UX 3.0 STREAMLINED EXPERIENCE
-• Zero-Friction Flow: Instant deployment into combat or tactical planning on the uncluttered Campaign Star Map.
-• Respectful Sortie Flow: Defeat brings an honest Orbital Breach screen—zero intrusive mid-game popups demanding core purchases.
-• Seamless Tactical Pause: Inspect live sortie telemetry, adjust flight doctrine, or activate Chrono-Rewinds—resuming is instantaneous with zero freezes.
-• Universal Tactical Advisory: Subtle real-time AI corridor scanning available for all pilots without stealing screen real estate.
+🤖 NATIVE C++ MCTS AI SOLVER & SIM LAB
+• Autonomous AI Autopilot (AI AUTO): Activate the native C++ Monte Carlo Tree Search solver to execute Grandmaster sowing cascades and beam barrages in real time.
+• Orbital Simulation Lab: Unrestricted tactical sandbox to engineer custom enemy waves, test fleet doctrines, and analyze board states.
+• Chrono-Anchor Rewind: Reverse tactical miscalculations instantly with temporal rewind charges.
 
-🤖 NATIVE AI TACTICAL ADVISOR & SIM LAB
-• MCTS Heuristic Solver: Activate the native C++ AI Tactical Advisor to demonstrate Grandmaster sowing cascades in real time.
-• Orbital Simulation Lab: Unrestricted tactical sandbox to engineer custom enemy waves, test fleet doctrines, and analyze game states.
-• Chrono-Anchor Rewind: Correct tactical miscalculations instantly with temporal rewind charges.
+🛸 FLEET HANGAR & PILOT TELEMETRY DOSSIER
+• 4 Flagship Chassis: Command the MK-I Bastion Standard, MK-II Monsoon Vanguard, MK-III Kilwa Apex, or MK-IV Golden Sovereign.
+• Pilot Telemetry Dossier: Track lifetime accuracy, super beams fired, accolades, sortie logs, and 6 naval ranks adorned with historic African insignias (Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown, Swahili Navigator).
 
-🛸 FLEET HANGAR & PILOT PROGRESSION
-• 3 Flagship Chassis: Command the balanced MK-I Bastion, the agile MK-II Monsoon Vanguard, or the devastating MK-III Singularity Sovereign (plus Golden Flagship hull).
-• Custom Pilot Dossier: Register your callsign, earn 6 naval ranks, and track lifetime telemetry (lances fired, high scores, cascade laps).
-• Historic Cultural Insignias: Adorn your hull with the Kilwa Crest, Shona Star, Zulu Aegis, Oyo Comet, Songhai Crown, and Swahili Navigator.
-
-💎 ZERO-ALLOCATION NATIVE C++ PERFORMANCE
-• 100% C++17 ECS simulation core operating with zero runtime dynamic memory allocations during active combat.
-• Cache-aligned 64-byte power-of-two ring buffers with bitwise index masking (& 0x0F).
-• Silky 60/120 FPS Impeller rendering optimized for Android 16 KB memory page size alignment.
+💎 ZERO-ALLOCATION NATIVE C++17 PERFORMANCE
+• 100% C++17 EnTT ECS simulation core with 64-byte cache-aligned ring buffers and zero runtime allocations during active combat.
+• Silky 60/120 FPS Flutter Impeller rendering with native Android 16 KB page-size alignment.
 • Fully playable offline—no mandatory internet connection required.
 
 Join the fleet, master the sacred cadence, and liberate the stars!
@@ -303,14 +294,44 @@ Defiende las fronteras orbitales contra oleadas invasoras de naves de asalto. El
 
 ---
 
-## 🎥 Google Play Promo Video Deliverables
+## 🎥 Google Play Promo Video & Screenshot Deliverables
+
+### 1. Promo & YouTube Showcase Videos (`1080 x 2400` H.264 + `44.1 kHz` Stereo AAC)
 
 | Asset | Local File Path | Specifications | Purpose |
 | :--- | :--- | :--- | :--- |
-| **UX 3.0 Showcase Gameplay Video** | [`docs/media/void_sower_gameplay_showcase.mp4`](../docs/media/void_sower_gameplay_showcase.mp4) | 1080x2400 Portrait, 30s @ 30 FPS, H.264 AVC1 + AAC Stereo, atmospheric C-minor ambient synth music & synchronized in-game SFX. Demonstrates 3D depth maneuvers, sowing cascade, axial particle lance barrage (+1000 crit), tactical pause, and star map. | Primary Google Play Store gameplay video preview / YouTube Shorts |
-| **60s Narrated Tutorial Video** | [`store_listing/assets/how_to_play_60s.mp4`](assets/how_to_play_60s.mp4) | 1080x2400 Portrait, 60s @ 60 FPS, Neural voiceover (`en-US-ChristopherNeural`), HUD subtitles, ambient synth score | Comprehensive onboarding trailer explaining Bao count-and-capture rules |
-| **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30s @ 30 FPS, H.264 + AAC Stereo background music & SFX, Live C++ AI Tactical Solver across Phantom Drift & Void Swarm | Technical showcase for AI solver and high-tier gameplay |
-| **Animated Promo Gameplay GIF** | [`store_listing/assets/promo_gameplay.gif`](assets/promo_gameplay.gif) | 360x800, 150 frames, optimized 128-color Bayer dither | Lightweight animated preview for developer portals and GitHub READMEs |
+| **UX 3.0 Showcase Gameplay Video** | [`docs/media/void_sower_gameplay_showcase.mp4`](../docs/media/void_sower_gameplay_showcase.mp4) | 1080x2400 Portrait, 30.0s @ 60 FPS, H.264 + 44.1 kHz Stereo AAC (ambient C-minor synth BGM + synchronized combat SFX: `lance_fire.wav`, `flak_burst.wav`, `sow_step.wav`, `inject_core.wav`, `overload.wav`, `bullet_deflect.wav`, `victory.wav`). Demonstrates 3D combat, `MEGA GUN` quadratic $M^2$ Particle Lance, 3-beam Morabaraba `FENCE BLAST`, and `AI AUTO` solver. | Primary Google Play Store promo video / YouTube Shorts |
+| **60s Narrated Tutorial Video** | [`store_listing/assets/how_to_play_60s.mp4`](assets/how_to_play_60s.mp4) | 1080x2400 Portrait, 60.0s, H.264 + 44.1 kHz Stereo AAC (Neural voiceover `en-US-ChristopherNeural` + ambient synth BGM + synchronized combat SFX + burned-in HUD subtitles) | Comprehensive onboarding trailer & in-app tutorial (`assets/video/how_to_play.mp4`) |
+| **30s Solver Showcase Video** | [`store_listing/assets/promo_gameplay.mp4`](assets/promo_gameplay.mp4) | 1080x2400 Portrait, 30.0s @ 60 FPS, H.264 + 44.1 kHz Stereo AAC BGM & combat SFX | Technical showcase for Play Store & YouTube |
+| **Animated Promo Gameplay GIF** | [`store_listing/assets/promo_gameplay.gif`](assets/promo_gameplay.gif) | 360x800, 12s @ 15 FPS, optimized palette | Lightweight animated preview for GitHub & portals |
+
+### 2. Phone Screenshot Upload Order (`1344 x 2992 px` — `store_listing/screenshots/phone/`)
+
+| Order | File | Store Caption / Highlight |
+| :-: | :--- | :--- |
+| **01** | [`01_tactical_combat_grid.png`](screenshots/phone/01_tactical_combat_grid.png) | **3D Tactical Combat Grid** — Charged `MEGA GUN` (`✨ #3 •••• 16x`), 3D Golden Nyumba Crystal, and profile-linked `PRO` badge. |
+| **02** | [`02_axial_particle_lance.png`](screenshots/phone/02_axial_particle_lance.png) | **Quadratic $M^2$ Axial Particle Lance** — Double-helix Super Beam (`SUPER CRIT +17373`) vaporizing a descending cruiser. |
+| **03** | [`03_morabaraba_fence_blast_barrage.png`](screenshots/phone/03_morabaraba_fence_blast_barrage.png) | **3-Beam Morabaraba Fence Blast** — Simultaneous golden triple-corridor laser barrage (`MORABARABA FENCE +75`, `+4 CORES`). |
+| **04** | [`04_morabaraba_laser_fence_sowing.png`](screenshots/phone/04_morabaraba_laser_fence_sowing.png) | **Bao Sowing & 3D Laser Fence** — Active 3-totem golden Morabaraba fence (`MILL 1.5x` + `BLAST`) with a `900x DMG` Super Beam. |
+| **05** | [`05_ai_autopilot_tactical_solver.png`](screenshots/phone/05_ai_autopilot_tactical_solver.png) | **Native C++ AI Autopilot (`AI AUTO`)** — Real-time MCTS heuristic solver executing optimal sowing cascades. |
+| **06** | [`06_kilwa_basin_campaign_map.png`](screenshots/phone/06_kilwa_basin_campaign_map.png) | **Kilwa Nebula Basin Star Map** — 27 campaign sectors across 3 theaters (`LIBERATED 8/9`, `3★` medals). |
+| **07** | [`07_orbital_fleet_hangar.png`](screenshots/phone/07_orbital_fleet_hangar.png) | **Orbital Drydock Fleet Hangar** — Interactive 3D Dreadnought mesh inspection (`3D MESH // 16V`) and 4 flagship hulls. |
+| **08** | [`08_special_operations_command.png`](screenshots/phone/08_special_operations_command.png) | **Special Operations Deck** — Seeded `DAILY SORTIE`, `VOID INCURSION` survival, and `PRO FLEET` command modes. |
+| **09** | [`09_pilot_telemetry_dossier.png`](screenshots/phone/09_pilot_telemetry_dossier.png) | **Pilot Telemetry Dossier** — Command Record (`OVERVIEW`, `ACCOLADES`, `LOGS`) with profile-linked gold `PRO` badge. |
+| **10** | [`10_flight_academy_onboarding.png`](screenshots/phone/10_flight_academy_onboarding.png) | **Interactive Flight Academy** — 5-step hands-on tactical onboarding over the 3D Orbital Trench. |
+
+### 3. Tablet Screenshot Upload Order (`1600 x 2560 px` — `store_listing/screenshots/tablet/`)
+
+| Order | File | Store Caption / Highlight |
+| :-: | :--- | :--- |
+| **01** | [`01_tablet_tactical_combat.png`](screenshots/tablet/01_tablet_tactical_combat.png) | **16:10 Tablet 3D Combat Grid** — Charged `MEGA GUN` (`✨ #3 •••• 16x`) and 3D Golden Nyumba Crystal. |
+| **02** | [`02_tablet_axial_particle_lance.png`](screenshots/tablet/02_tablet_axial_particle_lance.png) | **Tablet Quadratic $M^2$ Particle Lance** — Double-helix Super Beam (`SUPER CRIT +17139`). |
+| **03** | [`03_tablet_morabaraba_fence_blast.png`](screenshots/tablet/03_tablet_morabaraba_fence_blast.png) | **Tablet 3-Beam Morabaraba Fence Blast** — Simultaneous 3-corridor golden laser barrage (`+4 CORES`, `DEFLECT +50`). |
+| **04** | [`04_tablet_morabaraba_laser_fence.png`](screenshots/tablet/04_tablet_morabaraba_laser_fence.png) | **Tablet Morabaraba Laser Fence & Sowing** — 3-totem golden Laser Fence (`MILL 1.5x` + `BLAST`) with `900x DMG` Super Beam. |
+| **05** | [`05_tablet_campaign_map.png`](screenshots/tablet/05_tablet_campaign_map.png) | **Tablet Kilwa Basin Campaign Map** — Wide-aspect Star Map (`LIBERATED 8/9`). |
+| **06** | [`06_tablet_fleet_hangar.png`](screenshots/tablet/06_tablet_fleet_hangar.png) | **Tablet Orbital Fleet Hangar** — 3D Dreadnought wireframe preview and chassis telemetry. |
+| **07** | [`07_tablet_pilot_telemetry_dossier.png`](screenshots/tablet/07_tablet_pilot_telemetry_dossier.png) | **Tablet Pilot Telemetry Dossier** — Command Record with profile-linked `PRO` badge. |
+| **08** | [`08_tablet_flight_academy.png`](screenshots/tablet/08_tablet_flight_academy.png) | **Tablet Flight Academy Onboarding** — Interactive step-by-step tactical training. |
 
 ---
 

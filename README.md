@@ -24,8 +24,8 @@
 
 | UX 3.0 Gameplay Showcase (30s) | 60-Second Narrated Tutorial Video | 30-Second AI Tactical Solver Showcase |
 | :---: | :---: | :---: |
-| [![UX 3.0 Gameplay Showcase](docs/media/store_screenshots/01_combat_tactical_depth.png)](docs/media/void_sower_gameplay_showcase.mp4) | [![60s Narrated Tutorial Video](store_listing/screenshots/phone/01_tactical_combat_grid.png)](docs/media/void_sower_how_to_play_60s.mp4) | [![30s AI Tactical Solver](docs/media/void_sower_solver_showcase.gif)](docs/media/void_sower_solver_showcase_30s.mp4) |
-| *[Watch 30s Showcase (MP4)](docs/media/void_sower_gameplay_showcase.mp4)*<br>3D flight depth, corridor lances, sowing cascades, and tactical pause | *[Watch 60s Narrated Tutorial (MP4)](docs/media/void_sower_how_to_play_60s.mp4)*<br>Neural voiceover (`ChristopherNeural`), HUD subtitles, ambient synth score | *[Watch 30s Solver Showcase (MP4)](docs/media/void_sower_solver_showcase_30s.mp4)*<br>Heuristic MCTS solver clearing 3 difficulty tiers with Axial Particle Lances |
+| [![UX 3.0 Gameplay Showcase](docs/media/store_screenshots/01_tactical_combat_grid.png)](docs/media/void_sower_gameplay_showcase.mp4) | [![60s Narrated Tutorial Video](store_listing/screenshots/phone/02_axial_particle_lance.png)](docs/media/void_sower_how_to_play_60s.mp4) | [![30s AI Tactical Solver](docs/media/void_sower_solver_showcase.gif)](docs/media/void_sower_solver_showcase_30s.mp4) |
+| *[Watch 30s Showcase (MP4)](docs/media/void_sower_gameplay_showcase.mp4)*<br>3D combat, `MEGA GUN` $M^2$ Particle Lance, 3-beam Morabaraba `FENCE BLAST`, BGM & combat SFX | *[Watch 60s Narrated Tutorial (MP4)](docs/media/void_sower_how_to_play_60s.mp4)*<br>Neural voiceover (`ChristopherNeural`), HUD subtitles, ambient synth score & combat SFX | *[Watch 30s Solver Showcase (MP4)](docs/media/void_sower_solver_showcase_30s.mp4)*<br>C++ MCTS `AI AUTO` solver, Bao sowing cascades, Campaign Map & 3D Fleet Hangar |
 
 ---
 
