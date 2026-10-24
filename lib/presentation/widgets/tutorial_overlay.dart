@@ -153,7 +153,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                                         ),
                                         const SizedBox(width: 4.0),
                                         Text(
-                                          'STEP ${_currentStep + 1} OF 5',
+                                          'STEP ${_currentStep + 1}/5',
                                           style: const TextStyle(
                                             color: Color(0xFF38BDF8),
                                             fontSize: 9.5,
@@ -554,7 +554,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             },
             icon: const Icon(Icons.gps_fixed, size: 14.0),
             label: const Text(
-              'SHOOT & ADD SEED (+1)',
+              'ADD SEED (+1)',
               style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.w900),
             ),
           ),
@@ -833,7 +833,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             },
             icon: const Icon(Icons.bolt, size: 15.0),
             label: Text(
-              _lanceFired ? '⚡ ${mult}x SUPER BEAM FIRED!' : 'FIRE SUPER BEAM',
+              _lanceFired ? '⚡ ${mult}x BEAM!' : 'FIRE BEAM',
               style: const TextStyle(
                 fontSize: 10.0,
                 fontWeight: FontWeight.w900,
@@ -899,7 +899,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
           ),
           const SizedBox(height: 8.0),
           Text(
-            'AIMED AT TURRET #${_demoCorridor + 1}',
+            'TURRET #${_demoCorridor + 1}',
             style: const TextStyle(
               color: VoidTheme.emeraldShield,
               fontSize: 10.0,
@@ -938,9 +938,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 ),
                 const SizedBox(width: 6.0),
                 Text(
-                  _bombDeflected
-                      ? 'BOMB ZAPPED! +75 PTS'
-                      : '3 IN A ROW = LASER FENCE',
+                  _bombDeflected ? 'BOMB ZAPPED! +75 PTS' : 'LASER FENCE',
                   style: TextStyle(
                     color: _bombDeflected
                         ? VoidTheme.emeraldShield
@@ -972,7 +970,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             },
             icon: const Icon(Icons.shield, size: 14.0),
             label: const Text(
-              'TEST LASER FENCE ZAP',
+              'TEST ZAP',
               style: TextStyle(fontSize: 10.0, fontWeight: FontWeight.w900),
             ),
           ),

@@ -430,7 +430,7 @@ class _SettingsModalState extends State<SettingsModal>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
                   Text(
-                    'ACOUSTIC & KINETIC CALIBRATION',
+                    'AUDIO & HAPTICS',
                     style: TextStyle(
                       color: Color(0xFF38BDF8),
                       fontSize: 8.5,
@@ -439,7 +439,7 @@ class _SettingsModalState extends State<SettingsModal>
                     ),
                   ),
                   Text(
-                    'SPATIAL 3D ACTIVE',
+                    '3D AUDIO',
                     style: TextStyle(
                       color: Color(0xFF00F0FF),
                       fontSize: 8.0,
@@ -453,8 +453,8 @@ class _SettingsModalState extends State<SettingsModal>
 
               // Slider 1: Sound Effects (SFX)
               _buildNeonSliderRow(
-                title: 'Combat Sound Effects (SFX)',
-                subtitleTag: 'SOUND EFFECTS (SFX)',
+                title: 'Sound Effects',
+                subtitleTag: 'SFX VOLUME',
                 value: _sfxVolume,
                 isMuted: !_isSoundEnabled || _sfxVolume <= 0.001,
                 onToggleMute: () async {
@@ -476,8 +476,8 @@ class _SettingsModalState extends State<SettingsModal>
 
               // Slider 2: Tactical Ambient Music (BGM)
               _buildNeonSliderRow(
-                title: 'Afrofuturist Ambient Music',
-                subtitleTag: 'BACKGROUND MUSIC (BGM)',
+                title: 'Ambient Music',
+                subtitleTag: 'BGM VOLUME',
                 value: _bgmVolume,
                 isMuted: !_isMusicEnabled || _bgmVolume <= 0.001,
                 onToggleMute: () async {
@@ -505,7 +505,7 @@ class _SettingsModalState extends State<SettingsModal>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'Tactile Haptic Feedback',
+                        'Haptic Feedback',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 11.5,
@@ -526,7 +526,7 @@ class _SettingsModalState extends State<SettingsModal>
                   ),
                   const SizedBox(height: 2.0),
                   const Text(
-                    'Haptic Vibration Feedback',
+                    'Vibration Intensity',
                     style: TextStyle(
                       color: Color(0xFF64748B),
                       fontSize: 8.5,
@@ -762,7 +762,7 @@ class _SettingsModalState extends State<SettingsModal>
       padding: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 16.0),
       children: [
         const Text(
-          'GRAPHICS & VISUAL ACCESSIBILITY',
+          'DISPLAY & GRAPHICS',
           style: TextStyle(
             color: Color(0xFF38BDF8),
             fontSize: 9.0,
@@ -775,7 +775,7 @@ class _SettingsModalState extends State<SettingsModal>
         // Option 1: 120 FPS High Refresh Combat
         _buildDisplayCard(
           icon: Icons.speed,
-          title: '120 FPS High Refresh Combat',
+          title: '120 FPS Mode',
           subtitle: 'Smoother corridor tracking & laser bloom',
           trailing: _buildCustomToggle(
             value: _targetFps == 120,
@@ -791,7 +791,7 @@ class _SettingsModalState extends State<SettingsModal>
         // Option 2: Targeting Trajectory Reticles
         _buildDisplayCard(
           icon: Icons.track_changes,
-          title: 'Targeting Trajectory Reticles',
+          title: 'Trajectory Reticles',
           subtitle: 'High-visibility laser guides and impact boxes',
           trailing: _buildCustomToggle(
             value: _trajectoryReticlesEnabled,
@@ -805,7 +805,7 @@ class _SettingsModalState extends State<SettingsModal>
         // Option 3: Colorblind Assistance Mode
         _buildDisplayCard(
           icon: Icons.remove_red_eye_outlined,
-          title: 'Colorblind Assistance Mode',
+          title: 'Colorblind Mode',
           subtitle: 'Enhanced shape cues for cores and hostiles',
           trailing: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -841,7 +841,7 @@ class _SettingsModalState extends State<SettingsModal>
         // Option 4: High Fidelity Shaders
         _buildDisplayCard(
           icon: Icons.auto_awesome,
-          title: 'GLSL High Fidelity Shaders',
+          title: 'GLSL Shaders',
           subtitle: 'Dynamic GPU fragment bloom, siphon and flares',
           trailing: _buildCustomToggle(
             value: _highShadersEnabled,
@@ -856,7 +856,7 @@ class _SettingsModalState extends State<SettingsModal>
         // Option 5: In-Game FPS Counter
         _buildDisplayCard(
           icon: Icons.query_stats,
-          title: 'In-Game FPS Counter',
+          title: 'FPS Counter',
           subtitle: 'Displays live frame delta readout in tactical combat HUD',
           trailing: _buildCustomToggle(
             value: _showFpsCounter,
@@ -883,7 +883,7 @@ class _SettingsModalState extends State<SettingsModal>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'ABSEIL NATIVE VLOG LEVEL',
+                    'VLOG LEVEL',
                     style: TextStyle(
                       color: Color(0xFF38BDF8),
                       fontSize: 10.0,
@@ -933,7 +933,7 @@ class _SettingsModalState extends State<SettingsModal>
         // Option 7: Low Battery Mode
         _buildDisplayCard(
           icon: Icons.battery_saver,
-          title: 'Low Battery Mode',
+          title: 'Battery Saver',
           subtitle: 'Caps particles & throttles GPU usage to extend battery',
           trailing: _buildCustomToggle(
             value: _lowBatteryMode,
@@ -956,7 +956,7 @@ class _SettingsModalState extends State<SettingsModal>
       case 3:
         return 'TRITANOPIA';
       default:
-        return 'OFF (DEFAULT)';
+        return 'DEFAULT';
     }
   }
 
@@ -1070,7 +1070,7 @@ class _SettingsModalState extends State<SettingsModal>
       padding: const EdgeInsets.fromLTRB(16.0, 10.0, 16.0, 16.0),
       children: [
         const Text(
-          'ACCOUNT, PRO & DIRECTIVES',
+          'ACCOUNT & PRO',
           style: TextStyle(
             color: Color(0xFF38BDF8),
             fontSize: 9.0,
@@ -1119,9 +1119,7 @@ class _SettingsModalState extends State<SettingsModal>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isPro
-                          ? 'PRO COMMANDER CLEARANCE'
-                          : 'VOID SOWER // PRO CLEARANCE',
+                      isPro ? 'PRO COMMANDER' : 'PRO CLEARANCE',
                       style: const TextStyle(
                         color: Color(0xFFFBBF24),
                         fontSize: 12.0,
@@ -1193,7 +1191,7 @@ class _SettingsModalState extends State<SettingsModal>
         // 2. Cloud Sync & Purchases Card
         _buildDisplayCard(
           icon: Icons.cloud_sync,
-          title: 'Restore Pro Purchases & Sync',
+          title: 'Restore Purchases',
           subtitle: 'Google Play Games cloud save verified',
           trailing: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -1225,7 +1223,7 @@ class _SettingsModalState extends State<SettingsModal>
         // 3. Flight Academy & Directives Launcher
         _buildDisplayCard(
           icon: Icons.school,
-          title: 'Tactical Directives & Codex',
+          title: 'Tactical Codex',
           subtitle: '20-second visual combat directives & flight academy',
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -1307,7 +1305,7 @@ class _SettingsModalState extends State<SettingsModal>
 
         // 4. Legal & Policies Strip
         const Text(
-          'LEGAL, PRIVACY & LICENSES',
+          'LEGAL & PRIVACY',
           style: TextStyle(
             color: Color(0xFF64748B),
             fontSize: 8.5,
@@ -1339,10 +1337,7 @@ class _SettingsModalState extends State<SettingsModal>
                     ConsentPreferencesDialog(onDataWiped: widget.onDataWiped),
               );
             }),
-            _buildLegalPill(
-              'OPEN SOURCE LICENSES',
-              () => _openLicenses(context),
-            ),
+            _buildLegalPill('LICENSES', () => _openLicenses(context)),
           ],
         ),
         const SizedBox(height: 16.0),
@@ -1362,7 +1357,7 @@ class _SettingsModalState extends State<SettingsModal>
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'DANGER ZONE // DATA RESET',
+                'DATA RESET',
                 style: TextStyle(
                   color: Color(0xFFF43F5E),
                   fontSize: 9.0,
@@ -1516,7 +1511,7 @@ class _SettingsModalState extends State<SettingsModal>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'CRITICAL PURGE DIRECTIVE',
+                          'DATA PURGE',
                           style: TextStyle(
                             color: Color(0xFFF43F5E),
                             fontSize: 9.0,
@@ -1526,7 +1521,7 @@ class _SettingsModalState extends State<SettingsModal>
                         ),
                         SizedBox(height: 2.0),
                         Text(
-                          'WIPE ALL SAVED DATA?',
+                          'WIPE ALL DATA?',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14.0,

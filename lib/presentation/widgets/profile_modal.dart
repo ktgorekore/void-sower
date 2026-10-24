@@ -355,7 +355,7 @@ class _ProfileModalState extends State<ProfileModal> {
                     Expanded(
                       flex: 2,
                       child: TactileButton(
-                        label: 'COPY TO CLIPBOARD',
+                        label: 'COPY',
                         icon: Icons.copy,
                         accentColor: const Color(0xFF00F0FF),
                         height: 42.0,
@@ -449,7 +449,7 @@ class _ProfileModalState extends State<ProfileModal> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'PROFILE RESTORATION',
+                              'RESTORE PROFILE',
                               style: TextStyle(
                                 color: Color(0xFFF59E0B),
                                 fontSize: 9.0,
@@ -459,7 +459,7 @@ class _ProfileModalState extends State<ProfileModal> {
                             ),
                             SizedBox(height: 2.0),
                             Text(
-                              'IMPORT SAVE TELEMETRY',
+                              'IMPORT SAVE',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14.0,
@@ -530,7 +530,7 @@ class _ProfileModalState extends State<ProfileModal> {
                       Expanded(
                         flex: 2,
                         child: TactileButton(
-                          label: 'RESTORE DATA',
+                          label: 'RESTORE',
                           icon: Icons.upload,
                           accentColor: const Color(0xFFF59E0B),
                           height: 42.0,
@@ -647,7 +647,7 @@ class _ProfileModalState extends State<ProfileModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
-                                'VOID SOWER // PILOT TELEMETRY',
+                                'PILOT TELEMETRY',
                                 style: TextStyle(
                                   color: Color(0xFF38BDF8),
                                   fontSize: 8.5,
@@ -847,14 +847,20 @@ class _ProfileModalState extends State<ProfileModal> {
                                           ),
                                         ),
                                         alignment: Alignment.center,
-                                        child: const Text(
-                                          '★',
-                                          style: TextStyle(
-                                            color: Color(0xFF1C0F01),
-                                            fontSize: 9.0,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
+                                        child: isPro
+                                            ? const Icon(
+                                                Icons.workspace_premium,
+                                                color: Color(0xFF1C0F01),
+                                                size: 12.0,
+                                              )
+                                            : const Text(
+                                                '★',
+                                                style: TextStyle(
+                                                  color: Color(0xFF1C0F01),
+                                                  fontSize: 9.0,
+                                                  fontWeight: FontWeight.w900,
+                                                ),
+                                              ),
                                       ),
                                     ),
                                   ],
@@ -1086,7 +1092,9 @@ class _ProfileModalState extends State<ProfileModal> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'PROGRESS TO ${rank == PilotRank.voidAscendant ? "ASCENDANCE" : "NEXT RANK"}',
+                                  rank == PilotRank.voidAscendant
+                                      ? 'ASCENDANCE'
+                                      : 'NEXT RANK',
                                   style: TextStyle(
                                     color: VoidTheme.starWhite.withValues(
                                       alpha: 0.7,
@@ -1131,7 +1139,7 @@ class _ProfileModalState extends State<ProfileModal> {
                                   child: Column(
                                     children: [
                                       const Text(
-                                        'CAMPAIGN STARS',
+                                        'STARS',
                                         style: TextStyle(
                                           color: Color(0xFF64748B),
                                           fontSize: 7.5,
@@ -1190,7 +1198,7 @@ class _ProfileModalState extends State<ProfileModal> {
                                       ),
                                       const SizedBox(height: 2.0),
                                       const Text(
-                                        'TOP 1% GLOBAL',
+                                        'TOP 1%',
                                         style: TextStyle(
                                           color: Color(0xFF94A3B8),
                                           fontSize: 7.5,
@@ -1209,7 +1217,7 @@ class _ProfileModalState extends State<ProfileModal> {
                                   child: Column(
                                     children: [
                                       const Text(
-                                        'LANCE ACCURACY',
+                                        'ACCURACY',
                                         style: TextStyle(
                                           color: Color(0xFF64748B),
                                           fontSize: 7.5,
@@ -1228,7 +1236,7 @@ class _ProfileModalState extends State<ProfileModal> {
                                       ),
                                       const SizedBox(height: 2.0),
                                       const Text(
-                                        'S-TIER AIM',
+                                        'S-TIER',
                                         style: TextStyle(
                                           color: Color(0xFF38BDF8),
                                           fontSize: 7.5,
@@ -1303,9 +1311,7 @@ class _ProfileModalState extends State<ProfileModal> {
               const SizedBox(width: 8.0),
               Expanded(
                 child: Text(
-                  isLinked
-                      ? 'GOOGLE PLAY CLOUD IDENTITY'
-                      : 'PILOT CLOUD ACCOUNT',
+                  isLinked ? 'GOOGLE CLOUD' : 'CLOUD SYNC',
                   style: const TextStyle(
                     color: VoidTheme.starWhite,
                     fontSize: 12.5,
@@ -1375,7 +1381,7 @@ class _ProfileModalState extends State<ProfileModal> {
                 children: [
                   Expanded(
                     child: TactileButton(
-                      label: 'SIGN IN WITH GOOGLE',
+                      label: 'GOOGLE SIGN IN',
                       icon: Icons.login,
                       accentColor: VoidTheme.plasmaCyan,
                       height: 40.0,
@@ -1425,7 +1431,7 @@ class _ProfileModalState extends State<ProfileModal> {
             children: [
               const Expanded(
                 child: Text(
-                  'SQUADRON ROSTER (PROFILES)',
+                  'PILOT ROSTER',
                   style: TextStyle(
                     color: VoidTheme.plasmaCyan,
                     fontSize: 12.0,
@@ -1663,7 +1669,7 @@ class _ProfileModalState extends State<ProfileModal> {
           const SizedBox(width: 8.0),
           _buildTabPill('ACCOLADES', 1),
           const SizedBox(width: 8.0),
-          _buildTabPill('LOG ARCHIVE', 2),
+          _buildTabPill('LOGS', 2),
         ],
       ),
     );
@@ -1720,7 +1726,7 @@ class _ProfileModalState extends State<ProfileModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'HONORS & CITATIONS',
+          'HONORS',
           style: TextStyle(
             color: Color(0xFF38BDF8),
             fontSize: 10.0,
@@ -1877,7 +1883,7 @@ class _ProfileModalState extends State<ProfileModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'SQUADRON CULTURAL INSIGNIA',
+          'INSIGNIA',
           style: TextStyle(
             color: Color(0xFF38BDF8),
             fontSize: 9.5,
@@ -1954,7 +1960,7 @@ class _ProfileModalState extends State<ProfileModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'SERVICE RECORD & LAURELS',
+          'LAURELS',
           style: TextStyle(
             color: Color(0xFF38BDF8),
             fontSize: 9.5,
@@ -2046,7 +2052,7 @@ class _ProfileModalState extends State<ProfileModal> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'SORTIE MISSION LOGS',
+              'MISSION LOGS',
               style: TextStyle(
                 color: Color(0xFF38BDF8),
                 fontSize: 9.5,
@@ -2193,7 +2199,7 @@ class _ProfileModalState extends State<ProfileModal> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: const [
             Text(
-              'LIFETIME COMBAT TELEMETRY',
+              'LIFETIME STATS',
               style: TextStyle(
                 color: Color(0xFF38BDF8),
                 fontSize: 9.5,
@@ -2248,7 +2254,7 @@ class _ProfileModalState extends State<ProfileModal> {
         ),
         const SizedBox(height: 10.0),
         TactileButton(
-          label: 'OPEN FULL COMMAND TELEMETRY',
+          label: 'FULL STATS',
           icon: Icons.analytics_outlined,
           accentColor: const Color(0xFF00F0FF),
           height: 42.0,
@@ -2270,7 +2276,7 @@ class _ProfileModalState extends State<ProfileModal> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'SAVE DATA & TELEMETRY MOBILITY',
+          'DATA BACKUP',
           style: TextStyle(
             color: Color(0xFF38BDF8),
             fontSize: 9.5,

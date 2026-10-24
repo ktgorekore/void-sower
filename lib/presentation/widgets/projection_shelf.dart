@@ -59,7 +59,7 @@ class ProjectionShelf extends StatelessWidget {
               Icon(Icons.radar, size: 11.0, color: VoidTheme.plasmaCyan),
               SizedBox(width: 5.0),
               Text(
-                'SELECT BAY TO PREVIEW LANCE & SOWING TRAJECTORY',
+                'SELECT BAY',
                 style: TextStyle(
                   color: VoidTheme.textMuted,
                   fontSize: 8.5,
@@ -209,7 +209,7 @@ class ProjectionShelf extends StatelessWidget {
                     ),
                     const SizedBox(width: 3.0),
                     const Text(
-                      'RELAY OVERLOAD (FLAK VENT)',
+                      'FLAK RELAY',
                       style: TextStyle(
                         color: VoidTheme.solarGold,
                         fontSize: 9.5,
@@ -218,7 +218,7 @@ class ProjectionShelf extends StatelessWidget {
                     ),
                   ] else ...[
                     Text(
-                      'ACCUMULATE: M=${p.finalMass} (MIN 4 FOR LANCE)',
+                      'MASS: ${p.finalMass}/4',
                       style: const TextStyle(
                         color: VoidTheme.textSecondary,
                         fontSize: 11.0,

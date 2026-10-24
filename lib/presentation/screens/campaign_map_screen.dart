@@ -618,7 +618,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                                   borderRadius: BorderRadius.circular(4.0),
                                 ),
                                 child: const Text(
-                                  'IMPERIAL ORBITAL BLOCKADE DETECTED',
+                                  'SECTOR LOCKED',
                                   style: TextStyle(
                                     color: VoidTheme.crimsonFlare,
                                     fontSize: 9.0,
@@ -676,9 +676,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                           ),
                           const SizedBox(width: 6.0),
                           Text(
-                            sector.isProRequired
-                                ? 'PRO OPERATION'
-                                : 'CLEARANCE REQUIREMENT',
+                            sector.isProRequired ? 'PRO OPERATION' : 'REQUIRED',
                             style: TextStyle(
                               color: sector.isProRequired
                                   ? VoidTheme.solarGold
@@ -707,7 +705,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 if (sector.isProRequired &&
                     !EntitlementService.instance.hasActivePro) ...[
                   TactileButton(
-                    label: 'WATCH AD (+5m PRO)',
+                    label: 'AD (+5m PRO)',
                     icon: Icons.play_circle_filled,
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -718,7 +716,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   ),
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'UNLOCK PRO — \$1.29',
+                    label: 'PRO • \$1.29',
                     icon: Icons.workspace_premium,
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -771,7 +769,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                     !EntitlementService.instance.hasActivePro) ...[
                   const SizedBox(height: 8.0),
                   TactileButton(
-                    label: 'UNLOCK PRO — \$1.29',
+                    label: 'PRO • \$1.29',
                     icon: Icons.workspace_premium,
                     onPressed: () {
                       Navigator.of(context).pop();
@@ -990,17 +988,17 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
       case SectorCombatDoctrine.phantomDrift:
         doctrineIcon = Icons.swap_horiz;
         doctrineColor = VoidTheme.plasmaCyan;
-        doctrineTag = 'PHANTOM DRIFT • LATERAL EVASION';
+        doctrineTag = 'PHANTOM DRIFT';
         break;
       case SectorCombatDoctrine.voidSwarm:
         doctrineIcon = Icons.hub;
         doctrineColor = VoidTheme.crimsonFlare;
-        doctrineTag = 'VOID SWARM • HORDE CRUCIBLE & CORE SIPHON';
+        doctrineTag = 'VOID SWARM';
         break;
       case SectorCombatDoctrine.standardOrbital:
         doctrineIcon = Icons.shield;
         doctrineColor = VoidTheme.emeraldShield;
-        doctrineTag = 'STANDARD ORBITAL • PLANETARY SIEGE';
+        doctrineTag = 'ORBITAL SIEGE';
         break;
     }
 
@@ -1127,7 +1125,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                     ),
                     SizedBox(height: 2.0),
                     Text(
-                      '24H GLOBAL ROTATION',
+                      'DAILY ROTATION',
                       style: TextStyle(
                         color: Color(0xFF94A3B8),
                         fontSize: 8.5,
@@ -1182,7 +1180,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                       ),
                     ),
                     Text(
-                      'THREAT TIER ${daily.todayDifficultyTier + 1}',
+                      'TIER ${daily.todayDifficultyTier + 1}',
                       style: const TextStyle(
                         color: VoidTheme.plasmaCyan,
                         fontSize: 9.0,
@@ -1217,7 +1215,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
               ),
               icon: const Icon(Icons.rocket_launch, size: 15.0),
               label: const Text(
-                'LAUNCH SORTIE',
+                'LAUNCH',
                 style: TextStyle(
                   fontSize: 11.0,
                   fontWeight: FontWeight.w900,
@@ -1383,7 +1381,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
               ),
               icon: const Icon(Icons.flash_on, size: 15.0),
               label: const Text(
-                'START INCURSION',
+                'INCURSION',
                 style: TextStyle(
                   fontSize: 11.0,
                   fontWeight: FontWeight.w900,
@@ -1499,7 +1497,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      isLifetime ? 'PRO COMMANDER FLEET' : 'PRO OVERCHARGE',
+                      isLifetime ? 'PRO FLEET' : 'PRO OVERCHARGE',
                       style: TextStyle(
                         color: isLifetime
                             ? VoidTheme.solarGold
@@ -1514,10 +1512,10 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                     const SizedBox(height: 2.0),
                     Text(
                       isLifetime
-                          ? 'ALL PRO FEATURES UNLOCKED'
+                          ? 'PRO ACTIVE'
                           : isBoostActive
                           ? 'BOOST: ${ent.formattedRemainingBoostTime} ($mins/60m)'
-                          : 'UNLOCK PRO FOR 5 MINS (UP TO 60m)',
+                          : '5m PRO BOOST',
                       style: const TextStyle(
                         color: Color(0xFF94A3B8),
                         fontSize: 8.5,
@@ -1606,7 +1604,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   size: 15.0,
                 ),
                 label: Text(
-                  isMax ? 'BOOST FULL (60m)' : 'WATCH AD (+5m PRO)',
+                  isMax ? 'MAX BOOST' : 'AD (+5m PRO)',
                   style: const TextStyle(
                     fontSize: 11.0,
                     fontWeight: FontWeight.w900,
@@ -1661,7 +1659,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                   size: 13.0,
                 ),
                 label: const Text(
-                  'GET LIFETIME PRO',
+                  'GET PRO',
                   style: TextStyle(
                     color: VoidTheme.solarGold,
                     fontSize: 9.5,
@@ -1860,6 +1858,9 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
                 icon: Icons.account_circle_outlined,
                 label: 'PILOT',
                 isActive: false,
+                showProBadge:
+                    EntitlementService.instance.hasActivePro ||
+                    PersistenceService.instance.isProUnlocked,
                 tooltip: 'Pilot Profile',
                 onTap: _openProfile,
               ),
@@ -1894,6 +1895,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
     required String label,
     required bool isActive,
     bool isSpecialOpsAccent = false,
+    bool showProBadge = false,
     required String tooltip,
     required VoidCallback onTap,
   }) {
@@ -1945,14 +1947,30 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  icon,
-                  color: isActive
-                      ? activeColor
-                      : (isSpecialOpsAccent
-                            ? VoidTheme.solarGold
-                            : inactiveColor),
-                  size: isActive ? 20.0 : 19.0,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icon,
+                      color: isActive
+                          ? activeColor
+                          : (isSpecialOpsAccent
+                                ? VoidTheme.solarGold
+                                : (showProBadge
+                                      ? VoidTheme.solarGold
+                                      : inactiveColor)),
+                      size: isActive ? 20.0 : 19.0,
+                    ),
+                    if (showProBadge) ...[
+                      const SizedBox(width: 2.0),
+                      const Icon(
+                        Icons.workspace_premium,
+                        color: VoidTheme.solarGold,
+                        size: 11.0,
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 3.0),
                 Text(
@@ -2016,7 +2034,7 @@ class _CampaignMapScreenState extends State<CampaignMapScreen>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'VOID SOWER // ORBITAL COMMAND',
+            'ORBITAL COMMAND',
             style: TextStyle(
               color: Color(0xFF38BDF8),
               fontSize: 8.5,

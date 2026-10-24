@@ -519,12 +519,8 @@ class _CombatScreenState extends State<CombatScreen>
 
     final String? watchAdLabel = isSpecialContinueAllowed
         ? (hasActivePro
-              ? (isIncursion
-                    ? null
-                    : 'SUMMON AUXILIARY CORES (+$rewardCores CORES)')
-              : (isIncursion
-                    ? 'WATCH AD (UNLOCK 5m PRO & UNLIMITED CORES)'
-                    : 'WATCH AD (+$rewardCores CORES & +5m PRO)'))
+              ? (isIncursion ? null : 'CORES +$rewardCores')
+              : (isIncursion ? 'AD: 5m PRO' : 'AD: +$rewardCores CORES'))
         : null;
 
     _dialogCoordinator.showDefeat(
@@ -1716,7 +1712,7 @@ class _CombatScreenState extends State<CombatScreen>
                                                       ),
                                                       SizedBox(width: 5.0),
                                                       Text(
-                                                        'PAUSED • TAP TO RESUME',
+                                                        'RESUME',
                                                         style: TextStyle(
                                                           color: VoidTheme
                                                               .solarGold,
@@ -1965,7 +1961,7 @@ class _CombatScreenState extends State<CombatScreen>
                                                                                   null &&
                                                                               !isPro
                                                                           ? 'UNLOCK PRO'
-                                                                          : 'REPLAY SECTOR'),
+                                                                          : 'REPLAY'),
                                                                 style: const TextStyle(
                                                                   color: VoidTheme
                                                                       .obsidianBlack,

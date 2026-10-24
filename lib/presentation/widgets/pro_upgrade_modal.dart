@@ -142,7 +142,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'SIMULATION ENVIRONMENT',
+                                'SANDBOX MODE',
                                 style: TextStyle(
                                   color: VoidTheme.solarGold,
                                   fontSize: 9.0,
@@ -152,7 +152,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                               ),
                               SizedBox(height: 2.0),
                               Text(
-                                'DEBUG EMULATOR SANDBOX',
+                                'DEBUG SANDBOX',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 13.0,
@@ -322,7 +322,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'TRANSACTION FAILURE',
+                                'BILLING ERROR',
                                 style: TextStyle(
                                   color: VoidTheme.crimsonFlare,
                                   fontSize: 9.0,
@@ -332,7 +332,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                               ),
                               SizedBox(height: 2.0),
                               Text(
-                                'STORE BILLING UNAVAILABLE',
+                                'STORE UNAVAILABLE',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 13.0,
@@ -501,7 +501,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'TRANSACTION FAILURE',
+                                'BILLING ERROR',
                                 style: TextStyle(
                                   color: VoidTheme.crimsonFlare,
                                   fontSize: 9.0,
@@ -511,7 +511,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                               ),
                               SizedBox(height: 2.0),
                               Text(
-                                'STORE BILLING UNAVAILABLE',
+                                'STORE UNAVAILABLE',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 13.0,
@@ -603,7 +603,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
-                        'VOID SOWER // PRO FLEET CLEARANCE',
+                        'PRO FLEET',
                         style: TextStyle(
                           color: Color(0xFF38BDF8),
                           fontSize: 8.5,
@@ -633,7 +633,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: const [
                             Text(
-                              'PRO COMMANDER FLEET',
+                              'PRO COMMANDER',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18.0,
@@ -644,7 +644,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                             ),
                             SizedBox(height: 2.0),
                             Text(
-                              'Lifetime License • \$1.29 One-Time',
+                              'Lifetime • \$1.29',
                               style: TextStyle(
                                 color: Color(0xFF94A3B8),
                                 fontSize: 10.0,
@@ -736,7 +736,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                     const SizedBox(height: 10.0),
                     const Center(
                       child: Text(
-                        'ALL PRO FEATURES INCLUDED:',
+                        'INCLUDED FEATURES',
                         style: TextStyle(
                           color: VoidTheme.textMuted,
                           fontSize: 9.5,
@@ -794,7 +794,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                           ),
                           SizedBox(width: 8.0),
                           Text(
-                            'PRO COMMANDER LIFETIME ACTIVE',
+                            'PRO ACTIVE',
                             style: TextStyle(
                               color: VoidTheme.solarGold,
                               fontSize: 11.0,
@@ -825,7 +825,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                     // Voluntary Rewarded Ad CTA (Stackable +5m up to 60m)
                     TactileButton(
                       label: EntitlementService.instance.isMaxBoostReached
-                          ? 'BOOST FULL (60m)'
+                          ? 'MAX BOOST'
                           : 'WATCH AD (+5m PRO)',
                       icon: Icons.play_circle_filled,
                       accentColor: VoidTheme.emeraldShield,
@@ -895,7 +895,7 @@ class _ProUpgradeModalState extends State<ProUpgradeModal> {
                   Icon(Icons.bolt, color: VoidTheme.solarGold, size: 14.0),
                   SizedBox(width: 4.0),
                   Text(
-                    'PRO TEMPORAL OVERCHARGE',
+                    'PRO BOOST',
                     style: TextStyle(
                       color: VoidTheme.starWhite,
                       fontSize: 10.0,

@@ -267,7 +267,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                           Row(
                             children: [
                               const Text(
-                                'ORBITAL SIMULATION LAB',
+                                'SIMULATION LAB',
                                 style: TextStyle(
                                   color: VoidTheme.starWhite,
                                   fontSize: 14.0,
@@ -304,7 +304,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                           ),
                           const SizedBox(height: 2.0),
                           const Text(
-                            'PARAMETRIC WAVE SYNTHESIZER & MCTS ARENA',
+                            'WAVE & MCTS LAB',
                             style: TextStyle(
                               color: VoidTheme.textSecondary,
                               fontSize: 9.0,
@@ -447,7 +447,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'DEPLOYED DREADNOUGHT CHASSIS',
+                  'CHASSIS',
                   style: TextStyle(
                     color: VoidTheme.plasmaCyanLight,
                     fontSize: 9.5,
@@ -675,7 +675,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
 
           // Launch Action
           TactileButton(
-            label: 'LAUNCH SORTIE',
+            label: 'LAUNCH',
             icon: Icons.rocket_launch,
             onPressed: _launchCustomSortie,
             accentColor: VoidTheme.solarGold,
@@ -727,7 +727,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Text(
-                  'NATIVE C++ MCTS SOLVER STRESS-TEST',
+                  'MCTS BENCHMARK',
                   style: TextStyle(
                     color: VoidTheme.plasmaCyanLight,
                     fontSize: 10.5,
@@ -758,7 +758,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                   CircularProgressIndicator(color: VoidTheme.plasmaCyan),
                   SizedBox(height: 12.0),
                   Text(
-                    'PROFILING 100 MCTS ITERATIONS...',
+                    'PROFILING...',
                     style: TextStyle(
                       color: VoidTheme.plasmaCyan,
                       fontSize: 10.5,
@@ -781,7 +781,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'BENCHMARK TELEMETRY RESULTS (100 ITERATIONS)',
+                    'BENCHMARK RESULTS',
                     style: TextStyle(
                       color: VoidTheme.emeraldShield,
                       fontSize: 10.5,
@@ -791,32 +791,32 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
                   ),
                   const SizedBox(height: 12.0),
                   _buildMetricRow(
-                    'AVERAGE DECISION LATENCY',
+                    'AVG LATENCY',
                     '${result.avgMicros.toStringAsFixed(1)} µs',
                     VoidTheme.plasmaCyan,
                   ),
                   _buildMetricRow(
-                    '99TH PERCENTILE LATENCY (P99)',
+                    'P99 LATENCY',
                     '${result.p99Micros} µs',
                     VoidTheme.plasmaCyanLight,
                   ),
                   _buildMetricRow(
-                    'VALID TACTICAL ACTIONS',
+                    'VALID MOVES',
                     '${result.validDecisions} / ${result.iterations}',
                     VoidTheme.solarGold,
                   ),
                   _buildMetricRow(
-                    'CLOCKWISE TRAVERSALS (CW)',
+                    'CLOCKWISE',
                     '${result.cwDecisions}',
                     VoidTheme.starWhite,
                   ),
                   _buildMetricRow(
-                    'COUNTER-CLOCKWISE (CCW)',
+                    'COUNTER-CW',
                     '${result.ccwDecisions}',
                     VoidTheme.starWhite,
                   ),
                   _buildMetricRow(
-                    'FRAME TIME COMPLIANCE (16.6ms BUDGET)',
+                    'FRAME BUDGET',
                     '< 0.8% of 60Hz frame',
                     VoidTheme.emeraldShield,
                   ),
@@ -827,9 +827,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
           const SizedBox(height: 16.0),
 
           TactileButton(
-            label: _isBenchmarking
-                ? 'RUNNING BENCHMARK...'
-                : 'RUN 100-STEP BENCHMARK',
+            label: _isBenchmarking ? 'RUNNING...' : 'RUN BENCHMARK',
             icon: Icons.speed,
             onPressed: _isBenchmarking ? null : _runMctsBenchmark,
             accentColor: VoidTheme.plasmaCyan,
@@ -910,7 +908,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
           const SizedBox(height: 16.0),
 
           TactileButton(
-            label: 'LAUNCH ENDLESS',
+            label: 'LAUNCH',
             icon: Icons.all_inclusive,
             onPressed: _launchEndlessHorde,
             accentColor: VoidTheme.crimsonFlare,
@@ -937,7 +935,7 @@ class _SimulationLabScreenState extends State<SimulationLabScreen> {
             const Icon(Icons.lock, size: 36.0, color: VoidTheme.solarGold),
             const SizedBox(height: 10.0),
             const Text(
-              'PRO COMMANDER CLEARANCE REQUIRED',
+              'PRO REQUIRED',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: VoidTheme.solarGold,

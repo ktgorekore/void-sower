@@ -138,7 +138,7 @@ class _FleetHangarDialogState extends State<FleetHangarDialog> {
 
                   // Subhead for Secondary Ships
                   const Text(
-                    'DREADNOUGHT CHASSIS FLEET',
+                    'FLEET CHASSIS',
                     style: TextStyle(
                       color: Color(0xFF38BDF8),
                       fontSize: 8.5,

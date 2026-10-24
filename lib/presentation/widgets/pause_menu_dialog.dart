@@ -234,7 +234,7 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'CURRENT SCORE',
+                                  'SCORE',
                                   style: TextStyle(
                                     color: Color(0xFF64748B),
                                     fontSize: 8.0,
@@ -274,7 +274,7 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'HIGH SCORE',
+                                  'BEST SCORE',
                                   style: TextStyle(
                                     color: Color(0xFF64748B),
                                     fontSize: 8.0,
@@ -313,7 +313,7 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: const [
                                 Text(
-                                  'CANOPY SHIELDS',
+                                  'SHIELDS',
                                   style: TextStyle(
                                     color: Color(0xFF64748B),
                                     fontSize: 8.0,
@@ -383,9 +383,9 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                                               EntitlementService
                                                   .instance
                                                   .hasActivePro)
-                                          ? 'REWIND (UNLIMITED • PRO)'
-                                          : 'REWIND (${widget.rewindsRemaining} LEFT)')
-                                    : 'REWIND (0 REMAINING)',
+                                          ? 'REWIND (∞)'
+                                          : 'REWIND (${widget.rewindsRemaining})')
+                                    : 'NO REWINDS',
                                 style: TextStyle(
                                   color: widget.canRewind
                                       ? Colors.white
@@ -442,8 +442,8 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                               Flexible(
                                 child: Text(
                                   EntitlementService.instance.isBoostActive
-                                      ? 'PRO BOOST: ${EntitlementService.instance.formattedRemainingBoostTime} • TAP TO STACK (+5m)'
-                                      : 'UNLOCK PRO BOOST • TAP TO STACK (+5m)',
+                                      ? 'BOOST: ${EntitlementService.instance.formattedRemainingBoostTime} (+5m)'
+                                      : 'PRO BOOST (+5m)',
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                   style: TextStyle(
@@ -466,9 +466,9 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                       const SizedBox(height: 8.0),
                     ],
 
-                    // 1. Hero Primary Button: RESUME COMBAT
+                    // 1. Hero Primary Button: RESUME
                     _buildPillButton(
-                      label: 'RESUME COMBAT',
+                      label: 'RESUME',
                       icon: Icons.play_arrow,
                       tooltip: 'Resume Sortie',
                       fillColor: const Color(0xFF00F0FF),
@@ -480,7 +480,7 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                     ),
                     const SizedBox(height: 8.0),
 
-                    // 2. RESTART SECTOR | ABORT TO ORBITAL COMMAND
+                    // 2. RESTART | ABORT
                     Row(
                       children: [
                         Expanded(
@@ -526,14 +526,14 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
                     ),
                     const SizedBox(height: 8.0),
 
-                    // 3. SECTORS MAP | DIRECTIVES CODEX
+                    // 3. STAR MAP | DIRECTIVES
                     if (widget.onMap != null || widget.onCodex != null) ...[
                       Row(
                         children: [
                           if (widget.onMap != null)
                             Expanded(
                               child: _buildPillButton(
-                                label: 'SECTORS MAP',
+                                label: 'STAR MAP',
                                 icon: Icons.map_outlined,
                                 tooltip: 'Star Map',
                                 fillColor: const Color(0xFF0A1220),
@@ -724,7 +724,7 @@ class _PauseMenuDialogState extends State<PauseMenuDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'QUICK HARDWARE TOGGLES',
+            'QUICK CONTROLS',
             style: TextStyle(
               color: Color(0xFF64748B),
               fontSize: 8.0,

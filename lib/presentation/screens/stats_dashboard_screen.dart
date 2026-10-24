@@ -119,7 +119,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'TELEMETRY INGESTION',
+                              'DATA IMPORT',
                               style: TextStyle(
                                 color: Color(0xFF38BDF8),
                                 fontSize: 9.0,
@@ -129,7 +129,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                             ),
                             SizedBox(height: 2.0),
                             Text(
-                              'RESTORE TELEMETRY SAVE',
+                              'RESTORE SAVE',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14.0,
@@ -319,7 +319,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'GDPR DATA PURGE',
+                          'DATA PURGE',
                           style: TextStyle(
                             color: Color(0xFFEF4444),
                             fontSize: 9.0,
@@ -329,7 +329,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                         ),
                         SizedBox(height: 2.0),
                         Text(
-                          'ERASE GUEST TELEMETRY?',
+                          'ERASE DATA?',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14.0,
@@ -531,7 +531,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: const [
                     Text(
-                      'VOID SOWER // TELEMETRY',
+                      'PILOT TELEMETRY',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -589,7 +589,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                     ),
                     const SizedBox(width: 4.0),
                     Text(
-                      isPro ? 'PRO COMMANDER' : 'STANDARD CADET',
+                      isPro ? 'PRO PILOT' : 'CADET',
                       style: TextStyle(
                         color: isPro
                             ? const Color(0xFFFEF3C7)
@@ -658,36 +658,71 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
         children: [
           Row(
             children: [
-              Container(
-                width: 48.0,
-                height: 48.0,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF080D1A),
-                  border: Border.all(
-                    color: const Color(0xFFF59E0B),
-                    width: 1.5,
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    width: 48.0,
+                    height: 48.0,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF080D1A),
+                      border: Border.all(
+                        color: const Color(0xFFF59E0B),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Icon(
+                      profile.insignia.iconData,
+                      color: const Color(0xFFFBBF24),
+                      size: 26.0,
+                    ),
                   ),
-                ),
-                child: Icon(
-                  profile.insignia.iconData,
-                  color: const Color(0xFFFBBF24),
-                  size: 26.0,
-                ),
+                  if (isPro)
+                    Positioned(
+                      right: -2.0,
+                      bottom: -2.0,
+                      child: Container(
+                        width: 18.0,
+                        height: 18.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFF59E0B),
+                          border: Border.all(
+                            color: const Color(0xFF080D1A),
+                            width: 1.5,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: const Icon(
+                          Icons.workspace_premium,
+                          color: Color(0xFF1C0F01),
+                          size: 11.0,
+                        ),
+                      ),
+                    ),
+                ],
               ),
               const SizedBox(width: 12.0),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      profile.callsign.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            profile.callsign.toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 2.0),
                     Text(
@@ -729,7 +764,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                     ),
                     const SizedBox(width: 4.0),
                     Text(
-                      isPro ? 'PRO COMMANDER' : 'RECRUIT PILOT',
+                      isPro ? 'PRO PILOT' : 'RECRUIT',
                       style: TextStyle(
                         color: isPro
                             ? const Color(0xFFFEF3C7)
@@ -817,7 +852,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   ),
                   SizedBox(width: 6.0),
                   Text(
-                    'DEPLOYMENT READINESS & HABIT',
+                    'STREAKS',
                     style: TextStyle(
                       color: Color(0xFF38BDF8),
                       fontSize: 12.0,
@@ -847,7 +882,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                     ),
                     const SizedBox(width: 3.0),
                     Text(
-                      '${profile.currentStreak} DAYS ACTIVE',
+                      '${profile.currentStreak}d STREAK',
                       style: const TextStyle(
                         color: Colors.deepOrangeAccent,
                         fontSize: 10.0,
@@ -864,7 +899,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             children: [
               Expanded(
                 child: _buildStreakStatPill(
-                  label: 'LONGEST STREAK',
+                  label: 'BEST STREAK',
                   value: '${profile.longestStreak} Days',
                   icon: Icons.trending_up,
                   accentColor: const Color(0xFFFBBF24),
@@ -958,7 +993,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'MISSION OUTCOMES & WIN RATE',
+            'OUTCOMES',
             style: TextStyle(
               color: Color(0xFFFBBF24),
               fontSize: 12.0,
@@ -1116,7 +1151,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'TACTICAL SENSOR LOG & COMBAT METRICS',
+            'COMBAT STATS',
             style: TextStyle(
               color: Color(0xFF38BDF8),
               fontSize: 12.0,
@@ -1131,7 +1166,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'HIGHEST COMBAT SCORE',
+                      label: 'BEST SCORE',
                       value: '${_persistence.highScore}',
                       icon: Icons.military_tech,
                       color: const Color(0xFFFBBF24),
@@ -1140,7 +1175,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'AVERAGE SCORE',
+                      label: 'AVG SCORE',
                       value: '${profile.averageScore}',
                       icon: Icons.analytics_outlined,
                       color: const Color(0xFF00F0FF),
@@ -1153,7 +1188,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'ENEMIES DESTROYED',
+                      label: 'KILLS',
                       value: '${profile.enemiesDestroyed}',
                       icon: Icons.track_changes,
                       color: const Color(0xFF00F0FF),
@@ -1162,7 +1197,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'LANCES DISCHARGED',
+                      label: 'LANCES',
                       value: '${profile.lancesFired}',
                       icon: Icons.bolt,
                       color: const Color(0xFFFBBF24),
@@ -1175,7 +1210,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'FLAK DETONATIONS',
+                      label: 'FLAK BURSTS',
                       value: '${profile.flakBurstsTriggered}',
                       icon: Icons.shield,
                       color: const Color(0xFF00F0FF),
@@ -1184,7 +1219,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'PLASMA CORES SOWN',
+                      label: 'CORES SOWN',
                       value: '${profile.totalSeedsSown}',
                       icon: Icons.grain,
                       color: const Color(0xFFFBBF24),
@@ -1197,7 +1232,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                 children: [
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'CORES PRESERVED',
+                      label: 'CORES SAVED',
                       value: '${profile.totalCoresSaved}',
                       icon: Icons.battery_charging_full,
                       color: const Color(0xFF10B981),
@@ -1206,7 +1241,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
                   const SizedBox(width: 8.0),
                   Expanded(
                     child: _buildMetricTile(
-                      label: 'MAX CASCADE COMBO',
+                      label: 'MAX COMBO',
                       value: '${profile.maxCascadeLaps} LAPS',
                       icon: Icons.all_inclusive,
                       color: const Color(0xFFFBBF24),
@@ -1294,7 +1329,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               const Text(
-                'CAMPAIGN THEATER MASTERY',
+                'CAMPAIGNS',
                 style: TextStyle(
                   color: Color(0xFFFBBF24),
                   fontSize: 12.0,
@@ -1438,7 +1473,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               const Text(
-                'FLEET CHASSIS DEPLOYMENT',
+                'FLEET USAGE',
                 style: TextStyle(
                   color: Color(0xFF38BDF8),
                   fontSize: 12.0,
@@ -1621,7 +1656,7 @@ class _StatsDashboardScreenState extends State<StatsDashboardScreen> {
             size: 18.0,
           ),
           label: const Text(
-            'ERASE GUEST DATA (GDPR)',
+            'ERASE DATA',
             style: TextStyle(
               color: Color(0xFFEF4444),
               fontSize: 12.0,

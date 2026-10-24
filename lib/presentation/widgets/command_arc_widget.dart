@@ -194,7 +194,7 @@ class CommandArcWidget extends StatelessWidget {
             const SizedBox(width: 4.0),
             Expanded(
               child: Text(
-                'TACTICAL AI SCANNING CORRIDORS...',
+                'AI SCANNING',
                 style: TextStyle(
                   color: VoidTheme.textMuted.withValues(alpha: 0.7),
                   fontSize: 7.5,

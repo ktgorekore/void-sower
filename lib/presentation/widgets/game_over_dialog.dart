@@ -195,8 +195,8 @@ class _GameOverDialogState extends State<GameOverDialog> {
                 children: [
                   Text(
                     widget.isAiAssisted
-                        ? 'AI SIMULATION • UNRANKED'
-                        : 'FINAL SCORE: ${widget.score}',
+                        ? 'AI UNRANKED'
+                        : 'SCORE: ${widget.score}',
                     style: const TextStyle(
                       color: VoidTheme.solarGold,
                       fontSize: 15.0,
@@ -219,10 +219,10 @@ class _GameOverDialogState extends State<GameOverDialog> {
                       Flexible(
                         child: Text(
                           isNewRecord
-                              ? '🏆 NEW ALL-TIME HIGH SCORE!'
+                              ? '🏆 NEW BEST!'
                               : (widget.isAiAssisted
-                                    ? 'ALL-TIME HIGH SCORE: ${widget.highScore}'
-                                    : 'ALL-TIME HIGH SCORE: $effectiveHighScore'),
+                                    ? 'BEST: ${widget.highScore}'
+                                    : 'BEST: $effectiveHighScore'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -248,8 +248,8 @@ class _GameOverDialogState extends State<GameOverDialog> {
                 label:
                     widget.watchAdLabel ??
                     (widget.isPro
-                        ? 'SUMMON AUXILIARY CORES (+${widget.rewardCores} CORES)'
-                        : 'WATCH AD (+${widget.rewardCores} CORES & +5m PRO)'),
+                        ? 'CORES +${widget.rewardCores}'
+                        : 'AD: +${widget.rewardCores} CORES'),
                 icon: widget.isPro ? Icons.bolt : Icons.play_circle_filled,
                 onPressed: _isArmed ? widget.onWatchAdForCores : null,
                 accentColor: _isArmed
@@ -271,9 +271,9 @@ class _GameOverDialogState extends State<GameOverDialog> {
               TactileButton(
                 label: widget.canRewind
                     ? ((widget.isPro || widget.rewindsRemaining >= 999)
-                          ? 'CHRONO-ANCHOR REWIND (UNLIMITED)'
-                          : 'REWIND (${widget.rewindsRemaining} LEFT)')
-                    : 'REWIND (DEPLETED)',
+                          ? 'REWIND (∞)'
+                          : 'REWIND (${widget.rewindsRemaining})')
+                    : 'NO REWINDS',
                 icon: Icons.history,
                 onPressed: (_isArmed && widget.canRewind)
                     ? widget.onRewind

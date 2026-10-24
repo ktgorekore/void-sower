@@ -130,7 +130,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'CRITICAL REACTOR DEPLETION',
+                          'REACTOR DEPLETED',
                           style: TextStyle(
                             color: VoidTheme.crimsonFlare,
                             fontSize: 13.0,
@@ -139,7 +139,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                           ),
                         ),
                         Text(
-                          'Emergency Orbital Flare Available',
+                          'Emergency Flare',
                           style: TextStyle(
                             color: VoidTheme.solarGold,
                             fontSize: 11.0,
@@ -188,9 +188,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                   children: [
                     Expanded(
                       child: Text(
-                        isPro
-                            ? 'TIER: PRO COMMANDER'
-                            : 'EMERGENCY CORES & BOOST',
+                        isPro ? 'PRO COMMANDER' : 'FLARE BONUS',
                         style: TextStyle(
                           color: isPro
                               ? VoidTheme.solarGold
@@ -204,7 +202,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                     const SizedBox(width: 8.0),
                     Text(
                       isPro
-                          ? '+${widget.rewardCores} CORES • INSTANT'
+                          ? '+${widget.rewardCores} CORES'
                           : '+${widget.rewardCores} CORES • +5m PRO',
                       style: const TextStyle(
                         color: VoidTheme.solarGold,
@@ -248,7 +246,7 @@ class _RewardedAdModalState extends State<RewardedAdModal> {
                       child: TactileButton(
                         label: isPro
                             ? 'SUMMON FLARE'
-                            : 'WATCH AD (+${widget.rewardCores} CORES)',
+                            : 'AD (+${widget.rewardCores} CORES)',
                         icon: isPro ? Icons.bolt : Icons.play_circle_filled,
                         accentColor: canRequest
                             ? (isPro

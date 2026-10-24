@@ -206,7 +206,7 @@ class _ProBoostModalState extends State<ProBoostModal>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'PRO TEMPORAL OVERCHARGE',
+                          'PRO BOOST',
                           style: TextStyle(
                             color: VoidTheme.solarGold,
                             fontSize: 13.0,
@@ -216,10 +216,10 @@ class _ProBoostModalState extends State<ProBoostModal>
                         ),
                         Text(
                           isLifetime
-                              ? 'Permanent Lifetime License Active'
+                              ? 'Lifetime Active'
                               : isBoost
-                              ? 'Active Boost: ${ent.formattedRemainingBoostTime}'
-                              : 'Boost Inactive — Stack up to 60 Mins',
+                              ? 'Active: ${ent.formattedRemainingBoostTime}'
+                              : 'Stack up to 60m',
                           style: TextStyle(
                             color: isLifetime
                                 ? VoidTheme.solarGold
@@ -365,7 +365,7 @@ class _ProBoostModalState extends State<ProBoostModal>
                 )
               else if (!isLifetime) ...[
                 TactileButton(
-                  label: isMax ? 'BOOST FULL (60m)' : 'WATCH AD (+5m BOOST)',
+                  label: isMax ? 'MAX BOOST' : 'AD (+5m BOOST)',
                   icon: Icons.play_circle_filled,
                   accentColor: isMax
                       ? VoidTheme.cardSurface
@@ -375,7 +375,7 @@ class _ProBoostModalState extends State<ProBoostModal>
                 ),
                 const SizedBox(height: 8.0),
                 TactileButton(
-                  label: 'UNLOCK LIFETIME PRO — \$1.29',
+                  label: 'PRO • \$1.29',
                   icon: Icons.workspace_premium,
                   accentColor: VoidTheme.solarGold,
                   height: 44.0,

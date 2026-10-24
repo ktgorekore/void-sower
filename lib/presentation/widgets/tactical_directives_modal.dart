@@ -103,7 +103,7 @@ class TacticalDirectivesModal extends StatelessWidget {
                         ),
                         SizedBox(height: 2.0),
                         Text(
-                          'HOW TO PLAY AT A GLANCE',
+                          'QUICK GUIDE',
                           style: TextStyle(
                             color: VoidTheme.plasmaCyanLight,
                             fontSize: 9.5,

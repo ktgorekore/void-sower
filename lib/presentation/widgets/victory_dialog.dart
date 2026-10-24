@@ -122,16 +122,16 @@ class _VictoryDialogState extends State<VictoryDialog> {
 
   String get _starRatingLabel {
     if (widget.isAiAssisted) {
-      return 'AI SOLVER • UNRANKED';
+      return 'AI UNRANKED';
     }
     switch (widget.starsEarned) {
       case 3:
-        return '★★★ FLAWLESS DEFENSE';
+        return '★★★ FLAWLESS';
       case 2:
-        return '★★☆ HEROIC SORTIE';
+        return '★★☆ VICTORY';
       case 1:
       default:
-        return '★☆☆ CORRIDOR SURVIVOR';
+        return '★☆☆ CLEARED';
     }
   }
 
@@ -325,7 +325,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
-                                'NEW SECTOR UNLOCKED!',
+                                'SECTOR UNLOCKED',
                                 style: TextStyle(
                                   color: VoidTheme.emeraldShield,
                                   fontSize: 8.5,
@@ -371,7 +371,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                     children: [
                       Expanded(
                         child: _buildStatColumn(
-                          'MISSION SCORE',
+                          'SCORE',
                           widget.isAiAssisted ? 'UNRANKED' : '${widget.score}',
                           widget.isAiAssisted
                               ? VoidTheme.textMuted
@@ -388,8 +388,8 @@ class _VictoryDialogState extends State<VictoryDialog> {
                           (!widget.isAiAssisted &&
                                   widget.score >= widget.highScore &&
                                   widget.score > 0)
-                              ? '★ NEW RECORD'
-                              : 'HIGH SCORE',
+                              ? '★ NEW BEST'
+                              : 'BEST SCORE',
                           widget.isAiAssisted
                               ? '${widget.highScore}'
                               : '${math.max(widget.score, widget.highScore)}',
@@ -403,7 +403,7 @@ class _VictoryDialogState extends State<VictoryDialog> {
                       ),
                       Expanded(
                         child: _buildStatColumn(
-                          'CORES SAVED',
+                          'CORES',
                           '${widget.coresRemaining}',
                           VoidTheme.plasmaCyan,
                         ),

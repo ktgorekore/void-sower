@@ -158,9 +158,13 @@ class SlimlineHudHeader extends StatelessWidget {
         children: [
           // 1. Gmail-style Pilot Profile Avatar Icon (leftmost control)
           _buildProfileAvatarButton(),
+          const SizedBox(width: 4.0),
+
+          // 2. Compact Pro / Boost / AI Auto Status Badge (paired next to Profile)
+          Flexible(flex: 20, child: _buildProPill()),
           _buildDivider(),
 
-          // 2. Prominent Glowing Star Map Button & Direct Special Ops Shortcut
+          // 3. Prominent Glowing Star Map Button & Direct Special Ops Shortcut
           if (onMapTap != null) ...[
             _buildStarMapButton(),
             const SizedBox(width: 4.0),
@@ -170,12 +174,8 @@ class SlimlineHudHeader extends StatelessWidget {
             _buildDivider(),
           ],
 
-          // 3. Compact Sector & Score Display
+          // 4. Compact Sector & Score Display
           Expanded(flex: 32, child: _buildSectorScoreSection()),
-          _buildDivider(),
-
-          // 4. Compact Pro / Boost / AI Auto Status Badge
-          Flexible(flex: 20, child: _buildProPill()),
           _buildDivider(),
 
           // 5. Cores & Shields Inline Telemetry
@@ -377,11 +377,14 @@ class SlimlineHudHeader extends StatelessWidget {
   }
 
   Widget _buildProPill() {
-    return _ProSlimlinePill(
-      isPro: isPro,
-      isAutoSolving: isAutoSolving,
-      isPaused: isPaused,
-      onTap: isAutoSolving ? (onToggleAutoSolve ?? onProTap) : onProTap,
+    return KeyedSubtree(
+      key: const Key('hud_pro_pill'),
+      child: _ProSlimlinePill(
+        isPro: isPro,
+        isAutoSolving: isAutoSolving,
+        isPaused: isPaused,
+        onTap: isAutoSolving ? (onToggleAutoSolve ?? onProTap) : onProTap,
+      ),
     );
   }
 
