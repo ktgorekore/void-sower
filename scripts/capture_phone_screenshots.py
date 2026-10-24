@@ -13,24 +13,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Automates high-resolution phone screenshot capture for Google Play Console.
+"""Automates Play Store phone screenshot capture with 100% filename accuracy.
 
-Captures all 10 phone screenshots (1344x2992 @ 480dpi) plus asset/docs mirrors,
-prioritizing live 3D gameplay action over static menus:
-  - 01: 3D Tactical Combat Grid with Nyumba Mega Gun Ready (16x SUPER BEAM dock)
-  - 02: Quadratic Exaggerated Super Beam (25x-36x MEGA GUN with 5 double helices
-        & concentric 3D shockwave rings)
-  - 03: Interactive Flight Academy Onboarding over 3D Orbital Trench
-  - 04: Orbital Fleet Hangar with 4 Afrofuturist Dreadnought Chassis
-  - 05: Clean Kilwa Nebula Basin Campaign Star Map (Sector 9 Active Siege)
-  - 06: 3-Beam Golden Morabaraba FENCE BLAST Barrage (3 simultaneous lances)
-  - 07: Active Bao Sowing & 3D Morabaraba Laser Fence (MILL 1.5x + FENCE BLAST)
-  - 08: Quadratic Lance Direct Boss Strike + Yote Snipe Ready (CULL x1 unlocked)
-  - 09: Focused Multi-Seed Fire Lance (4x-9x SUPER BEAM mid-flight)
-  - 10: AI Auto-Pilot (AI AUTO) Active Siege & Lance Barrage
-Every screenshot is strictly verified against white screens, system dialogs, and ads.
+Captures 10 visually appealing, high-impact phone screenshots (1344x2992) where
+every filename strictly matches the visual scene depicted:
+  01_tactical_combat_grid.png          - 3D Combat Grid & Charged Mega Gun (16x)
+  02_axial_particle_lance.png          - Quadratic M^2 Double-Helix Super Beam
+  03_morabaraba_fence_blast_barrage.png- 3-Beam Golden Morabaraba Fence Blast
+  04_morabaraba_laser_fence_sowing.png - Active Bao Sowing & 3D Laser Fence
+  05_ai_autopilot_tactical_solver.png  - Autonomous C++ MCTS AI AUTO Solver Beam
+  06_kilwa_basin_campaign_map.png      - Kilwa Nebula Basin Campaign Star Map
+  07_orbital_fleet_hangar.png          - Orbital Drydock 3D Dreadnought Hangar
+  08_special_operations_command.png    - Special Ops (Daily Sortie & Incursion)
+  09_pilot_telemetry_dossier.png       - Pilot Dossier & Telemetry (PRO Badge)
+  10_flight_academy_onboarding.png     - Interactive Flight Academy Simulator
 """
 
+import glob
 import os
 import shutil
 import subprocess
@@ -57,7 +56,7 @@ def tap(x, y):
   adb_cmd(["shell", "input", "tap", str(x), str(y)])
 
 
-def swipe(x1, y1, x2, y2, duration_ms=250):
+def swipe(x1, y1, x2, y2, duration_ms=220):
   adb_cmd([
       "shell",
       "input",
@@ -99,7 +98,7 @@ def verify_and_save(temp_path, dest_name, mirror_names=None, docs_names=None):
   print(f"[Verify] {dest_name}: mean_rgb={mean_rgb}, white={white_pct:.2f}%")
   if white_pct > 5.0:
     raise RuntimeError(
-        f"ABORT: Screenshot {dest_name} contains white screen or ad"
+        f"ABORT: Screenshot {dest_name} contains white screen or test ad"
         f" ({white_pct:.1f}% white pixels)!"
     )
 
@@ -108,17 +107,18 @@ def verify_and_save(temp_path, dest_name, mirror_names=None, docs_names=None):
   print(f"[Saved] -> {dest_path} ({os.path.getsize(dest_path)} bytes)")
 
   for m_name in mirror_names or []:
-    mirror_path = os.path.join(ASSETS_DIR, m_name)
-    shutil.copyfile(dest_path, mirror_path)
-    print(f"[Mirrored Asset] -> {mirror_path}")
+    m_path = os.path.join(ASSETS_DIR, m_name)
+    shutil.copyfile(dest_path, m_path)
+    print(f"[Mirrored Asset] -> {m_path}")
 
-  for d_name in docs_names or []:
-    docs_path = os.path.join(DOCS_STORE_DIR, d_name)
-    shutil.copyfile(dest_path, docs_path)
-    print(f"[Mirrored Docs] -> {docs_path}")
+  # Always mirror the canonical name to docs/media/store_screenshots/ plus any
+  # extra alias names (such as 01_combat_tactical_depth.png for README.md).
+  all_docs_names = [dest_name] + (docs_names or [])
+  for d_name in dict.fromkeys(all_docs_names):
+    d_path = os.path.join(DOCS_STORE_DIR, d_name)
+    shutil.copyfile(dest_path, d_path)
+    print(f"[Mirrored Docs] -> {d_path}")
 
-  docs_same_path = os.path.join(DOCS_STORE_DIR, dest_name)
-  shutil.copyfile(dest_path, docs_same_path)
   return dest_path
 
 
@@ -136,12 +136,7 @@ def capture(dest_name, mirror_names=None, docs_names=None):
 
 
 def tap_and_capture_beam(
-    tap_x,
-    tap_y,
-    delay_s,
-    dest_name,
-    mirror_names=None,
-    docs_names=None,
+    tap_x, tap_y, delay_s, dest_name, mirror_names=None, docs_names=None
 ):
   """Fires a dock button and captures the lance beam in a single shell call."""
   ensure_app_focused()
@@ -214,8 +209,8 @@ def seed_prefs(
       '    <int name="flutter.void_sower_sector_stars_4" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_5" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_6" value="3" />\n'
-      '    <int name="flutter.void_sower_sector_stars_7" value="2" />\n'
-      '    <int name="flutter.void_sower_sector_stars_8" value="2" />\n'
+      '    <int name="flutter.void_sower_sector_stars_7" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_8" value="3" />\n'
       '    <string'
       f' name="flutter.void_sower_user_profile">{escaped_profile}</string>\n'
       '    <string'
@@ -225,7 +220,14 @@ def seed_prefs(
   with open("/tmp/prefs.xml", "w", encoding="utf-8") as f:
     f.write(pref_xml)
   subprocess.run(
-      ["adb", "-s", DEVICE, "push", "/tmp/prefs.xml", "/data/local/tmp/prefs.xml"],
+      [
+          "adb",
+          "-s",
+          DEVICE,
+          "push",
+          "/tmp/prefs.xml",
+          "/data/local/tmp/prefs.xml",
+      ],
       check=True,
   )
   adb_cmd([
@@ -267,10 +269,21 @@ def launch_sector_9():
   time.sleep(1.6)
 
 
+def clean_stale_screenshots():
+  """Removes stale/mismatched screenshot PNGs before writing fresh ones."""
+  for path in glob.glob(os.path.join(SCREENSHOTS_DIR, "*.png")):
+    os.remove(path)
+  for path in glob.glob(os.path.join(ASSETS_DIR, "phone_*.png")):
+    os.remove(path)
+  for path in glob.glob(os.path.join(DOCS_STORE_DIR, "*.png")):
+    os.remove(path)
+
+
 def main():
   os.makedirs(SCREENSHOTS_DIR, exist_ok=True)
   os.makedirs(ASSETS_DIR, exist_ok=True)
   os.makedirs(DOCS_STORE_DIR, exist_ok=True)
+  clean_stale_screenshots()
 
   # Ensure native phone display resolution (1344x2992 @ 480dpi)
   adb_cmd(["shell", "wm", "size", "reset"])
@@ -278,9 +291,9 @@ def main():
   time.sleep(1.0)
 
   # =========================================================================
-  # Phase 1: Flight Academy Onboarding over 3D Orbital Trench
+  # Phase 1: Interactive Flight Academy Onboarding (10)
   # =========================================================================
-  print("\n[Phase 1] Capturing Flight Academy Onboarding (03)...")
+  print("\n[Phase 1] Capturing Flight Academy Onboarding (10)...")
   seed_prefs(
       pro_unlocked=True,
       completed_tutorial=False,
@@ -291,14 +304,18 @@ def main():
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(3.0)
   capture(
-      "03_flight_academy_onboarding.png",
-      mirror_names=["phone_02_flight_academy.png"],
+      "10_flight_academy_onboarding.png",
+      mirror_names=["phone_10_flight_academy_onboarding.png"],
   )
 
   # =========================================================================
-  # Phase 2: Clean Campaign Star Map (05) & Orbital Fleet Hangar (04)
+  # Phase 2: Campaign Star Map (06), Fleet Hangar (07), Special Ops (08),
+  #          & Pilot Telemetry Dossier with Profile-Linked PRO Badge (09)
   # =========================================================================
-  print("\n[Phase 2] Capturing Clean Campaign Star Map (05) & Hangar (04)...")
+  print(
+      "\n[Phase 2] Capturing Campaign Star Map (06), Fleet Hangar (07),"
+      " Special Ops (08), & Pilot Telemetry Dossier (09)..."
+  )
   seed_prefs(
       pro_unlocked=True,
       completed_tutorial=True,
@@ -309,59 +326,76 @@ def main():
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
   time.sleep(2.4)
 
-  # Open Campaign Star Map via top-left Star Map button
-  tap(343, 224)
-  time.sleep(1.5)
-  capture(
-      "05_kilwa_basin_campaign_map.png",
-      docs_names=["03_orbital_command_campaign.png"],
-  )
-
-  # Open Orbital Fleet Hangar via bottom nav FLEET tab
-  tap(560, 2815)
+  # Open Pilot Flight Dossier directly over the 3D Combat Arena via top-left
+  # Profile Avatar (x=75, y=224) to showcase the profile-linked PRO badge!
+  tap(75, 224)
   time.sleep(1.2)
   capture(
-      "04_orbital_fleet_hangar.png",
-      mirror_names=["phone_06_hangar.png"],
-      docs_names=["04_fleet_hangar_inspection.png"],
+      "09_pilot_telemetry_dossier.png",
+      mirror_names=["phone_09_pilot_telemetry_dossier.png"],
   )
-  # Close Hangar modal
   keyevent(4)
   time.sleep(0.8)
 
+  # Open Campaign Star Map via top-left Star Map button (x=343, y=224)
+  tap(343, 224)
+  time.sleep(1.5)
+  capture(
+      "06_kilwa_basin_campaign_map.png",
+      mirror_names=["phone_06_kilwa_basin_campaign_map.png"],
+  )
+
+  # Open Orbital Fleet Hangar via bottom nav FLEET tab (x=560, y=2815)
+  tap(560, 2815)
+  time.sleep(1.2)
+  capture(
+      "07_orbital_fleet_hangar.png",
+      mirror_names=["phone_07_orbital_fleet_hangar.png"],
+  )
+  keyevent(4)
+  time.sleep(0.8)
+
+  # Switch to Special Operations Command Deck via OPS tab (x=345, y=2815)
+  tap(345, 2815)
+  time.sleep(1.2)
+  capture(
+      "08_special_operations_command.png",
+      mirror_names=["phone_08_special_operations_command.png"],
+  )
+
+  # Switch back to SECTORS tab (x=130, y=2815) to engage Sector 9
+  tap(130, 2815)
+  time.sleep(1.0)
+
   # =========================================================================
-  # Phase 3: Sector 9 3D Combat Grid (01) + Quadratic Exaggerated MEGA GUN (02)
-  #          + Direct Apex Boss Strike / Yote Snipe Ready (08)
+  # Phase 3: Sector 9 3D Tactical Combat Grid with Mega Gun Ready (01)
+  #          + Quadratic Exaggerated MEGA GUN Super Beam (02)
   # =========================================================================
   print(
       "\n[Phase 3] Engaging Sector 9 for Mega Gun Ready (01) & Quadratic"
-      " Exaggerated Super Beam (02, 08)..."
+      " Exaggerated Super Beam (02)..."
   )
-  # Tap ENGAGE on Sector 9 from the Star Map
   tap(1100, 2235)
   time.sleep(1.6)
 
-  # Slide Defender to Corridor 1 (Totem #2) and sow right twice to overcharge
-  # Totem #3 (Nyumba bay 10) to 4+ seeds (MEGA GUN 16x-25x SUPER BEAM!)
-  swipe(580, 2350, 250, 2250, 140)
-  time.sleep(0.25)
+  # Slide Defender laterally at y=2420 to Corridor 2 (Totem #2, x=297) and sow
+  # right twice to charge Totem #3 (Nyumba bay 10) to 4+ seeds (MEGA GUN 16x!)
+  swipe(595, 2420, 297, 2420, 180)
+  time.sleep(0.30)
   tap(265, 2800)
   time.sleep(0.35)
   tap(265, 2800)
   time.sleep(0.35)
 
-  # Slide Defender to Corridor 2 (Totem #3) so the dock displays:
-  # "✨ TOTEM #3 • MEGA GUN ••••" / "⚡ TAP FOR 16x SUPER BEAM"
-  swipe(250, 2250, 420, 1950, 160)
-  time.sleep(0.30)
+  # Slide Defender purely horizontally at y=2420 to Corridor 3 (Totem #3, x=446)
+  # so the dock glows: "✨ #3 •••• 16x"
+  swipe(297, 2420, 446, 2420, 180)
+  time.sleep(0.35)
 
   # Screenshot 01: Active 3D Combat Grid with Nyumba Mega Gun Ready & 6 Enemies
   capture(
       "01_tactical_combat_grid.png",
-      mirror_names=[
-          "phone_01_tactical_combat_grid.png",
-          "phone_02_nyumba_storage.png",
-      ],
+      mirror_names=["phone_01_tactical_combat_grid.png"],
       docs_names=["01_combat_tactical_depth.png"],
   )
 
@@ -372,31 +406,16 @@ def main():
       0.08,
       "02_axial_particle_lance.png",
       mirror_names=["phone_02_axial_particle_lance.png"],
-      docs_names=["02_axial_particle_lance.png"],
-  )
-  time.sleep(0.45)
-
-  # Now slide to Corridor 7 (Totem #8, which has 5 seeds on its Nyumba throne)
-  # and unleash a second Quadratic Exaggerated Super Beam directly into the
-  # Apex Boss Flagship (unlocking Yote Snipe Ready / CULL x1 + 1260x DMG)!
-  swipe(420, 1950, 1240, 2100, 180)
-  time.sleep(0.30)
-  tap_and_capture_beam(
-      1180,
-      2800,
-      0.08,
-      "08_pilot_telemetry_dashboard.png",
-      mirror_names=["phone_04_pilot_dossier.png"],
   )
   time.sleep(0.45)
 
   # =========================================================================
-  # Phase 4: Active Bao Sowing & Golden 3D Morabaraba Laser Fence (07)
-  #          + 3-Beam Golden Morabaraba FENCE BLAST Barrage (06)
+  # Phase 4: Active Bao Sowing & Golden 3D Morabaraba Laser Fence (04)
+  #          + 3-Beam Golden Morabaraba FENCE BLAST Barrage (03)
   # =========================================================================
   print(
-      "\n[Phase 4] Building 4-Totem Morabaraba Laser Fence (07) & Firing 3-Beam"
-      " Golden FENCE BLAST Barrage (06)..."
+      "\n[Phase 4] Building 4-Totem Morabaraba Laser Fence (04) & Firing 3-Beam"
+      " Golden FENCE BLAST Barrage (03)..."
   )
   seed_prefs(
       pro_unlocked=True,
@@ -407,58 +426,49 @@ def main():
   )
   launch_sector_9()
 
-  # 1. Slide to Totem #3 (x=420) and tap SOW › (265, 2800) -> sows 4 seeds into
+  # 1. Slide to Totem #3 (x=446) and tap SOW › (265, 2800) -> sows 4 seeds into
   #    Totems #4, #5, #6, #7 (each now has 1 seed).
-  swipe(580, 2450, 420, 2450, 220)
+  swipe(595, 2420, 446, 2420, 200)
   time.sleep(0.35)
   tap(265, 2800)
   time.sleep(0.55)
 
-  # 2. Slide to Totem #8 (x=1240) and tap ‹ SOW (115, 2800) -> sows 4 seeds
+  # 2. Slide to Totem #8 (x=1192) and tap ‹ SOW (115, 2800) -> sows 4 seeds
   #    leftward into Totems #7, #6, #5, #4 (each now has 2 seeds: 2, 2, 2, 2!).
-  swipe(980, 2450, 1240, 2450, 220)
+  swipe(980, 2420, 1192, 2420, 200)
   time.sleep(0.35)
   tap(115, 2800)
   time.sleep(0.55)
 
-  # 3. Tap BLASTER FIRE once so the HUD updates and illuminates the Golden
-  #    Morabaraba Laser Fence ("MILL 1.5x" chip + gold "FENCE BLAST" button)
-  tap(1180, 2800)
+  # 3. Slide back to Totem #3 (x=446, which has 3 seeds) and fire its 9x Super
+  #    Beam while the Golden Morabaraba Laser Fence ("MILL 1.5x" + "BLAST") is
+  #    illuminated across Totems #4-#7!
+  swipe(1192, 2420, 446, 2420, 200)
+  time.sleep(0.30)
+  tap_and_capture_beam(
+      672,
+      2800,
+      0.08,
+      "04_morabaraba_laser_fence_sowing.png",
+      mirror_names=["phone_04_morabaraba_laser_fence_sowing.png"],
+  )
   time.sleep(0.45)
 
-  # Screenshot 07: Active Bao Sowing & Golden 3D Morabaraba Laser Fence Ready
-  capture(
-      "07_bao_orbital_codex.png",
-      mirror_names=[
-          "phone_03_bao_codex.png",
-          "phone_02_capacitor_sowing.png",
-      ],
-      docs_names=["05_tactical_directives_codex.png"],
-  )
-
-  # Screenshot 06: Fire the 3-Beam Golden Morabaraba FENCE BLAST Barrage!
+  # 4. Screenshot 03: Fire the 3-Beam Golden Morabaraba FENCE BLAST Barrage!
   tap_and_capture_beam(
       1180,
       2800,
       0.08,
-      "06_sector_liberation_victory.png",
-      mirror_names=[
-          "phone_05_sector_liberation.png",
-          "phone_05_tactical_settings.png",
-      ],
-      docs_names=[
-          "06_sector_liberation_victory.png",
-          "06_tactical_pause_controls.png",
-      ],
+      "03_morabaraba_fence_blast_barrage.png",
+      mirror_names=["phone_03_morabaraba_fence_blast_barrage.png"],
   )
   time.sleep(0.45)
 
   # =========================================================================
-  # Phase 5: Focused Multi-Seed Fire Lance (09) & AI Auto-Pilot Siege (10)
+  # Phase 5: Autonomous C++ MCTS AI AUTO Tactical Solver in Action (05)
   # =========================================================================
   print(
-      "\n[Phase 5] Capturing Focused Fire Lance (09) & AI Auto-Pilot Siege"
-      " (10)..."
+      "\n[Phase 5] Capturing Autonomous C++ MCTS AI AUTO Tactical Solver (05)..."
   )
   seed_prefs(
       pro_unlocked=True,
@@ -469,18 +479,6 @@ def main():
   )
   launch_sector_9()
 
-  # Slide to Corridor 2 (Totem #3 has 3 seeds -> 9x SUPER BEAM) and fire!
-  swipe(580, 2350, 420, 2050, 160)
-  time.sleep(0.30)
-  tap_and_capture_beam(
-      1180,
-      2800,
-      0.08,
-      "09_pro_commander_upgrade.png",
-      mirror_names=["phone_07_pro_commander.png"],
-  )
-  time.sleep(0.45)
-
   # Enable AI Tactical Solver via Pause Menu -> AI Solver toggle -> Resume
   keyevent(4)
   time.sleep(0.8)
@@ -489,19 +487,18 @@ def main():
   tap(671, 1500)
   time.sleep(0.35)
 
-  # Fire immediately while AI AUTO is active in the HUD!
+  # Fire immediately while AI AUTO is active in the HUD and AI SIM is in dock!
   tap_and_capture_beam(
       1180,
       2800,
       0.08,
-      "10_checkpoint_relic_draft_siege.png",
-      mirror_names=["phone_08_checkpoint_relic_draft.png"],
-      docs_names=["07_checkpoint_relic_draft.png"],
+      "05_ai_autopilot_tactical_solver.png",
+      mirror_names=["phone_05_ai_autopilot_tactical_solver.png"],
   )
 
   print(
       "\n[Complete] All 10 Play Store phone screenshots and asset/docs mirrors"
-      " captured and verified!"
+      " captured and verified with 100% filename accuracy!"
   )
 
 

@@ -16,13 +16,13 @@
 """Automates gameplay demonstration scenarios on the Android emulator for video capture.
 
 Captures:
-1. 60s comprehensive narrated tutorial showing count-and-capture, multi-theater campaigns,
-   evasive invaders, respawning swarm hordes, and Pro Commander benefits.
-2. 30s high-intensity combat showcase highlighting Phantom Drift evasive craft and Void Swarm
-   respawning horde incursions with tactical core siphon.
+1. 60s comprehensive narrated tutorial showing 3D corridor alignment, Bao
+   count-and-capture sowing, Quadratic M^2 Axial Particle Lances, Morabaraba
+   Laser Fence barrages, and the native C++ MCTS AI Tactical Solver.
+2. 30s high-intensity combat showcase highlighting Phantom Drift evasive craft
+   and Void Swarm respawning horde incursions with AI Tactical Solver.
 """
 
-import os
 import subprocess
 import sys
 import time
@@ -32,7 +32,7 @@ DEVICE = "emulator-5554"
 
 def adb_cmd(args):
   cmd = ["adb", "-s", DEVICE] + args
-  return subprocess.run(cmd, capture_output=True, text=True)
+  return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
 def tap(x, y):
@@ -40,197 +40,195 @@ def tap(x, y):
 
 
 def swipe(x1, y1, x2, y2, duration_ms=200):
-  adb_cmd(["shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration_ms)])
+  adb_cmd([
+      "shell",
+      "input",
+      "swipe",
+      str(x1),
+      str(y1),
+      str(x2),
+      str(y2),
+      str(duration_ms),
+  ])
 
 
-def keyevent(code):
-  adb_cmd(["shell", "input", "keyevent", str(code)])
-
-
-def reset_app_pro_state(completed_tutorial=False):
-  """Resets app state cleanly via pm clear and injects persistent SharedPreferences."""
-  adb_cmd(["shell", "settings", "put", "secure", "immersive_mode_confirmations", "confirmed"])
+def reset_app_pro_state(completed_tutorial=True):
+  """Seeds SharedPreferences with Pro unlocked and Sector 9 unlocked."""
+  adb_cmd([
+      "shell",
+      "settings",
+      "put",
+      "secure",
+      "immersive_mode_confirmations",
+      "confirmed",
+  ])
   adb_cmd(["shell", "am", "force-stop", "com.voidsower.app"])
   time.sleep(0.5)
-  adb_cmd(["shell", "pm", "clear", "com.voidsower.app"])
-  time.sleep(1.0)
+
+  profile_json = (
+      '{"id":"pilot_default","callsign":"Vanguard-01","insignia":"shonaStar",'
+      '"lifetimeScore":48950,"enemiesDestroyed":248,"lancesFired":164,'
+      '"maxCascadeLaps":6,"missionsPlayed":42,"victories":36,"defeats":6,'
+      '"flawlessVictories":24,"totalSeedsSown":680,"flakBurstsTriggered":48,'
+      '"totalCoresSaved":390,"currentStreak":9,"longestStreak":16,'
+      '"lastPlayedDate":"2026-10-24","totalFlightTimeSeconds":8420,'
+      '"chassisSorties":{"mk1_bastion":14,"mk2_monsoon":12,'
+      '"mk3_zimbabwe_spire":8,"mk4_golden_sovereign":8},'
+      '"campaignSorties":{"kilwa_basin":28,"phantom_drift":14},'
+      '"unlockedAchievements":["first_sortie","flawless_defense",'
+      '"cascade_master","iron_hull"],'
+      '"isGoogleLinked":false}'
+  )
+  escaped_profile = profile_json.replace('"', "&quot;")
 
   pref_xml = (
       '<?xml version="1.0" encoding="utf-8" standalone="yes" ?>\n'
-      '<map>\n'
+      "<map>\n"
       '    <boolean name="flutter.void_sower_pro_unlocked" value="true" />\n'
       '    <boolean name="flutter.void_sower_ads_disabled" value="true" />\n'
-      f'    <boolean name="flutter.void_sower_completed_tutorial" value="{"true" if completed_tutorial else "false"}" />\n'
-      '    <int name="flutter.void_sower_high_score" value="12480" />\n'
-      '    <int name="flutter.void_sower_liberated_sectors" value="6" />\n'
+      '    <boolean name="flutter.void_sower_completed_tutorial"'
+      f' value="{"true" if completed_tutorial else "false"}" />\n'
+      '    <int name="flutter.void_sower_high_score" value="48950" />\n'
+      '    <int name="flutter.void_sower_liberated_sectors" value="9" />\n'
+      '    <string name="flutter.void_sower_selected_chassis">'
+      "mk4_golden_sovereign</string>\n"
       '    <int name="flutter.void_sower_sector_stars_1" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_2" value="3" />\n'
       '    <int name="flutter.void_sower_sector_stars_3" value="3" />\n'
-      '</map>\n'
+      '    <int name="flutter.void_sower_sector_stars_4" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_5" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_6" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_7" value="3" />\n'
+      '    <int name="flutter.void_sower_sector_stars_8" value="3" />\n'
+      '    <string'
+      f' name="flutter.void_sower_user_profile">{escaped_profile}</string>\n'
+      '    <string'
+      ' name="flutter.void_sower_active_profile_id">pilot_default</string>\n'
+      "</map>\n"
   )
-  with open("/tmp/prefs.xml", "w") as f:
+  with open("/tmp/prefs.xml", "w", encoding="utf-8") as f:
     f.write(pref_xml)
-  subprocess.run(["adb", "-s", DEVICE, "push", "/tmp/prefs.xml", "/data/local/tmp/prefs.xml"], check=True)
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "mkdir", "-p", "shared_prefs"])
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "cp", "/data/local/tmp/prefs.xml", "shared_prefs/FlutterSharedPreferences.xml"])
-  adb_cmd(["shell", "run-as", "com.voidsower.app", "chmod", "660", "shared_prefs/FlutterSharedPreferences.xml"])
+  subprocess.run(
+      ["adb", "-s", DEVICE, "push", "/tmp/prefs.xml", "/data/local/tmp/prefs.xml"],
+      check=True,
+  )
+  adb_cmd([
+      "shell",
+      "run-as",
+      "com.voidsower.app",
+      "mkdir",
+      "-p",
+      "shared_prefs",
+  ])
+  adb_cmd([
+      "shell",
+      "run-as",
+      "com.voidsower.app",
+      "cp",
+      "/data/local/tmp/prefs.xml",
+      "shared_prefs/FlutterSharedPreferences.xml",
+  ])
+  adb_cmd([
+      "shell",
+      "run-as",
+      "com.voidsower.app",
+      "chmod",
+      "660",
+      "shared_prefs/FlutterSharedPreferences.xml",
+  ])
   time.sleep(0.5)
 
 
 def record_60s_tutorial():
-  print("[Record 60s] Resetting app state to fresh cadet profile with Pro unlocked...")
+  print("[Record 60s] Seeding Pro Commander state & staging Sector 9...")
   reset_app_pro_state(completed_tutorial=True)
 
-  print("[Record 60s] Starting Void Sower main activity directly into combat arena...")
   adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-  time.sleep(3.5)
+  time.sleep(2.4)
+  tap(343, 224)  # Star Map
+  time.sleep(1.4)
+  tap(1100, 2235)  # Engage Sector 9
+  time.sleep(1.2)
 
   print("[Record 60s] Launching screenrecord (60s at 1080x2400)...")
+  adb_cmd(["shell", "rm", "-f", "/sdcard/gameplay_60s.mp4"])
   rec_proc = subprocess.Popen([
-      "adb", "-s", DEVICE, "shell",
-      "screenrecord", "--size", "1080x2400", "--bit-rate", "16000000", "--time-limit", "60",
-      "/sdcard/gameplay_60s.mp4"
+      "adb",
+      "-s",
+      DEVICE,
+      "shell",
+      "screenrecord",
+      "--size",
+      "1080x2400",
+      "--bit-rate",
+      "14000000",
+      "--time-limit",
+      "60",
+      "/sdcard/gameplay_60s.mp4",
   ])
 
   t0 = time.time()
 
   def wait_until(target_sec):
-    elapsed = time.time() - t0
-    rem = target_sec - elapsed
+    rem = target_sec - (time.time() - t0)
     if rem > 0:
       time.sleep(rem)
 
-  # Phase 1: 0s..7.6s — Threat & Corridors (Invaders descending down C2 and C7)
-  print("[Timeline 0s..7.6s] Observing descending assault craft down eight corridors...")
+  # Phase 1: 0s..8.0s — Threat & 8 Corridors
+  wait_until(2.0)
+  tap(1180, 2800)  # Fire nose blaster
 
-  # Phase 2: 7.6s..15.5s — Aiming & Corridor Alignment
-  wait_until(8.5)
-  print("[Timeline 8.5s] Align prow to Corridor 2 (tap C2 notch at x=277, y=2496)")
-  tap(277, 2496)
+  # Phase 2: 8.0s..16.5s — Aiming & Corridor Alignment
+  wait_until(8.2)
+  swipe(595, 2420, 297, 2420, 200)  # Slide to C2
+  wait_until(11.0)
+  swipe(297, 2420, 1043, 2420, 220)  # Slide to C7
+  wait_until(13.5)
+  swipe(1043, 2420, 297, 2420, 220)  # Slide back to C2
 
-  wait_until(11.5)
-  print("[Timeline 11.5s] Align prow to Corridor 7 (tap C7 notch at x=1067, y=2496)")
-  tap(1067, 2496)
+  # Phase 3: 16.5s..26.0s — 16-Bay Capacitor Ring & Sowing Cascades
+  wait_until(18.0)
+  tap(265, 2800)  # SOW ›
+  wait_until(21.5)
+  tap(265, 2800)  # SOW › (Totem #3 charged to 4+ seeds = MEGA GUN 16x!)
+  wait_until(23.5)
+  swipe(297, 2420, 446, 2420, 180)  # Align on C3 (Totem #3)
 
-  wait_until(14.0)
-  print("[Timeline 14.0s] Re-align prow to Corridor 2 (tap C2 notch at x=277, y=2496)")
-  tap(277, 2496)
+  # Phase 4: 26.0s..36.0s — Axial Particle Lance Discharge
+  wait_until(26.0)
+  tap(672, 2800)  # Fire 16x Quadratic Super Beam on C3!
+  wait_until(30.5)
+  swipe(446, 2420, 1192, 2420, 220)  # Align on C8 (Totem #8)
+  wait_until(32.0)
+  tap(672, 2800)  # Fire Quadratic Super Beam on C8!
 
-  # Phase 3: 15.5s..25.2s — 16-Bay Capacitor Ring & Sowing Cascades
-  wait_until(16.5)
-  print("[Timeline 16.5s] Focus frontline Bay 9 under C2 (tap x=277, y=2496)")
-  tap(277, 2496)
+  # Phase 5: 36.0s..43.5s — Harmonic Shield Deflection & Counter-Strike
+  wait_until(37.0)
+  swipe(1192, 2420, 595, 2420, 200)  # Align C4
+  wait_until(38.5)
+  tap(265, 2800)  # Sow right
+  wait_until(41.0)
+  tap(1180, 2800)  # Counter-strike lance / blaster
 
-  wait_until(19.5)
-  print("[Timeline 19.5s] Sow plasma cores clockwise across frontline bays (tap SOW RIGHT at x=1127, y=2829)")
-  tap(1127, 2829)
-
-  wait_until(23.0)
-  print("[Timeline 23.0s] Select frontline Bay 9 (tap x=277, y=2496)")
-  tap(277, 2496)
-
-  # Phase 4: 25.2s..35.2s — Axial Particle Lance Discharge
-  wait_until(25.5)
-  print("[Timeline 25.5s] Tap Axial Discharge bar (tap x=672, y=2829)")
-  tap(672, 2829)
-
-  wait_until(28.0)
-  print("[Timeline 28.0s] Quick-fire secondary prow pulse (tap arena x=277, y=1500)")
-  tap(277, 1500)
-
-  # Phase 5: 35.2s..43.3s — Harmonic Shield Deflection vs EMP Breaches
-  wait_until(36.0)
-  print("[Timeline 36.0s] Align charged canopy under C7 craft (tap C7 at x=1067, y=2496)")
-  tap(1067, 2496)
-
-  wait_until(39.5)
-  print("[Timeline 39.5s] Re-align charged canopy under C2 craft (tap C2 at x=277, y=2496)")
-  tap(277, 2496)
-
-  # Phase 6: 43.3s..60.0s — Autonomous AI Tactical Advisor & Sector Victory
+  # Phase 6: 43.5s..60.0s — AI Tactical Advisor & Campaign Command
   wait_until(43.5)
-  print("[Timeline 43.5s] Open Tactical Pause menu (tap x=1262, y=234)")
-  tap(1262, 234)
-
+  tap(1250, 224)  # Open Tactical Pause
   wait_until(44.3)
-  print("[Timeline 44.3s] Engage AI Tactical Auto-Solver in Pause Dialog (tap x=970, y=1880)")
-  tap(970, 1880)
-
+  tap(1050, 2200)  # Toggle AI Solver ON
   wait_until(45.0)
-  print("[Timeline 45.0s] Resume Sortie with AI Solver Active (tap x=672, y=1710)")
-  tap(672, 1710)
+  tap(671, 1500)  # Resume Combat with AI AUTO active!
+  wait_until(47.5)
+  tap(1180, 2800)
+  wait_until(50.0)
+  tap(672, 2800)
+  wait_until(53.0)
+  tap(343, 224)  # Show Campaign Star Map
+  wait_until(56.0)
+  tap(560, 2815)  # Show 3D Orbital Fleet Hangar
 
-  print("[Record 60s] AI Solver active, executing Grandmaster cascades toward victory...")
   rec_proc.wait()
   print("[Record 60s] Screen recording completed successfully!")
 
 
-def record_30s_showcase():
-  print("\n[Record 30s] Setting up Tactical Solver Showcase (Evasive + Respawning Invaders)...")
-  reset_app_pro_state(completed_tutorial=True)
-
-  print("[Record 30s] Starting Void Sower main activity...")
-  adb_cmd(["shell", "am", "start", "-n", "com.voidsower.app/.MainActivity"])
-  time.sleep(3.5)
-
-  # Navigate to Phantom Drift (Sector 10: Evasive Invaders)
-  print("[Record 30s] Navigating to Phantom Drift (Sector 10)...")
-  tap(1262, 234)  # Pause
-  time.sleep(1.0)
-  tap(310, 1880)  # Map
-  time.sleep(2.0)
-  tap(672, 440)   # Phantom Drift theater tab
-  time.sleep(1.2)
-  tap(880, 750)   # Sector 10 AI launch
-  time.sleep(2.0)
-
-  print("[Record 30s] Launching 30s showcase recording...")
-  rec_proc = subprocess.Popen([
-      "adb", "-s", DEVICE, "shell",
-      "screenrecord", "--size", "1080x2400", "--bit-rate", "14000000", "--time-limit", "30",
-      "/sdcard/solver_30s.mp4"
-  ])
-
-  t0 = time.time()
-
-  def wait_until(target_sec):
-    elapsed = time.time() - t0
-    rem = target_sec - elapsed
-    if rem > 0:
-      time.sleep(rem)
-
-  # Part 1: Phantom Drift (0s..14s) - Evasive Invaders with lateral thrusters
-  print("[Showcase 0s..14s] Autonomous AI executing evasion intercepts in Phantom Drift...")
-
-  # Part 2: Transition to Void Swarm (14s..17s) - Respawning Swarm Invaders
-  wait_until(14.0)
-  print("[Showcase 14.0s] Open Tactical Pause (tap x=1262, y=234)")
-  tap(1262, 234)
-
-  wait_until(14.8)
-  print("[Showcase 14.8s] Open Star Map (tap MAP at x=310, y=1880)")
-  tap(310, 1880)
-
-  wait_until(16.0)
-  print("[Showcase 16.0s] Switch to Void Swarm tab (tap x=1110, y=440)")
-  tap(1110, 440)
-
-  wait_until(17.0)
-  print("[Showcase 17.0s] Launch Sector 19 Void Swarm with AI (tap AI at x=880, y=750)")
-  tap(880, 750)
-
-  # Part 3: Void Swarm (18s..30s) - Dense Respawning Horde with Tactical Core Siphon
-  print("[Showcase 18s..30s] Autonomous AI managing dense swarm horde and core siphon...")
-
-  rec_proc.wait()
-  print("[Record 30s] Showcase recording completed successfully!")
-
-
 if __name__ == "__main__":
-  if len(sys.argv) > 1 and sys.argv[1] == "--showcase":
-    record_30s_showcase()
-  elif len(sys.argv) > 1 and sys.argv[1] == "--tutorial":
-    record_60s_tutorial()
-  else:
-    record_60s_tutorial()
-    record_30s_showcase()
+  record_60s_tutorial()
